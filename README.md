@@ -1,0 +1,2 @@
+# snesology
+The SNESology Project
