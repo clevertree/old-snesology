@@ -1,0 +1,46 @@
+{
+  "name": "Demo Song",
+  "guid": "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+  "version": "0.0.1",
+  "description": "Demonstration song",
+  "load": [
+    "audio/instruments/oscillator/simple.js"
+  ],
+  "aliases": {
+    "osc": "oscillator",
+    "perc": "oscillator"
+  },
+  "notes": [
+    ["n", "osc.sine", "A4", 1],
+    ["n", "osc.sawtooth", "A3", 0.2],
+    ["p", 0.25],
+    ["n", "osc.sawtooth", "C4"],
+    ["p", 0.25],
+    ["n", "osc.sawtooth", "C5"],
+    ["p", 0.25],
+    ["n", "osc.sawtooth", "C6"],
+    ["p", 0.25],
+
+    ["n", "osc.sine", "Gs4", 1],
+    ["n", "osc.sawtooth", "Gs3", 0.2],
+    ["p", 0.25],
+    ["n", "osc.sawtooth", "C4"],
+    ["p", 0.25],
+    ["n", "osc.sawtooth", "C5"],
+    ["p", 0.25],
+    ["n", "osc.sawtooth", "C6"],
+    ["p", 0.25]
+  ],
+  "noteGroups": {
+    "beat": [
+      ["n", "perc.kick"],
+      ["p", 0.05],
+      ["n", "perc.kick"], ["n", "perc.snare"],
+      ["p", 0.05],
+      ["n", "perc.kick"],
+      ["p", 0.05],
+      ["n", "perc.kick"], ["n", "perc.snare"],
+      ["p", 0.05]
+    ]
+  }
+}
