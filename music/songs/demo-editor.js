@@ -11,10 +11,10 @@
     // Dependencies
     Util.loadScript([
         // Song Manager
-        'audio/song-loader.js',
+        'music/song-loader.js',
 
         // instrument
-        // 'audio/instrument/oscillator/simple.js',
+        // 'music/instrument/oscillator/simple.js',
     ]);
 
 
@@ -27,7 +27,7 @@
 
 
         Util.waitForLoadingScripts(function() {
-            var editableSong = new Audio.SongManager('audio/songs/demo.song', TITLE);
+            var editableSong = new Audio.SongManager('music/songs/demo.song', TITLE);
             // editableSong.registerInstruments(
                 // Audio.instrument.iOscillatorSimple
             // );

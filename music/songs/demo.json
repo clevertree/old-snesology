@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "Demonstration song",
   "load": [
-    "audio/instruments/oscillator/simple.js"
+    "music/instruments/oscillator/simple.js"
   ],
   "aliases": {
     "osc": "oscillator",

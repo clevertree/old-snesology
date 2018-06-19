@@ -1,4 +1,4 @@
-song-editor {
+music-editor {
     background-color: #000;
     display: block;
     font-size: 16px;
@@ -6,13 +6,13 @@ song-editor {
 
 /** Menu **/
 
-song-editor-menu {
+music-editor-menu {
     display: inline-block;
     border: 1px solid grey;
     background-color: #333;
 }
 
-song-editor-submenu {
+music-editor-submenu {
     display: none;
     border: 1px solid grey;
     background-color: #333;
@@ -24,7 +24,7 @@ song-editor-submenu {
     /* min-width: 200px; */
 }
 
-song-editor-menu-item.open > song-editor-submenu {
+music-editor-menu-item.open > music-editor-submenu {
     /* display: block; */
     display: inline-block;
     opacity: 1;
@@ -35,47 +35,47 @@ song-editor-menu-item.open > song-editor-submenu {
 }
 
 
-song-editor-menu hr {
+music-editor-menu hr {
     margin: 4px 0;
     border: 1px #666 solid;
 }
 
-song-editor-menu-item {
+music-editor-menu-item {
     vertical-align: top;
     display: inline-block;
     padding: 3px 8px;
     position: relative;
     cursor: pointer;
 }
-song-editor-menu-item.open {
+music-editor-menu-item.open {
     background-color: #555;
 }
-song-editor-menu-item:active {
+music-editor-menu-item:active {
     background-color: #888;
 }
 
 
-song-editor-menu-item > span {
+music-editor-menu-item > span {
     white-space: nowrap;
 }
 
-song-editor-submenu > song-editor-menu-item {
+music-editor-submenu > music-editor-menu-item {
     display: block;
 }
 
-song-editor-submenu > song-editor-menu-item > song-editor-submenu {
+music-editor-submenu > music-editor-menu-item > music-editor-submenu {
     /*margin-left: 40px;*/
     /*display: inline-block;*/
 }
 
 
-song-editor-grid {
+music-editor-grid {
     cursor: pointer;
     display: block;
     /*display: table;*/
 }
 
-song-editor-grid-row {
+music-editor-grid-row {
     display: block;
     /*display: table-row;*/
     background-color: #111;
@@ -83,16 +83,16 @@ song-editor-grid-row {
     clear: both;
 }
 
-song-editor-grid-row.odd {
+music-editor-grid-row.odd {
     background-color: #222;
 }
 
-song-editor-grid-row.selected {
+music-editor-grid-row.selected {
     background-color: #333;
 }
 
 
-song-editor-grid-cell {
+music-editor-grid-cell {
     /*display: table-cell;*/
     /* display: inline-block; */
     float: left;
@@ -106,30 +106,30 @@ song-editor-grid-cell {
     height: 22px;
     color: green;
 }
-song-editor-grid-cell:last-child {
+music-editor-grid-cell:last-child {
     margin-right: 0;
 }
 @media only screen and (min-width: 600px)  {
-    song-editor-grid-cell.command-pause {
+    music-editor-grid-cell.command-pause {
         float: right;
         min-width: 60px;
     }
 }
 
-song-editor-grid-cell.selected,
-song-editor-grid-cell.open {
+music-editor-grid-cell.selected,
+music-editor-grid-cell.open {
     max-width: 1000px;
 }
-song-editor-grid-cell.selected {
+music-editor-grid-cell.selected {
     /*background-color: #444;*/
     color: greenyellow;
 }
 
-song-editor-grid-cell.playing {
+music-editor-grid-cell.playing {
     font-weight: bold;
 }
 
-song-editor-grid-command {
+music-editor-grid-command {
     display: inline-block;
     /*color: #0000;*/
     max-width: 8px;
@@ -140,16 +140,16 @@ song-editor-grid-command {
     font-weight: bold;
 }
 
-song-editor-grid-cell.selected > song-editor-grid-command,
-song-editor-grid-cell.selected > song-editor-grid-parameter {
+music-editor-grid-cell.selected > music-editor-grid-command,
+music-editor-grid-cell.selected > music-editor-grid-parameter {
     border-color: greenyellow;
 }
 
-song-editor-grid-command.instrument {
+music-editor-grid-command.instrument {
     color: deepskyblue;
 }
 
-song-editor-grid-parameter {
+music-editor-grid-parameter {
     display: inline-block;
     text-align: center;
     max-width: 40px;
@@ -161,7 +161,7 @@ song-editor-grid-parameter {
     color: turquoise;
 }
 
-song-editor-grid-cell.selected > song-editor-grid-parameter,
-song-editor-grid-cell.open > song-editor-grid-parameter {
+music-editor-grid-cell.selected > music-editor-grid-parameter,
+music-editor-grid-cell.open > music-editor-grid-parameter {
     max-width: 1000px;
 }
