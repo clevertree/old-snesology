@@ -663,24 +663,18 @@
                 <fieldset class="selected-note">
                     <select name="instrument">
                         <optgroup label="Instrument Group">
-                        <option>osc.simple</option>
+                            <option>osc.simple</option>
                             ${renderEditorFormOptions('instruments')}
                         </optgroup>
                     </select>
                     <select name="frequency">
-                        <option>A#4</option>
-                            ${renderEditorFormOptions('frequencies')}
-                        </optgroup>
+                        ${renderEditorFormOptions('frequencies')}
                     </select>
                     <select name="length">
-                        <option>1.0</option>
-                            ${renderEditorFormOptions('lengths')}
-                        </optgroup>
+                        ${renderEditorFormOptions('lengths')}
                     </select>
                     <select name="velocity">
-                        <option>100</option>
-                            ${renderEditorFormOptions('velocities')}
-                        </optgroup>
+                        ${renderEditorFormOptions('velocities')}
                     </select>
                     <button name="duplicate">+</button>
                     <button name="remove">-</button>
@@ -692,12 +686,57 @@
     }
 
     function renderEditorFormOptions(optionType) {
+        var options = [];
         switch(optionType) {
             case 'instruments':
+                if(window.instruments) {
+                    for(var key in window.instruments) {
+                        if(window.instruments.hasOwnProperty(key)) {
+                            var instrument = window.instruments;
+                            options.push([key, instrument.constructor.name]);
+                        }
+                    }
+                }
                 break;
-            case 'notes':
+
+            case 'frequencies':
+                var notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+                for(var i=1; i<6; i++) {
+                    for(var j=0; j<notes.length; j++) {
+                        var note = notes[j] + i;
+                        options.push([note, note]);
+                    }
+                }
+                break;
+
+            case 'velocities':
+                for(var vi=100; vi>=0; vi++) {
+                    options.push([vi, vi]);
+                }
+                break;
+
+            case 'lengths':
+                options = [
+                    [32.0,  'Octuple'],
+                    [16.0,  'Quadruple'],
+                    [8.0,   'Double'],
+                    [4.0,   'Whole'],
+                    [2.0,   'Half'],
+                    [1.0,   'Quarter'],
+                    [0.5,   'Eighth'],
+                    [0.25,  'Sixteenth'],
+                    [0.125, 'Thirty-second'],
+                ];
                 break;
         }
+
+        var optionHTML = '';
+        for (var o=0; o<options.length; o++) {
+            var value = options[o][0];
+            var label = options[o][1] || value;
+            optionHTML += `<option label="${label}">${value}</option>`;
+        }
+        return optionHTML;
     }
 
     function renderEditorMenuLoadFromMemory() {
