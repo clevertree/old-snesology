@@ -14,23 +14,22 @@
             this.audioContext = options.context || new (window.AudioContext || window.webkitAudioContext)();
             this.depressedKeys = [];
             this.config = DEFAULT_CONFIG;
-
-            this.gridElement = new MusicEditorGridElement();
-            this.menuElement = new MusicEditorMenuElement();
-            this.playerElement = null; // new MusicPlayerElement();
+            this.playerElement = null;
         }
 
-        getSong() { return this.playerElement.getSong(); }
+        get grid() { return this.querySelector('music-editor-grid'); }
+        get menu() { return this.querySelector('music-editor-menu'); }
+        get player() { return this.playerElement; }
+
+        getSong() { return this.player.getSong(); }
 
         connectedCallback() {
+            // this.render();
+
             this.addEventListener('keydown', this.onInput.bind(this));
             this.addEventListener('keyup', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
 
-
-            this.appendChild(this.menuElement);
-            this.menuElement.innerHTML = renderEditorMenuContent();
-            this.appendChild(this.gridElement);
 
 
             if(!this.getAttribute('tabindex'))
@@ -38,14 +37,15 @@
 
             loadScript('music/player/music-player.js', function() {
                 this.playerElement = document.createElement('music-player');
-                this.appendChild(this.playerElement);
+                // this.appendChild(this.playerElement); // TODO: unnecessary lol
 
                 if(this.getSongURL())
                     this.playerElement.loadSong(this.getSongURL(), function() {
-                        this.updateEditor();
-                        var firstCell = this.querySelector('music-editor-grid-cell');
-                        firstCell.select();
-                        this.focus();
+                        this.render();
+                        let firstCell = this.querySelector('music-editor-grid-cell');
+                        if(firstCell)
+                            firstCell.select();
+                        // this.focus();
                     }.bind(this));
             }.bind(this));
         }
@@ -60,56 +60,31 @@
             this.loadSongData(loadSongFromMemory(guid));
         }
 
-        updateEditor() {
-            var commandGroup = this.getSong().notes; // options.noteGroup || 'default';
-            // var commandGroup = this.song.notes[noteGroupName];
-            // if(!commandGroup)
-            //     throw new Error("Note group not found: " + noteGroupName);
-            console.log('Updating Editor:', commandGroup);
-
-            this.gridElement.innerHTML = '';
-
-            var rowCommands = [];
-            for(var i=0; i<commandGroup.length; i++) {
-                var args = commandGroup[i];
-                var commandName = normalizeCommandName(args[0]);
-                switch(commandName) {
-                    default:
-                        rowCommands.push(args);
-                        break;
-
-                    case 'Pause':
-                        // rowCommands.push(args);
-                        var rowElm = new MusicEditorGridRowElement(args);
-                        rowElm.addCommands(rowCommands);
-                        if(this.gridElement.children.length % 2 === 0)
-                            rowElm.classList.add('odd');
-                        rowCommands = [];
-                        this.gridElement.appendChild(rowElm);
-                        break;
-                }
-
-            }
+        render() {
+            this.innerHTML = renderEditorContent();
+            var noteList = this.getSong().notes;
+            console.log('Updating Editor:', noteList);
+            this.grid.render(noteList);
         }
 
         // Player commands
 
         loadSong(songURL, onLoaded) {
-            return this.playerElement.loadSong(songURL, onLoaded);
+            return this.player.loadSong(songURL, onLoaded);
         }
 
         playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement) {
-            return this.playerElement.playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement);
+            return this.player.playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement);
         }
 
         playNote(noteArgs, noteStartTime, bpm, associatedElement) {
-            return this.playerElement.playNote(noteArgs, noteStartTime, bpm, associatedElement);
+            return this.player.playNote(noteArgs, noteStartTime, bpm, associatedElement);
         }
         playNotes(commandList, startPosition, seekLength, playbackOffset) {
-            return this.playerElement.playNotes(commandList, startPosition, seekLength, playbackOffset);
+            return this.player.playNotes(commandList, startPosition, seekLength, playbackOffset);
         }
-        play (seekPosition) { return this.playerElement.play(seekPosition); }
-        pause (seekPosition) { return this.playerElement.pause(); }
+        play (seekPosition) { return this.player.play(seekPosition); }
+        pause (seekPosition) { return this.player.pause(); }
 
 
         // Edit Song
@@ -195,7 +170,7 @@
                     break;
 
                 case 'click':
-                    this.menuElement.close();
+                    this.menu.close();
                     break;
             }
         }
@@ -205,6 +180,31 @@
 
     class MusicEditorGridElement extends HTMLElement {
         get editor() { return findParentNode(this, MusicEditorElement); }
+
+        render(noteList) {
+            this.innerHTML = '';
+
+            var rowCommands = [];
+            for(var i=0; i<noteList.length; i++) {
+                var noteArgs = noteList[i];
+                var commandName = normalizeCommandName(noteArgs[0]);
+                switch(commandName) {
+                    default:
+                        rowCommands.push(noteArgs);
+                        break;
+
+                    case 'Pause':
+                        // rowCommands.push(args);
+                        var rowElm = new MusicEditorGridRowElement(noteArgs);
+                        rowElm.addCommands(rowCommands);
+                        if(this.children.length % 2 === 0)
+                            rowElm.classList.add('odd');
+                        rowCommands = [];
+                        this.appendChild(rowElm);
+                        break;
+                }
+            }
+        }
     }
 
     class MusicEditorGridRowElement extends HTMLElement {
@@ -396,9 +396,11 @@
             super();
         }
 
+
         get editor() { return findParentNode(this, MusicEditorElement); }
 
         connectedCallback() {
+            // this.innerHTML = renderEditorMenuContent();
             this.addEventListener('keydown', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
             // let shadowRoot = this.attachShadow({mode: 'open'});
@@ -567,66 +569,6 @@
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
 
-    // Menu commands
-
-    function renderEditorMenuContent() {
-        return `
-            <music-editor-menu-item>
-                <span>File</span>
-                <music-editor-submenu>
-                    <music-editor-menu-item>
-                        <span>Open from memory ></span>
-                        ${renderEditorMenuLoadFromMemory()}
-                    </music-editor-menu-item>
-                    <music-editor-menu-item action="load:file">Open from file</music-editor-menu-item>
-                    <music-editor-menu-item action="load:url">Open from url</music-editor-menu-item>
-                    
-                    <hr/>
-                    <music-editor-menu-item action="save:memory">Save to memory</music-editor-menu-item>
-                    <music-editor-menu-item action="save:file">Save to file</music-editor-menu-item>
-                    
-                    <hr/>
-                    <music-editor-menu-item action="export:file"><span>Export to audio file</span></music-editor-menu-item>
-                </music-editor-submenu>
-            </music-editor-menu-item>
-            
-            <music-editor-menu-item>Editor</music-editor-menu-item>
-            <music-editor-menu-item>Instruments</music-editor-menu-item>
-            <music-editor-menu-item>Collaborate</music-editor-menu-item>
-        `;
-    }
-
-    function renderEditorMenuLoadFromMemory() {
-        var songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
-        console.log("Loading song list from memory: ", songGUIDs);
-
-        var menuItemsHTML = '';
-        for(var i=0; i<songGUIDs.length; i++) {
-            var songGUID = songGUIDs[i];
-            var song = loadSongFromMemory(songGUID);
-            if(song) {
-                menuItemsHTML +=
-                    `<music-editor-menu-item action="load:memory" guid="${songGUID}">
-                        <span>${song.name || "unnamed"}</span>
-                    </music-editor-menu-item>`;
-            } else {
-                console.error("Song GUID not found: " + songGUID);
-            }
-        }
-
-        return `
-            <music-editor-submenu>
-                ${menuItemsHTML}
-            </music-editor-submenu>
-        `;
-    }
-
-    function menuCommandFileLoadFromMemory() {
-        var subMenu = this.nextSibling;
-        console.log('Submenu', subMenu);
-
-        this.classList.add('open');
-    }
 
     const menuActions = {
         'save:memory': function() { this.saveSongToMemory(); },
@@ -687,6 +629,103 @@
             }
         }
     }
+
+    // Rendering templates
+
+    function renderEditorContent() {
+        return `
+            <music-editor-menu>
+                <music-editor-menu-item>
+                    <span>File</span>
+                    <music-editor-submenu>
+                        <music-editor-menu-item>
+                            <span>Open from memory ></span>
+                            ${renderEditorMenuLoadFromMemory()}
+                        </music-editor-menu-item>
+                        <music-editor-menu-item action="load:file">Open from file</music-editor-menu-item>
+                        <music-editor-menu-item action="load:url">Open from url</music-editor-menu-item>
+                        
+                        <hr/>
+                        <music-editor-menu-item action="save:memory">Save to memory</music-editor-menu-item>
+                        <music-editor-menu-item action="save:file">Save to file</music-editor-menu-item>
+                        
+                        <hr/>
+                        <music-editor-menu-item action="export:file"><span>Export to audio file</span></music-editor-menu-item>
+                    </music-editor-submenu>
+                </music-editor-menu-item>
+                
+                <music-editor-menu-item>View</music-editor-menu-item>
+                <music-editor-menu-item>Editor</music-editor-menu-item>
+                <music-editor-menu-item>Instruments</music-editor-menu-item>
+                <music-editor-menu-item>Collaborate</music-editor-menu-item>
+            </music-editor-menu>
+            <form class="form-instrument">
+                <fieldset class="selected-note">
+                    <select name="instrument">
+                        <optgroup label="Instrument Group">
+                        <option>osc.simple</option>
+                            ${renderEditorFormOptions('instruments')}
+                        </optgroup>
+                    </select>
+                    <select name="frequency">
+                        <option>A#4</option>
+                            ${renderEditorFormOptions('frequencies')}
+                        </optgroup>
+                    </select>
+                    <select name="length">
+                        <option>1.0</option>
+                            ${renderEditorFormOptions('lengths')}
+                        </optgroup>
+                    </select>
+                    <select name="velocity">
+                        <option>100</option>
+                            ${renderEditorFormOptions('velocities')}
+                        </optgroup>
+                    </select>
+                    <button name="duplicate">+</button>
+                    <button name="remove">-</button>
+                </fieldset>
+            </form>
+            <music-editor-grid>
+            </music-editor-grid>
+        `;
+    }
+
+    function renderEditorFormOptions(optionType) {
+        switch(optionType) {
+            case 'instruments':
+                break;
+            case 'notes':
+                break;
+        }
+    }
+
+    function renderEditorMenuLoadFromMemory() {
+        var songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
+        console.log("Loading song list from memory: ", songGUIDs);
+
+        var menuItemsHTML = '';
+        for(var i=0; i<songGUIDs.length; i++) {
+            var songGUID = songGUIDs[i];
+            var song = loadSongFromMemory(songGUID);
+            if(song) {
+                menuItemsHTML +=
+                    `<music-editor-menu-item action="load:memory" guid="${songGUID}">
+                        <span>${song.name || "unnamed"}</span>
+                    </music-editor-menu-item>`;
+            } else {
+                console.error("Song GUID not found: " + songGUID);
+            }
+        }
+
+        return `
+            <music-editor-submenu>
+                ${menuItemsHTML}
+            </music-editor-submenu>
+        `;
+    }
+
+    // Config
 
     const DEFAULT_CONFIG = {
         previewNotesOnSelect: true,

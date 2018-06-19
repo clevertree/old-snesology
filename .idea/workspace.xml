@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/music/editor/music-editor.js" line="63" />
+    <bookmark url="file://$PROJECT_DIR$/music/editor/music-editor.js" line="66" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8de638df-61d1-4bc7-a706-f7e58ac52167" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/music/player/music-player.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/music/player/music-player.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/editor/song-editor.css" beforeDir="false" afterPath="$PROJECT_DIR$/music/editor/music-editor.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/editor/song-editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/editor/music-editor.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/instruments/oscillator/simple.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/instruments/oscillator/simple.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/loader/song-loader.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/songs/demo-editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/songs/demo-editor.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/songs/demo-minimal.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/songs/demo-minimal.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/songs/demo.json" beforeDir="false" afterPath="$PROJECT_DIR$/music/songs/demo.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/songs/demo.song" beforeDir="false" afterPath="$PROJECT_DIR$/music/songs/demo.song" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/editor/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/client/editor/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/music/editor/music-editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/editor/music-editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/music/songs/demo.json" beforeDir="false" afterPath="$PROJECT_DIR$/music/songs/demo.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -29,30 +20,45 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="music-player.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="141">
-              <caret line="104" column="26" selection-start-line="104" selection-start-column="26" selection-end-line="104" selection-end-column="26" />
+            <state relative-caret-position="225">
+              <caret line="15" column="62" selection-start-line="15" selection-start-column="62" selection-end-line="15" selection-end-column="62" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="include.preload.js" pinned="false" current-in-tab="false">
-        <entry file="mock://chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/include.preload.js">
-          <provider selected="true" editor-type-id="vmFileEditor" />
+      <file leaf-file-name="music-player.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="645">
+              <caret line="43" column="38" selection-start-line="43" selection-start-column="38" selection-end-line="43" selection-end-column="38" />
+            </state>
+          </provider>
         </entry>
       </file>
-      <file leaf-file-name="polyfill.js" pinned="false" current-in-tab="false">
-        <entry file="mock://chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/polyfill.js">
-          <provider selected="true" editor-type-id="vmFileEditor" />
+      <file leaf-file-name="demo.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="24" column="29" selection-start-line="24" selection-start-column="29" selection-end-line="24" selection-end-column="29" />
+            </state>
+          </provider>
         </entry>
       </file>
       <file leaf-file-name="music-editor.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="288" column="42" selection-start-line="288" selection-start-column="42" selection-end-line="288" selection-end-column="42" />
+            <state relative-caret-position="396">
+              <caret line="665" column="40" lean-forward="true" selection-start-line="665" selection-start-column="40" selection-end-line="665" selection-end-column="40" />
+              <folding>
+                <element signature="e#7635#8615#0" />
+                <element signature="e#8621#12447#0" />
+                <element signature="e#12497#12890#0" />
+                <element signature="e#12897#13486#0" />
+                <element signature="e#13492#14097#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -76,6 +82,18 @@
       <find>select(true</find>
       <find>keyup</find>
       <find>getCurrentBPM</find>
+      <find>DOMCont</find>
+      <find>File</find>
+      <find>this.gridElement</find>
+      <find>this.menuElement</find>
+      <find>MusicEditorMenuElement</find>
+      <find>renderEditorContent</find>
+      <find>.update(note</find>
+      <find>renderEditorMen</find>
+      <find>this.player.getS</find>
+      <find>this.player.get</find>
+      <find>config</find>
+      <find>Gs</find>
     </findStrings>
     <replaceStrings>
       <replace>client/</replace>
@@ -84,6 +102,10 @@
       <replace>music-player</replace>
       <replace>MusicPlayer</replace>
       <replace>MusicEditor</replace>
+      <replace>this.grid</replace>
+      <replace>this.menuElement</replace>
+      <replace>this.menu</replace>
+      <replace>G#</replace>
     </replaceStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/client</dir>
@@ -103,9 +125,10 @@
         <option value="$PROJECT_DIR$/audio/editor/song-editor.js" />
         <option value="$PROJECT_DIR$/audio/songs/demo.json" />
         <option value="$PROJECT_DIR$/music/editor/song-editor.js" />
-        <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/music/player/music-player.css" />
         <option value="$PROJECT_DIR$/music/player/music-player.js" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/music/songs/demo.json" />
         <option value="$PROJECT_DIR$/music/editor/music-editor.js" />
       </list>
     </option>
@@ -132,6 +155,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -172,7 +196,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -224,36 +247,37 @@
       <option name="presentableId" value="Default" />
       <updated>1529280851590</updated>
       <workItem from="1529280852752" duration="991000" />
-      <workItem from="1529361668591" duration="4060000" />
+      <workItem from="1529361668591" duration="4710000" />
+      <workItem from="1529424679216" duration="5328000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="5051000" />
+    <option name="totallyTimeSpent" value="11029000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1855" height="1057" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info anchor="bottom" id="TODO" order="5" />
+      <window_info anchor="bottom" id="Event Log" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24959569" />
-      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Terminal" order="9" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24959569" />
+      <window_info anchor="bottom" id="Docker" order="10" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32960325" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.39979655" />
+      <window_info anchor="right" id="Debug" order="4" visible="true" weight="0.27115902" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Cvs" order="3" weight="0.25" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -264,21 +288,34 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/music/player/music-player.js</url>
-          <line>104</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="8" />
-        </line-breakpoint>
-      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="9" />
+      <option name="time" value="14" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1560">
+          <caret line="104" column="26" selection-start-line="104" selection-start-column="26" selection-end-line="104" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1590">
+          <caret line="106" column="9" lean-forward="true" selection-start-line="106" selection-start-column="9" selection-end-line="106" selection-end-column="9" />
+          <folding>
+            <element signature="e#7635#8615#0" />
+            <element signature="e#8621#12447#0" />
+            <element signature="e#12497#12890#0" />
+            <element signature="e#12897#13486#0" />
+            <element signature="e#13492#14097#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="345">
@@ -371,13 +408,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="20" column="31" selection-start-line="20" selection-start-column="31" selection-end-line="20" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
@@ -398,13 +428,6 @@
         <state relative-caret-position="-1032" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/music/player/music-player.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -412,17 +435,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" column="62" selection-start-line="15" selection-start-column="62" selection-end-line="15" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" column="29" selection-start-line="24" selection-start-column="29" selection-end-line="24" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="141">
-          <caret line="104" column="26" selection-start-line="104" selection-start-column="26" selection-end-line="104" selection-end-column="26" />
+        <state relative-caret-position="645">
+          <caret line="43" column="38" selection-start-line="43" selection-start-column="38" selection-end-line="43" selection-end-column="38" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="288" column="42" selection-start-line="288" selection-start-column="42" selection-end-line="288" selection-end-column="42" />
+        <state relative-caret-position="396">
+          <caret line="665" column="40" lean-forward="true" selection-start-line="665" selection-start-column="40" selection-end-line="665" selection-end-column="40" />
+          <folding>
+            <element signature="e#7635#8615#0" />
+            <element signature="e#8621#12447#0" />
+            <element signature="e#12497#12890#0" />
+            <element signature="e#12897#13486#0" />
+            <element signature="e#13492#14097#0" />
+          </folding>
         </state>
       </provider>
     </entry>

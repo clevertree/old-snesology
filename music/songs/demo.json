@@ -21,8 +21,8 @@
     ["n", "osc.sawtooth", "C6"],
     ["p", 0.25],
 
-    ["n", "osc.sine", "Gs4", 1],
-    ["n", "osc.sawtooth", "Gs3", 0.2],
+    ["n", "osc.sine", "G#4", 1],
+    ["n", "osc.sawtooth", "G#3", 0.2],
     ["p", 0.25],
     ["n", "osc.sawtooth", "C4"],
     ["p", 0.25],
