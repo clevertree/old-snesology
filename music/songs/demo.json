@@ -6,41 +6,39 @@
   "load": [
     "music/instruments/oscillator/simple.js"
   ],
-  "aliases": {
-    "osc": "oscillator",
-    "perc": "oscillator"
-  },
-  "notes": [
-    ["n", "osc.sine", "A4", 1],
-    ["n", "osc.sawtooth", "A3", 0.2],
-    ["p", 0.25],
-    ["n", "osc.sawtooth", "C4"],
-    ["p", 0.25],
-    ["n", "osc.sawtooth", "C5"],
-    ["p", 0.25],
-    ["n", "osc.sawtooth", "C6"],
-    ["p", 0.25],
+  "instructions": [
+    {"groupExecute":"beat"},
+    {"instrument":"oscillator.sine", "frequency":"A4", "length":1},
+    {"instrument":"oscillator.sawtooth", "frequency":"A3", "length":0.2},
+    0.25,
+    {"instrument":"oscillator.sine", "frequency":"C4"},
+    0.25,
+    "C4",
+    0.25,
+    "C5",
+    0.25,
+    ["C6", 0.25],
+    0.25,
 
-    ["n", "osc.sine", "G#4", 1],
-    ["n", "osc.sawtooth", "G#3", 0.2],
-    ["p", 0.25],
-    ["n", "osc.sawtooth", "C4"],
-    ["p", 0.25],
-    ["n", "osc.sawtooth", "C5"],
-    ["p", 0.25],
-    ["n", "osc.sawtooth", "C6"],
-    ["p", 0.25]
+    {"groupExecute":"beat"},
+    {"instrument":"oscillator.sine", "frequency":"A4", "length":1},
+    {"instrument":"oscillator.sawtooth", "frequency":"B3", "length":0.2},
+    0.25,
+    {"instrument":"oscillator.sine", "frequency":"C4"},
+    0.25,
+    "C4",
+    0.25,
+    "C5",
+    0.25,
+    ["C6", 0.25],
+    0.25
   ],
-  "noteGroups": {
+  "instructionGroups": {
     "beat": [
-      ["n", "perc.kick"],
-      ["p", 0.05],
-      ["n", "perc.kick"], ["n", "perc.snare"],
-      ["p", 0.05],
-      ["n", "perc.kick"],
-      ["p", 0.05],
-      ["n", "perc.kick"], ["n", "perc.snare"],
-      ["p", 0.05]
+      {"instrument":"percussion", "frequency":"kick"}, 0.05,
+      "kick", "snare",    0.05,
+      "kick",             0.05,
+      "kick", "snare",    0.05
     ]
   }
 }

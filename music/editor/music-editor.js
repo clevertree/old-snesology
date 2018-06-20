@@ -1,6 +1,6 @@
 /**
  * Editor requires a modern browser
- * One groups displays at a time. Columns imply simultaneous notes. Pauses are implied by the scale
+ * One groups displays at a time. Columns imply simultaneous instructions. Pauses are implied by the scale
  */
 
 (function() {
@@ -29,8 +29,7 @@
             this.addEventListener('keydown', this.onInput.bind(this));
             this.addEventListener('keyup', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
-
-
+            this.addEventListener('change', this.onInput.bind(this));
 
             if(!this.getAttribute('tabindex'))
                 this.setAttribute('tabindex', '1');
@@ -62,9 +61,9 @@
 
         render() {
             this.innerHTML = renderEditorContent();
-            var noteList = this.getSong().notes;
-            console.log('Updating Editor:', noteList);
-            this.grid.render(noteList);
+            var instructionList = this.getSong().instructions;
+            console.log('Updating Editor:', instructionList);
+            this.grid.render(instructionList);
         }
 
         // Player commands
@@ -73,52 +72,63 @@
             return this.player.loadSong(songURL, onLoaded);
         }
 
-        playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement) {
-            return this.player.playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement);
-        }
-
-        playNote(noteArgs, noteStartTime, bpm, associatedElement) {
-            return this.player.playNote(noteArgs, noteStartTime, bpm, associatedElement);
-        }
-        playNotes(commandList, startPosition, seekLength, playbackOffset) {
-            return this.player.playNotes(commandList, startPosition, seekLength, playbackOffset);
-        }
+        // playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, options, associatedElement) {
+        //     return this.player.playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, options, associatedElement);
+        // }
+        //
+        // playInstruction(instructionArgs, instructionStartTime, bpm, associatedElement) {
+        //     return this.player.playInstruction(instructionArgs, instructionStartTime, bpm, associatedElement);
+        // }
+        // playInstructions(commandList, startPosition, seekLength, playbackOffset) {
+        //     return this.player.playInstructions(commandList, startPosition, seekLength, playbackOffset);
+        // }
         play (seekPosition) { return this.player.play(seekPosition); }
         pause (seekPosition) { return this.player.pause(); }
 
 
         // Edit Song
 
-        setNote(position, noteArgs, groupName) {
-            var noteList = this.getNotes(groupName);
-            if(noteList.length < position)
-                throw new Error("Invalid note position: " + position + (groupName ? " for group: " + groupName : ''));
-            noteList[position] = noteArgs;
+        setInstruction(position, instruction, groupName) {
+            var instructionList = this.getInstructions(groupName);
+            if(instructionList.length < position)
+                throw new Error("Invalid instruction position: " + position + (groupName ? " for group: " + groupName : ''));
+            instructionList[position] = instruction;
         }
 
-        getNotes(groupName) {
+        getInstructions(groupName) {
             if(groupName) {
-                var noteList = this.song.noteGroups[groupName];
-                if(!noteList)
-                    throw new Error("Note group not found: " + groupName);
-                return noteList;
+                var instructionList = this.song.instructionGroups[groupName];
+                if(!instructionList)
+                    throw new Error("Instruction group not found: " + groupName);
+                return instructionList;
             }
-            return this.song.notes;
+            return this.song.instructions;
         }
 
-        getNotePosition(note, groupName) {
-            var noteList = this.getNotes(groupName);
-            var p = noteList.indexOf(note);
+        getInstructionPosition(instruction, groupName) {
+            var instructionList = this.getInstructions(groupName);
+            var p = instructionList.indexOf(instruction);
             if(p === -1)
-                throw new Error("Note not found in note list");
+                throw new Error("Instruction not found in instruction list");
             return p;
         }
 
-        swapNotes(note1, note2, groupName) {
-            var p1 = this.getNotePosition(note1, groupName);
-            var p2 = this.getNotePosition(note2, groupName);
-            this.setNote(p2, note1);
-            this.setNote(p1, note2);
+        swapInstructions(instruction1, instruction2, groupName) {
+            var p1 = this.getInstructionPosition(instruction1, groupName);
+            var p2 = this.getInstructionPosition(instruction2, groupName);
+            this.setInstruction(p2, instruction1);
+            this.setInstruction(p1, instruction2);
+        }
+
+        // Forms
+
+        setEditableInstruction(instruction) {
+            var form = this.querySelector('form.form-instruction');
+            form.instrument.value = instruction.instrument;
+            form.frequency.value = instruction.frequency;
+            form.length.value = instruction.length;
+            form.velocity.value = instruction.velocity;
+            form.editableInstruction = instruction;
         }
 
         // Input
@@ -172,6 +182,15 @@
                 case 'click':
                     this.menu.close();
                     break;
+
+                case 'change':
+                    var form = e.target.form;
+                    console.log("Form change: ", e.target.form, e);
+                    var formAction = formActions[form.action];
+                    if(!formAction)
+                        throw new Error("Form action not found: " + form.action);
+                    formAction(e, form);
+                    break;
             }
         }
     }
@@ -181,27 +200,32 @@
     class MusicEditorGridElement extends HTMLElement {
         get editor() { return findParentNode(this, MusicEditorElement); }
 
-        render(noteList) {
+        findAssociatedElement(instruction) {
+            let commandElms = this.querySelectorAll('music-editor-grid-cell');
+            for(var i=0; i<commandElms.length; i++)
+                if(commandElms[i].instruction === instruction)
+                    return commandElms[i];
+            return null;
+        }
+
+        render(instructionList) {
             this.innerHTML = '';
 
             var rowCommands = [];
-            for(var i=0; i<noteList.length; i++) {
-                var noteArgs = noteList[i];
-                var commandName = normalizeCommandName(noteArgs[0]);
-                switch(commandName) {
-                    default:
-                        rowCommands.push(noteArgs);
-                        break;
+            for(var i=0; i<instructionList.length; i++) {
+                var instruction = instructionList[i];
 
-                    case 'Pause':
-                        // rowCommands.push(args);
-                        var rowElm = new MusicEditorGridRowElement(noteArgs);
-                        rowElm.addCommands(rowCommands);
-                        if(this.children.length % 2 === 0)
-                            rowElm.classList.add('odd');
-                        rowCommands = [];
-                        this.appendChild(rowElm);
-                        break;
+
+                if(instruction.instrument || instruction.groupExecute) {
+                    rowCommands.push(instruction);
+                }
+                if(instruction.pause) {
+                    var rowElm = new MusicEditorGridRowElement(instruction);
+                    rowElm.addCommands(rowCommands);
+                    if(this.children.length % 2 === 0)
+                        rowElm.classList.add('odd');
+                    rowCommands = [];
+                    this.appendChild(rowElm);
                 }
             }
         }
@@ -244,10 +268,9 @@
 
     class MusicEditorGridCellElement extends HTMLElement {
 
-        constructor(command) {
+        constructor(instruction) {
             super();
-            this.command = command;
-            command.associatedElement = this;
+            this.instruction = instruction;
         }
 
         get editor() { return findParentNode(this, MusicEditorElement); }
@@ -259,46 +282,47 @@
 
         refresh() {
             this.innerHTML = '';
-            var commandName = normalizeCommandName(this.command[0]);
-            this.classList.add('command-' + commandName.toLowerCase());
 
-            var commandElm = new MusicEditorGridCommandElement(commandName);
-            commandElm.innerHTML = commandName[0];
-            this.appendChild(commandElm);
+            // if(this.instruction.instrument)
+            //     this.innerHTML += `<div class="instrument">${this.instruction.instrument}</div>`;
 
-            for (var i = 1; i < this.command.length; i++) {
-                var arg = this.command[i];
-                var argElm = new MusicEditorGridParameterElement(arg); // Don't customize parameter styles here
-                this.appendChild(argElm);
-                argElm.innerHTML = arg;
-            }
+            if(this.instruction.groupExecute)
+                this.innerHTML += `<div class="groupExecute">${this.instruction.groupExecute}</div>`;
+
+            if(this.instruction.frequency)
+                this.innerHTML += `<div class="frequency">${this.instruction.frequency}</div>`;
+
+            if(this.instruction.length)
+                this.innerHTML += `<div class="length">${this.instruction.length}</div>`;
         }
 
-        select(e, previewNote) {
+        select(e, previewInstruction) {
             this.parentNode.select(e);
             clearElementClass('selected', 'music-editor-grid-cell.selected');
             this.classList.add('selected');
-            if(previewNote && this.editor.config.previewNotesOnSelect !== false)
-                this.playNote();
+            if(previewInstruction && this.editor.config.previewInstructionsOnSelect !== false)
+                this.playInstruction();
+            this.editor.setEditableInstruction(this.instruction);
         }
 
-        playNote() {
-            this.editor.playNote(
-                this.command,
+        playInstruction() {
+            this.editor.player.playInstruction(
+                this.instruction,
                 this.editor.audioContext.currentTime,
                 this.editor.playerElement.getCurrentBPM(),
-                this,
+                function(playing) {
+                    this.classList.toggle('playing', playing);
+                }.bind(this),
             );
         }
 
-        swapNoteElement(targetCellElement) {
-            this.editor.swapNotes(
-                this.command,
-                targetCellElement.command
+        swapInstructionElement(targetCellElement) {
+            this.editor.swapInstructions(
+                this.instruction,
+                targetCellElement.instruction
             );
-            this.editor.updateEditor();
-            if(this.command.associatedElement)
-                this.command.associatedElement.select();
+            this.editor.grid.render();
+            this.editor.grid.findAssociatedElement(this.instruction).select();
         }
 
         onInput(e) {
@@ -306,34 +330,34 @@
                 case 'click':
                     break;
                 case 'keydown':
-                    var commandName = normalizeCommandName(this.command[0]);
-                    switch(commandName) {
-                        case 'Note':
-                            var keyboard = MusicEditorGridCellElement.keyboardLayout;
-                            if(keyboard[e.key]) {
-                                this.command[2] = keyboard[e.key];
-                                this.refresh();
-                                e.preventDefault();
-
-                                var noteEvent = this.editor.playInstrument(this.command[1], this.command[2], this.editor.audioContext.currentTime, null, {
-                                    associatedElement: this
-                                });
-                                var noteUpCallback = function(e2) {
-                                    if(e.key === e2.key) {
-                                        this.editor.removeEventListener('keyup', noteUpCallback);
-                                        noteEvent.stop(0);
-                                        // console.info("Stopping Note: ", noteEvent);
-                                        e2.preventDefault();
-                                    }
-                                }.bind(this);
-                                this.editor.addEventListener('keyup', noteUpCallback);
-                                return;
-                            }
-                            break;
-                        default:
-                            console.log("Unused keydown: ", this, this.command, e);
+                    if(this.instruction.instrument) {
+                        var keyboard = DEFAULT_KEYBOARD_LAYOUT;
+                        if(keyboard[e.key]) {
+                            this.instruction.frequency = keyboard[e.key];
+                            this.refresh();
                             e.preventDefault();
-                            break;
+
+                            var instructionEvent = this.editor.player.playInstrument(
+                                this.instruction.name,
+                                this.instruction.frequency,
+                                this.editor.audioContext.currentTime,
+                                null,
+                                null,
+                                this
+                            );
+                            var instructionUpCallback = function(e2) {
+                                if(e.key === e2.key) {
+                                    this.editor.removeEventListener('keyup', instructionUpCallback);
+                                    instructionEvent.stop(0);
+                                    this.classList.remove('playing');
+                                    // console.info("Stopping Instruction: ", instructionEvent);
+                                    e2.preventDefault();
+                                }
+                            }.bind(this);
+                            this.editor.addEventListener('keyup', instructionUpCallback);
+                            this.classList.add('playing');
+                            return;
+                        }
                     }
                     break;
             }
@@ -342,52 +366,6 @@
 
     }
 
-    MusicEditorGridCellElement.keyboardLayout = {
-        '2':'C#5', '3':'D#5', '5':'F#5', '6':'G#5', '7':'A#5', '9':'C#6', '0':'D#6',
-        'q':'C5', 'w':'D5', 'e':'E5', 'r':'F5', 't':'G5', 'y':'A5', 'u':'B5', 'i':'C6', 'o':'D6', 'p':'E6',
-        's':'C#4', 'd':'D#4', 'g':'F#4', 'h':'G#4', 'j':'A#4', 'l':'C#5', ';':'D#5',
-        'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
-    };
-
-    class MusicEditorGridCommandElement extends HTMLElement {
-        constructor(commandName) {
-            super();
-            if(commandName)
-                this.setAttribute('name', commandName)
-        }
-
-        get editor() { return findParentNode(this, MusicEditorElement); }
-
-        connectedCallback() {
-            this.addEventListener('click', this.select.bind(this));
-        }
-
-        select() {
-            this.parentNode.select();
-            clearElementClass('selected', 'music-editor-grid-command.selected');
-            this.classList.add('selected');
-        }
-    }
-
-    class MusicEditorGridParameterElement extends HTMLElement {
-        constructor(parameterValue) {
-            super();
-            if(parameterValue)
-                this.setAttribute('value', parameterValue)
-        }
-
-        get editor() { return findParentNode(this, MusicEditorElement); }
-
-        connectedCallback() {
-            this.addEventListener('click', this.select.bind(this));
-        }
-
-        select(e) {
-            this.parentNode.select(e);
-            clearElementClass('selected', 'music-editor-grid-parameter.selected');
-            this.classList.add('selected');
-        }
-    }
 
     // Menu elements
 
@@ -444,9 +422,6 @@
         }
 
     }
-    class MusicEditorSubMenuElement extends HTMLElement {
-
-    }
 
     class MusicEditorMenuItemElement extends HTMLElement {
         constructor() {
@@ -463,13 +438,10 @@
     // Define custom elements
     customElements.define('music-editor', MusicEditorElement);
     customElements.define('music-editor-menu', MusicEditorMenuElement);
-    customElements.define('music-editor-submenu', MusicEditorSubMenuElement);
     customElements.define('music-editor-menu-item', MusicEditorMenuItemElement);
     customElements.define('music-editor-grid', MusicEditorGridElement);
     customElements.define('music-editor-grid-row', MusicEditorGridRowElement);
     customElements.define('music-editor-grid-cell', MusicEditorGridCellElement);
-    customElements.define('music-editor-grid-command', MusicEditorGridCommandElement);
-    customElements.define('music-editor-grid-parameter', MusicEditorGridParameterElement);
 
 
     // Load Javascript dependencies
@@ -502,29 +474,31 @@
             document.head.appendChild(styleSheetElm);
         }
     }
-    function loadJSON(jsonPath, onLoaded) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', jsonPath, true);
-        xhr.responseType = 'json';
-        xhr.onload = function() {
-            onLoaded(xhr.status !== 200 ? xhr.status : null, xhr.response);
-        };
-        xhr.send();
-    }
 
-    function normalizeCommandName(commandString) {
-        switch(commandString.toLowerCase()) {
-            case 'n':   case 'note':            return 'Note';
-            case 'ge':  case 'groupexecute':    return 'GroupExecute';
-            case 'p':   case 'pause':           return 'Pause';
-        }
-        throw new Error("Unknown command: " + commandString);
-    }
 
     function clearElementClass(className, selector) {
         var clearElms = document.querySelectorAll(selector || '.' + className);
         for(var i=0; i<clearElms.length; i++)
             clearElms[i].classList.remove(className);
+    }
+
+    // Instrument Commands
+
+    function findInstruments(obj, callback, rootPath) {
+        if(typeof obj !== 'object')
+            throw new Error("Invalid instrument object: " + typeof obj);
+        Object.keys(obj).map(function(key, i) {
+            var absPath = (rootPath ? rootPath + '.' : '') + key;
+            switch(typeof obj[key]) {
+                case 'object':
+                    findInstruments(obj[key], callback, absPath);
+                    break;
+
+                case 'function':
+                    callback(obj[key], absPath);
+                    break;
+            }
+        });
     }
 
     // Element commands
@@ -569,6 +543,30 @@
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
 
+
+
+    const DEFAULT_KEYBOARD_LAYOUT = {
+        '2':'C#5', '3':'D#5', '5':'F#5', '6':'G#5', '7':'A#5', '9':'C#6', '0':'D#6',
+        'q':'C5', 'w':'D5', 'e':'E5', 'r':'F5', 't':'G5', 'y':'A5', 'u':'B5', 'i':'C6', 'o':'D6', 'p':'E6',
+        's':'C#4', 'd':'D#4', 'g':'F#4', 'h':'G#4', 'j':'A#4', 'l':'C#5', ';':'D#5',
+        'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
+    };
+
+    // Form Actions
+
+    const formActions = {
+        'instruction:edit': function (e, form) {
+            var instruction = form.editableInstruction;
+            if(!instruction) throw new Error("editableInstruction not found");
+            instruction.instrument = form.instrument.value;
+            instruction.frequency = form.frequency.value;
+            instruction.length = form.length.value;
+            instruction.velocity = form.velocity.value;
+            // todo custom form element?
+        }
+    };
+
+    // Menu Actions
 
     const menuActions = {
         'save:memory': function() { this.saveSongToMemory(); },
@@ -620,7 +618,7 @@
 
         if(newSelectedCell) {
             if (e.altKey) {
-                selectedCell.swapNoteElement(newSelectedCell);
+                selectedCell.swapInstructionElement(newSelectedCell);
 
             } else {
                 if (newSelectedCell !== selectedCell) {
@@ -635,32 +633,36 @@
     function renderEditorContent() {
         return `
             <music-editor-menu>
-                <music-editor-menu-item>
-                    <span>File</span>
-                    <music-editor-submenu>
-                        <music-editor-menu-item>
-                            <span>Open from memory ></span>
-                            ${renderEditorMenuLoadFromMemory()}
-                        </music-editor-menu-item>
-                        <music-editor-menu-item action="load:file">Open from file</music-editor-menu-item>
-                        <music-editor-menu-item action="load:url">Open from url</music-editor-menu-item>
-                        
-                        <hr/>
-                        <music-editor-menu-item action="save:memory">Save to memory</music-editor-menu-item>
-                        <music-editor-menu-item action="save:file">Save to file</music-editor-menu-item>
-                        
-                        <hr/>
-                        <music-editor-menu-item action="export:file"><span>Export to audio file</span></music-editor-menu-item>
-                    </music-editor-submenu>
-                </music-editor-menu-item>
+                <li>
+                    <music-editor-menu-item>
+                        File
+                        <ul>
+                            <li>
+                                <music-editor-menu-item>
+                                    Open from memory >
+                                    ${renderEditorMenuLoadFromMemory()}
+                                </music-editor-menu-item>
+                            </li>
+                            <li><music-editor-menu-item action="load:file">Open from file</music-editor-menu-item></li>
+                            <li><music-editor-menu-item action="load:url">Open from url</music-editor-menu-item></li>
+                            
+                            <hr/>
+                            <li><music-editor-menu-item action="save:memory">Save to memory</music-editor-menu-item></li>
+                            <li><music-editor-menu-item action="save:file">Save to file</music-editor-menu-item></li>
+                            
+                            <hr/>
+                            <li><music-editor-menu-item action="export:file">Export to audio file</music-editor-menu-item></li>
+                        </ul>
+                    </music-editor-menu-item>
+                </li>
                 
-                <music-editor-menu-item>View</music-editor-menu-item>
-                <music-editor-menu-item>Editor</music-editor-menu-item>
-                <music-editor-menu-item>Instruments</music-editor-menu-item>
-                <music-editor-menu-item>Collaborate</music-editor-menu-item>
+                <li><music-editor-menu-item>View</music-editor-menu-item></li>
+                <li><music-editor-menu-item>Editor</music-editor-menu-item></li>
+                <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
+                <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
-            <form class="form-instrument">
-                <fieldset class="selected-note">
+            <form class="form-instruction" action="instruction:edit">
+                <fieldset class="selected-instruction">
                     <select name="instrument">
                         <optgroup label="Instrument Group">
                             <option>osc.simple</option>
@@ -690,27 +692,24 @@
         switch(optionType) {
             case 'instruments':
                 if(window.instruments) {
-                    for(var key in window.instruments) {
-                        if(window.instruments.hasOwnProperty(key)) {
-                            var instrument = window.instruments;
-                            options.push([key, instrument.constructor.name]);
-                        }
-                    }
+                    findInstruments(window.instruments, function (instrument, path) {
+                        options.push([path, instrument.name]);
+                    });
                 }
                 break;
 
             case 'frequencies':
-                var notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
-                for(var i=1; i<6; i++) {
-                    for(var j=0; j<notes.length; j++) {
-                        var note = notes[j] + i;
-                        options.push([note, note]);
+                var instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+                for(var i=1; i<=6; i++) {
+                    for(var j=0; j<instructions.length; j++) {
+                        var instruction = instructions[j] + i;
+                        options.push([instruction, instruction]);
                     }
                 }
                 break;
 
             case 'velocities':
-                for(var vi=100; vi>=0; vi++) {
+                for(var vi=100; vi>=0; vi--) {
                     options.push([vi, vi]);
                 }
                 break;
@@ -731,9 +730,9 @@
         }
 
         var optionHTML = '';
-        for (var o=0; o<options.length; o++) {
-            var value = options[o][0];
-            var label = options[o][1] || value;
+        for (var oi=0; oi<options.length; oi++) {
+            var value = options[oi][0];
+            var label = options[oi][1] || value;
             optionHTML += `<option label="${label}">${value}</option>`;
         }
         return optionHTML;
@@ -758,16 +757,16 @@
         }
 
         return `
-            <music-editor-submenu>
+            <ul>
                 ${menuItemsHTML}
-            </music-editor-submenu>
+            </ul>
         `;
     }
 
     // Config
 
     const DEFAULT_CONFIG = {
-        previewNotesOnSelect: true,
+        previewInstructionsOnSelect: true,
     }
 
 })();

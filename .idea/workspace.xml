@@ -2,13 +2,18 @@
 <project version="4">
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/music/editor/music-editor.js" line="66" />
+    <bookmark url="file://$PROJECT_DIR$/music/player/music-player.js" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8de638df-61d1-4bc7-a706-f7e58ac52167" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/editor/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/client/editor/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/frames/donate.html" beforeDir="false" afterPath="$PROJECT_DIR$/client/frames/donate.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/music/editor/music-editor.css" beforeDir="false" afterPath="$PROJECT_DIR$/music/editor/music-editor.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/music/editor/music-editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/editor/music-editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/music/player/music-player.js" beforeDir="false" afterPath="$PROJECT_DIR$/music/player/music-player.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/music/songs/demo.json" beforeDir="false" afterPath="$PROJECT_DIR$/music/songs/demo.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -19,81 +24,86 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="15" column="62" selection-start-line="15" selection-start-column="62" selection-end-line="15" selection-end-column="62" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="music-player.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="645">
-              <caret line="43" column="38" selection-start-line="43" selection-start-column="38" selection-end-line="43" selection-end-column="38" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="demo.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="24" column="29" selection-start-line="24" selection-start-column="29" selection-end-line="24" selection-end-column="29" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="music-editor.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="665" column="40" lean-forward="true" selection-start-line="665" selection-start-column="40" selection-end-line="665" selection-end-column="40" />
-              <folding>
-                <element signature="e#7635#8615#0" />
-                <element signature="e#8621#12447#0" />
-                <element signature="e#12497#12890#0" />
-                <element signature="e#12897#13486#0" />
-                <element signature="e#13492#14097#0" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <splitter split-orientation="horizontal" split-proportion="0.8512397">
+      <split-first>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="music-editor.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="307">
+                  <caret line="308" column="17" selection-start-line="308" selection-start-column="17" selection-end-line="308" selection-end-column="17" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="music-player.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="247">
+                  <caret line="136" column="55" selection-start-line="136" selection-start-column="55" selection-end-line="136" selection-end-column="55" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="polyfill.js" pinned="false" current-in-tab="false">
+            <entry file="mock://chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/polyfill.js">
+              <provider selected="true" editor-type-id="vmFileEditor" />
+            </entry>
+          </file>
+          <file leaf-file-name="adblock-uiscripts-rightclick_hook.js" pinned="false" current-in-tab="false">
+            <entry file="mock://chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/adblock-uiscripts-rightclick_hook.js">
+              <provider selected="true" editor-type-id="vmFileEditor" />
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="demo.json" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="525">
+                  <caret line="35" column="14" selection-start-line="35" selection-start-column="14" selection-end-line="35" selection-end-column="14" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>forgotten</find>
-      <find>pages/</find>
-      <find>song-editor.css</find>
-      <find>game/</find>
-      <find>audio/</find>
-      <find>song-editor</find>
-      <find>music-editor</find>
-      <find>song</find>
-      <find>SongEditor</find>
-      <find>loadScript</find>
-      <find>loadJS</find>
-      <find>this.song</find>
-      <find>select(true</find>
-      <find>keyup</find>
-      <find>getCurrentBPM</find>
-      <find>DOMCont</find>
-      <find>File</find>
-      <find>this.gridElement</find>
-      <find>this.menuElement</find>
-      <find>MusicEditorMenuElement</find>
-      <find>renderEditorContent</find>
-      <find>.update(note</find>
-      <find>renderEditorMen</find>
-      <find>this.player.getS</find>
-      <find>this.player.get</find>
-      <find>config</find>
-      <find>Gs</find>
+      <find>instruction[</find>
+      <find>this.command</find>
+      <find>MusicEditorGridCellElement</find>
+      <find>associatedEle</find>
+      <find>playInstrument</find>
+      <find>associatedElement</find>
+      <find>playNote</find>
+      <find>playNotes</find>
+      <find>' '</find>
+      <find>'playing'</find>
+      <find>[0</find>
+      <find>arg</find>
+      <find>editableNote</find>
+      <find>editableInstruction</find>
+      <find>EditableNo</find>
+      <find>editableNo</find>
+      <find>form-instrument</find>
+      <find>args</find>
+      <find>.notes</find>
+      <find>music-editor-menu-item</find>
+      <find>note</find>
+      <find>loadJSON</find>
+      <find>GridCommand</find>
+      <find>Note</find>
+      <find>music-editor-submenu</find>
+      <find>.pause</find>
+      <find>div class=&quot;in</find>
+      <find>border-radi</find>
+      <find>blue</find>
+      <find>keyboardLayout</find>
     </findStrings>
     <replaceStrings>
       <replace>client/</replace>
@@ -106,6 +116,14 @@
       <replace>this.menuElement</replace>
       <replace>this.menu</replace>
       <replace>G#</replace>
+      <replace>Snesology</replace>
+      <replace>0.25</replace>
+      <replace>this.instruction</replace>
+      <replace>form-instruction</replace>
+      <replace>.instructions</replace>
+      <replace>ul</replace>
+      <replace>Instruction</replace>
+      <replace>music-editor-submenu</replace>
     </replaceStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/client</dir>
@@ -126,10 +144,11 @@
         <option value="$PROJECT_DIR$/audio/songs/demo.json" />
         <option value="$PROJECT_DIR$/music/editor/song-editor.js" />
         <option value="$PROJECT_DIR$/music/player/music-player.css" />
-        <option value="$PROJECT_DIR$/music/player/music-player.js" />
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/music/songs/demo.json" />
+        <option value="$PROJECT_DIR$/music/editor/music-editor.css" />
         <option value="$PROJECT_DIR$/music/editor/music-editor.js" />
+        <option value="$PROJECT_DIR$/music/player/music-player.js" />
       </list>
     </option>
   </component>
@@ -140,9 +159,11 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="NodePackageJsonFileManager">
-    <packageJsonPaths />
+    <packageJsonPaths>
+      <path value="$PROJECT_DIR$/package.json" />
+    </packageJsonPaths>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
     <option name="width" value="1855" />
     <option name="height" value="1057" />
@@ -155,7 +176,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -196,6 +216,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -203,6 +224,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="restartRequiresConfirmation" value="false" />
   </component>
   <component name="RecentsManager">
@@ -249,14 +271,15 @@
       <workItem from="1529280852752" duration="991000" />
       <workItem from="1529361668591" duration="4710000" />
       <workItem from="1529424679216" duration="5328000" />
+      <workItem from="1529450147747" duration="19308000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11029000" />
+    <option name="totallyTimeSpent" value="30337000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1855" height="1057" extended-state="6" />
+    <frame x="0" y="23" width="1855" height="1057" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="5" />
@@ -265,13 +288,13 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Terminal" order="9" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24959569" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14177898" />
       <window_info anchor="bottom" id="Docker" order="10" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32960325" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="right" id="Debug" order="4" visible="true" weight="0.27115902" />
+      <window_info active="true" anchor="right" id="Debug" order="4" visible="true" weight="0.27115902" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -291,10 +314,43 @@
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="14" />
+      <default-breakpoints>
+        <breakpoint enabled="true" type="javascript-exception">
+          <properties />
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="32" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" column="62" selection-start-line="15" selection-start-column="62" selection-end-line="15" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="645">
+          <caret line="43" column="38" selection-start-line="43" selection-start-column="38" selection-end-line="43" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" column="29" selection-start-line="24" selection-start-column="29" selection-end-line="24" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9975">
+          <caret line="665" column="40" lean-forward="true" selection-start-line="665" selection-start-column="40" selection-end-line="665" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1560">
@@ -306,13 +362,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1590">
           <caret line="106" column="9" lean-forward="true" selection-start-line="106" selection-start-column="9" selection-end-line="106" selection-end-column="9" />
-          <folding>
-            <element signature="e#7635#8615#0" />
-            <element signature="e#8621#12447#0" />
-            <element signature="e#12497#12890#0" />
-            <element signature="e#12897#13486#0" />
-            <element signature="e#13492#14097#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -423,11 +472,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/music/editor/music-editor.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1032" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/music/player/music-player.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -444,29 +488,29 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/music/songs/demo.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="29" selection-start-line="24" selection-start-column="29" selection-end-line="24" selection-end-column="29" />
+        <state relative-caret-position="525">
+          <caret line="35" column="14" selection-start-line="35" selection-start-column="14" selection-end-line="35" selection-end-column="14" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+    <entry file="file://$PROJECT_DIR$/music/editor/music-editor.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="645">
-          <caret line="43" column="38" selection-start-line="43" selection-start-column="38" selection-end-line="43" selection-end-column="38" />
+        <state relative-caret-position="460">
+          <caret line="140" column="1" lean-forward="true" selection-start-line="140" selection-start-column="1" selection-end-line="140" selection-end-column="1" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/music/editor/music-editor.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="665" column="40" lean-forward="true" selection-start-line="665" selection-start-column="40" selection-end-line="665" selection-end-column="40" />
-          <folding>
-            <element signature="e#7635#8615#0" />
-            <element signature="e#8621#12447#0" />
-            <element signature="e#12497#12890#0" />
-            <element signature="e#12897#13486#0" />
-            <element signature="e#13492#14097#0" />
-          </folding>
+        <state relative-caret-position="307">
+          <caret line="308" column="17" selection-start-line="308" selection-start-column="17" selection-end-line="308" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/music/player/music-player.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="247">
+          <caret line="136" column="55" selection-start-line="136" selection-start-column="55" selection-end-line="136" selection-end-column="55" />
         </state>
       </provider>
     </entry>

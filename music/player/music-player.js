@@ -1,6 +1,6 @@
 /**
  * Player requires a modern browser
- * One groups displays at a time. Columns imply simultaneous notes. Pauses are implied by the scale
+ * One groups displays at a time. Columns imply simultaneous instructions. Pauses are implied by the scale
  */
 
 (function() {
@@ -41,11 +41,31 @@
         getSongURL() { return this.getAttribute('src');}
 
         loadSongData(songData) {
-            songData.notes = songData.notes || {};
-            songData.noteGroups = songData.noteGroups || {};
-            songData.aliases = songData.aliases || {};
+            songData.instructions = processInstructions(songData.instructions || []);
+            songData.instructionGroups = processInstructions(songData.instructionGroups || []);
             this.song = songData;
             // this.update();
+            function processInstructions(instructionList) {
+                var lastInstrument = instructionList[0];
+                for(var i=0; i<instructionList.length; i++) {
+                    var instruction = instructionList[i];
+                    switch(typeof instruction) {
+                        case 'number':
+                            instructionList[i] = {pause:instruction};
+                            break;
+                        case 'string':
+                            instructionList[i] = Object.assign({frequency: instruction}, lastInstrument);
+                            break;
+                        case 'object':
+                            if(Array.isArray(instruction))
+                                instructionList[i] = Object.assign({frequency: instruction[0], length: instruction[1]}, lastInstrument);
+                            break;
+                    }
+                    if(instruction.instrument)
+                        lastInstrument = instruction;
+                }
+                return instructionList;
+            }
         }
 
         loadSong(songURL, onLoaded) {
@@ -69,88 +89,96 @@
                             // console.log("Scripts loading: ", scriptsLoading);
                             scriptsLoading--;
                             if(scriptsLoading === 0)
-                                onLoaded && onLoaded(); // initNotes.call(this);
+                                onLoaded && onLoaded(); // initInstructions.call(this);
                         }.bind(this));
                     }
                 }
                 if(scriptsLoading === 0)
-                    onLoaded && onLoaded(); // initNotes.call(this);
+                    onLoaded && onLoaded(); // initInstructions.call(this);
             }.bind(this));
         }
 
-        playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement) {
+        playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, options, callback) {
             var instrument = this.getInstrument(instrumentName);
-            noteFrequency = this.getNoteFrequency(noteFrequency || 'C4');
+            instructionFrequency = this.getInstructionFrequency(instructionFrequency || 'C4');
 
-            var noteEvent = instrument(this.audioContext, noteFrequency, noteStartTime, noteLength, options);
-            if(associatedElement) {
-                if(noteStartTime - .5 > this.audioContext.currentTime)
+            var instructionEvent = instrument(this.audioContext, instructionFrequency, instructionStartTime, instructionLength, options);
+
+            if(instructionLength && callback) {
+                if(instructionStartTime - .5 > this.audioContext.currentTime)
                     setTimeout(function() {
-                        associatedElement.classList.add('playing');
-                    }, (noteStartTime - this.audioContext.currentTime) * 1000);
+                        callback(true);
+                    }, (instructionStartTime - this.audioContext.currentTime) * 1000);
                 else
-                    associatedElement.classList.add('playing');
+                    callback(true);
 
                 setTimeout(function() {
-                    associatedElement.classList.remove('playing');
-                }, (noteStartTime + noteLength - this.audioContext.currentTime) * 1000);
+                    callback(false);
+                }, (instructionStartTime + instructionLength - this.audioContext.currentTime) * 1000);
             }
-            return noteEvent;
+
+            // if(associatedElement) {
+            //     if(instructionStartTime - .5 > this.audioContext.currentTime)
+            //         setTimeout(function() {
+            //             associatedElement.classList.add('playing');
+            //         }, (instructionStartTime - this.audioContext.currentTime) * 1000);
+            //     else
+            //         associatedElement.classList.add('playing');
+            //
+            //     setTimeout(function() {
+            //         associatedElement.classList.remove('playing');
+            //     }, (instructionStartTime + instructionLength - this.audioContext.currentTime) * 1000);
+            // }
+
+            return instructionEvent;
         }
 
-        playNote(noteArgs, noteStartTime, bpm, associatedElement) {
-            var instrumentName = noteArgs[1];
-            var noteFrequency =  noteArgs[2];
-            var noteLength = (noteArgs[3] || 1) * (240 / (bpm || 240));
-            var options = noteArgs[4] || {};
-            if(!associatedElement && noteArgs.associatedElement)
-                associatedElement = noteArgs.associatedElement;
+        playInstruction(instruction, instructionStartTime, bpm, callback) {
+            var instrumentName = instruction.instrument;
+            var instructionFrequency =  instruction.frequency;
+            var instructionLength = (instruction.length || 1) * (240 / (bpm || 240));
 
-            return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteLength, options, associatedElement);
+            return this.playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, instruction, callback);
         }
 
-        playNotes(commandList, startPosition, seekLength, playbackOffset) {
+        playInstructions(instructionList, startPosition, seekLength, playbackOffset) {
             var currentPosition = 0;
             var currentBPM = this.getCurrentBPM();
-            var noteEvents = [];
-            for(var i=0; i<commandList.length; i++) {
-                var command = commandList[i];
-                var commandName = normalizeCommandName(command[0]);
-                switch(commandName) {
-                    case 'Note':
-                        if(currentPosition < startPosition)
-                            continue;   // Notes were already played
-                        var noteEvent = this.playNote(command, currentPosition + playbackOffset, currentBPM);
-                        noteEvents.push(noteEvent);
-                        // noteBuffer.push([currentPosition, note]);
-                        // notesPlayed += this.playInstrument(note) ? 0 : 1;
-                        break;
+            var instructionEvents = [];
+            for(var i=0; i<instructionList.length; i++) {
+                var instruction = instructionList[i];
 
-                    case 'Pause':
-                        currentPosition += command[1] * (240 / currentBPM);
-                        break;
-
-                    case 'GroupExecute':
-                        // if(currentPosition < startPosition) // Execute all groups each time
-                        //     continue;
-                        var noteGroupList = this.song.noteGroups[command[1]];
-                        if(!noteGroupList)
-                            throw new Error("Note group not found: " + command[1]);
-                        var groupNoteEvents = this.playNotes(noteGroupList, startPosition - currentPosition, seekLength, playbackOffset);
-                        noteEvents = noteEvents.concat(groupNoteEvents);
-                        break;
+                if(instruction.instrument) {
+                    if(currentPosition < startPosition)
+                        continue;   // Instructions were already played
+                    var instructionEvent = this.playInstruction(instruction, currentPosition + playbackOffset, currentBPM);
+                    instructionEvents.push(instructionEvent);
+                    // instructionBuffer.push([currentPosition, instruction]);
+                    // instructionsPlayed += this.playInstrument(instruction) ? 0 : 1;
+                }
+                if(instruction.pause) {
+                    currentPosition += instruction.pause * (240 / currentBPM);
+                }
+                if(instruction.groupExecute) {
+                    // if(currentPosition < startPosition) // Execute all groups each time
+                    //     continue;
+                    var instructionGroupList = this.song.instructionGroups[instruction.groupExecute];
+                    if(!instructionGroupList)
+                        throw new Error("Instruction group not found: " + instruction.groupExecute);
+                    var groupInstructionEvents = this.playInstructions(instructionGroupList, startPosition - currentPosition, seekLength, playbackOffset);
+                    instructionEvents = instructionEvents.concat(groupInstructionEvents);
                 }
                 if(seekLength && currentPosition >= startPosition + seekLength)
                     break;
             }
-            return noteEvents;
+            return instructionEvents;
         }
 
         play (seekPosition) {
             if(seekPosition)
                 this.seekPosition = seekPosition;
 
-            // this.lastNotePosition = 0;
+            // this.lastInstructionPosition = 0;
             this.startTime = this.audioContext.currentTime - this.seekPosition;
             // console.log("Start playback:", this.startTime);
             this.playing = true;
@@ -170,8 +198,8 @@
                 console.info("Playing paused");
                 return;
             }
-            var noteEvents = this.playNotes(
-                this.song.notes,
+            var instructionEvents = this.playInstructions(
+                this.song.instructions,
                 this.seekPosition,
                 this.seekLength,
                 this.audioContext.currentTime
@@ -180,8 +208,8 @@
             // this.seekPosition += this.seekLength;
             this.seekPosition = this.audioContext.currentTime - this.startTime;
 
-            if(noteEvents.length > 0) {
-                // console.log("Notes playing:", noteEvents, this.seekPosition, this.currentPosition);
+            if(instructionEvents.length > 0) {
+                // console.log("Instructions playing:", instructionEvents, this.seekPosition, this.currentPosition);
                 setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
 
                 this.dispatchEvent(new CustomEvent('song:playing', {
@@ -200,14 +228,16 @@
         }
 
         getInstrument(path) {
+            if(!path)
+                throw new Error("Invalid instrument path");
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
             var pathList = path.split('.');
             var pathTarget = window.instruments;
 
-            if(this.song.aliases[pathList[0]])
-                pathList[0] = this.song.aliases[pathList[0]];
+            // if(this.song.aliases[pathList[0]])
+            //     pathList[0] = this.song.aliases[pathList[0]];
 
             for (var i = 0; i < pathList.length; i++) {
                 if (pathTarget[pathList[i]]) {
@@ -224,20 +254,20 @@
             return pathTarget;
         }
 
-        getNoteFrequency (note) {
-            if(Number(note) === note && note % 1 !== 0)
-                return note;
-            var notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'],
+        getInstructionFrequency (instruction) {
+            if(Number(instruction) === instruction && instruction % 1 !== 0)
+                return instruction;
+            var instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'],
                 octave,
                 keyNumber;
 
-            if (note.length === 3) {
-                octave = note.charAt(2);
+            if (instruction.length === 3) {
+                octave = instruction.charAt(2);
             } else {
-                octave = note.charAt(1);
+                octave = instruction.charAt(1);
             }
 
-            keyNumber = notes.indexOf(note.slice(0, -1));
+            keyNumber = instructions.indexOf(instruction.slice(0, -1));
 
             if (keyNumber < 3) {
                 keyNumber = keyNumber + 12 + ((octave - 1) * 12) + 1;
@@ -245,9 +275,9 @@
                 keyNumber = keyNumber + ((octave - 1) * 12) + 1;
             }
 
-            // console.log("Note: ", note, octave, keyNumber);
+            // console.log("Instruction: ", instruction, octave, keyNumber);
 
-            // Return frequency of note
+            // Return frequency of instruction
             return 440 * Math.pow(2, (keyNumber- 49) / 12);
         }
 
@@ -324,18 +354,18 @@
         xhr.send();
     }
 
-    function normalizeCommandName(commandString) {
-        switch(commandString.toLowerCase()) {
-            case 'n':   case 'note':            return 'Note';
-            case 'ge':  case 'groupexecute':    return 'GroupExecute';
-            case 'p':   case 'pause':           return 'Pause';
-        }
-        throw new Error("Unknown command: " + commandString);
-    }
+    // function normalizeInstructionName(commandString) {
+    //     switch(commandString.toLowerCase()) {
+    //         case 'n':   case 'instruction':            return 'Instruction';
+    //         case 'ge':  case 'groupexecute':    return 'GroupExecute';
+    //         case 'p':   case 'pause':           return 'Pause';
+    //     }
+    //     throw new Error("Unknown command: " + commandString);
+    // }
 
 
     const DEFAULT_CONFIG = {
-        previewNotesOnSelect: true,
+        previewInstructionsOnSelect: true,
     }
 
 })();
