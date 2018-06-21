@@ -1,7 +1,10 @@
 music-editor {
+    color: #FFF;
     background-color: #000;
     display: block;
-    font-size: 16px;
+    font-size: 14px;
+    font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    user-select: none;
 }
 
 /** Menu **/
@@ -72,17 +75,18 @@ music-editor-menu hr {
 
 music-editor-grid {
     cursor: pointer;
-    display: block;
-    /*display: table;*/
+    /*display: block;*/
+    display: table;
+    width: 100%;
 }
 
 /** Grid Row **/
 
 music-editor-grid-row {
-    display: block;
-    /*display: table-row;*/
+    /*display: block;*/
+    display: table-row;
     background-color: #111;
-    height: 20px;
+    /*height: 20px;*/
     clear: both;
 }
 
@@ -153,13 +157,30 @@ music-editor-grid-cell.selected {
 
 /** Form **/
 
-music-editor form.form-instruction {
+music-editor form.form-instruction,
+music-editor form.form-group,
+music-editor form.form-row {
     /*border: 1px solid #333;*/
     margin-bottom: 4px;
 }
 
-music-editor form.form-instruction fieldset {
+music-editor form.form-instruction fieldset,
+music-editor form.form-group fieldset,
+music-editor form.form-row fieldset {
     margin: 0 0;
     padding: 0 0;
     border: 0;
+}
+
+music-editor form.form-instruction fieldset > label:first-of-type,
+music-editor form.form-group fieldset > label:first-of-type,
+music-editor form.form-row fieldset > label:first-of-type {
+    display: inline-block;
+    min-width: 50px;
+    text-align: right;
+    font-size: smaller;
+}
+
+music-editor form.hidden {
+    display: none;
 }

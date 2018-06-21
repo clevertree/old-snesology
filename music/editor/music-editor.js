@@ -123,12 +123,29 @@
         // Forms
 
         setEditableInstruction(instruction) {
-            var form = this.querySelector('form.form-instruction');
-            form.instrument.value = instruction.instrument;
-            form.frequency.value = instruction.frequency;
-            form.length.value = instruction.length;
-            form.velocity.value = instruction.velocity;
-            form.editableInstruction = instruction;
+            var formInstruction = this.querySelector('form.form-instruction');
+            formInstruction.classList.add('hidden');
+            if(instruction.frequency) {
+                formInstruction.instrument.value = instruction.instrument || '';
+                formInstruction.frequency.value = instruction.frequency || '';
+                formInstruction.length.value = instruction.length || '';
+                formInstruction.velocity.value = instruction.velocity || '';
+                formInstruction.editableInstruction = instruction;
+                formInstruction.classList.remove('hidden');
+            }
+
+            var formGroup = this.querySelector('form.form-group');
+            formGroup.classList.add('hidden');
+            if(instruction.groupExecute) {
+                formGroup.classList.remove('hidden');
+            }
+
+            // var formRow = this.querySelector('form.form-row');
+            // formRow.classList.add('hidden');
+            // if(instruction.pause) {
+            //     formRow.pause.value = instruction.pause || '';
+            //     formRow.classList.remove('hidden');
+            // }
         }
 
         // Input
@@ -189,7 +206,7 @@
                     var formAction = formActions[form.action];
                     if(!formAction)
                         throw new Error("Form action not found: " + form.action);
-                    formAction(e, form);
+                    formAction.call(this, e, form);
                     break;
             }
         }
@@ -220,7 +237,7 @@
                     rowCommands.push(instruction);
                 }
                 if(instruction.pause) {
-                    var rowElm = new MusicEditorGridRowElement(instruction);
+                    var rowElm = new MusicEditorGridRowElement(instruction.pause);
                     rowElm.addCommands(rowCommands);
                     if(this.children.length % 2 === 0)
                         rowElm.classList.add('odd');
@@ -277,10 +294,10 @@
 
         connectedCallback() {
             this.addEventListener('click', this.select.bind(this));
-            this.refresh();
+            this.render();
         }
 
-        refresh() {
+        render() {
             this.innerHTML = '';
 
             // if(this.instruction.instrument)
@@ -300,9 +317,9 @@
             this.parentNode.select(e);
             clearElementClass('selected', 'music-editor-grid-cell.selected');
             this.classList.add('selected');
+            this.editor.setEditableInstruction(this.instruction);
             if(previewInstruction && this.editor.config.previewInstructionsOnSelect !== false)
                 this.playInstruction();
-            this.editor.setEditableInstruction(this.instruction);
         }
 
         playInstruction() {
@@ -334,11 +351,12 @@
                         var keyboard = DEFAULT_KEYBOARD_LAYOUT;
                         if(keyboard[e.key]) {
                             this.instruction.frequency = keyboard[e.key];
-                            this.refresh();
+                            this.render();
+                            this.editor.setEditableInstruction(this.instruction);
                             e.preventDefault();
 
                             var instructionEvent = this.editor.player.playInstrument(
-                                this.instruction.name,
+                                this.instruction.instrument,
                                 this.instruction.frequency,
                                 this.editor.audioContext.currentTime,
                                 null,
@@ -552,82 +570,6 @@
         'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
     };
 
-    // Form Actions
-
-    const formActions = {
-        'instruction:edit': function (e, form) {
-            var instruction = form.editableInstruction;
-            if(!instruction) throw new Error("editableInstruction not found");
-            instruction.instrument = form.instrument.value;
-            instruction.frequency = form.frequency.value;
-            instruction.length = form.length.value;
-            instruction.velocity = form.velocity.value;
-            // todo custom form element?
-        }
-    };
-
-    // Menu Actions
-
-    const menuActions = {
-        'save:memory': function() { this.saveSongToMemory(); },
-        'load:memory': function(e) { this.loadSongFromMemory(e.target.getAttribute('guid')); },
-    };
-    const keyboardActions = {
-        'default': {
-            'ArrowRight': handleArrowKeyEvent,
-            'ArrowLeft': handleArrowKeyEvent,
-            'ArrowDown': handleArrowKeyEvent,
-            'ArrowUp': handleArrowKeyEvent,
-            ' ': function() { this.play(); }
-        },
-        'alt': {
-            'ArrowRight': handleArrowKeyEvent,
-            'ArrowLeft': handleArrowKeyEvent,
-            'ArrowDown': handleArrowKeyEvent,
-            'ArrowUp': handleArrowKeyEvent,
-        },
-        'ctrl': {
-            's': function () { this.saveSongToMemory(); },
-        },
-    };
-
-    function handleArrowKeyEvent(e) {
-        var selectedCell = this.querySelector('music-editor-grid-cell.selected')
-            || this.querySelector('music-editor-grid-cell');
-        var newSelectedCell = selectedCell;
-
-        var selectedRow = selectedCell.parentNode;
-        switch(e.key) {
-            case 'ArrowRight':
-                newSelectedCell = selectedCell.nextSibling
-                    || (selectedRow.nextSibling ? selectedRow.nextSibling.firstChild : null);
-                break;
-            case 'ArrowLeft':
-                newSelectedCell = selectedCell.previousSibling
-                    || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
-                break;
-            case 'ArrowDown':
-                if(selectedRow.nextSibling)
-                    newSelectedCell = selectedRow.nextSibling.firstChild;
-                break;
-            case 'ArrowUp':
-                if(selectedRow.previousSibling)
-                    newSelectedCell = selectedRow.previousSibling.firstChild;
-                break;
-        }
-
-        if(newSelectedCell) {
-            if (e.altKey) {
-                selectedCell.swapInstructionElement(newSelectedCell);
-
-            } else {
-                if (newSelectedCell !== selectedCell) {
-                    newSelectedCell.select(e, true);
-                }
-            }
-        }
-    }
-
     // Rendering templates
 
     function renderEditorContent() {
@@ -663,21 +605,42 @@
             </music-editor-menu>
             <form class="form-instruction" action="instruction:edit">
                 <fieldset class="selected-instruction">
+                    <label>Note:</label>
                     <select name="instrument">
-                        <optgroup label="Instrument Group">
-                            <option>osc.simple</option>
-                            ${renderEditorFormOptions('instruments')}
-                        </optgroup>
+                        <option value="">- Instrument -</option>
+                        ${renderEditorFormOptions('instruments')}
                     </select>
                     <select name="frequency">
+                        <option value="">- Frequency -</option>
                         ${renderEditorFormOptions('frequencies')}
                     </select>
                     <select name="length">
+                        <option value="">- Length -</option>
                         ${renderEditorFormOptions('lengths')}
                     </select>
                     <select name="velocity">
+                        <option value="">- Velocity -</option>
                         ${renderEditorFormOptions('velocities')}
                     </select>
+                    <button name="duplicate">+</button>
+                    <button name="remove">-</button>
+                </fieldset>
+            </form>
+            <form class="form-group" action="group:edit">
+                <fieldset class="selected-row">
+                    <label>Group:</label>
+                    <button name="edit">Edit</button>
+                    <button name="remove">-</button>
+                </fieldset>
+            </form>
+            <form class="form-row" action="row:edit">
+                <fieldset class="selected-row">
+                    <label>Row:</label>
+                    <select name="pause">
+                        <option value="">- Pause -</option>
+                        ${renderEditorFormOptions('lengths')}
+                    </select>
+                    <button name="split">Split</button>
                     <button name="duplicate">+</button>
                     <button name="remove">-</button>
                 </fieldset>
@@ -761,6 +724,83 @@
                 ${menuItemsHTML}
             </ul>
         `;
+    }
+
+    // Form Actions
+
+    const formActions = {
+        'instruction:edit': function (e, form) {
+            var instruction = form.editableInstruction;
+            if(!instruction) throw new Error("editableInstruction not found");
+            instruction.instrument = form.instrument.value;
+            instruction.frequency = form.frequency.value;
+            instruction.length = parseFloat(form.length.value);
+            instruction.velocity = parseInt(form.velocity.value);
+            var associatedElement = this.grid.findAssociatedElement(instruction);
+            associatedElement.render();
+        }
+    };
+
+    // Menu Actions
+
+    const menuActions = {
+        'save:memory': function() { this.saveSongToMemory(); },
+        'load:memory': function(e) { this.loadSongFromMemory(e.target.getAttribute('guid')); },
+    };
+    const keyboardActions = {
+        'default': {
+            'ArrowRight': handleArrowKeyEvent,
+            'ArrowLeft': handleArrowKeyEvent,
+            'ArrowDown': handleArrowKeyEvent,
+            'ArrowUp': handleArrowKeyEvent,
+            ' ': function() { this.play(); }
+        },
+        'alt': {
+            'ArrowRight': handleArrowKeyEvent,
+            'ArrowLeft': handleArrowKeyEvent,
+            'ArrowDown': handleArrowKeyEvent,
+            'ArrowUp': handleArrowKeyEvent,
+        },
+        'ctrl': {
+            's': function () { this.saveSongToMemory(); },
+        },
+    };
+
+    function handleArrowKeyEvent(e) {
+        var selectedCell = this.querySelector('music-editor-grid-cell.selected')
+            || this.querySelector('music-editor-grid-cell');
+        var newSelectedCell = selectedCell;
+
+        var selectedRow = selectedCell.parentNode;
+        switch(e.key) {
+            case 'ArrowRight':
+                newSelectedCell = selectedCell.nextSibling
+                    || (selectedRow.nextSibling ? selectedRow.nextSibling.firstChild : null);
+                break;
+            case 'ArrowLeft':
+                newSelectedCell = selectedCell.previousSibling
+                    || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
+                break;
+            case 'ArrowDown':
+                if(selectedRow.nextSibling)
+                    newSelectedCell = selectedRow.nextSibling.firstChild;
+                break;
+            case 'ArrowUp':
+                if(selectedRow.previousSibling)
+                    newSelectedCell = selectedRow.previousSibling.firstChild;
+                break;
+        }
+
+        if(newSelectedCell) {
+            if (e.altKey) {
+                selectedCell.swapInstructionElement(newSelectedCell);
+
+            } else {
+                if (newSelectedCell !== selectedCell) {
+                    newSelectedCell.select(e, true);
+                }
+            }
+        }
     }
 
     // Config

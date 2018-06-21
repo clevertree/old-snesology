@@ -134,11 +134,14 @@
         }
 
         playInstruction(instruction, instructionStartTime, bpm, callback) {
-            var instrumentName = instruction.instrument;
-            var instructionFrequency =  instruction.frequency;
-            var instructionLength = (instruction.length || 1) * (240 / (bpm || 240));
+            if(instruction.instrument) {
+                var instrumentName = instruction.instrument;
+                var instructionFrequency =  instruction.frequency;
+                var instructionLength = (instruction.length || 1) * (240 / (bpm || 240));
 
-            return this.playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, instruction, callback);
+                return this.playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, instruction, callback);
+            }
+            return null;
         }
 
         playInstructions(instructionList, startPosition, seekLength, playbackOffset) {

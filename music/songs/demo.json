@@ -7,9 +7,9 @@
     "music/instruments/oscillator/simple.js"
   ],
   "instructions": [
-    {"groupExecute":"beat"},
     {"instrument":"oscillator.sine", "frequency":"A4", "length":1},
     {"instrument":"oscillator.sawtooth", "frequency":"A3", "length":0.2},
+    {"groupExecute":"beat"},
     0.25,
     {"instrument":"oscillator.sine", "frequency":"C4"},
     0.25,
@@ -20,9 +20,9 @@
     ["C6", 0.25],
     0.25,
 
-    {"groupExecute":"beat"},
     {"instrument":"oscillator.sine", "frequency":"A4", "length":1},
     {"instrument":"oscillator.sawtooth", "frequency":"B3", "length":0.2},
+    {"groupExecute":"beat"},
     0.25,
     {"instrument":"oscillator.sine", "frequency":"C4"},
     0.25,
