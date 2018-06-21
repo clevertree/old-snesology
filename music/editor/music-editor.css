@@ -1,6 +1,6 @@
 music-editor {
     color: #FFF;
-    background-color: #000;
+    background-color: #DDD;
     display: block;
     font-size: 14px;
     font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
@@ -10,9 +10,10 @@ music-editor {
 /** Menu **/
 
 music-editor-menu {
-    display: inline-block;
-    border: 1px solid grey;
-    background-color: #333;
+    display: block;
+    /* border: 1px solid grey; */
+    background-color: #AAA;
+    color: black;
 }
 
 music-editor-menu li {
@@ -20,8 +21,8 @@ music-editor-menu li {
 }
 
 music-editor-menu > li {
-    float: left;
-    /*display: inline-block;*/
+    /*float: left;*/
+    display: inline-block;
 }
 
 music-editor-menu-item > * {
@@ -85,17 +86,17 @@ music-editor-grid {
 music-editor-grid-row {
     /*display: block;*/
     display: table-row;
-    background-color: #111;
+    background-color: #999;
     /*height: 20px;*/
     clear: both;
 }
 
 music-editor-grid-row.odd {
-    background-color: #222;
+    background-color: #AAA;
 }
 
 music-editor-grid-row.selected {
-    background-color: #333;
+    background-color: #DDD;
 }
 
 /** Grid Cell **/
@@ -112,7 +113,6 @@ music-editor-grid-cell {
     border: solid 1px #666;
     border-radius: 4px;
     user-select: none;
-
 }
 music-editor-grid-cell:last-child {
     margin-right: 0;
@@ -124,24 +124,36 @@ music-editor-grid-cell.playing {
 music-editor-grid-cell > .instrument,
 music-editor-grid-cell > .groupExecute,
 music-editor-grid-cell > .frequency,
-music-editor-grid-cell > .length {
+music-editor-grid-cell > .duration {
     display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
 }
 
 
 music-editor-grid-cell > .instrument {
-    color: deepskyblue;
+    color: #008;
+    max-width: 26px;
+    transition: max-width 0.3s;
+}
+music-editor-grid-cell.selected > .instrument {
+    max-width: 128px;
 }
 music-editor-grid-cell > .groupExecute {
     color: greenyellow;
 }
 music-editor-grid-cell > .frequency {
-    color: lightyellow;
-}
-music-editor-grid-cell > .length {
     margin-left: 4px;
     padding-left: 4px;
-    border-left: 1px solid;
+    border-left: 1px solid #666;
+    color: #570000;
+    font-weight: bold;
+}
+music-editor-grid-cell > .duration {
+    color: #000;
+    margin-left: 4px;
+    padding-left: 4px;
+    border-left: 1px solid #666;
 }
 
 
@@ -151,19 +163,24 @@ music-editor-grid-cell.selected {
     /*background-color: #444;*/
     color: orangered;
     border-color: orangered;
-    box-shadow: #ffc806 0 0 12px;
-    background-color: black;
+    box-shadow: #441200 0 1px 10px;
+    background-color: white;
 }
 
 /** Form **/
 
+music-editor form.form-song,
 music-editor form.form-instruction,
 music-editor form.form-group,
 music-editor form.form-row {
-    /*border: 1px solid #333;*/
-    margin-bottom: 4px;
+    /* border: 1px solid #333; */
+    /* background-color: #CCC; */
+    margin: 0px 0;
+    padding: 2px;
+    color: black;
 }
 
+music-editor form.form-song fieldset,
 music-editor form.form-instruction fieldset,
 music-editor form.form-group fieldset,
 music-editor form.form-row fieldset {
@@ -172,6 +189,7 @@ music-editor form.form-row fieldset {
     border: 0;
 }
 
+music-editor form.form-song fieldset > label:first-of-type,
 music-editor form.form-instruction fieldset > label:first-of-type,
 music-editor form.form-group fieldset > label:first-of-type,
 music-editor form.form-row fieldset > label:first-of-type {
@@ -179,6 +197,7 @@ music-editor form.form-row fieldset > label:first-of-type {
     min-width: 50px;
     text-align: right;
     font-size: smaller;
+    font-weight: bold;
 }
 
 music-editor form.hidden {

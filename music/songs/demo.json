@@ -6,9 +6,14 @@
   "load": [
     "music/instruments/oscillator/simple.js"
   ],
+  "instruments": [
+    {"path": "oscillator.sine"},
+    {"path": "oscillator.sawtooth"},
+    {"path": "percussion"}
+  ],
   "instructions": [
-    {"instrument":"oscillator.sine", "frequency":"A4", "length":1},
-    {"instrument":"oscillator.sawtooth", "frequency":"A3", "length":0.2},
+    {"instrument":"oscillator.sine", "frequency":"A4", "duration":1},
+    {"instrument":"oscillator.sawtooth", "frequency":"A3", "duration":0.2},
     {"groupExecute":"beat"},
     0.25,
     {"instrument":"oscillator.sine", "frequency":"C4"},
@@ -20,8 +25,8 @@
     ["C6", 0.25],
     0.25,
 
-    {"instrument":"oscillator.sine", "frequency":"A4", "length":1},
-    {"instrument":"oscillator.sawtooth", "frequency":"B3", "length":0.2},
+    {"instrument":"oscillator.sine", "frequency":"A4", "duration":1},
+    {"instrument":"oscillator.sawtooth", "frequency":"B3", "duration1":0.2},
     {"groupExecute":"beat"},
     0.25,
     {"instrument":"oscillator.sine", "frequency":"C4"},

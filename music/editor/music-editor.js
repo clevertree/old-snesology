@@ -128,7 +128,7 @@
             if(instruction.frequency) {
                 formInstruction.instrument.value = instruction.instrument || '';
                 formInstruction.frequency.value = instruction.frequency || '';
-                formInstruction.length.value = instruction.length || '';
+                formInstruction.duration.value = instruction.duration || '';
                 formInstruction.velocity.value = instruction.velocity || '';
                 formInstruction.editableInstruction = instruction;
                 formInstruction.classList.remove('hidden');
@@ -300,8 +300,8 @@
         render() {
             this.innerHTML = '';
 
-            // if(this.instruction.instrument)
-            //     this.innerHTML += `<div class="instrument">${this.instruction.instrument}</div>`;
+            if(this.instruction.instrument)
+                this.innerHTML += `<div class="instrument">${this.instruction.instrument}</div>`;
 
             if(this.instruction.groupExecute)
                 this.innerHTML += `<div class="groupExecute">${this.instruction.groupExecute}</div>`;
@@ -309,8 +309,8 @@
             if(this.instruction.frequency)
                 this.innerHTML += `<div class="frequency">${this.instruction.frequency}</div>`;
 
-            if(this.instruction.length)
-                this.innerHTML += `<div class="length">${this.instruction.length}</div>`;
+            if(this.instruction.duration)
+                this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
         }
 
         select(e, previewInstruction) {
@@ -603,27 +603,15 @@
                 <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
-            <form class="form-instruction" action="instruction:edit">
-                <fieldset class="selected-instruction">
-                    <label>Note:</label>
-                    <select name="instrument">
-                        <option value="">- Instrument -</option>
-                        ${renderEditorFormOptions('instruments')}
-                    </select>
-                    <select name="frequency">
-                        <option value="">- Frequency -</option>
-                        ${renderEditorFormOptions('frequencies')}
-                    </select>
-                    <select name="length">
-                        <option value="">- Length -</option>
-                        ${renderEditorFormOptions('lengths')}
-                    </select>
-                    <select name="velocity">
-                        <option value="">- Velocity -</option>
-                        ${renderEditorFormOptions('velocities')}
-                    </select>
-                    <button name="duplicate">+</button>
-                    <button name="remove">-</button>
+            <form class="form-song" action="song:edit">
+                <fieldset class="selected-row">
+                    <label>Song:</label>
+                    <button name="play">Play</button>
+                    <button name="play-group">Play Group</button>
+                    <button name="pause">Pause</button>
+                    <button name="resume">Resume</button>
+                    | 
+                    <button name="info">info</button>
                 </fieldset>
             </form>
             <form class="form-group" action="group:edit">
@@ -636,13 +624,36 @@
             <form class="form-row" action="row:edit">
                 <fieldset class="selected-row">
                     <label>Row:</label>
-                    <select name="pause">
-                        <option value="">- Pause -</option>
-                        ${renderEditorFormOptions('lengths')}
-                    </select>
-                    <button name="split">Split</button>
                     <button name="duplicate">+</button>
                     <button name="remove">-</button>
+                    <select name="pause">
+                        <option value="">- Pause -</option>
+                        ${renderEditorFormOptions('durations')}
+                    </select>
+                    <button name="split">Split</button>
+                </fieldset>
+            </form>
+            <form class="form-instruction" action="instruction:edit">
+                <fieldset class="selected-instruction">
+                    <label>Note:</label>
+                    <button name="duplicate">+</button>
+                    <button name="remove">-</button>
+                    <select name="instrument">
+                        <option value="">- Instrument -</option>
+                        ${renderEditorFormOptions('instruments')}
+                    </select>
+                    <select name="frequency">
+                        <option value="">- Frequency -</option>
+                        ${renderEditorFormOptions('frequencies')}
+                    </select>
+                    <select name="duration">
+                        <option value="">- Length -</option>
+                        ${renderEditorFormOptions('durations')}
+                    </select>
+                    <select name="velocity">
+                        <option value="">- Velocity -</option>
+                        ${renderEditorFormOptions('velocities')}
+                    </select>
                 </fieldset>
             </form>
             <music-editor-grid>
@@ -677,7 +688,7 @@
                 }
                 break;
 
-            case 'lengths':
+            case 'durations':
                 options = [
                     [32.0,  'Octuple'],
                     [16.0,  'Quadruple'],
@@ -734,7 +745,7 @@
             if(!instruction) throw new Error("editableInstruction not found");
             instruction.instrument = form.instrument.value;
             instruction.frequency = form.frequency.value;
-            instruction.length = parseFloat(form.length.value);
+            instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
             var associatedElement = this.grid.findAssociatedElement(instruction);
             associatedElement.render();
