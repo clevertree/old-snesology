@@ -90,7 +90,7 @@
       <find>associatedElement</find>
       <find>playNote</find>
       <find>playNotes</find>
-      <find>' '</find>
+      <find />
       <find>'playing'</find>
       <find>[0</find>
       <find>arg</find>
@@ -108,7 +108,7 @@
       <find>Note</find>
       <find>music-editor-submenu</find>
       <find>.pause</find>
-      <find>div class=&quot;in</find>
+      <find />
       <find>border-radi</find>
       <find>blue</find>
       <find>keyboardLayout</find>
@@ -185,9 +185,9 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="23" />
+    <option name="y" value="22" />
     <option name="width" value="1852" />
-    <option name="height" value="1057" />
+    <option name="height" value="1058" />
   </component>
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />

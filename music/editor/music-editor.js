@@ -603,7 +603,7 @@
                 <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
-            <form class="form-song" action="song:edit">
+            <form class="form-song" action="#song:edit">
                 <fieldset class="selected-row">
                     <label>Song:</label>
                     <button name="play">Play</button>
@@ -614,14 +614,14 @@
                     <button name="info">info</button>
                 </fieldset>
             </form>
-            <form class="form-group" action="group:edit">
+            <form class="form-group" action="#group:edit">
                 <fieldset class="selected-row">
                     <label>Group:</label>
                     <button name="edit">Edit</button>
                     <button name="remove">-</button>
                 </fieldset>
             </form>
-            <form class="form-row" action="row:edit">
+            <form class="form-row" action="#row:edit">
                 <fieldset class="selected-row">
                     <label>Row:</label>
                     <button name="duplicate">+</button>
@@ -633,7 +633,7 @@
                     <button name="split">Split</button>
                 </fieldset>
             </form>
-            <form class="form-instruction" action="instruction:edit">
+            <form class="form-instruction" action="#instruction:edit">
                 <fieldset class="selected-instruction">
                     <label>Note:</label>
                     <button name="duplicate">+</button>
