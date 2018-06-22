@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SNESology</title>
+        <meta name="keywords" CONTENT="clevertree, snesology, snes, game, music, relay, open-source, subscribe">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="client/assets/site.css" rel="stylesheet" />
+        <link href="client/assets/theme/minimal.css" rel="stylesheet" />
+        <link rel="manifest" href="manifest.json">
+
+        <script src="client/assets/site.js"></script>
+
+        <script src="music/editor/music-editor.js" ></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+               document.querySelector('music-editor').focus();
+            });
+        </script>
+    </head>
+    <body class='theme-minimal'>
+        <music-editor src="music/songs/demo.json"></music-editor>
+    </body>
+</html>

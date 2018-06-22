@@ -1,21 +1,12 @@
 
 
 (function() {
-    var Util = ForgottenFuture.Util,
-        Audio = ForgottenFuture.Audio;
-
     const TITLE = "Editor Demo";
 
     document.addEventListener('song:play', onPlay);
 
     // Dependencies
-    Util.loadScript([
-        // Song Manager
-        'music/song-loader.js',
-
-        // instrument
-        // 'music/instrument/oscillator/simple.js',
-    ]);
+    loadScript('music/song-loader.js');
 
 
     function onPlay(e) {
@@ -37,5 +28,21 @@
         });
     }
 
+    function loadScript(scriptPath, onLoaded) {
+        let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
+        let scriptElm = document.head.querySelector('script[src$=' + scriptPathEsc + ']');
+        if (!scriptElm) {
+            scriptElm = document.createElement('script');
+            scriptElm.src = scriptPath;
+            scriptElm.onload = function(e) {
+                for(var i=0; i<scriptElm.onloads.length; i++)
+                    scriptElm.onloads[i](e);
+                scriptElm.onloads = null;
+            };
+            document.head.appendChild(scriptElm);
+        }
+        if(!scriptElm.onloads) scriptElm.onloads = [];
+        scriptElm.onloads.push(onLoaded);
+    }
 
 })();
