@@ -135,7 +135,7 @@
         }
 
         playInstruction(instruction, instructionStartTime, bpm, callback) {
-            if(instruction.instrument) {
+            if(typeof instruction.instrument !== 'undefined') {
                 var instrumentName = instruction.instrument;
                 var instructionFrequency =  instruction.frequency;
                 var instructionLength = (instruction.length || 1) * (240 / (bpm || 240));
@@ -232,8 +232,6 @@
         }
 
         getInstrument(path) {
-            if(!path)
-                throw new Error("Invalid instrument path");
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
@@ -245,6 +243,8 @@
                 if(!path)
                     throw new Error("Invalid Instrument Config: " + instrumentConfig);
             }
+            else if(!path)
+                throw new Error("Invalid instrument path");
 
             var pathList = path.split('.');
             var pathTarget = window.instruments;

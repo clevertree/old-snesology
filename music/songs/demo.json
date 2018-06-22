@@ -12,7 +12,7 @@
     {"path": "percussion"}
   ],
   "instructions": [
-    {"instrument":0, "frequency":"A4", "duration":1},
+    {"instrument":2, "frequency":"A4", "duration":1},
     {"instrument":1, "frequency":"A3", "duration":0.2},
     {"groupExecute":"beat"},
     0.25,
@@ -25,7 +25,7 @@
     ["C6", 0.25],
     0.25,
 
-    {"instrument":0, "frequency":"A4", "duration":1},
+    {"instrument":2, "frequency":"A4", "duration":1},
     {"instrument":"oscillator.sawtooth", "frequency":"B3", "duration1":0.2},
     {"groupExecute":"beat"},
     0.25,

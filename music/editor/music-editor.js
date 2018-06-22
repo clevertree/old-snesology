@@ -372,7 +372,7 @@
                                     this.editor.removeEventListener('keyup', instructionUpCallback);
                                     instructionEvent.stop(0);
                                     this.classList.remove('playing');
-                                    // console.info("Stopping Instruction: ", instructionEvent);
+                                    console.info("Stopping Instruction: ", instructionEvent);
                                     e2.preventDefault();
                                 }
                             }.bind(this);
