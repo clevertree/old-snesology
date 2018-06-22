@@ -30,6 +30,7 @@
             this.addEventListener('keyup', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
             this.addEventListener('change', this.onInput.bind(this));
+            this.addEventListener('submit', this.onInput.bind(this));
 
             if(!this.getAttribute('tabindex'))
                 this.setAttribute('tabindex', '1');
@@ -60,7 +61,7 @@
         }
 
         render() {
-            this.innerHTML = renderEditorContent();
+            this.innerHTML = renderEditorContent.call(this);
             var instructionList = this.getSong().instructions;
             console.log('Updating Editor:', instructionList);
             this.grid.render(instructionList);
@@ -126,7 +127,7 @@
             var formInstruction = this.querySelector('form.form-instruction');
             formInstruction.classList.add('hidden');
             if(instruction.frequency) {
-                formInstruction.instrument.value = instruction.instrument || '';
+                formInstruction.instrument.value = ""+instruction.instrument || '';
                 formInstruction.frequency.value = instruction.frequency || '';
                 formInstruction.duration.value = instruction.duration || '';
                 formInstruction.velocity.value = instruction.velocity || '';
@@ -162,21 +163,21 @@
                     this.depressedKeys.push(e.key);
 
                     if(e.altKey) {
-                        if(keyboardActions.alt[e.key]) {
-                            keyboardActions.alt[e.key].call(this, e);
+                        if(keyboardCommands.alt[e.key]) {
+                            keyboardCommands.alt[e.key].call(this, e);
                             e.preventDefault();
                             return;
                         }
                     }
                     if(e.ctrlKey) {
-                        if(keyboardActions.ctrl[e.key]) {
-                            keyboardActions.ctrl[e.key].call(this, e);
+                        if(keyboardCommands.ctrl[e.key]) {
+                            keyboardCommands.ctrl[e.key].call(this, e);
                             e.preventDefault();
                             return;
                         }
                     }
-                    if(keyboardActions.default[e.key]) {
-                        keyboardActions.default[e.key].call(this, e);
+                    if(keyboardCommands.default[e.key]) {
+                        keyboardCommands.default[e.key].call(this, e);
                         e.preventDefault();
                         return;
                     }
@@ -200,13 +201,16 @@
                     this.menu.close();
                     break;
 
+                case 'submit':
                 case 'change':
-                    var form = e.target.form;
-                    console.log("Form change: ", e.target.form, e);
-                    var formAction = formActions[form.action];
-                    if(!formAction)
-                        throw new Error("Form action not found: " + form.action);
-                    formAction.call(this, e, form);
+                    e.preventDefault();
+                    var form = e.target.form || e.target;
+                    console.log("Form " + e.type + ": ", form.target.form, e);
+                    var formCommandName = form.getAttribute('data-command');
+                    var formCommand = formCommands[formCommandName];
+                    if(!formCommand)
+                        throw new Error("Form command not found: " + formCommandName);
+                    formCommand.call(this, e, form);
                     break;
             }
         }
@@ -311,9 +315,7 @@
 
             if(this.instruction.duration)
                 this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
-
-            function formatInstrumentID(number) { return number < 10 ? "0" + number : "" + number; }
-        }
+            }
 
         select(e, previewInstruction) {
             this.parentNode.select(e);
@@ -429,11 +431,11 @@
             }
 
             console.log("Menu", e, target);
-            if(target.action) {
-                var menuAction = menuActions[target.action];
-                if(!menuAction)
-                    throw new Error("Unknown menu action: " + target.action);
-                menuAction.call(this.editor, e);
+            if(target.command) {
+                var menuCommand = menuCommands[target.command];
+                if(!menuCommand)
+                    throw new Error("Unknown menu command: " + target.command);
+                menuCommand.call(this.editor, e);
                 this.close();
             } else {
                 target.classList.toggle('open');
@@ -451,7 +453,7 @@
         }
 
         get editor() { return findParentNode(this, MusicEditorElement); }
-        get action() { return this.getAttribute('action'); }
+        get command() { return this.getAttribute('data-command'); }
     }
 
 
@@ -587,15 +589,15 @@
                                     ${renderEditorMenuLoadFromMemory()}
                                 </music-editor-menu-item>
                             </li>
-                            <li><music-editor-menu-item action="load:file">Open from file</music-editor-menu-item></li>
-                            <li><music-editor-menu-item action="load:url">Open from url</music-editor-menu-item></li>
+                            <li><music-editor-menu-item data-command="load:file">Open from file</music-editor-menu-item></li>
+                            <li><music-editor-menu-item data-command="load:url">Open from url</music-editor-menu-item></li>
                             
                             <hr/>
-                            <li><music-editor-menu-item action="save:memory">Save to memory</music-editor-menu-item></li>
-                            <li><music-editor-menu-item action="save:file">Save to file</music-editor-menu-item></li>
+                            <li><music-editor-menu-item data-command="save:memory">Save to memory</music-editor-menu-item></li>
+                            <li><music-editor-menu-item data-command="save:file">Save to file</music-editor-menu-item></li>
                             
                             <hr/>
-                            <li><music-editor-menu-item action="export:file">Export to audio file</music-editor-menu-item></li>
+                            <li><music-editor-menu-item data-command="export:file">Export to audio file</music-editor-menu-item></li>
                         </ul>
                     </music-editor-menu-item>
                 </li>
@@ -605,7 +607,7 @@
                 <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
-            <form class="form-song" action="#song:edit">
+            <form class="form-song" data-command="song:edit">
                 <fieldset class="selected-row">
                     <label>Song:</label>
                     <button name="play">Play</button>
@@ -616,14 +618,14 @@
                     <button name="info">info</button>
                 </fieldset>
             </form>
-            <form class="form-group" action="#group:edit">
+            <form class="form-group" data-command="group:edit">
                 <fieldset class="selected-row">
                     <label>Group:</label>
                     <button name="edit">Edit</button>
                     <button name="remove">-</button>
                 </fieldset>
             </form>
-            <form class="form-row" action="#row:edit">
+            <form class="form-row" data-command="row:edit">
                 <fieldset class="selected-row">
                     <label>Row:</label>
                     <button name="duplicate">+</button>
@@ -635,14 +637,18 @@
                     <button name="split">Split</button>
                 </fieldset>
             </form>
-            <form class="form-instruction" action="#instruction:edit">
+            <form class="form-instruction" data-command="instruction:edit">
                 <fieldset class="selected-instruction">
                     <label>Note:</label>
                     <button name="duplicate">+</button>
                     <button name="remove">-</button>
                     <select name="instrument">
-                        <option value="">- Instrument -</option>
-                        ${renderEditorFormOptions('instruments')}
+                        <optgroup label="Song Instruments">
+                            ${renderEditorFormOptions('song-instruments', this)}
+                        </optgroup>
+                        <optgroup label="Available Instruments">
+                            ${renderEditorFormOptions('instruments-available')}
+                        </optgroup>
                     </select>
                     <select name="frequency">
                         <option value="">- Frequency -</option>
@@ -663,10 +669,19 @@
         `;
     }
 
-    function renderEditorFormOptions(optionType) {
+    function renderEditorFormOptions(optionType, editor) {
         var options = [];
         switch(optionType) {
-            case 'instruments':
+            case 'song-instruments':
+                var song = editor.getSong();
+                for(var instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
+                    var instrumentInfo = song.instruments[instrumentID];
+                    var instrument = editor.player.getInstrument(instrumentInfo.path);
+                    options.push([instrumentID, formatInstrumentID(instrumentID) + ': ' + instrument.name]);
+                }
+                break;
+
+            case 'instruments-available':
                 if(window.instruments) {
                     findInstruments(window.instruments, function (instrument, path) {
                         options.push([path, instrument.name]);
@@ -709,7 +724,7 @@
         for (var oi=0; oi<options.length; oi++) {
             var value = options[oi][0];
             var label = options[oi][1] || value;
-            optionHTML += `<option label="${label}">${value}</option>`;
+            optionHTML += `<option value="${value}">${label}</option>`;
         }
         return optionHTML;
     }
@@ -724,7 +739,7 @@
             var song = loadSongFromMemory(songGUID);
             if(song) {
                 menuItemsHTML +=
-                    `<music-editor-menu-item action="load:memory" guid="${songGUID}">
+                    `<music-editor-menu-item data-command="load:memory" guid="${songGUID}">
                         <span>${song.name || "unnamed"}</span>
                     </music-editor-menu-item>`;
             } else {
@@ -739,13 +754,17 @@
         `;
     }
 
+    function formatInstrumentID(number) {
+        return number < 10 ? "0" + number : "" + number;
+    }
+
     // Form Actions
 
-    const formActions = {
+    const formCommands = {
         'instruction:edit': function (e, form) {
             var instruction = form.editableInstruction;
             if(!instruction) throw new Error("editableInstruction not found");
-            instruction.instrument = form.instrument.value;
+            instruction.instrument = parseInt(form.instrument.value);
             instruction.frequency = form.frequency.value;
             instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
@@ -756,11 +775,11 @@
 
     // Menu Actions
 
-    const menuActions = {
+    const menuCommands = {
         'save:memory': function() { this.saveSongToMemory(); },
         'load:memory': function(e) { this.loadSongFromMemory(e.target.getAttribute('guid')); },
     };
-    const keyboardActions = {
+    const keyboardCommands = {
         'default': {
             'ArrowRight': handleArrowKeyEvent,
             'ArrowLeft': handleArrowKeyEvent,

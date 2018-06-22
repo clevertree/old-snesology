@@ -7,8 +7,9 @@
     window.instruments.oscillator.sawtooth = OscillatorSimpleSawtooth;
     window.instruments.oscillator.square = OscillatorSimpleSquare;
     window.instruments.oscillator.default = OscillatorSimple;
-    window.instruments.oscillator.kick = OscillatorSimple;
-    window.instruments.oscillator.snare = OscillatorSimple;
+    window.instruments.percussion = OscillatorSimple;
+    window.instruments.percussion.kick = OscillatorSimple;
+    window.instruments.percussion.snare = OscillatorSimple;
 
     // instrument
 
