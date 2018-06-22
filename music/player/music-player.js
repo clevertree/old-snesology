@@ -41,6 +41,7 @@
         getSongURL() { return this.getAttribute('src');}
 
         loadSongData(songData) {
+            songData.instruments = (songData.instruments || []);
             songData.instructions = processInstructions(songData.instructions || []);
             songData.instructionGroups = processInstructions(songData.instructionGroups || []);
             this.song = songData;
@@ -61,7 +62,7 @@
                                 instructionList[i] = Object.assign({frequency: instruction[0], length: instruction[1]}, lastInstrument);
                             break;
                     }
-                    if(instruction.instrument)
+                    if(typeof instruction.instrument !== 'undefined')
                         lastInstrument = instruction;
                 }
                 return instructionList;
@@ -235,6 +236,15 @@
                 throw new Error("Invalid instrument path");
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
+
+            if(typeof path === "number") {
+                var instrumentConfig = this.song.instruments[path];
+                if(!instrumentConfig)
+                    throw new Error("Invalid Instrument ID: " + path);
+                path = instrumentConfig.path;
+                if(!path)
+                    throw new Error("Invalid Instrument Config: " + instrumentConfig);
+            }
 
             var pathList = path.split('.');
             var pathTarget = window.instruments;

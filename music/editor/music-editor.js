@@ -233,7 +233,7 @@
                 var instruction = instructionList[i];
 
 
-                if(instruction.instrument || instruction.groupExecute) {
+                if(instruction.frequency || instruction.groupExecute) {
                     rowCommands.push(instruction);
                 }
                 if(instruction.pause) {
@@ -300,8 +300,8 @@
         render() {
             this.innerHTML = '';
 
-            if(this.instruction.instrument)
-                this.innerHTML += `<div class="instrument">${this.instruction.instrument}</div>`;
+            if(typeof this.instruction.instrument !== 'undefined')
+                this.innerHTML += `<div class="instrument">${formatInstrumentID(this.instruction.instrument)}</div>`;
 
             if(this.instruction.groupExecute)
                 this.innerHTML += `<div class="groupExecute">${this.instruction.groupExecute}</div>`;
@@ -311,6 +311,8 @@
 
             if(this.instruction.duration)
                 this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
+
+            function formatInstrumentID(number) { return number < 10 ? "0" + number : "" + number; }
         }
 
         select(e, previewInstruction) {
@@ -347,7 +349,7 @@
                 case 'click':
                     break;
                 case 'keydown':
-                    if(this.instruction.instrument) {
+                    if(this.instruction.frequency) {
                         var keyboard = DEFAULT_KEYBOARD_LAYOUT;
                         if(keyboard[e.key]) {
                             this.instruction.frequency = keyboard[e.key];
