@@ -181,6 +181,7 @@ music-editor form.form-row {
     margin: 0px 0;
     padding: 2px;
     color: black;
+    display: inline-block;
 }
 
 music-editor form.form-song fieldset,

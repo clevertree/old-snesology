@@ -3,9 +3,10 @@
 (function() {
     if(!window.instruments)             window.instruments = {};
     if(!window.instruments.oscillator)  window.instruments.oscillator = {};
-    window.instruments.oscillator.sine = OscillatorSimpleSine;
-    window.instruments.oscillator.sawtooth = OscillatorSimpleSawtooth;
-    window.instruments.oscillator.square = OscillatorSimpleSquare;
+    window.instruments.oscillator.sine = OscillatorSimple;
+    window.instruments.oscillator.sawtooth = OscillatorSimple;
+    window.instruments.oscillator.triangle = OscillatorSimple;
+    window.instruments.oscillator.square = OscillatorSimple;
     window.instruments.oscillator.default = OscillatorSimple;
     window.instruments.percussion = OscillatorSimple;
     window.instruments.percussion.kick = OscillatorSimple;
@@ -16,43 +17,34 @@
     /**
      * Oscillator Instrument
      * @param context
-     * @param noteStartTime
-     * @param noteFrequency
-     * @param noteLength
-     * @param {object} options
+     * @param {object} note
      * @returns OscillatorNode
      * @constructor
      */
-    function OscillatorSimple(context, noteFrequency, noteStartTime, noteLength, options) {
-        options = options || {};
+    function OscillatorSimple(context, note) {
+        var oscillatorType = 'triangle';
+        var splitPath = note.instrumentPath.split('.');
+        switch(splitPath[1]) {
+            case 'sine':
+            case 'sawtooth':
+            case 'triangle':
+            case 'square':
+                oscillatorType = splitPath[1];
+        }
+
 
         var osc = context.createOscillator();   // instantiate an oscillator
-        osc.type = options.type || 'triangle';  // set Type
-        osc.frequency.value = noteFrequency;    // set Frequency (hz)
+        osc.type = oscillatorType;  // set Type
+        osc.frequency.value = note.frequency;    // set Frequency (hz)
 
         // Play note
-        osc.connect(options.destination || context.destination);       // connect it to the destination
-        osc.start(noteStartTime);               // start the oscillator
-        if(noteLength)
-            osc.stop(noteStartTime + noteLength);
-        // console.info("OSC", noteStartTime, noteLength);
+        osc.connect(context.destination);       // connect it to the destination
+        osc.start(note.startTime);               // start the oscillator
+        if(note.duration)
+            osc.stop(note.startTime + note.duration);
+        // console.info("OSC", noteStartTime, noteDuration);
 
         return osc;
-    }
-
-    function OscillatorSimpleSquare(context, noteStartTime, noteFrequency, noteLength, options) {
-        options = options || {}; options.type = 'square';
-        return OscillatorSimple(context, noteStartTime, noteFrequency, noteLength, options);
-    }
-
-    function OscillatorSimpleSine(context, noteStartTime, noteFrequency, noteLength, options) {
-        options = options || {}; options.type = 'sine';
-        return OscillatorSimple(context, noteStartTime, noteFrequency, noteLength, options);
-    }
-
-    function OscillatorSimpleSawtooth(context, noteStartTime, noteFrequency, noteLength, options) {
-        options = options || {}; options.type = 'sawtooth';
-        return OscillatorSimple(context, noteStartTime, noteFrequency, noteLength, options);
     }
 
 })();

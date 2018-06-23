@@ -63,7 +63,7 @@
         render() {
             this.innerHTML = renderEditorContent.call(this);
             var instructionList = this.getSong().instructions;
-            console.log('Updating Editor:', instructionList);
+            // console.log('Updating Editor:', instructionList);
             this.grid.render(instructionList);
         }
 
@@ -83,8 +83,8 @@
         // playInstructions(commandList, startPosition, seekLength, playbackOffset) {
         //     return this.player.playInstructions(commandList, startPosition, seekLength, playbackOffset);
         // }
-        play (seekPosition) { return this.player.play(seekPosition); }
-        pause (seekPosition) { return this.player.pause(); }
+        // play (seekPosition) { return this.player.play(seekPosition); }
+        // pause () { return this.player.pause(); }
 
 
         // Edit Song
@@ -236,17 +236,20 @@
             for(var i=0; i<instructionList.length; i++) {
                 var instruction = instructionList[i];
 
+                switch(instruction.type) {
+                    case 'note':
+                    case 'group':
+                        rowCommands.push(instruction);
+                        break;
 
-                if(instruction.frequency || instruction.groupExecute) {
-                    rowCommands.push(instruction);
-                }
-                if(instruction.pause) {
-                    var rowElm = new MusicEditorGridRowElement(instruction.pause);
-                    rowElm.addCommands(rowCommands);
-                    if(this.children.length % 2 === 0)
-                        rowElm.classList.add('odd');
-                    rowCommands = [];
-                    this.appendChild(rowElm);
+                    case 'pause':
+                        var rowElm = new MusicEditorGridRowElement(instruction.pause);
+                        rowElm.addCommands(rowCommands);
+                        if(this.children.length % 2 === 0)
+                            rowElm.classList.add('odd');
+                        rowCommands = [];
+                        this.appendChild(rowElm);
+                        break;
                 }
             }
         }
@@ -372,7 +375,7 @@
                                     this.editor.removeEventListener('keyup', instructionUpCallback);
                                     instructionEvent.stop(0);
                                     this.classList.remove('playing');
-                                    console.info("Stopping Instruction: ", instructionEvent);
+                                    // console.info("Stopping Instruction: ", instructionEvent);
                                     e2.preventDefault();
                                 }
                             }.bind(this);
@@ -607,62 +610,63 @@
                 <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
-            <form class="form-song" data-command="song:edit">
-                <fieldset class="selected-row">
-                    <label>Song:</label>
-                    <button name="play">Play</button>
-                    <button name="play-group">Play Group</button>
-                    <button name="pause">Pause</button>
-                    <button name="resume">Resume</button>
-                    | 
-                    <button name="info">info</button>
-                </fieldset>
+            <form class="form-song" data-command="song:play">
+                <label>Song:</label>
+                <button name="play">Play</button>
             </form>
+            <form class="form-song" data-command="song:playback">
+                <button name="play-group">Play Group</button>
+            </form>
+            <form class="form-song" data-command="song:pause">
+                <button name="pause">Pause</button>
+            </form>
+            <form class="form-song" data-command="song:resume">
+                <button name="resume">Resume</button>
+            </form>
+            <form class="form-song" data-command="song:info">
+                | 
+                <button name="info">info</button>
+            </form>
+            <br/>
             <form class="form-group" data-command="group:edit">
-                <fieldset class="selected-row">
-                    <label>Group:</label>
-                    <button name="edit">Edit</button>
-                    <button name="remove">-</button>
-                </fieldset>
+                <label>Group:</label>
+                <button name="edit">Edit</button>
+                <button name="remove">-</button>
             </form>
             <form class="form-row" data-command="row:edit">
-                <fieldset class="selected-row">
-                    <label>Row:</label>
-                    <button name="duplicate">+</button>
-                    <button name="remove">-</button>
-                    <select name="pause">
-                        <option value="">- Pause -</option>
-                        ${renderEditorFormOptions('durations')}
-                    </select>
-                    <button name="split">Split</button>
-                </fieldset>
+                <label>Row:</label>
+                <button name="duplicate">+</button>
+                <button name="remove">-</button>
+                <select name="pause">
+                    <option value="">- Pause -</option>
+                    ${renderEditorFormOptions('durations')}
+                </select>
+                <button name="split">Split</button>
             </form>
             <form class="form-instruction" data-command="instruction:edit">
-                <fieldset class="selected-instruction">
-                    <label>Note:</label>
-                    <button name="duplicate">+</button>
-                    <button name="remove">-</button>
-                    <select name="instrument">
-                        <optgroup label="Song Instruments">
-                            ${renderEditorFormOptions('song-instruments', this)}
-                        </optgroup>
-                        <optgroup label="Available Instruments">
-                            ${renderEditorFormOptions('instruments-available')}
-                        </optgroup>
-                    </select>
-                    <select name="frequency">
-                        <option value="">- Frequency -</option>
-                        ${renderEditorFormOptions('frequencies')}
-                    </select>
-                    <select name="duration">
-                        <option value="">- Length -</option>
-                        ${renderEditorFormOptions('durations')}
-                    </select>
-                    <select name="velocity">
-                        <option value="">- Velocity -</option>
-                        ${renderEditorFormOptions('velocities')}
-                    </select>
-                </fieldset>
+                <label>Note:</label>
+                <button name="duplicate">+</button>
+                <button name="remove">-</button>
+                <select name="instrument">
+                    <optgroup label="Song Instruments">
+                        ${renderEditorFormOptions('song-instruments', this)}
+                    </optgroup>
+                    <optgroup label="Available Instruments">
+                        ${renderEditorFormOptions('instruments-available')}
+                    </optgroup>
+                </select>
+                <select name="frequency">
+                    <option value="">- Frequency -</option>
+                    ${renderEditorFormOptions('frequencies')}
+                </select>
+                <select name="duration">
+                    <option value="">- Length -</option>
+                    ${renderEditorFormOptions('durations')}
+                </select>
+                <select name="velocity">
+                    <option value="">- Velocity -</option>
+                    ${renderEditorFormOptions('velocities')}
+                </select>
             </form>
             <music-editor-grid>
             </music-editor-grid>
@@ -770,6 +774,10 @@
             instruction.velocity = parseInt(form.velocity.value);
             var associatedElement = this.grid.findAssociatedElement(instruction);
             associatedElement.render();
+        },
+        'song:play': function (e, form) { this.player.play(); },
+        'song:playback': function (e, form) {
+            console.log(e.target);
         }
     };
 
@@ -785,7 +793,7 @@
             'ArrowLeft': handleArrowKeyEvent,
             'ArrowDown': handleArrowKeyEvent,
             'ArrowUp': handleArrowKeyEvent,
-            ' ': function() { this.play(); }
+            ' ': function() { this.player.play(); }
         },
         'alt': {
             'ArrowRight': handleArrowKeyEvent,

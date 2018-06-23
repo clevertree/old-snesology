@@ -42,31 +42,45 @@
 
         loadSongData(songData) {
             songData.instruments = (songData.instruments || []);
-            songData.instructions = processInstructions(songData.instructions || []);
-            songData.instructionGroups = processInstructions(songData.instructionGroups || []);
+            songData.instructions = this.processInstructions(songData.instructions || [], songData.instruments);
+            songData.instructionGroups = songData.instructionGroups || {};
+            Object.keys(songData.instructionGroups).map(function(key) {
+                songData.instructionGroups[key] = this.processInstructions(songData.instructionGroups[key], songData.instruments);
+            }.bind(this));
             this.song = songData;
             // this.update();
-            function processInstructions(instructionList) {
-                var lastInstrument = instructionList[0];
-                for(var i=0; i<instructionList.length; i++) {
-                    var instruction = instructionList[i];
-                    switch(typeof instruction) {
-                        case 'number':
-                            instructionList[i] = {pause:instruction};
-                            break;
-                        case 'string':
-                            instructionList[i] = Object.assign({frequency: instruction}, lastInstrument);
-                            break;
-                        case 'object':
-                            if(Array.isArray(instruction))
-                                instructionList[i] = Object.assign({frequency: instruction[0], length: instruction[1]}, lastInstrument);
-                            break;
-                    }
-                    if(typeof instruction.instrument !== 'undefined')
-                        lastInstrument = instruction;
+        }
+
+        processInstructions(instructionList, songInstruments) {
+            var lastInstruction = instructionList[0];
+            for (var i = 0; i < instructionList.length; i++) {
+                var instruction = instructionList[i];
+                switch (typeof instruction) {
+                    case 'number':
+                        instructionList[i] = {type: "pause", pause: instruction};
+                        break;
+                    case 'string':
+                        instructionList[i] = Object.assign({}, lastInstruction, {type: "note", frequency: instruction});
+                        break;
+                    case 'object':
+                        if (Array.isArray(instruction))
+                            instruction = instructionList[i]
+                                = Object.assign({}, lastInstruction, {
+                                type: "note",
+                                frequency: instruction[0],
+                                length: instruction[1]
+                            });
+                        switch (instruction.type) {
+                            case 'note':
+                                if (typeof instruction.instrument === 'string')
+                                    instruction.instrument = this.findInstrumentID(instruction.instrument, songInstruments);
+                        }
+                        break;
                 }
-                return instructionList;
+                if (instruction.type === 'note')
+                    lastInstruction = instruction;
             }
+            return instructionList;
         }
 
         loadSong(songURL, onLoaded) {
@@ -76,46 +90,60 @@
                     throw new Error("Could not load song: " + err);
                 if(!json)
                     throw new Error("Invalid JSON File: " + songURL);
-                this.loadSongData(json);
+
                 this.setAttribute('src', songURL);
-                console.log('Song loaded:', this.song);
 
                 // Load Scripts
                 var scriptsLoading = 0;
-                if(this.song.load) {
-                    for(var i=0; i<this.song.load.length; i++) {
-                        var scriptPath = this.song.load[i];
+                if(json.load) {
+                    for(var i=0; i<json.load.length; i++) {
+                        var scriptPath = json.load[i];
                         scriptsLoading++;
                         loadScript.call(this, scriptPath, function() {
                             // console.log("Scripts loading: ", scriptsLoading);
                             scriptsLoading--;
-                            if(scriptsLoading === 0)
+                            if(scriptsLoading === 0) {
+                                loadJSON.call(this);
                                 onLoaded && onLoaded(); // initInstructions.call(this);
+                            }
                         }.bind(this));
                     }
                 }
-                if(scriptsLoading === 0)
+                if(scriptsLoading === 0) {
+                    loadJSON.call(this);
                     onLoaded && onLoaded(); // initInstructions.call(this);
+                }
+                function loadJSON() {
+                    this.loadSongData(json);
+                    console.log('Song loaded:', this.song);
+                }
             }.bind(this));
         }
 
-        playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, options, callback) {
-            var instrument = this.getInstrument(instrumentName);
-            instructionFrequency = this.getInstructionFrequency(instructionFrequency || 'C4');
+        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, callback) {
+            var instrumentPath = this.getInstrumentPath(instrumentID);
+            var instrument = this.getInstrument(instrumentPath);
+            noteFrequency = this.getInstructionFrequency(noteFrequency || 'C4');
 
-            var instructionEvent = instrument(this.audioContext, instructionFrequency, instructionStartTime, instructionLength, options);
+            var instructionEvent = instrument(this.audioContext, {
+                frequency:noteFrequency,
+                startTime: noteStartTime,
+                duration: noteDuration,
+                instruction: instruction,
+                instrumentPath: instrumentPath,
+            });
 
-            if(instructionLength && callback) {
-                if(instructionStartTime - .5 > this.audioContext.currentTime)
+            if(noteDuration && callback) {
+                if(noteStartTime - .5 > this.audioContext.currentTime)
                     setTimeout(function() {
                         callback(true);
-                    }, (instructionStartTime - this.audioContext.currentTime) * 1000);
+                    }, (noteStartTime - this.audioContext.currentTime) * 1000);
                 else
                     callback(true);
 
                 setTimeout(function() {
                     callback(false);
-                }, (instructionStartTime + instructionLength - this.audioContext.currentTime) * 1000);
+                }, (noteStartTime + noteDuration - this.audioContext.currentTime) * 1000);
             }
 
             // if(associatedElement) {
@@ -135,7 +163,7 @@
         }
 
         playInstruction(instruction, instructionStartTime, bpm, callback) {
-            if(typeof instruction.instrument !== 'undefined') {
+            if(instruction.type === 'note') {
                 var instrumentName = instruction.instrument;
                 var instructionFrequency =  instruction.frequency;
                 var instructionLength = (instruction.length || 1) * (240 / (bpm || 240));
@@ -151,26 +179,30 @@
             var instructionEvents = [];
             for(var i=0; i<instructionList.length; i++) {
                 var instruction = instructionList[i];
+                
+                switch(instruction.type) {
+                    case 'note':
+                        if(currentPosition < startPosition)
+                            continue;   // Instructions were already played
+                        var instructionEvent = this.playInstruction(instruction, currentPosition + playbackOffset, currentBPM);
+                        instructionEvents.push(instructionEvent);
+                        break;
 
-                if(instruction.instrument) {
-                    if(currentPosition < startPosition)
-                        continue;   // Instructions were already played
-                    var instructionEvent = this.playInstruction(instruction, currentPosition + playbackOffset, currentBPM);
-                    instructionEvents.push(instructionEvent);
-                    // instructionBuffer.push([currentPosition, instruction]);
-                    // instructionsPlayed += this.playInstrument(instruction) ? 0 : 1;
-                }
-                if(instruction.pause) {
-                    currentPosition += instruction.pause * (240 / currentBPM);
-                }
-                if(instruction.groupExecute) {
-                    // if(currentPosition < startPosition) // Execute all groups each time
-                    //     continue;
-                    var instructionGroupList = this.song.instructionGroups[instruction.groupExecute];
-                    if(!instructionGroupList)
-                        throw new Error("Instruction group not found: " + instruction.groupExecute);
-                    var groupInstructionEvents = this.playInstructions(instructionGroupList, startPosition - currentPosition, seekLength, playbackOffset);
-                    instructionEvents = instructionEvents.concat(groupInstructionEvents);
+                    case 'pause':
+                        currentPosition += instruction.pause * (240 / currentBPM);
+                        break;
+                        
+                    case 'group':
+                        // if(currentPosition < startPosition) // Execute all groups each time
+                        //     continue;
+                        var instructionGroupList = this.song.instructionGroups[instruction.group];
+                        if(!instructionGroupList)
+                            throw new Error("Instruction group not found: " + instruction.group);
+                        var groupInstructionEvents = this.playInstructions(instructionGroupList, startPosition - currentPosition, seekLength, playbackOffset);
+                        instructionEvents = instructionEvents.concat(groupInstructionEvents);
+                        break;
+                    default: 
+                        console.warn("Unknown instruction type: " + instruction.type, instruction);
                 }
                 if(seekLength && currentPosition >= startPosition + seekLength)
                     break;
@@ -231,22 +263,35 @@
             }
         }
 
-        getInstrument(path) {
+        findInstrumentID(instrumentPath, songInstrumentList) {
+            songInstrumentList = songInstrumentList || this.song.instruments;
+            for(var i=0; i<songInstrumentList.length; i++) {
+                var instrument = songInstrumentList[i];
+                if(instrument.path === instrumentPath)
+                    return i;
+            }
+            throw new Error("Song instrument was not found: " + instrumentPath);
+        }
+
+        getInstrumentPath(instrumentID) {
+            if(typeof instrumentID !== "number")
+                throw new Error("Invalid instrumentID");
+            var instrumentConfig = this.song.instruments[instrumentID];
+            if(!instrumentConfig)
+                throw new Error("Invalid Instrument ID: " + instrumentID);
+            if(!instrumentConfig.path)
+                throw new Error("Invalid Instrument Config: " + instrumentConfig);
+            return instrumentConfig.path;
+        }
+
+        getInstrument(instrumentPath) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
-            if(typeof path === "number") {
-                var instrumentConfig = this.song.instruments[path];
-                if(!instrumentConfig)
-                    throw new Error("Invalid Instrument ID: " + path);
-                path = instrumentConfig.path;
-                if(!path)
-                    throw new Error("Invalid Instrument Config: " + instrumentConfig);
-            }
-            else if(!path)
+            if(!instrumentPath)
                 throw new Error("Invalid instrument path");
 
-            var pathList = path.split('.');
+            var pathList = instrumentPath.split('.');
             var pathTarget = window.instruments;
 
             // if(this.song.aliases[pathList[0]])
@@ -263,7 +308,7 @@
             if (pathTarget && typeof pathTarget === 'object')
                 pathTarget = pathTarget.default;
             if (!pathTarget)
-                throw new Error("Instrument not found: " + pathList.join('.') + ' [alias:' + path + ']');
+                throw new Error("Instrument not found: " + pathList.join('.') + ' [alias:' + instrumentPath + ']');
             return pathTarget;
         }
 
