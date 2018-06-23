@@ -193,10 +193,7 @@ music-editor form.form-row fieldset {
     border: 0;
 }
 
-music-editor form.form-song fieldset > label:first-of-type,
-music-editor form.form-instruction fieldset > label:first-of-type,
-music-editor form.form-group fieldset > label:first-of-type,
-music-editor form.form-row fieldset > label:first-of-type {
+music-editor form label.row-label {
     display: inline-block;
     min-width: 50px;
     text-align: right;

@@ -386,7 +386,9 @@
     }
 
     // Define custom elements
-    customElements.define('music-player', MusicPlayerElement);
+    supportCustomElements(function(customElements) {
+        customElements.define('music-player', MusicPlayerElement);
+    });
 
 
     // Load Javascript dependencies
@@ -427,6 +429,21 @@
             onLoaded(xhr.status !== 200 ? xhr.status : null, xhr.response);
         };
         xhr.send();
+    }
+
+    function supportCustomElements(onLoaded) {
+        if(typeof window.customElements !== 'undefined') {
+            onLoaded(window.customElements);
+        } else {
+            let styleSheetElm = document.createElement('link');
+            styleSheetElm.href = 'https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js';
+            styleSheetElm.rel = 'stylesheet';
+            styleSheetElm.onload = function(e) {
+                console.info("Loaded polyfill: customElements", window.customElements);
+                onLoaded(window.customElements);
+            };
+            document.head.appendChild(styleSheetElm);
+        }
     }
 
     // function normalizeInstructionName(commandString) {
