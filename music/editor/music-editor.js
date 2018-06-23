@@ -37,6 +37,8 @@
 
             loadScript('music/player/music-player.js', function() {
                 this.playerElement = document.createElement('music-player');
+                this.playerElement.addEventListener('song:note', this.onSongEvent.bind(this));
+                this.playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
                 // this.appendChild(this.playerElement); // TODO: unnecessary lol
 
                 if(this.getSongURL())
@@ -147,6 +149,12 @@
             //     formRow.pause.value = instruction.pause || '';
             //     formRow.classList.remove('hidden');
             // }
+        }
+
+        // Playback
+
+        onSongEvent(e) {
+            console.log("Playback", e.type, e.detail);
         }
 
         // Input

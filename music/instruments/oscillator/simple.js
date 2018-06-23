@@ -47,4 +47,12 @@
         return osc;
     }
 
+    OscillatorSimple.getNamedFrequency = function(frequencyName) {
+        switch(frequencyName) {
+            case 'kick': return 'C4';
+            case 'snare': return 'D4';
+        }
+        return frequencyName;
+    }
+
 })();
