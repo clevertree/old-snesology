@@ -386,9 +386,7 @@
     }
 
     // Define custom elements
-    supportCustomElements(function(customElements) {
-        customElements.define('music-player', MusicPlayerElement);
-    });
+    customElements.define('music-player', MusicPlayerElement);
 
 
     // Load Javascript dependencies
@@ -431,20 +429,6 @@
         xhr.send();
     }
 
-    function supportCustomElements(onLoaded) {
-        if(typeof window.customElements !== 'undefined') {
-            onLoaded(window.customElements);
-        } else {
-            let styleSheetElm = document.createElement('link');
-            styleSheetElm.href = 'https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js';
-            styleSheetElm.rel = 'stylesheet';
-            styleSheetElm.onload = function(e) {
-                console.info("Loaded polyfill: customElements", window.customElements);
-                onLoaded(window.customElements);
-            };
-            document.head.appendChild(styleSheetElm);
-        }
-    }
 
     // function normalizeInstructionName(commandString) {
     //     switch(commandString.toLowerCase()) {

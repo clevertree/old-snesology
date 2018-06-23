@@ -472,14 +472,12 @@
 
 
     // Define custom elements
-    supportCustomElements(function(customElements) {
-        customElements.define('music-editor', MusicEditorElement);
-        customElements.define('music-editor-menu', MusicEditorMenuElement);
-        customElements.define('music-editor-menu-item', MusicEditorMenuItemElement);
-        customElements.define('music-editor-grid', MusicEditorGridElement);
-        customElements.define('music-editor-grid-row', MusicEditorGridRowElement);
-        customElements.define('music-editor-grid-cell', MusicEditorGridCellElement);
-    });
+    customElements.define('music-editor', MusicEditorElement);
+    customElements.define('music-editor-menu', MusicEditorMenuElement);
+    customElements.define('music-editor-menu-item', MusicEditorMenuItemElement);
+    customElements.define('music-editor-grid', MusicEditorGridElement);
+    customElements.define('music-editor-grid-row', MusicEditorGridRowElement);
+    customElements.define('music-editor-grid-cell', MusicEditorGridCellElement);
 
 
     // Load Javascript dependencies
@@ -509,21 +507,6 @@
             styleSheetElm.href = styleSheetPath;
             styleSheetElm.rel = 'stylesheet';
             styleSheetElm.onload = onLoaded;
-            document.head.appendChild(styleSheetElm);
-        }
-    }
-
-    function supportCustomElements(onLoaded) {
-        if(typeof window.customElements !== 'undefined') {
-            onLoaded(window.customElements);
-        } else {
-            let styleSheetElm = document.createElement('link');
-            styleSheetElm.href = 'https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js';
-            styleSheetElm.rel = 'stylesheet';
-            styleSheetElm.onload = function(e) {
-                console.info("Loaded polyfill: customElements", window.customElements);
-                onLoaded(window.customElements);
-            };
             document.head.appendChild(styleSheetElm);
         }
     }
