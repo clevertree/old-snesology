@@ -2,7 +2,8 @@
 .theme-minimal {
     color: #081b19;
     margin: 0 0;
-    font-family: "Courier New",Courier,"Lucida Sans Typewriter","Lucida Typewriter",monospace;
+    font-family: 'advent pro';   
+    font-size: 20px; 
 }
 
 /** Background Image **/
