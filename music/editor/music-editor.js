@@ -638,7 +638,7 @@
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
             <form class="form-song" data-command="song:play">
-                <label>Song:</label>
+                <label class="row-label">Song:</label>
                 <button name="play">Play</button>
             </form>
             <form class="form-song" data-command="song:playback">
@@ -654,14 +654,16 @@
                 | 
                 <button name="info">info</button>
             </form>
+
             <br/>
+ 
             <form class="form-group" data-command="group:edit">
                 <label>Group:</label>
                 <button name="edit">Edit</button>
                 <button name="remove">-</button>
             </form>
             <form class="form-row" data-command="row:edit">
-                <label>Row:</label>
+                <label class="row-label">Row:</label>
                 <button name="duplicate">+</button>
                 <button name="remove">-</button>
                 <select name="pause">
@@ -670,8 +672,11 @@
                 </select>
                 <button name="split">Split</button>
             </form>
+            
+            <br/>
+
             <form class="form-instruction" data-command="instruction:edit">
-                <label>Note:</label>
+                <label class="row-label">Note:</label>
                 <button name="duplicate">+</button>
                 <button name="remove">-</button>
                 <select name="instrument">
