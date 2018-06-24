@@ -1,16 +1,15 @@
 
 
 (function() {
+    // snesology.org.instruments.oscillator
+    var domain = {};
     if(!window.instruments)             window.instruments = {};
-    if(!window.instruments.oscillator)  window.instruments.oscillator = {};
-    window.instruments.oscillator.sine = OscillatorSimple;
-    window.instruments.oscillator.sawtooth = OscillatorSimple;
-    window.instruments.oscillator.triangle = OscillatorSimple;
-    window.instruments.oscillator.square = OscillatorSimple;
-    window.instruments.oscillator.default = OscillatorSimple;
-    window.instruments.percussion = OscillatorSimple;
-    window.instruments.percussion.kick = OscillatorSimple;
-    window.instruments.percussion.snare = OscillatorSimple;
+    window.instruments['snesology.org'] = domain;
+
+    domain['oscillator.sine'] = OscillatorSimple;
+    domain['oscillator.sawtooth'] = OscillatorSimple;
+    domain['oscillator.triangle'] = OscillatorSimple;
+    domain['oscillator.square'] = OscillatorSimple;
 
     // instrument
 

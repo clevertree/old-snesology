@@ -65,7 +65,7 @@
 
         render() {
             this.innerHTML = renderEditorContent.call(this);
-            var instructionList = this.getSong().instructions;
+            const instructionList = this.getSong().instructions;
             // console.log('Updating Editor:', instructionList);
             this.grid.render(instructionList);
         }
@@ -93,7 +93,7 @@
         // Edit Song
 
         setInstruction(position, instruction, groupName) {
-            var instructionList = this.getInstructions(groupName);
+            const instructionList = this.getInstructions(groupName);
             if(instructionList.length < position)
                 throw new Error("Invalid instruction position: " + position + (groupName ? " for group: " + groupName : ''));
             instructionList[position] = instruction;
@@ -101,7 +101,7 @@
 
         getInstructions(groupName) {
             if(groupName) {
-                var instructionList = this.song.instructionGroups[groupName];
+                let instructionList = this.song.instructionGroups[groupName];
                 if(!instructionList)
                     throw new Error("Instruction group not found: " + groupName);
                 return instructionList;
@@ -110,16 +110,16 @@
         }
 
         getInstructionPosition(instruction, groupName) {
-            var instructionList = this.getInstructions(groupName);
-            var p = instructionList.indexOf(instruction);
+            const instructionList = this.getInstructions(groupName);
+            const p = instructionList.indexOf(instruction);
             if(p === -1)
                 throw new Error("Instruction not found in instruction list");
             return p;
         }
 
         swapInstructions(instruction1, instruction2, groupName) {
-            var p1 = this.getInstructionPosition(instruction1, groupName);
-            var p2 = this.getInstructionPosition(instruction2, groupName);
+            const p1 = this.getInstructionPosition(instruction1, groupName);
+            const p2 = this.getInstructionPosition(instruction2, groupName);
             this.setInstruction(p2, instruction1);
             this.setInstruction(p1, instruction2);
         }
@@ -127,7 +127,7 @@
         // Forms
 
         setEditableInstruction(instruction) {
-            var formInstruction = this.querySelector('form.form-instruction');
+            const formInstruction = this.querySelector('form.form-instruction');
             formInstruction.classList.add('hidden');
             if(instruction.frequency) {
                 formInstruction.instrument.value = ""+instruction.instrument || '';
@@ -138,7 +138,7 @@
                 formInstruction.classList.remove('hidden');
             }
 
-            var formGroup = this.querySelector('form.form-group');
+            const formGroup = this.querySelector('form.form-group');
             formGroup.classList.add('hidden');
             if(instruction.groupExecute) {
                 formGroup.classList.remove('hidden');
@@ -155,15 +155,15 @@
         // Playback
 
         onSongEvent(e) {
-            console.log("Playback", e.type, e.detail);
+            // console.log("Playback", e.type, e.detail);
             switch(e.type) {
                 case 'note:start':
-                    var startElm = this.grid.findAssociatedElement(e.detail.instruction);
+                    const startElm = this.grid.findAssociatedElement(e.detail.instruction);
                     if(startElm)
                         startElm.classList.add('playing');
                     break;
                 case 'note:end':
-                    var endElm = this.grid.findAssociatedElement(e.detail.instruction);
+                    const endElm = this.grid.findAssociatedElement(e.detail.instruction);
                     if(endElm)
                         endElm.classList.remove('playing');
                     break;
@@ -203,7 +203,7 @@
                         return;
                     }
 
-                    var selectedCell = this.querySelector('music-editor-grid-cell.selected')
+                    const selectedCell = this.querySelector('music-editor-grid-cell.selected')
                         || this.querySelector('music-editor-grid-cell');
 
                     selectedCell.onInput(e);
@@ -212,7 +212,7 @@
                     break;
 
                 case 'keyup':
-                    var i = this.depressedKeys.indexOf(e.key);
+                    const i = this.depressedKeys.indexOf(e.key);
                     if(i > -1) {
                         this.depressedKeys.splice(i, 1);
                     }
@@ -225,10 +225,10 @@
                 case 'submit':
                 case 'change':
                     e.preventDefault();
-                    var form = e.target.form || e.target;
+                    const form = e.target.form || e.target;
                     console.log("Form " + e.type + ": ", form.target.form, e);
-                    var formCommandName = form.getAttribute('data-command');
-                    var formCommand = formCommands[formCommandName];
+                    const formCommandName = form.getAttribute('data-command');
+                    let formCommand = formCommands[formCommandName];
                     if(!formCommand)
                         throw new Error("Form command not found: " + formCommandName);
                     formCommand.call(this, e, form);
@@ -244,7 +244,7 @@
 
         findAssociatedElement(instruction) {
             let commandElms = this.querySelectorAll('music-editor-grid-cell');
-            for(var i=0; i<commandElms.length; i++)
+            for(let i=0; i<commandElms.length; i++)
                 if(commandElms[i].instruction === instruction)
                     return commandElms[i];
             return null;
@@ -253,9 +253,9 @@
         render(instructionList) {
             this.innerHTML = '';
 
-            var rowCommands = [];
-            for(var i=0; i<instructionList.length; i++) {
-                var instruction = instructionList[i];
+            let rowCommands = [];
+            for(let i=0; i<instructionList.length; i++) {
+                const instruction = instructionList[i];
 
                 switch(instruction.type) {
                     case 'note':
@@ -264,7 +264,7 @@
                         break;
 
                     case 'pause':
-                        var rowElm = new MusicEditorGridRowElement(instruction.pause);
+                        const rowElm = new MusicEditorGridRowElement(instruction.pause);
                         rowElm.addCommands(rowCommands);
                         if(this.children.length % 2 === 0)
                             rowElm.classList.add('odd');
@@ -294,14 +294,14 @@
 
 
         addCommands(commandList) {
-            for(var i=0; i<commandList.length; i++)
+            for(let i=0; i<commandList.length; i++)
                 this.addCommand(commandList[i]);
         }
 
         addCommand(command) {
             if(!command)
                 throw new Error("Invalid command");
-            var cellElm = new MusicEditorGridCellElement(command);
+            const cellElm = new MusicEditorGridCellElement(command);
             this.appendChild(cellElm);
         }
 
@@ -355,7 +355,7 @@
             return this.editor.player.playInstruction(
                 this.instruction,
                 this.editor.playerElement.getAudioContext().currentTime,
-                this.editor.playerElement.getCurrentBPM(),
+                this.editor.playerElement.getStartingBPM(),
                 function(playing) {
                     this.classList.toggle('playing', playing);
                 }.bind(this),
@@ -377,7 +377,7 @@
                     break;
                 case 'keydown':
                     if(this.instruction.frequency) {
-                        var keyboard = DEFAULT_KEYBOARD_LAYOUT;
+                        const keyboard = DEFAULT_KEYBOARD_LAYOUT;
                         if(keyboard[e.key]) {
                             e.preventDefault();
                             this.instruction.frequency = keyboard[e.key];
@@ -413,13 +413,13 @@
         }
 
         close() {
-            var openElements = this.querySelectorAll('music-editor-menu-item.open');
-            for(var i=openElements.length-1; i>=0; i--)
+            const openElements = this.querySelectorAll('music-editor-menu-item.open');
+            for(let i=openElements.length-1; i>=0; i--)
                 openElements[i].classList.remove('open');
         }
 
         onInput(e) {
-            var target = e.target instanceof MusicEditorMenuItemElement
+            let target = e.target instanceof MusicEditorMenuItemElement
                 ? e.target
                 : findParentNode(e.target, MusicEditorMenuItemElement);
             if(!target) {
@@ -438,7 +438,7 @@
 
             console.log("Menu", e, target);
             if(target.command) {
-                var menuCommand = menuCommands[target.command];
+                let menuCommand = menuCommands[target.command];
                 if(!menuCommand)
                     throw new Error("Unknown menu command: " + target.command);
                 menuCommand.call(this.editor, e);
@@ -485,7 +485,7 @@
             scriptElm = document.createElement('script');
             scriptElm.src = scriptPath;
             scriptElm.onload = function(e) {
-                for(var i=0; i<scriptElm.onloads.length; i++)
+                for(let i=0; i<scriptElm.onloads.length; i++)
                     scriptElm.onloads[i](e);
                 scriptElm.onloads = null;
             };
@@ -507,28 +507,22 @@
     }
 
     function clearElementClass(className, selector) {
-        var clearElms = document.querySelectorAll(selector || '.' + className);
-        for(var i=0; i<clearElms.length; i++)
+        const clearElms = document.querySelectorAll(selector || '.' + className);
+        for(let i=0; i<clearElms.length; i++)
             clearElms[i].classList.remove(className);
     }
 
     // Instrument Commands
 
-    function findInstruments(obj, callback, rootPath) {
-        if(typeof obj !== 'object')
-            throw new Error("Invalid instrument object: " + typeof obj);
-        Object.keys(obj).map(function(key, i) {
-            var absPath = (rootPath ? rootPath + '.' : '') + key;
-            switch(typeof obj[key]) {
-                case 'object':
-                    findInstruments(obj[key], callback, absPath);
-                    break;
-
-                case 'function':
-                    callback(obj[key], absPath);
-                    break;
-            }
-        });
+    function findInstruments(callback, instrumentsObject) {
+        instrumentsObject = instrumentsObject || window.instruments;
+        Object.keys(instrumentsObject).map(function(domainString) {
+            const domainCollection = instrumentsObject[domainString];
+            Object.keys(domainCollection).map(function(instrumentPathString) {
+                const instrument = domainCollection[instrumentPathString];
+                callback(instrument, instrumentPathString, domainString);
+            }.bind(this));
+        }.bind(this));
     }
 
     // Element commands
@@ -545,7 +539,7 @@
     function saveSongToMemory(song) {
         if(!song.guid)
             song.guid = generateGUID();
-        var songList = JSON.parse(localStorage.getItem('music-editor-saved-list') || "[]");
+        const songList = JSON.parse(localStorage.getItem('music-editor-saved-list') || "[]");
         if(songList.indexOf(song.guid) === -1)
             songList.push(song.guid);
         console.log("Saving song: ", song, songList);
@@ -554,10 +548,10 @@
     }
 
     function loadSongFromMemory(songGUID) {
-        var songDataString = localStorage.getItem('song:' + songGUID);
+        let songDataString = localStorage.getItem('song:' + songGUID);
         if(!songDataString)
             throw new Error("Song Data not found for guid: " + songGUID);
-        var songData = JSON.parse(songDataString);
+        let songData = JSON.parse(songDataString);
         if(!songData)
             throw new Error("Invalid Song Data: " + songDataString);
         return songData;
@@ -619,9 +613,6 @@
                 <form class="form-song" data-command="song:play">
                     <label class="row-label">Song:</label>
                     <button name="play">Play</button>
-                </form>
-                <form class="form-song" data-command="song:playback">
-                    <button name="play-group">Play Group</button>
                 </form>
                 <form class="form-song" data-command="song:pause">
                     <button name="pause">Pause</button>
@@ -690,37 +681,37 @@
     }
 
     function renderEditorFormOptions(optionType, editor) {
-        var options = [];
+        let options = [];
         switch(optionType) {
             case 'song-instruments':
-                var song = editor.getSong();
-                for(var instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
-                    var instrumentInfo = song.instruments[instrumentID];
+                const song = editor.getSong();
+                for(let instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
+                    const instrumentInfo = song.instruments[instrumentID];
                     var instrument = editor.player.getInstrument(instrumentInfo.path);
-                    options.push([instrumentID, formatInstrumentID(instrumentID) + ': ' + instrument.name]);
+                    options.push([instrumentID, formatInstrumentID(instrumentID) + ': ' + (instrumentInfo.name || instrument.name)]);
                 }
                 break;
 
             case 'instruments-available':
                 if(window.instruments) {
-                    findInstruments(window.instruments, function (instrument, path) {
-                        options.push([path, instrument.name]);
+                    findInstruments(function (instrument, path, domain) {
+                        options.push([domain + ":" + path, instrument.name + " (" + path + ")"]);
                     });
                 }
                 break;
 
             case 'frequencies':
-                var instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
-                for(var i=1; i<=6; i++) {
-                    for(var j=0; j<instructions.length; j++) {
-                        var instruction = instructions[j] + i;
+                const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+                for(let i=1; i<=6; i++) {
+                    for(let j=0; j<instructions.length; j++) {
+                        const instruction = instructions[j] + i;
                         options.push([instruction, instruction]);
                     }
                 }
                 break;
 
             case 'velocities':
-                for(var vi=100; vi>=0; vi--) {
+                for(let vi=100; vi>=0; vi--) {
                     options.push([vi, vi]);
                 }
                 break;
@@ -740,23 +731,23 @@
                 break;
         }
 
-        var optionHTML = '';
-        for (var oi=0; oi<options.length; oi++) {
-            var value = options[oi][0];
-            var label = options[oi][1] || value;
+        let optionHTML = '';
+        for (let oi=0; oi<options.length; oi++) {
+            const value = options[oi][0];
+            const label = options[oi][1] || value;
             optionHTML += `<option value="${value}">${label}</option>`;
         }
         return optionHTML;
     }
 
     function renderEditorMenuLoadFromMemory() {
-        var songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
+        const songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
         console.log("Loading song list from memory: ", songGUIDs);
 
-        var menuItemsHTML = '';
-        for(var i=0; i<songGUIDs.length; i++) {
-            var songGUID = songGUIDs[i];
-            var song = loadSongFromMemory(songGUID);
+        let menuItemsHTML = '';
+        for(let i=0; i<songGUIDs.length; i++) {
+            const songGUID = songGUIDs[i];
+            const song = loadSongFromMemory(songGUID);
             if(song) {
                 menuItemsHTML +=
                     `<music-editor-menu-item data-command="load:memory" guid="${songGUID}">
@@ -782,13 +773,13 @@
 
     const formCommands = {
         'instruction:edit': function (e, form) {
-            var instruction = form.editableInstruction;
+            let instruction = form.editableInstruction;
             if(!instruction) throw new Error("editableInstruction not found");
             instruction.instrument = parseInt(form.instrument.value);
             instruction.frequency = form.frequency.value;
             instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
-            var associatedElement = this.grid.findAssociatedElement(instruction);
+            const associatedElement = this.grid.findAssociatedElement(instruction);
             associatedElement.render();
         },
         'song:play': function (e, form) { this.player.play(); },
@@ -823,11 +814,11 @@
     };
 
     function handleArrowKeyEvent(e) {
-        var selectedCell = this.querySelector('music-editor-grid-cell.selected')
+        const selectedCell = this.querySelector('music-editor-grid-cell.selected')
             || this.querySelector('music-editor-grid-cell');
-        var newSelectedCell = selectedCell;
+        let newSelectedCell = selectedCell;
 
-        var selectedRow = selectedCell.parentNode;
+        const selectedRow = selectedCell.parentNode;
         switch(e.key) {
             case 'ArrowRight':
                 newSelectedCell = selectedCell.nextSibling

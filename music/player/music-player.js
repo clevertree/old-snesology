@@ -22,7 +22,7 @@
 
         getAudioContext() { return this.audioContext || (this.audioContext = new AudioContext()); }
         getSong() { return this.song; }
-        getCurrentBPM() { return this.bpm; }
+        getStartingBPM() { return this.bpm; }
 
         connectedCallback() {
             this.addEventListener('keydown', this.onInput.bind(this));
@@ -172,56 +172,61 @@
             return noteEvent;
         }
 
-        playInstruction(instruction, noteStartTime, bpm, callback) {
+        playInstruction(instruction, noteStartTime, bpm, onPlayback) {
             if(instruction.type === 'note') {
                 const instrumentName = instruction.instrument;
                 const noteFrequency = instruction.frequency;
-                const noteDuration = (instruction.length || 1) * (240 / (bpm || 240));
-                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, callback);
+                const noteDuration = (instruction.duration || 1) * (240 / (bpm || 240));
+                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, onPlayback);
             }
             return null;
         }
 
         playInstructions(instructionList, seekPosition, seekLength, groupOffset, onPlayback) {
-            let currentPosition = 0;
-            const currentBPM = this.getCurrentBPM();
-            let instructionEvents = [];
-            for(let i=0; i<instructionList.length; i++) {
-                const instruction = instructionList[i];
 
-                switch(instruction.type) {
-                    case 'note':
-                        if(currentPosition < seekPosition)
-                            continue;   // Instructions were already played
-                        const instructionEvent = this.playInstruction(instruction, this.startTime + currentPosition + groupOffset, currentBPM, onPlayback);
-                        instructionEvents.push(instructionEvent);
-                        break;
+            return playGroup.call(this, instructionList, 0);
 
-                    case 'pause':
-                        currentPosition += instruction.pause * (240 / currentBPM);
-                        break;
+            function playGroup(instructionList, groupOffset) {
+                let currentPosition = 0;
+                var currentBPM = this.getStartingBPM();
+                var playTime = 0;
+                for(let i=0; i<instructionList.length; i++) {
+                    const instruction = instructionList[i];
 
-                    case 'group':
-                        // if(currentPosition < startPosition) // Execute all groups each time
-                        //     continue;
-                        let instructionGroupList = this.song.instructionGroups[instruction.group];
-                        if(!instructionGroupList)
-                            throw new Error("Instruction group not found: " + instruction.group);
-                        const groupInstructionEvents = this.playInstructions(instructionGroupList, seekPosition - currentPosition, seekLength, groupOffset, onPlayback);
-                        instructionEvents = instructionEvents.concat(groupInstructionEvents);
+                    switch(instruction.type) {
+                        case 'note':
+                            if(currentPosition < seekPosition)
+                                continue;   // Instructions were already played
+                            this.playInstruction(instruction, this.startTime + currentPosition + groupOffset, currentBPM, onPlayback);
+                            break;
+
+                        case 'pause':
+                            currentPosition += instruction.pause;
+                            playTime += instruction.pause * (240 / currentBPM);
+                            break;
+
+                        case 'group':
+                            // if(currentPosition < startPosition) // Execute all groups each time
+                            //     continue;
+                            let instructionGroupList = this.song.instructionGroups[instruction.group];
+                            if(!instructionGroupList)
+                                throw new Error("Instruction group not found: " + instruction.group);
+                            playGroup.call(this, instructionGroupList, currentPosition);
+                            break;
+                        default:
+                            console.warn("Unknown instruction type: " + instruction.type, instruction);
+                    }
+                    if(seekLength && currentPosition >= seekPosition + seekLength)
                         break;
-                    default:
-                        console.warn("Unknown instruction type: " + instruction.type, instruction);
                 }
-                if(seekLength && currentPosition >= seekPosition + seekLength)
-                    break;
+                return playTime;
             }
-            return instructionEvents;
+
         }
 
+
         play (seekPosition) {
-            if(seekPosition)
-                this.seekPosition = seekPosition;
+            this.seekPosition = seekPosition || 0;
 
             // this.lastInstructionPosition = 0;
             this.startTime = this.getAudioContext().currentTime - this.seekPosition;
@@ -243,7 +248,7 @@
                 console.info("Playing paused");
                 return;
             }
-            const instructionEvents = this.playInstructions(
+            var playTime = this.playInstructions(
                 this.song.instructions,
                 this.seekPosition,
                 this.seekLength,
@@ -251,28 +256,30 @@
             );
 
             // this.seekPosition += this.seekLength;
-            this.seekPosition = this.getAudioContext().currentTime - this.startTime;
+            var currentTime = this.getAudioContext().currentTime;
+            var finishTime = this.startTime + playTime;
+            // this.seekPosition = currentTime - this.startTime;
+            this.seekPosition += this.seekLength;
 
-            const playbackEvent = new CustomEvent('song:playback', {
-                detail: {
-                    playing: true
-                }
-            });
-            if(instructionEvents.length > 0) {
+            if(currentTime < finishTime) {
                 // console.log("Instructions playing:", instructionEvents, this.seekPosition, this.currentPosition);
-                setTimeout(function() {
-                    this.processPlayback();
-                }.bind(this), this.seekLength * 1000);
 
-                this.dispatchEvent(playbackEvent);
+                this.dispatchEvent(new CustomEvent('song:playback'));
+
+                if(currentTime + this.seekLength > finishTime) {
+                    setTimeout(function() {
+                        console.log("Song finished");
+                        this.seekPosition = 0;
+                        this.playing = false;
+
+                        // Update UI
+                        this.dispatchEvent(new CustomEvent('song:end'));
+                    }.bind(this), finishTime - currentTime)
+
+                } else {
+                    setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
+                }
             } else{
-                console.log("Song finished");
-                this.seekPosition = 0;
-                this.playing = false;
-
-                // Update UI
-                playbackEvent.detail.playing = false;
-                this.dispatchEvent(playbackEvent);
             }
         }
 
@@ -297,32 +304,24 @@
             return instrumentConfig.path;
         }
 
-        getInstrument(instrumentPath) {
+        getInstrument(fullPath) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
-            if(!instrumentPath)
+            if(!fullPath)
                 throw new Error("Invalid instrument path");
 
-            const pathList = instrumentPath.split('.');
-            let pathTarget = window.instruments;
+            var pathSplit = fullPath.split(':');
+            var pathDomain = pathSplit[0];
+            if(!window.instruments[pathDomain])
+                throw new Error("Instrument domain not found: " + pathDomain);
+            var collection = window.instruments[pathDomain];
 
-            // if(this.song.aliases[pathList[0]])
-            //     pathList[0] = this.song.aliases[pathList[0]];
+            var pathInstrument = pathSplit[1];
+            if(!collection[pathInstrument])
+                throw new Error("Instrument not found: " + pathInstrument);
 
-            for (let i = 0; i < pathList.length; i++) {
-                if (pathTarget[pathList[i]]) {
-                    pathTarget = pathTarget[pathList[i]];
-                } else {
-                    pathTarget = null;
-                    break;
-                }
-            }
-            if (pathTarget && typeof pathTarget === 'object')
-                pathTarget = pathTarget.default;
-            if (!pathTarget)
-                throw new Error("Instrument not found: " + pathList.join('.') + ' [alias:' + instrumentPath + ']');
-            return pathTarget;
+            return collection[pathInstrument];
         }
 
         getInstructionFrequency (instruction) {

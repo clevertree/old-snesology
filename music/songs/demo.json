@@ -4,47 +4,51 @@
   "version": "0.0.1",
   "description": "Demonstration song",
   "load": [
-    "music/instruments/oscillator/simple.js"
+    "instruments/oscillator.js"
   ],
   "instruments": [
-    {"path": "oscillator.sine", "name": "Sine"},
-    {"path": "oscillator.sawtooth"},
-    {"path": "percussion"}
+    {"path": "snesology.org:oscillator.triangle", "name": "Triangle"},
+    {"path": "snesology.org:oscillator.sawtooth", "name": "Sawtooth"}
   ],
   "instructions": [
-    {"type": "note", "instrument":2, "frequency":"A4", "duration":1},
-    {"type": "note", "instrument":1, "frequency":"A3", "duration":0.2},
-    {"type": "group", "group":"beat"},
+    {"type": "note", "instrument":0, "frequency":"C4", "duration":0.25},
     0.25,
-    {"type": "note", "instrument":0, "frequency":"C4"},
-    0.25,
-    "C4",
-    0.25,
-    "C5",
-    0.25,
-    ["C6", 0.25],
-    0.25,
-    
-    
-    {"type": "note", "instrument":2, "frequency":"B4", "duration":1},
-    {"type": "note", "instrument":1, "frequency":"B3", "duration":0.2},
-    {"type": "group", "group":"beat"},
-    0.25,
-    {"type": "note", "instrument":0, "frequency":"D4"},
+    "D4",
     0.25,
     "E4",
     0.25,
-    "F5",
+    "F4",
     0.25,
-    ["G6", 0.25],
-    0.25
+    "G4",
+    0.25,
+    "A4",
+    0.25,
+    "B4",
+    0.25,
+    "C5",
+    0.25,
+    {"type": "group", "group":"beat"}
   ],
   "instructionGroups": {
     "beat": [
-      {"type": "note", "instrument":"percussion", "frequency":"kick"}, 0.05,
-      "kick", "snare",    0.05,
-      "kick",             0.05,
-      "kick", "snare",    0.05
+      {"type": "note", "instrument":1, "frequency":"C5", "duration":0.125},
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125,
+      "C5",
+      0.125
     ]
   }
 }
