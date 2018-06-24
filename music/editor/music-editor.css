@@ -81,9 +81,11 @@ music-editor-menu hr {
 music-editor-grid {
     cursor: pointer;
     /*display: block;*/
+    border-collapse: collapse;
     display: table;
     width: 100%;
 }
+
 
 /** Grid Row **/
 
@@ -171,29 +173,20 @@ music-editor-grid-cell.selected {
 }
 
 /** Form **/
-
-music-editor form.form-song,
-music-editor form.form-instruction,
-music-editor form.form-group,
-music-editor form.form-row {
+music-editor .editor-panel {
+    padding: 4px 0px;
+    color: black;
+}
+music-editor .editor-panel form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
-    margin: 0px 0;
-    padding: 2px;
-    color: black;
+    /* margin: 0px 0; */
+    padding: 2px 0px;
     display: inline-block;
 }
 
-music-editor form.form-song fieldset,
-music-editor form.form-instruction fieldset,
-music-editor form.form-group fieldset,
-music-editor form.form-row fieldset {
-    margin: 0 0;
-    padding: 0 0;
-    border: 0;
-}
 
-music-editor form label.row-label {
+music-editor .editor-panel label.row-label {
     display: inline-block;
     min-width: 50px;
     text-align: right;
@@ -201,6 +194,29 @@ music-editor form label.row-label {
     font-weight: bold;
 }
 
-music-editor form.hidden {
+music-editor .editor-panel form.hidden {
     display: none;
+}
+
+music-editor .editor-panel select,
+music-editor .editor-panel button {
+    border-radius: 5px;
+    border: 1px outset #FFF;
+    background-color: #EEE;
+}
+
+music-editor .editor-panel select[name=instrument] {
+    max-width: 100px;
+}
+music-editor .editor-panel select[name=frequency] {
+    max-width: 42px;
+}
+music-editor .editor-panel select[name=duration] {
+    max-width: 50px;
+}
+music-editor .editor-panel select[name=velocity] {
+    max-width: 46px;
+}
+music-editor .editor-panel select[name=pause] {
+    max-width: 52px;
 }

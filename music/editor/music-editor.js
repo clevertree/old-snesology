@@ -315,18 +315,19 @@
         render() {
             this.innerHTML = '';
 
-            if(typeof this.instruction.instrument !== 'undefined')
-                this.innerHTML += `<div class="instrument">${formatInstrumentID(this.instruction.instrument)}</div>`;
+            switch(this.instruction.type) {
+                case 'note':
+                    this.innerHTML += `<div class="instrument">${formatInstrumentID(this.instruction.instrument)}</div>`;
+                    this.innerHTML += `<div class="frequency">${this.instruction.frequency}</div>`;
+                    if(this.instruction.duration)
+                        this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
+                    break;
 
-            if(this.instruction.groupExecute)
-                this.innerHTML += `<div class="groupExecute">${this.instruction.groupExecute}</div>`;
-
-            if(this.instruction.frequency)
-                this.innerHTML += `<div class="frequency">${this.instruction.frequency}</div>`;
-
-            if(this.instruction.duration)
-                this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
+                case 'group':
+                    this.innerHTML += `<div class="group">${this.instruction.group}</div>`
+                    break;
             }
+        }
 
         select(e, previewInstruction) {
             this.parentNode.select(e);
@@ -620,69 +621,75 @@
                 <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
-            <form class="form-song" data-command="song:play">
-                <label class="row-label">Song:</label>
-                <button name="play">Play</button>
-            </form>
-            <form class="form-song" data-command="song:playback">
-                <button name="play-group">Play Group</button>
-            </form>
-            <form class="form-song" data-command="song:pause">
-                <button name="pause">Pause</button>
-            </form>
-            <form class="form-song" data-command="song:resume">
-                <button name="resume">Resume</button>
-            </form>
-            <form class="form-song" data-command="song:info">
-                | 
-                <button name="info">info</button>
-            </form>
-
-            <br/>
- 
-            <form class="form-group" data-command="group:edit">
-                <label>Group:</label>
-                <button name="edit">Edit</button>
-                <button name="remove">-</button>
-            </form>
-            <form class="form-row" data-command="row:edit">
-                <label class="row-label">Row:</label>
-                <button name="duplicate">+</button>
-                <button name="remove">-</button>
-                <select name="pause">
-                    <option value="">- Pause -</option>
-                    ${renderEditorFormOptions('durations')}
-                </select>
-                <button name="split">Split</button>
-            </form>
-            
-            <br/>
-
-            <form class="form-instruction" data-command="instruction:edit">
-                <label class="row-label">Note:</label>
-                <button name="duplicate">+</button>
-                <button name="remove">-</button>
-                <select name="instrument">
-                    <optgroup label="Song Instruments">
-                        ${renderEditorFormOptions('song-instruments', this)}
-                    </optgroup>
-                    <optgroup label="Available Instruments">
-                        ${renderEditorFormOptions('instruments-available')}
-                    </optgroup>
-                </select>
-                <select name="frequency">
-                    <option value="">- Frequency -</option>
-                    ${renderEditorFormOptions('frequencies')}
-                </select>
-                <select name="duration">
-                    <option value="">- Length -</option>
-                    ${renderEditorFormOptions('durations')}
-                </select>
-                <select name="velocity">
-                    <option value="">- Velocity -</option>
-                    ${renderEditorFormOptions('velocities')}
-                </select>
-            </form>
+            <div class="editor-panel">
+                <form class="form-song" data-command="song:play">
+                    <label class="row-label">Song:</label>
+                    <button name="play">Play</button>
+                </form>
+                <form class="form-song" data-command="song:playback">
+                    <button name="play-group">Play Group</button>
+                </form>
+                <form class="form-song" data-command="song:pause">
+                    <button name="pause">Pause</button>
+                </form>
+                <form class="form-song" data-command="song:resume">
+                    <button name="resume">Resume</button>
+                </form>
+                <form class="form-song" data-command="song:info">
+                    | 
+                    <button name="info">info</button>
+                </form>
+    
+                <br/>
+     
+                <form class="form-group" data-command="group:edit">
+                    <label>Group:</label>
+                    <button name="edit">Edit</button>
+                    <button name="remove">-</button>
+                </form>
+                <form class="form-row" data-command="row:edit">
+                    <label class="row-label">Row:</label>
+                    <button name="duplicate">+</button>
+                    <button name="remove">-</button>
+                    <select name="pause">
+                        <optgroup label="Pause">
+                            ${renderEditorFormOptions('durations')}
+                        </optgroup>
+                    </select>
+                    <button name="split">Split</button>
+                </form>
+                
+                <br/>
+    
+                <form class="form-instruction" data-command="instruction:edit">
+                    <label class="row-label">Note:</label>
+                    <button name="duplicate">+</button>
+                    <button name="remove">-</button>
+                    <select name="instrument">
+                        <optgroup label="Song Instruments">
+                            ${renderEditorFormOptions('song-instruments', this)}
+                        </optgroup>
+                        <optgroup label="Available Instruments">
+                            ${renderEditorFormOptions('instruments-available')}
+                        </optgroup>
+                    </select>
+                    <select name="frequency">
+                        <optgroup label="Frequency">
+                            ${renderEditorFormOptions('frequencies')}
+                        </optgroup>
+                    </select>
+                    <select name="duration">
+                        <optgroup label="Duration">
+                            ${renderEditorFormOptions('durations')}
+                        </optgroup>
+                    </select>
+                    <select name="velocity">
+                        <optgroup label="Velocity">
+                            ${renderEditorFormOptions('velocities')}
+                        </optgroup>
+                    </select>
+                </form>
+            </div>
             <music-editor-grid>
             </music-editor-grid>
         `;
@@ -726,15 +733,15 @@
 
             case 'durations':
                 options = [
-                    [32.0,  'Octuple'],
-                    [16.0,  'Quadruple'],
-                    [8.0,   'Double'],
-                    [4.0,   'Whole'],
-                    [2.0,   'Half'],
-                    [1.0,   'Quarter'],
-                    [0.5,   'Eighth'],
-                    [0.25,  'Sixteenth'],
-                    [0.125, 'Thirty-second'],
+                    [32.0,  '32 - Octuple'],
+                    [16.0,  '16 - Quadruple'],
+                    [8.0,   '8 - Double'],
+                    [4.0,   '4 - Whole'],
+                    [2.0,   '2 - Half'],
+                    [1.0,   '1 - Quarter'],
+                    [0.5,   '0.5 - Eighth'],
+                    [0.25,  '0.25 - Sixteenth'],
+                    [0.125, '0.125 - Thirty-second'],
                 ];
                 break;
         }
