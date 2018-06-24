@@ -201,7 +201,7 @@ music-editor .editor-panel form.hidden {
 music-editor .editor-panel select,
 music-editor .editor-panel button {
     border-radius: 5px;
-     border: 1px solid #AAA;
+    border: 1px solid #AAA;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
 }
 

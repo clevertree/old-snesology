@@ -52,9 +52,9 @@
         }
 
         processInstructions(instructionList, songInstruments) {
-            var lastInstruction = instructionList[0];
-            for (var i = 0; i < instructionList.length; i++) {
-                var instruction = instructionList[i];
+            let lastInstruction = instructionList[0];
+            for (let i = 0; i < instructionList.length; i++) {
+                let instruction = instructionList[i];
                 switch (typeof instruction) {
                     case 'number':
                         instructionList[i] = {type: "pause", pause: instruction};
@@ -94,10 +94,10 @@
                 this.setAttribute('src', songURL);
 
                 // Load Scripts
-                var scriptsLoading = 0;
+                let scriptsLoading = 0;
                 if(json.load) {
-                    for(var i=0; i<json.load.length; i++) {
-                        var scriptPath = json.load[i];
+                    for(let i=0; i<json.load.length; i++) {
+                        const scriptPath = json.load[i];
                         scriptsLoading++;
                         loadScript.call(this, scriptPath, function() {
                             // console.log("Scripts loading: ", scriptsLoading);
@@ -121,14 +121,14 @@
         }
 
         playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, callback) {
-            var instrumentPath = this.getInstrumentPath(instrumentID);
-            var instrument = this.getInstrument(instrumentPath);
+            const instrumentPath = this.getInstrumentPath(instrumentID);
+            const instrument = this.getInstrument(instrumentPath);
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
 
-            var instructionEvent = instrument(this.audioContext, {
-                frequency:noteFrequency,
+            const noteEvent = instrument(this.audioContext, {
+                frequency: noteFrequency,
                 startTime: noteStartTime + this.startTime,
                 startOffset: noteStartTime,
                 duration: noteDuration,
@@ -136,68 +136,62 @@
                 instrumentPath: instrumentPath,
             });
 
-            if(noteDuration && callback) {
+            if(noteDuration) {
                 if(noteStartTime - .5 > this.audioContext.currentTime)
                     setTimeout(function() {
-                        callback(true);
-                    }, (noteStartTime - this.audioContext.currentTime) * 1000);
-                else
-                    callback(true);
+                        dispatchEvent.call(this, true);
+                        callback && callback(true);
+                    }.bind(this), (noteStartTime) * 1000);
+                else {
+                    // Start immediately
+                    dispatchEvent.call(this, true);
+                    callback && callback(true);
+                }
 
                 setTimeout(function() {
-                    callback(false);
-                }, (noteStartTime + noteDuration - this.audioContext.currentTime) * 1000);
+                    dispatchEvent.call(this, false);
+                    callback && callback(false);
+                }.bind(this), (noteStartTime + noteDuration) * 1000);
             }
 
-            // if(associatedElement) {
-            //     if(instructionStartTime - .5 > this.audioContext.currentTime)
-            //         setTimeout(function() {
-            //             associatedElement.classList.add('playing');
-            //         }, (instructionStartTime - this.audioContext.currentTime) * 1000);
-            //     else
-            //         associatedElement.classList.add('playing');
-            //
-            //     setTimeout(function() {
-            //         associatedElement.classList.remove('playing');
-            //     }, (instructionStartTime + instructionLength - this.audioContext.currentTime) * 1000);
-            // }
-
-            return instructionEvent;
-        }
-
-        playInstruction(instruction, noteStartTime, bpm, callback) {
-            if(instruction.type === 'note') {
-                var instrumentName = instruction.instrument;
-                var noteFrequency =  instruction.frequency;
-                var noteDuration = (instruction.length || 1) * (240 / (bpm || 240));
-
-                var noteEvent = this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, callback);
-
-                this.dispatchEvent(new CustomEvent('song:note', {
+            function dispatchEvent(playing) {
+                const type = playing ? 'note:start' : 'note:end';
+                this.dispatchEvent(new CustomEvent(type, {
                     detail: {
+                        playing: playing,
                         instruction: instruction,
                         startTime: noteStartTime,
                         duration: noteDuration,
                         noteEvent: noteEvent
                     }
                 }));
-                return noteEvent;
+            }
+
+            return noteEvent;
+        }
+
+        playInstruction(instruction, noteStartTime, bpm, callback) {
+            if(instruction.type === 'note') {
+                const instrumentName = instruction.instrument;
+                const noteFrequency = instruction.frequency;
+                const noteDuration = (instruction.length || 1) * (240 / (bpm || 240));
+                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, callback);
             }
             return null;
         }
 
         playInstructions(instructionList, startPosition, seekLength, playbackOffset, onPlayback) {
-            var currentPosition = 0;
-            var currentBPM = this.getCurrentBPM();
-            var instructionEvents = [];
-            for(var i=0; i<instructionList.length; i++) {
-                var instruction = instructionList[i];
-                
+            let currentPosition = 0;
+            const currentBPM = this.getCurrentBPM();
+            let instructionEvents = [];
+            for(let i=0; i<instructionList.length; i++) {
+                const instruction = instructionList[i];
+
                 switch(instruction.type) {
                     case 'note':
                         if(currentPosition < startPosition)
                             continue;   // Instructions were already played
-                        var instructionEvent = this.playInstruction(instruction, currentPosition + playbackOffset, currentBPM, onPlayback);
+                        const instructionEvent = this.playInstruction(instruction, currentPosition + playbackOffset, currentBPM, onPlayback);
                         instructionEvents.push(instructionEvent);
                         break;
 
@@ -208,10 +202,10 @@
                     case 'group':
                         // if(currentPosition < startPosition) // Execute all groups each time
                         //     continue;
-                        var instructionGroupList = this.song.instructionGroups[instruction.group];
+                        let instructionGroupList = this.song.instructionGroups[instruction.group];
                         if(!instructionGroupList)
                             throw new Error("Instruction group not found: " + instruction.group);
-                        var groupInstructionEvents = this.playInstructions(instructionGroupList, startPosition - currentPosition, seekLength, playbackOffset, onPlayback);
+                        const groupInstructionEvents = this.playInstructions(instructionGroupList, startPosition - currentPosition, seekLength, playbackOffset, onPlayback);
                         instructionEvents = instructionEvents.concat(groupInstructionEvents);
                         break;
                     default: 
@@ -247,17 +241,17 @@
                 console.info("Playing paused");
                 return;
             }
-            var instructionEvents = this.playInstructions(
+            const instructionEvents = this.playInstructions(
                 this.song.instructions,
                 this.seekPosition,
                 this.seekLength,
                 0
-                );
+            );
 
             // this.seekPosition += this.seekLength;
             this.seekPosition = this.audioContext.currentTime - this.startTime;
 
-            var playbackEvent = new CustomEvent('song:playback', {
+            const playbackEvent = new CustomEvent('song:playback', {
                 detail: {
                     playing: true
                 }
@@ -282,8 +276,8 @@
 
         findInstrumentID(instrumentPath, songInstrumentList) {
             songInstrumentList = songInstrumentList || this.song.instruments;
-            for(var i=0; i<songInstrumentList.length; i++) {
-                var instrument = songInstrumentList[i];
+            for(let i=0; i<songInstrumentList.length; i++) {
+                const instrument = songInstrumentList[i];
                 if(instrument.path === instrumentPath)
                     return i;
             }
@@ -293,7 +287,7 @@
         getInstrumentPath(instrumentID) {
             if(typeof instrumentID !== "number")
                 throw new Error("Invalid instrumentID");
-            var instrumentConfig = this.song.instruments[instrumentID];
+            let instrumentConfig = this.song.instruments[instrumentID];
             if(!instrumentConfig)
                 throw new Error("Invalid Instrument ID: " + instrumentID);
             if(!instrumentConfig.path)
@@ -308,13 +302,13 @@
             if(!instrumentPath)
                 throw new Error("Invalid instrument path");
 
-            var pathList = instrumentPath.split('.');
-            var pathTarget = window.instruments;
+            const pathList = instrumentPath.split('.');
+            let pathTarget = window.instruments;
 
             // if(this.song.aliases[pathList[0]])
             //     pathList[0] = this.song.aliases[pathList[0]];
 
-            for (var i = 0; i < pathList.length; i++) {
+            for (let i = 0; i < pathList.length; i++) {
                 if (pathTarget[pathList[i]]) {
                     pathTarget = pathTarget[pathList[i]];
                 } else {
@@ -332,8 +326,8 @@
         getInstructionFrequency (instruction) {
             if(Number(instruction) === instruction && instruction % 1 !== 0)
                 return instruction;
-            var instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'],
-                octave,
+            const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+            let octave,
                 keyNumber;
 
             if (instruction.length === 3) {
@@ -362,24 +356,7 @@
             if(e.defaultPrevented)
                 return;
             switch(e.type) {
-                case 'keydown':
-                    if(this.depressedKeys.indexOf(e.key) > -1) {
-                        // console.info("Ignoring repeat keydown: ", e);
-                        return;
-                    }
-                    this.depressedKeys.push(e.key);
-
-                    break;
-
-                case 'keyup':
-                    var i = this.depressedKeys.indexOf(e.key);
-                    if(i > -1) {
-                        this.depressedKeys.splice(i, 1);
-                    }
-                    break;
-
                 case 'click':
-                    this.menuElement.close();
                     break;
             }
         }
@@ -399,7 +376,7 @@
             scriptElm = document.createElement('script');
             scriptElm.src = scriptPath;
             scriptElm.onload = function(e) {
-                for(var i=0; i<scriptElm.onloads.length; i++)
+                for(let i=0; i<scriptElm.onloads.length; i++)
                     scriptElm.onloads[i](e);
                 scriptElm.onloads = null;
             };
@@ -420,7 +397,7 @@
         }
     }
     function loadJSON(jsonPath, onLoaded) {
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         xhr.open('GET', jsonPath, true);
         xhr.responseType = 'json';
         xhr.onload = function() {

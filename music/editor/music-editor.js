@@ -37,7 +37,8 @@
 
             loadScript('music/player/music-player.js', function() {
                 this.playerElement = document.createElement('music-player');
-                this.playerElement.addEventListener('song:note', this.onSongEvent.bind(this));
+                this.playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
+                this.playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
                 // this.appendChild(this.playerElement); // TODO: unnecessary lol
 
@@ -155,6 +156,18 @@
 
         onSongEvent(e) {
             console.log("Playback", e.type, e.detail);
+            switch(e.type) {
+                case 'note:start':
+                    var startElm = this.grid.findAssociatedElement(e.detail.instruction);
+                    if(startElm)
+                        startElm.classList.add('playing');
+                    break;
+                case 'note:end':
+                    var endElm = this.grid.findAssociatedElement(e.detail.instruction);
+                    if(endElm)
+                        endElm.classList.remove('playing');
+                    break;
+            }
         }
 
         // Input
