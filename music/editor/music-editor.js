@@ -11,7 +11,6 @@
         constructor(options) {
             options = options || {};
             super();
-            this.audioContext = options.context || new (window.AudioContext || window.webkitAudioContext)();
             this.depressedKeys = [];
             this.config = DEFAULT_CONFIG;
             this.playerElement = null;
@@ -21,6 +20,7 @@
         get menu() { return this.querySelector('music-editor-menu'); }
         get player() { return this.playerElement; }
 
+        getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
 
         connectedCallback() {
@@ -352,9 +352,9 @@
         }
 
         playInstruction() {
-            this.editor.player.playInstruction(
+            return this.editor.player.playInstruction(
                 this.instruction,
-                this.editor.audioContext.currentTime,
+                this.editor.playerElement.getAudioContext().currentTime,
                 this.editor.playerElement.getCurrentBPM(),
                 function(playing) {
                     this.classList.toggle('playing', playing);
@@ -379,30 +379,11 @@
                     if(this.instruction.frequency) {
                         var keyboard = DEFAULT_KEYBOARD_LAYOUT;
                         if(keyboard[e.key]) {
+                            e.preventDefault();
                             this.instruction.frequency = keyboard[e.key];
                             this.render();
                             this.editor.setEditableInstruction(this.instruction);
-                            e.preventDefault();
-
-                            var instructionEvent = this.editor.player.playInstrument(
-                                this.instruction.instrument,
-                                this.instruction.frequency,
-                                this.editor.audioContext.currentTime,
-                                null,
-                                null,
-                                this
-                            );
-                            var instructionUpCallback = function(e2) {
-                                if(e.key === e2.key) {
-                                    this.editor.removeEventListener('keyup', instructionUpCallback);
-                                    instructionEvent.stop(0);
-                                    this.classList.remove('playing');
-                                    // console.info("Stopping Instruction: ", instructionEvent);
-                                    e2.preventDefault();
-                                }
-                            }.bind(this);
-                            this.editor.addEventListener('keyup', instructionUpCallback);
-                            this.classList.add('playing');
+                            this.playInstruction();
                             return;
                         }
                     }

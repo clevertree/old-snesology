@@ -8,10 +8,9 @@
     //     window.MusicPlayer = MusicPlayer;
 
     class MusicPlayerElement extends HTMLElement {
-        constructor(options) {
-            options = options || {};
+        constructor() {
             super();
-            this.audioContext = options.context || new (window.AudioContext || window.webkitAudioContext)();
+            this.audioContext = null;
             this.song = null;
             this.bpm = 160;
             this.seekLength = 240 / this.bpm;
@@ -21,6 +20,7 @@
             this.loadSongData({});
         }
 
+        getAudioContext() { return this.audioContext || (this.audioContext = new AudioContext()); }
         getSong() { return this.song; }
         getCurrentBPM() { return this.bpm; }
 
@@ -41,6 +41,7 @@
         getSongURL() { return this.getAttribute('src');}
 
         loadSongData(songData) {
+            songData.bpm = (songData.bpm || 120);
             songData.instruments = (songData.instruments || []);
             songData.instructions = this.processInstructions(songData.instructions || [], songData.instruments);
             songData.instructionGroups = songData.instructionGroups || {};
@@ -126,32 +127,33 @@
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
+            var currentTime = this.getAudioContext().currentTime;
 
-            const noteEvent = instrument(this.audioContext, {
+            const noteEvent = instrument(this.getAudioContext(), {
                 frequency: noteFrequency,
-                startTime: noteStartTime + this.startTime,
+                startTime: noteStartTime,
                 startOffset: noteStartTime,
                 duration: noteDuration,
                 instruction: instruction,
                 instrumentPath: instrumentPath,
             });
 
-            if(noteDuration) {
-                if(noteStartTime - .5 > this.audioContext.currentTime)
-                    setTimeout(function() {
-                        dispatchEvent.call(this, true);
-                        callback && callback(true);
-                    }.bind(this), (noteStartTime) * 1000);
-                else {
-                    // Start immediately
+            if(noteStartTime > currentTime)
+                setTimeout(function() {
                     dispatchEvent.call(this, true);
                     callback && callback(true);
-                }
+                }.bind(this), (noteStartTime - currentTime) * 1000);
+            else {
+                // Start immediately
+                dispatchEvent.call(this, true);
+                callback && callback(true);
+            }
 
+            if(noteDuration) {
                 setTimeout(function() {
                     dispatchEvent.call(this, false);
                     callback && callback(false);
-                }.bind(this), (noteStartTime + noteDuration) * 1000);
+                }.bind(this), (noteStartTime - currentTime + noteDuration) * 1000);
             }
 
             function dispatchEvent(playing) {
@@ -180,7 +182,7 @@
             return null;
         }
 
-        playInstructions(instructionList, startPosition, seekLength, playbackOffset, onPlayback) {
+        playInstructions(instructionList, seekPosition, seekLength, groupOffset, onPlayback) {
             let currentPosition = 0;
             const currentBPM = this.getCurrentBPM();
             let instructionEvents = [];
@@ -189,29 +191,29 @@
 
                 switch(instruction.type) {
                     case 'note':
-                        if(currentPosition < startPosition)
+                        if(currentPosition < seekPosition)
                             continue;   // Instructions were already played
-                        const instructionEvent = this.playInstruction(instruction, currentPosition + playbackOffset, currentBPM, onPlayback);
+                        const instructionEvent = this.playInstruction(instruction, this.startTime + currentPosition + groupOffset, currentBPM, onPlayback);
                         instructionEvents.push(instructionEvent);
                         break;
 
                     case 'pause':
                         currentPosition += instruction.pause * (240 / currentBPM);
                         break;
-                        
+
                     case 'group':
                         // if(currentPosition < startPosition) // Execute all groups each time
                         //     continue;
                         let instructionGroupList = this.song.instructionGroups[instruction.group];
                         if(!instructionGroupList)
                             throw new Error("Instruction group not found: " + instruction.group);
-                        const groupInstructionEvents = this.playInstructions(instructionGroupList, startPosition - currentPosition, seekLength, playbackOffset, onPlayback);
+                        const groupInstructionEvents = this.playInstructions(instructionGroupList, seekPosition - currentPosition, seekLength, groupOffset, onPlayback);
                         instructionEvents = instructionEvents.concat(groupInstructionEvents);
                         break;
-                    default: 
+                    default:
                         console.warn("Unknown instruction type: " + instruction.type, instruction);
                 }
-                if(seekLength && currentPosition >= startPosition + seekLength)
+                if(seekLength && currentPosition >= seekPosition + seekLength)
                     break;
             }
             return instructionEvents;
@@ -222,7 +224,7 @@
                 this.seekPosition = seekPosition;
 
             // this.lastInstructionPosition = 0;
-            this.startTime = this.audioContext.currentTime - this.seekPosition;
+            this.startTime = this.getAudioContext().currentTime - this.seekPosition;
             // console.log("Start playback:", this.startTime);
             this.playing = true;
             this.processPlayback();
@@ -249,7 +251,7 @@
             );
 
             // this.seekPosition += this.seekLength;
-            this.seekPosition = this.audioContext.currentTime - this.startTime;
+            this.seekPosition = this.getAudioContext().currentTime - this.startTime;
 
             const playbackEvent = new CustomEvent('song:playback', {
                 detail: {
