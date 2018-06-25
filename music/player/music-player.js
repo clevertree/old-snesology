@@ -54,14 +54,15 @@
 
         processInstructions(instructionList, songInstruments) {
             let lastInstruction = instructionList[0];
+            var pauseNotes = [];
             for (let i = 0; i < instructionList.length; i++) {
                 let instruction = instructionList[i];
                 switch (typeof instruction) {
                     case 'number':
-                        instructionList[i] = {type: "pause", pause: instruction};
+                        instruction = instructionList[i] = {type: "pause", pause: instruction};
                         break;
                     case 'string':
-                        instructionList[i] = Object.assign({}, lastInstruction, {type: "note", frequency: instruction});
+                        instruction = instructionList[i] = Object.assign({}, lastInstruction, {type: "note", frequency: instruction});
                         break;
                     case 'object':
                         if (Array.isArray(instruction))
@@ -75,11 +76,23 @@
                             case 'note':
                                 if (typeof instruction.instrument === 'string')
                                     instruction.instrument = this.findInstrumentID(instruction.instrument, songInstruments);
+                                if(typeof instruction.duration === 'undefined') // Note's duration equals the next paus
+                                    pauseNotes.push(instruction);
                         }
                         break;
                 }
-                if (instruction.type === 'note')
-                    lastInstruction = instruction;
+
+                switch(instruction.type) {
+                    case 'note':
+                        lastInstruction = instruction;
+                        break;
+
+                    case 'pause':
+                        for(var pni=0; pni<pauseNotes.length; pni++)
+                            pauseNotes[pni].duration = instruction.pause;
+                        pauseNotes = [];
+                        break;
+                }
             }
             return instructionList;
         }

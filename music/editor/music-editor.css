@@ -126,47 +126,41 @@ music-editor-grid-cell:last-child {
 music-editor-grid-cell.playing {
     font-weight: bold;
 }
-music-editor-grid-cell > .instrument,
-music-editor-grid-cell > .groupExecute,
-music-editor-grid-cell > .frequency,
-music-editor-grid-cell > .duration {
+
+music-editor-grid-cell > div {
     display: inline-block;
     overflow: hidden;
     vertical-align: top;
 }
 
+music-editor-grid-cell > div:not(:first-child) {
+    margin-left: 3px;
+    padding-left: 3px;
+    border-left: 1px solid #888;
+}
 
-music-editor-grid-cell > .instrument {
-    color: #008;
-    max-width: 26px;
-    transition: max-width 0.3s;
+music-editor-grid-cell .instrument {
+    color: darkblue;
 }
-music-editor-grid-cell.selected > .instrument {
-    max-width: 128px;
-}
-music-editor-grid-cell > .groupExecute {
+music-editor-grid-cell .groupExecute {
     color: green;
 }
-music-editor-grid-cell > .frequency {
-    margin-left: 4px;
-    padding-left: 4px;
-    border-left: 1px solid #666;
-    color: #570000;
-    font-weight: bold;
+music-editor-grid-cell .frequency {
+    color: darkred;
 }
-music-editor-grid-cell > .duration {
-    color: #000;
-    margin-left: 4px;
-    padding-left: 4px;
-    border-left: 1px solid #666;
+music-editor-grid-cell .duration {
+    color: purple;
+}
+music-editor-grid-cell .velocity {
+    color: green;
 }
 
 
 
 music-editor-grid-cell.selected {
+    font-weight: bold;
     max-width: 1000px;
     /* background-color: #444; */
-    color: orangered;
     border-color: orangered;
     box-shadow: #441200 0 1px 10px;
     background-color: white;

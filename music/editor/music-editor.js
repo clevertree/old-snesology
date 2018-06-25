@@ -157,7 +157,7 @@
         // Playback
 
         onSongEvent(e) {
-            console.log("Playback", e.type, e.detail);
+//             console.log("Playback", e.type, e.detail);
             switch(e.type) {
                 case 'note:start':
                     const startElm = this.grid.findAssociatedElement(e.detail.instruction);
@@ -272,7 +272,7 @@
                         break;
 
                     case 'pause':
-                        const rowElm = new MusicEditorGridRowElement(instruction.pause);
+                        const rowElm = new MusicEditorGridRowElement(instruction);
                         rowElm.addCommands(rowCommands);
                         if(this.children.length % 2 === 0)
                             rowElm.classList.add('odd');
@@ -285,14 +285,9 @@
     }
 
     class MusicEditorGridRowElement extends HTMLElement {
-        /**
-         *
-         * @param pauseCommand
-         */
-        constructor(pauseLength) {
+        constructor(instruction) {
             super();
-            if(pauseLength)
-               this.setAttribute('pause', pauseLength)
+            this.instruction = instruction;
         }
         get editor() { return findParentNode(this, MusicEditorElement); }
 
@@ -340,8 +335,10 @@
                 case 'note':
                     this.innerHTML += `<div class="instrument">${formatInstrumentID(this.instruction.instrument)}</div>`;
                     this.innerHTML += `<div class="frequency">${this.instruction.frequency}</div>`;
-                    if(this.instruction.duration)
+                    if(this.instruction.duration && this.instruction.duration !== this.parentNode.instruction.pause)
                         this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
+                    if(this.instruction.velocity)
+                        this.innerHTML += `<div class="velocity">${this.instruction.velocity}</div>`;
                     break;
 
                 case 'group':

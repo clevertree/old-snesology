@@ -12,8 +12,7 @@
     {"path": "snesology.org:oscillator.triangle", "name": "Triangle"}
   ],
   "instructions": [
-    {"type": "group", "group":"beat"},
-    {"type": "note", "instrument":0, "frequency":"C4", "duration":0.25},
+    {"type": "note", "instrument":0, "frequency":"C4"},
     0.25,
     "D4",
     0.25,
@@ -27,13 +26,13 @@
     0.25,
     "B4",
     0.25,
-    "C5",
+    {"type": "note", "instrument":0, "frequency":"C5", "duration":0.25, "velocity": 25},
     0.25,
     {"type": "group", "group":"beat"}
   ],
   "instructionGroups": {
     "beat": [
-      {"type": "note", "instrument":1, "frequency":"C5", "duration":0.125},
+      {"type": "note", "instrument":1, "frequency":"C5", "velocity": 25},
       0.125,
       "C5",
       0.125,
