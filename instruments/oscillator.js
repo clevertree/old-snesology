@@ -21,16 +21,7 @@
      * @constructor
      */
     function OscillatorSimple(context, note) {
-        var oscillatorType = 'triangle';
-        var splitPath = note.instrumentPath.split('.');
-        switch(splitPath[1]) {
-            case 'sine':
-            case 'sawtooth':
-            case 'triangle':
-            case 'square':
-                oscillatorType = splitPath[1];
-        }
-
+        var oscillatorType = note.instrumentPath.split('.').pop();
 
         var osc = context.createOscillator();   // instantiate an oscillator
         osc.type = oscillatorType;  // set Type

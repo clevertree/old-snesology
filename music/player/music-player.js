@@ -182,27 +182,36 @@
             return null;
         }
 
-        playInstructions(instructionList, seekPosition, seekLength, groupOffset, onPlayback) {
+        playInstructions(instructionList, seekPosition, seekLength) {
+            instructionList = instructionList || this.song.instructions;
+            return this.eachInstruction(instructionList, function(noteInstruction, currentPosition, currentBPM) {
+                if(currentPosition < seekPosition)
+                    return;   // Instructions were already played
+                if(seekLength && currentPosition >= seekPosition + seekLength)
+                    return;
+                this.playInstruction(noteInstruction, this.startTime + currentPosition, currentBPM);
+            }.bind(this));
+        }
 
-            return playGroup.call(this, instructionList, 0);
+        eachInstruction(instructionList, callback) {
 
-            function playGroup(instructionList, groupOffset) {
+            var currentBPM = this.getStartingBPM();
+            return playGroup.call(this, instructionList, currentBPM, 0);
+
+            function playGroup(instructionList, currentBPM, groupPlaytimeOffset) {
                 let currentPosition = 0;
-                var currentBPM = this.getStartingBPM();
-                var playTime = 0;
+                var currentPlayTime = 0;
                 for(let i=0; i<instructionList.length; i++) {
                     const instruction = instructionList[i];
 
                     switch(instruction.type) {
                         case 'note':
-                            if(currentPosition < seekPosition)
-                                continue;   // Instructions were already played
-                            this.playInstruction(instruction, this.startTime + currentPosition + groupOffset, currentBPM, onPlayback);
+                            callback(instruction, currentPlayTime + groupPlaytimeOffset, currentBPM);
                             break;
 
                         case 'pause':
                             currentPosition += instruction.pause;
-                            playTime += instruction.pause * (240 / currentBPM);
+                            currentPlayTime += instruction.pause * (240 / currentBPM);
                             break;
 
                         case 'group':
@@ -211,17 +220,14 @@
                             let instructionGroupList = this.song.instructionGroups[instruction.group];
                             if(!instructionGroupList)
                                 throw new Error("Instruction group not found: " + instruction.group);
-                            playGroup.call(this, instructionGroupList, currentPosition);
+                            playGroup.call(this, instructionGroupList, currentBPM, currentPlayTime);
                             break;
                         default:
                             console.warn("Unknown instruction type: " + instruction.type, instruction);
                     }
-                    if(seekLength && currentPosition >= seekPosition + seekLength)
-                        break;
                 }
-                return playTime;
+                return currentPlayTime;
             }
-
         }
 
 
@@ -251,8 +257,7 @@
             var playTime = this.playInstructions(
                 this.song.instructions,
                 this.seekPosition,
-                this.seekLength,
-                0
+                this.seekLength
             );
 
             // this.seekPosition += this.seekLength;
@@ -268,7 +273,7 @@
 
                 if(currentTime + this.seekLength > finishTime) {
                     setTimeout(function() {
-                        console.log("Song finished");
+                        console.log("Song finished. Play time: ", playTime);
                         this.seekPosition = 0;
                         this.playing = false;
 

@@ -1,5 +1,6 @@
 {
   "name": "Demo Song",
+  "bpm": 240,
   "guid": "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
   "version": "0.0.1",
   "description": "Demonstration song",
@@ -7,8 +8,8 @@
     "instruments/oscillator.js"
   ],
   "instruments": [
-    {"path": "snesology.org:oscillator.triangle", "name": "Triangle"},
-    {"path": "snesology.org:oscillator.sawtooth", "name": "Sawtooth"}
+    {"path": "snesology.org:oscillator.sawtooth", "name": "Sawtooth"},
+    {"path": "snesology.org:oscillator.triangle", "name": "Triangle"}
   ],
   "instructions": [
     {"type": "note", "instrument":0, "frequency":"C4", "duration":0.25},
