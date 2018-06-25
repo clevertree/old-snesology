@@ -13,7 +13,7 @@
             this.audioContext = null;
             this.song = null;
             this.bpm = 160;
-            this.seekLength = 240 / this.bpm;
+            this.seekLength = 1;
             this.seekPosition = 0;
             this.playing = false;
             this.config = DEFAULT_CONFIG;
@@ -22,7 +22,7 @@
 
         getAudioContext() { return this.audioContext || (this.audioContext = new AudioContext()); }
         getSong() { return this.song; }
-        getStartingBPM() { return this.bpm; }
+        getStartingBPM() { return this.song.bpm; }
 
         connectedCallback() {
             this.addEventListener('keydown', this.onInput.bind(this));
@@ -200,18 +200,20 @@
 
             function playGroup(instructionList, currentBPM, groupPlaytimeOffset) {
                 let currentPosition = 0;
-                var currentPlayTime = 0;
+                var currentGroupPlayTime = groupPlaytimeOffset;
+                var maxPlayTime = 0;
                 for(let i=0; i<instructionList.length; i++) {
+                    var current
                     const instruction = instructionList[i];
 
                     switch(instruction.type) {
                         case 'note':
-                            callback(instruction, currentPlayTime + groupPlaytimeOffset, currentBPM);
+                            callback(instruction, currentGroupPlayTime, currentBPM);
                             break;
 
                         case 'pause':
                             currentPosition += instruction.pause;
-                            currentPlayTime += instruction.pause * (240 / currentBPM);
+                            currentGroupPlayTime += instruction.pause * (240 / currentBPM);
                             break;
 
                         case 'group':
@@ -220,13 +222,17 @@
                             let instructionGroupList = this.song.instructionGroups[instruction.group];
                             if(!instructionGroupList)
                                 throw new Error("Instruction group not found: " + instruction.group);
-                            playGroup.call(this, instructionGroupList, currentBPM, currentPlayTime);
+                            var subGroupPlayTime = playGroup.call(this, instructionGroupList, currentBPM, currentGroupPlayTime);
+                            if(subGroupPlayTime > maxPlayTime)
+                                maxPlayTime = subGroupPlayTime;
                             break;
                         default:
                             console.warn("Unknown instruction type: " + instruction.type, instruction);
                     }
                 }
-                return currentPlayTime;
+                if(currentGroupPlayTime > maxPlayTime)
+                    maxPlayTime = currentGroupPlayTime;
+                return maxPlayTime;
             }
         }
 
@@ -240,9 +246,7 @@
             this.playing = true;
             this.processPlayback();
 
-            document.dispatchEvent(new CustomEvent('song:started', {
-                detail: this
-            }));
+            this.dispatchEvent(new CustomEvent('song:start'));
         }
 
         pause() {
@@ -254,7 +258,7 @@
                 console.info("Playing paused");
                 return;
             }
-            var playTime = this.playInstructions(
+            var totalPlayTime = this.playInstructions(
                 this.song.instructions,
                 this.seekPosition,
                 this.seekLength
@@ -262,7 +266,7 @@
 
             // this.seekPosition += this.seekLength;
             var currentTime = this.getAudioContext().currentTime;
-            var finishTime = this.startTime + playTime;
+            var finishTime = this.startTime + totalPlayTime;
             // this.seekPosition = currentTime - this.startTime;
             this.seekPosition += this.seekLength;
 
@@ -270,21 +274,17 @@
                 // console.log("Instructions playing:", instructionEvents, this.seekPosition, this.currentPosition);
 
                 this.dispatchEvent(new CustomEvent('song:playback'));
-
-                if(currentTime + this.seekLength > finishTime) {
-                    setTimeout(function() {
-                        console.log("Song finished. Play time: ", playTime);
-                        this.seekPosition = 0;
-                        this.playing = false;
-
-                        // Update UI
-                        this.dispatchEvent(new CustomEvent('song:end'));
-                    }.bind(this), finishTime - currentTime)
-
-                } else {
-                    setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
-                }
+                setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
             } else{
+
+                setTimeout(function() {
+                    console.log("Song finished. Play time: ", totalPlayTime);
+                    this.seekPosition = 0;
+                    this.playing = false;
+
+                    // Update UI
+                    this.dispatchEvent(new CustomEvent('song:end'));
+                }.bind(this), finishTime - currentTime)
             }
         }
 

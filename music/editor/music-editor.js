@@ -39,7 +39,9 @@
                 this.playerElement = document.createElement('music-player');
                 this.playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
+                this.playerElement.addEventListener('song:start', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
+                this.playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
                 // this.appendChild(this.playerElement); // TODO: unnecessary lol
 
                 if(this.getSongURL())
@@ -155,7 +157,7 @@
         // Playback
 
         onSongEvent(e) {
-            // console.log("Playback", e.type, e.detail);
+            console.log("Playback", e.type, e.detail);
             switch(e.type) {
                 case 'note:start':
                     const startElm = this.grid.findAssociatedElement(e.detail.instruction);
@@ -166,6 +168,12 @@
                     const endElm = this.grid.findAssociatedElement(e.detail.instruction);
                     if(endElm)
                         endElm.classList.remove('playing');
+                    break;
+                case 'song:start':
+                    this.classList.add('playing');
+                    break;
+                case 'song:end':
+                    this.classList.remove('playing');
                     break;
             }
         }
@@ -610,18 +618,17 @@
                 <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
             </music-editor-menu>
             <div class="editor-panel">
-                <form class="form-song" data-command="song:play">
-                    <label class="row-label">Song:</label>
+                <label class="row-label">Song:</label>
+                <form class="form-song-play" data-command="song:play">
                     <button name="play">Play</button>
                 </form>
-                <form class="form-song" data-command="song:pause">
+                <form class="form-song-pause" data-command="song:pause">
                     <button name="pause">Pause</button>
                 </form>
-                <form class="form-song" data-command="song:resume">
+                <form class="form-song-resume" data-command="song:resume">
                     <button name="resume">Resume</button>
                 </form>
-                <form class="form-song" data-command="song:info">
-                    | 
+                <form class="form-song-info" data-command="song:info">
                     <button name="info">info</button>
                 </form>
     

@@ -218,5 +218,9 @@ music-editor .editor-panel select[name=velocity] {
     max-width: 46px;
 }
 music-editor .editor-panel select[name=pause] {
-    max-width: 52px;
+    max-width: 100px;
 }
+
+music-editor:not(.playing) form.form-song-pause { display: none; }
+music-editor.playing form.form-song-play { display: none; }
+music-editor:not(.paused) form.form-song-resume { display: none; }
