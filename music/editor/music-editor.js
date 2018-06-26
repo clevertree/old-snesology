@@ -30,10 +30,8 @@
             this.addEventListener('change', this.onInput.bind(this));
             this.addEventListener('submit', this.onInput.bind(this));
 
-            // if(!this.getAttribute('tabindex'))
-            //     this.setAttribute('tabindex', '1');
-
             loadScript('music/player/music-player.js', function() {
+
                 this.playerElement = document.createElement('music-player');
                 this.playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
@@ -41,17 +39,50 @@
                 this.playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
-                // this.appendChild(this.playerElement); // TODO: unnecessary lol
 
                 if(this.getSongURL())
                     this.playerElement.loadSong(this.getSongURL(), function() {
                         this.render();
-                        let firstCell = this.querySelector('music-editor-grid-cell');
-                        if(firstCell)
-                            firstCell.select();
+                        this.gridDataSelect(this.querySelector('.grid-data'));
                         // this.focus();
                     }.bind(this));
             }.bind(this));
+        }
+
+        gridDataSelect(gridElm, previewInstruction) {
+            this.gridRowSelect(gridElm.parentNode, previewInstruction);
+            clearElementClass('selected', '.grid-data.selected');
+            gridElm.classList.add('selected');
+            let instruction = this.gridDataGetInstruction(gridElm);
+            this.setEditableInstruction(instruction);
+            if(previewInstruction && this.config.previewInstructionsOnSelect !== false)
+                this.playInstruction(instruction);
+
+        }
+        gridRowSelect(rowElm, previewInstruction) {
+            clearElementClass('selected', '.grid-row.selected');
+            rowElm.classList.add('selected');
+        }
+
+        gridDataGetInstruction(gridElm) {
+            let position = parseInt(gridElm.getAttribute('data-position'));
+            var instruction = this.getSong().instructions[position];
+            if(!instruction)
+                throw new Error("Instruction not found at position: " + position);
+            return instruction;
+        }
+
+        findAssociatedElement(instruction) {
+            let position = this.getInstructionPosition(instruction);
+            return this.findGridDataPosition(position);
+        }
+
+        findGridDataPosition(instrumentPosition) {
+            let gridDataElms = this.querySelectorAll('.grid-data');
+            for(let i=0; i<gridDataElms.length; i++)
+                if(parseInt(gridDataElms[i].getAttribute('data-position')) === instrumentPosition)
+                    return gridDataElms[i];
+            return null;
         }
 
         getSongURL() { return this.getAttribute('src');}
@@ -99,12 +130,12 @@
 
         getInstructions(groupName) {
             if(groupName) {
-                let instructionList = this.song.instructionGroups[groupName];
+                let instructionList = this.getSong().instructionGroups[groupName];
                 if(!instructionList)
                     throw new Error("Instruction group not found: " + groupName);
                 return instructionList;
             }
-            return this.song.instructions;
+            return this.getSong().instructions;
         }
 
         getInstructionPosition(instruction, groupName) {
@@ -207,13 +238,6 @@
     class MusicEditorGridElement extends HTMLElement {
         get editor() { return findParentNode(this, MusicEditorElement); }
 
-        findAssociatedElement(instruction) {
-            let commandElms = this.querySelectorAll('music-editor-grid-cell');
-            for(let i=0; i<commandElms.length; i++)
-                if(commandElms[i].instruction === instruction)
-                    return commandElms[i];
-            return null;
-        }
 
         render(instructionList) {
             this.innerHTML = '';
@@ -540,15 +564,15 @@
         const song = editor.getSong();
         const instructionList = song.instructions;
 
-        var odd = false;
+        let odd = false;
 
-        var editorHTML = '', rowHTML = '';
+        let editorHTML = '', rowHTML = '';
         for(let i=0; i<instructionList.length; i++) {
             const instruction = instructionList[i];
 
             switch(instruction.type) {
                 case 'note':
-                    rowHTML += `<div class="grid-data">`;
+                    rowHTML += `<div class="grid-data" data-position="${i}">`;
                     rowHTML += `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                     rowHTML += `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
                     if(instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.pause)
@@ -559,7 +583,7 @@
                     break;
 
                 case 'group':
-                    rowHTML += `<div class="grid-data>`;
+                    rowHTML += `<div class="grid-data" data-position="${i}">`;
                     rowHTML += `<div class="grid-parameter group">${instruction.group}</div>`
                     rowHTML += `</div>`;
                     break;
@@ -671,9 +695,9 @@
         'instruction:edit': function (e, form) {
             let instruction = form.editableInstruction;
             if(!instruction) throw new Error("editableInstruction not found");
-            var associatedElement = this.grid.findAssociatedElement(instruction);
-            var instrumentID = form.instrument.value;
-            var renderElement = associatedElement;
+            let associatedElement = this.grid.findAssociatedElement(instruction);
+            let instrumentID = form.instrument.value;
+            let renderElement = associatedElement;
             if(instrumentID.indexOf('add:') === 0) {
                 instrumentID = this.addSongInstrument(instrumentID.substr(4));
                 renderElement = this;
@@ -719,7 +743,8 @@
         },
     };
 
-    var depressedKeys = [];
+    const depressedKeys = [];
+
     function handleEditorInput(e, editor) {
 
         if(e.defaultPrevented)
@@ -803,17 +828,15 @@
         clearElementClass('selected', '.grid-data');
         clearElementClass('selected', '.grid-row');
         if(gridItem.classList.contains('grid-parameter')) {
-            gridItem.parentNode.classList.add('selected');
-            gridItem.parentNode.parentNode.classList.add('selected');
+            editor.gridDataSelect(gridItem.parentNode);
             return;
         }
         if(gridItem.classList.contains('grid-data')) {
-            gridItem.classList.add('selected');
-            gridItem.parentNode.classList.add('selected');
+            editor.gridDataSelect(gridItem);
             return;
         }
         if(gridItem.classList.contains('grid-row')) {
-            gridItem.classList.add('selected');
+            editor.gridRowSelect(gridItem);
             return;
         }
 
@@ -824,7 +847,7 @@
     function handleMenuClickEvent(e, editor) {
         const menuItem = e.target;
         console.log("Menu " + e.type, menuItem);
-        var dataCommand = menuItem.getAttribute('data-command');
+        const dataCommand = menuItem.getAttribute('data-command');
         if(dataCommand) {
             let menuCommand = menuCommands[dataCommand];
             if (!menuCommand)
