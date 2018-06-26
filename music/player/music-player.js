@@ -98,7 +98,7 @@
         }
 
         loadSong(songURL, onLoaded) {
-            console.log('Song loading:', songURL);
+//             console.log('Song loading:', songURL);
             loadJSON(songURL, function(err, json) {
                 if(err)
                     throw new Error("Could not load song: " + err);
@@ -264,6 +264,7 @@
 
         pause() {
             this.playing = false;
+            this.dispatchEvent(new CustomEvent('song:pause'));
         }
 
         processPlayback () {

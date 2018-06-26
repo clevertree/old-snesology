@@ -40,6 +40,7 @@
                 this.playerElement.addEventListener('song:start', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
                 this.playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
+                this.playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
                 // this.appendChild(this.playerElement); // TODO: unnecessary lol
 
                 if(this.getSongURL())
@@ -121,6 +122,20 @@
             this.setInstruction(p1, instruction2);
         }
 
+        addSongInstrument(instrumentPath, config) {
+            const instrumentList = this.getSong().instruments;
+            const instrument = this.player.getInstrument(instrumentPath);
+            const instrumentID = instrumentList.length;
+            const defaultName = instrument.getDefaultName ? instrument.getDefaultName(instrumentPath)
+                : instrumentPath.substr(instrumentPath.lastIndexOf('.') + 1);
+            config = Object.assign({path: instrumentPath}, config || {}, {name: defaultName});
+            config.name = prompt("New Instrument Name (" + formatInstrumentID(instrumentID) + "): ", config.name);
+            if(!config.name)
+                throw new Error("Invalid new instrument name");
+            instrumentList[instrumentID] = config;
+            return instrumentID;
+        }
+
         // Forms
 
         setEditableInstruction(instruction) {
@@ -168,6 +183,7 @@
                     this.classList.add('playing');
                     break;
                 case 'song:end':
+                case 'song:pause':
                     this.classList.remove('playing');
                     break;
             }
@@ -184,38 +200,6 @@
             handleEditorInput(e, this);
         }
 
-
-
-        // onInput(e) {
-        //     let target = e.target instanceof MusicEditorMenuItemElement
-        //         ? e.target
-        //         : findParentNode(e.target, MusicEditorMenuItemElement);
-        //     if(!target) {
-        //         console.warn("No menu item found", e.target);
-        //         return;
-        //     }
-        //
-        //     switch(e.type) {
-        //         case 'keydown':
-        //             switch(e.key) {
-        //                 case 'Tab':
-        //                     return;
-        //             }
-        //             break;
-        //     }
-        //
-        //     console.log("Menu", e, target);
-        //     if(target.command) {
-        //         let menuCommand = menuCommands[target.command];
-        //         if(!menuCommand)
-        //             throw new Error("Unknown menu command: " + target.command);
-        //         menuCommand.call(this.editor, e);
-        //         this.close();
-        //     } else {
-        //         target.classList.toggle('open');
-        //     }
-        //     e.preventDefault();
-        // }
     }
 
     // Grid elements
@@ -599,14 +583,15 @@
                 for(let instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
                     const instrumentInfo = song.instruments[instrumentID];
                     var instrument = editor.player.getInstrument(instrumentInfo.path);
-                    options.push([instrumentID, formatInstrumentID(instrumentID) + ': ' + (instrumentInfo.name || instrument.name)]);
+                    options.push([instrumentID, formatInstrumentID(instrumentID)
+                    + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
                 }
                 break;
 
             case 'instruments-available':
                 if(window.instruments) {
                     findInstruments(function (instrument, path, domain) {
-                        options.push([domain + ":" + path, instrument.name + " (" + path + ")"]);
+                        options.push(["add:" + domain + ":" + path, instrument.name + " (" + path + ")"]);
                     });
                 }
                 break;
@@ -653,7 +638,7 @@
 
     function renderEditorMenuLoadFromMemory() {
         const songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
-        console.log("Loading song list from memory: ", songGUIDs);
+//         console.log("Loading song list from memory: ", songGUIDs);
 
         let menuItemsHTML = '';
         for(let i=0; i<songGUIDs.length; i++) {
@@ -686,14 +671,24 @@
         'instruction:edit': function (e, form) {
             let instruction = form.editableInstruction;
             if(!instruction) throw new Error("editableInstruction not found");
-            instruction.instrument = parseInt(form.instrument.value);
+            var associatedElement = this.grid.findAssociatedElement(instruction);
+            var instrumentID = form.instrument.value;
+            var renderElement = associatedElement;
+            if(instrumentID.indexOf('add:') === 0) {
+                instrumentID = this.addSongInstrument(instrumentID.substr(4));
+                renderElement = this;
+            }
+
+            instruction.instrument = parseInt(instrumentID);
             instruction.frequency = form.frequency.value;
             instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
-            const associatedElement = this.grid.findAssociatedElement(instruction);
-            associatedElement.render();
+            renderElement.render();
+            associatedElement = this.grid.findAssociatedElement(instruction);
+            associatedElement.select();
         },
         'song:play': function (e, form) { this.player.play(); },
+        'song:pause': function (e, form) { this.player.pause(); },
         'song:playback': function (e, form) {
             console.log(e.target);
         }

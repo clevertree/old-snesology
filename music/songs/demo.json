@@ -8,8 +8,8 @@
     "instruments/oscillator.js"
   ],
   "instruments": [
-    {"path": "snesology.org:oscillator.sawtooth", "name": "Sawtooth"},
-    {"path": "snesology.org:oscillator.triangle", "name": "Triangle"}
+    {"path": "snesology.org:oscillator.sawtooth", "name": "sawtooth"},
+    {"path": "snesology.org:oscillator.triangle", "name": "triangle"}
   ],
   "instructions": [
     {"type": "note", "instrument":0, "frequency":"C4"},
