@@ -464,7 +464,7 @@
                     <li><a class="menu-item">Instruments</a></li>
                     <li><a class="menu-item">Collaborate</a></li>
                 </div>
-                <div class="editor-panel">
+                <div class="editor-panel" tabindex="2">
                     <label class="row-label">Song:</label>
                     <form class="form-song-play" data-command="song:play">
                         <button name="play">Play</button>
@@ -529,7 +529,7 @@
                         </select>
                     </form>
                 </div>
-                <div class="editor-grid">
+                <div class="editor-grid" tabindex="1">
                     ${renderGrid(this)}
                 </div>
             </div>
@@ -846,22 +846,22 @@
 
     function handleArrowKeyEvent(e) {
         const selectedCell = this.querySelector('.grid-data.selected')
-            || this.querySelector('.grid-da');
+            || this.querySelector('.grid-data');
         let newSelectedCell = selectedCell;
 
         const selectedRow = selectedCell.parentNode;
         switch(e.key) {
             case 'ArrowRight':
-                newSelectedCell = selectedCell.nextSibling
-                    || (selectedRow.nextSibling ? selectedRow.nextSibling.firstChild : null);
+                newSelectedCell = selectedCell.nextElementSibling
+                    || (selectedRow.nextElementSibling ? selectedRow.nextElementSibling.firstChild : null);
                 break;
             case 'ArrowLeft':
                 newSelectedCell = selectedCell.previousSibling
                     || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
                 break;
             case 'ArrowDown':
-                if(selectedRow.nextSibling)
-                    newSelectedCell = selectedRow.nextSibling.firstChild;
+                if(selectedRow.nextElementSibling)
+                    newSelectedCell = selectedRow.nextElementSibling.firstChild;
                 break;
             case 'ArrowUp':
                 if(selectedRow.previousSibling)
