@@ -1,4 +1,4 @@
-music-editor {
+.music-editor {
     color: #FFF;
     background-color: #DDD;
     display: block;
@@ -7,26 +7,118 @@ music-editor {
     user-select: none;
 }
 
+/** Grid **/
+
+.music-editor .editor-grid {
+    /*cursor: pointer;*/
+    /* display: block; */
+    /* border-collapse: collapse; */
+    /* display: table; */
+    /* width: 100%; */
+}
+
+
+/** Grid Row **/
+
+.music-editor .editor-grid .grid-row {
+    cursor: pointer;
+    background-color: #999;
+    height: 18px;
+}
+
+.music-editor .editor-grid .grid-row.odd {
+    background-color: #AAA;
+}
+
+.music-editor .editor-grid .grid-row.selected {
+    background-color: #BBB;
+}
+
+/** Grid Cell **/
+
+.music-editor .editor-grid .grid-data {
+     display: inline-block;
+     overflow: hidden;
+     padding: 0px 3px;
+     color: #666;
+     border: solid 1px #666;
+     border-radius: 4px;
+     background-color: #CCC;
+}
+.music-editor .editor-grid .grid-data:last-child {
+    margin-right: 0;
+}
+
+.music-editor .editor-grid .grid-data.playing {
+    font-weight: bold;
+}
+
+
+.music-editor .editor-grid .grid-data.selected {
+    font-weight: bold;
+    max-width: 1000px;
+    /* background-color: #444; */
+    border-color: orangered;
+    box-shadow: #441200 0 1px 10px;
+    background-color: white;
+}
+
+.music-editor .editor-grid .grid-parameter{
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.music-editor .editor-grid .grid-parameter:not(:first-child) {
+    margin-left: 3px;
+    padding-left: 3px;
+    border-left: 1px solid #888;
+}
+
+.music-editor .editor-grid .grid-parameter.instrument {
+    color: darkblue;
+}
+.music-editor .editor-grid .grid-parameter.groupExecute {
+    color: green;
+}
+.music-editor .editor-grid .grid-parameter.frequency {
+    color: darkred;
+}
+.music-editor .editor-grid .grid-parameter.duration {
+    color: purple;
+}
+.music-editor .editor-grid .grid-parameter.velocity {
+    color: green;
+}
+
+
+
+
 /** Menu **/
 
-music-editor-menu {
+.music-editor .editor-menu {
     display: block;
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
 }
 
-music-editor-menu li {
+.music-editor .editor-menu hr {
+    margin: 4px 0;
+    border: 1px #666 solid;
+}
+
+.music-editor .editor-menu li {
     list-style-type: none;
 }
 
-music-editor-menu > li {
+.music-editor .editor-menu > li {
     /*float: left;*/
     display: inline-block;
 }
 
 
-music-editor-menu-item {
+.music-editor .menu-item {
     vertical-align: top;
     display: block;
     padding: 3px 8px;
@@ -34,10 +126,10 @@ music-editor-menu-item {
     cursor: pointer;
 }
 
-music-editor-menu-item > * {
+.music-editor .menu-item > * {
     white-space: nowrap;
 }
-music-editor-menu-item > ul {
+.music-editor .sub-menu {
     display: none;
     border: 1px solid grey;
     background-color: #BBB;
@@ -48,11 +140,11 @@ music-editor-menu-item > ul {
 
     max-height: 0px;
     transition: max-height 2s, opacity 0.5s;
-     /*overflow: hidden;*/
+    /*overflow: hidden;*/
     /* min-width: 200px; */
 }
 
-music-editor-menu-item.open > ul {
+.music-editor .sub-menu.open {
     /* display: block; */
     display: inline-block;
     opacity: 1;
@@ -61,117 +153,23 @@ music-editor-menu-item.open > ul {
     /*transition: max-height 2s;*/
     z-index: 1;
 }
-music-editor-menu-item:hover {
+.music-editor .menu-item:hover {
     background-color: #AAA;
 }
-music-editor-menu-item.open {
+.music-editor .menu-item.open {
     background-color: #777;
 }
-music-editor-menu-item:active {
+.music-editor .menu-item:active {
     background-color: #888;
 }
 
-music-editor-menu hr {
-    margin: 4px 0;
-    border: 1px #666 solid;
-}
-
-/** Grid **/
-
-music-editor-grid {
-    cursor: pointer;
-    /*display: block;*/
-    border-collapse: collapse;
-    display: table;
-    width: 100%;
-}
-
-
-/** Grid Row **/
-
-music-editor-grid-row {
-    /*display: block;*/
-    display: table-row;
-    background-color: #999;
-    /*height: 20px;*/
-    clear: both;
-}
-
-music-editor-grid-row.odd {
-    background-color: #AAA;
-}
-
-music-editor-grid-row.selected {
-    background-color: #DDD;
-}
-
-/** Grid Cell **/
-
-music-editor-grid-cell {
-    float: left;
-    white-space: nowrap;
-    margin: 0 1px 1px 0;
-    overflow: hidden;
-    padding: 0 3px;
-    color: #666;
-    border: solid 1px #666;
-    border-radius: 4px;
-    user-select: none;
-    background-color: #CCC;
-}
-music-editor-grid-cell:last-child {
-    margin-right: 0;
-}
-
-music-editor-grid-cell.playing {
-    font-weight: bold;
-}
-
-music-editor-grid-cell > div {
-    display: inline-block;
-    overflow: hidden;
-    vertical-align: top;
-}
-
-music-editor-grid-cell > div:not(:first-child) {
-    margin-left: 3px;
-    padding-left: 3px;
-    border-left: 1px solid #888;
-}
-
-music-editor-grid-cell .instrument {
-    color: darkblue;
-}
-music-editor-grid-cell .groupExecute {
-    color: green;
-}
-music-editor-grid-cell .frequency {
-    color: darkred;
-}
-music-editor-grid-cell .duration {
-    color: purple;
-}
-music-editor-grid-cell .velocity {
-    color: green;
-}
-
-
-
-music-editor-grid-cell.selected {
-    font-weight: bold;
-    max-width: 1000px;
-    /* background-color: #444; */
-    border-color: orangered;
-    box-shadow: #441200 0 1px 10px;
-    background-color: white;
-}
 
 /** Form **/
-music-editor .editor-panel {
+.music-editor .editor-panel {
     padding: 4px 0px;
     color: black;
 }
-music-editor .editor-panel form {
+.music-editor .editor-panel form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
     /* margin: 0px 0; */
@@ -180,7 +178,7 @@ music-editor .editor-panel form {
 }
 
 
-music-editor .editor-panel label.row-label {
+.music-editor .editor-panel label.row-label {
     display: inline-block;
     min-width: 50px;
     text-align: right;
@@ -188,33 +186,33 @@ music-editor .editor-panel label.row-label {
     font-weight: bold;
 }
 
-music-editor .editor-panel form.hidden {
+.music-editor .editor-panel form.hidden {
     display: none;
 }
 
-music-editor .editor-panel select,
-music-editor .editor-panel button {
+.music-editor .editor-panel select,
+.music-editor .editor-panel button {
     border-radius: 5px;
     border: 1px solid #AAA;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
 }
 
-music-editor .editor-panel select[name=instrument] {
+.music-editor .editor-panel select[name=instrument] {
     max-width: 100px;
 }
-music-editor .editor-panel select[name=frequency] {
+.music-editor .editor-panel select[name=frequency] {
     max-width: 42px;
 }
-music-editor .editor-panel select[name=duration] {
+.music-editor .editor-panel select[name=duration] {
     max-width: 50px;
 }
-music-editor .editor-panel select[name=velocity] {
+.music-editor .editor-panel select[name=velocity] {
     max-width: 46px;
 }
-music-editor .editor-panel select[name=pause] {
+.music-editor .editor-panel select[name=pause] {
     max-width: 100px;
 }
 
-music-editor:not(.playing) form.form-song-pause { display: none; }
-music-editor.playing form.form-song-play { display: none; }
-music-editor:not(.paused) form.form-song-resume { display: none; }
+.music-editor:not(.playing) form.form-song-pause { display: none; }
+.music-editor.playing form.form-song-play { display: none; }
+.music-editor:not(.paused) form.form-song-resume { display: none; }

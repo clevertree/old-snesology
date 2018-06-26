@@ -16,8 +16,6 @@
             this.playerElement = null;
         }
 
-        get grid() { return this.querySelector('music-editor-grid'); }
-        get menu() { return this.querySelector('music-editor-menu'); }
         get player() { return this.playerElement; }
 
         getAudioContext() { return this.player.getAudioContext(); }
@@ -32,8 +30,8 @@
             this.addEventListener('change', this.onInput.bind(this));
             this.addEventListener('submit', this.onInput.bind(this));
 
-            if(!this.getAttribute('tabindex'))
-                this.setAttribute('tabindex', '1');
+            // if(!this.getAttribute('tabindex'))
+            //     this.setAttribute('tabindex', '1');
 
             loadScript('music/player/music-player.js', function() {
                 this.playerElement = document.createElement('music-player');
@@ -67,9 +65,6 @@
 
         render() {
             this.innerHTML = renderEditorContent.call(this);
-            const instructionList = this.getSong().instructions;
-            // console.log('Updating Editor:', instructionList);
-            this.grid.render(instructionList);
         }
 
         // Player commands
@@ -178,71 +173,49 @@
             }
         }
 
+        menuClose() {
+            const openElements = this.querySelectorAll('.sub-menu.open');
+            for(let i=openElements.length-1; i>=0; i--)
+                openElements[i].classList.remove('open');
+        }
         // Input
 
         onInput(e) {
-            if(e.defaultPrevented)
-                return;
-            switch(e.type) {
-                case 'keydown':
-                    if(this.depressedKeys.indexOf(e.key) > -1) {
-                        // console.info("Ignoring repeat keydown: ", e);
-                        return;
-                    }
-                    this.depressedKeys.push(e.key);
-
-                    if(e.altKey) {
-                        if(keyboardCommands.alt[e.key]) {
-                            keyboardCommands.alt[e.key].call(this, e);
-                            e.preventDefault();
-                            return;
-                        }
-                    }
-                    if(e.ctrlKey) {
-                        if(keyboardCommands.ctrl[e.key]) {
-                            keyboardCommands.ctrl[e.key].call(this, e);
-                            e.preventDefault();
-                            return;
-                        }
-                    }
-                    if(keyboardCommands.default[e.key]) {
-                        keyboardCommands.default[e.key].call(this, e);
-                        e.preventDefault();
-                        return;
-                    }
-
-                    const selectedCell = this.querySelector('music-editor-grid-cell.selected')
-                        || this.querySelector('music-editor-grid-cell');
-
-                    selectedCell.onInput(e);
-                    if(!e.defaultPrevented)
-                        console.info('Unused input', e);
-                    break;
-
-                case 'keyup':
-                    const i = this.depressedKeys.indexOf(e.key);
-                    if(i > -1) {
-                        this.depressedKeys.splice(i, 1);
-                    }
-                    break;
-
-                case 'click':
-                    this.menu.close();
-                    break;
-
-                case 'submit':
-                case 'change':
-                    e.preventDefault();
-                    const form = e.target.form || e.target;
-                    console.log("Form " + e.type + ": ", form.target.form, e);
-                    const formCommandName = form.getAttribute('data-command');
-                    let formCommand = formCommands[formCommandName];
-                    if(!formCommand)
-                        throw new Error("Form command not found: " + formCommandName);
-                    formCommand.call(this, e, form);
-                    break;
-            }
+            handleEditorInput(e, this);
         }
+
+
+
+        // onInput(e) {
+        //     let target = e.target instanceof MusicEditorMenuItemElement
+        //         ? e.target
+        //         : findParentNode(e.target, MusicEditorMenuItemElement);
+        //     if(!target) {
+        //         console.warn("No menu item found", e.target);
+        //         return;
+        //     }
+        //
+        //     switch(e.type) {
+        //         case 'keydown':
+        //             switch(e.key) {
+        //                 case 'Tab':
+        //                     return;
+        //             }
+        //             break;
+        //     }
+        //
+        //     console.log("Menu", e, target);
+        //     if(target.command) {
+        //         let menuCommand = menuCommands[target.command];
+        //         if(!menuCommand)
+        //             throw new Error("Unknown menu command: " + target.command);
+        //         menuCommand.call(this.editor, e);
+        //         this.close();
+        //     } else {
+        //         target.classList.toggle('open');
+        //     }
+        //     e.preventDefault();
+        // }
     }
 
     // Grid elements
@@ -316,36 +289,6 @@
 
     class MusicEditorGridCellElement extends HTMLElement {
 
-        constructor(instruction) {
-            super();
-            this.instruction = instruction;
-        }
-
-        get editor() { return findParentNode(this, MusicEditorElement); }
-
-        connectedCallback() {
-            this.addEventListener('click', this.select.bind(this));
-            this.render();
-        }
-
-        render() {
-            this.innerHTML = '';
-
-            switch(this.instruction.type) {
-                case 'note':
-                    this.innerHTML += `<div class="instrument">${formatInstrumentID(this.instruction.instrument)}</div>`;
-                    this.innerHTML += `<div class="frequency">${this.instruction.frequency}</div>`;
-                    if(this.instruction.duration && this.instruction.duration !== this.parentNode.instruction.pause)
-                        this.innerHTML += `<div class="duration">${this.instruction.duration}</div>`;
-                    if(this.instruction.velocity)
-                        this.innerHTML += `<div class="velocity">${this.instruction.velocity}</div>`;
-                    break;
-
-                case 'group':
-                    this.innerHTML += `<div class="group">${this.instruction.group}</div>`
-                    break;
-            }
-        }
 
         select(e, previewInstruction) {
             this.parentNode.select(e);
@@ -399,82 +342,8 @@
 
     }
 
-
-    // Menu elements
-
-    class MusicEditorMenuElement extends HTMLElement {
-        constructor() {
-            super();
-        }
-
-
-        get editor() { return findParentNode(this, MusicEditorElement); }
-
-        connectedCallback() {
-            // this.innerHTML = renderEditorMenuContent();
-            this.addEventListener('keydown', this.onInput.bind(this));
-            this.addEventListener('click', this.onInput.bind(this));
-            // let shadowRoot = this.attachShadow({mode: 'open'});
-        }
-
-        close() {
-            const openElements = this.querySelectorAll('music-editor-menu-item.open');
-            for(let i=openElements.length-1; i>=0; i--)
-                openElements[i].classList.remove('open');
-        }
-
-        onInput(e) {
-            let target = e.target instanceof MusicEditorMenuItemElement
-                ? e.target
-                : findParentNode(e.target, MusicEditorMenuItemElement);
-            if(!target) {
-                console.warn("No menu item found", e.target);
-                return;
-            }
-
-            switch(e.type) {
-                case 'keydown':
-                    switch(e.key) {
-                        case 'Tab':
-                            return;
-                    }
-                    break;
-            }
-
-            console.log("Menu", e, target);
-            if(target.command) {
-                let menuCommand = menuCommands[target.command];
-                if(!menuCommand)
-                    throw new Error("Unknown menu command: " + target.command);
-                menuCommand.call(this.editor, e);
-                this.close();
-            } else {
-                target.classList.toggle('open');
-            }
-            e.preventDefault();
-        }
-
-    }
-
-    class MusicEditorMenuItemElement extends HTMLElement {
-        constructor() {
-            super();
-            if(!this.getAttribute('tabindex'))
-                this.setAttribute('tabindex', '1');
-        }
-
-        get editor() { return findParentNode(this, MusicEditorElement); }
-        get command() { return this.getAttribute('data-command'); }
-    }
-
-
-    // Define custom elements
-
-
     // Define custom elements
     customElements.define('music-editor', MusicEditorElement);
-    customElements.define('music-editor-menu', MusicEditorMenuElement);
-    customElements.define('music-editor-menu-item', MusicEditorMenuItemElement);
     customElements.define('music-editor-grid', MusicEditorGridElement);
     customElements.define('music-editor-grid-row', MusicEditorGridRowElement);
     customElements.define('music-editor-grid-cell', MusicEditorGridCellElement);
@@ -585,103 +454,141 @@
 
     function renderEditorContent() {
         return `
-            <music-editor-menu>
-                <li>
-                    <music-editor-menu-item>
-                        File
-                        <ul>
+            <div class="music-editor">
+                <div class="editor-menu">
+                    <li>
+                        <a class="menu-item">File</a>
+                        <ul class="sub-menu">
                             <li>
-                                <music-editor-menu-item>
-                                    Open from memory >
-                                    ${renderEditorMenuLoadFromMemory()}
-                                </music-editor-menu-item>
+                                <a class="menu-item">Open from memory ></a>
+                                ${renderEditorMenuLoadFromMemory()}
                             </li>
-                            <li><music-editor-menu-item data-command="load:file">Open from file</music-editor-menu-item></li>
-                            <li><music-editor-menu-item data-command="load:url">Open from url</music-editor-menu-item></li>
+                            <li><a class="menu-item" data-command="load:file">Open from file</a></li>
+                            <li><a class="menu-item" data-command="load:url">Open from url</a></li>
                             
                             <hr/>
-                            <li><music-editor-menu-item data-command="save:memory">Save to memory</music-editor-menu-item></li>
-                            <li><music-editor-menu-item data-command="save:file">Save to file</music-editor-menu-item></li>
+                            <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
+                            <li><a class="menu-item" data-command="save:file">Save to file</a></li>
                             
                             <hr/>
-                            <li><music-editor-menu-item data-command="export:file">Export to audio file</music-editor-menu-item></li>
+                            <li><a class="menu-item" data-command="export:file">Export to audio file</a></li>
                         </ul>
-                    </music-editor-menu-item>
-                </li>
-                
-                <li><music-editor-menu-item>View</music-editor-menu-item></li>
-                <li><music-editor-menu-item>Editor</music-editor-menu-item></li>
-                <li><music-editor-menu-item>Instruments</music-editor-menu-item></li>
-                <li><music-editor-menu-item>Collaborate</music-editor-menu-item></li>
-            </music-editor-menu>
-            <div class="editor-panel">
-                <label class="row-label">Song:</label>
-                <form class="form-song-play" data-command="song:play">
-                    <button name="play">Play</button>
-                </form>
-                <form class="form-song-pause" data-command="song:pause">
-                    <button name="pause">Pause</button>
-                </form>
-                <form class="form-song-resume" data-command="song:resume">
-                    <button name="resume">Resume</button>
-                </form>
-                <form class="form-song-info" data-command="song:info">
-                    <button name="info">info</button>
-                </form>
-    
-                <br/>
-     
-                <form class="form-group" data-command="group:edit">
-                    <label>Group:</label>
-                    <button name="edit">Edit</button>
-                    <button name="remove">-</button>
-                </form>
-                <form class="form-row" data-command="row:edit">
-                    <label class="row-label">Row:</label>
-                    <button name="duplicate">+</button>
-                    <button name="remove">-</button>
-                    <select name="pause">
-                        <optgroup label="Pause">
-                            ${renderEditorFormOptions('durations')}
-                        </optgroup>
-                    </select>
-                    <button name="split">Split</button>
-                </form>
-                
-                <br/>
-    
-                <form class="form-instruction" data-command="instruction:edit">
-                    <label class="row-label">Note:</label>
-                    <button name="duplicate">+</button>
-                    <button name="remove">-</button>
-                    <select name="instrument">
-                        <optgroup label="Song Instruments">
-                            ${renderEditorFormOptions('song-instruments', this)}
-                        </optgroup>
-                        <optgroup label="Available Instruments">
-                            ${renderEditorFormOptions('instruments-available')}
-                        </optgroup>
-                    </select>
-                    <select name="frequency">
-                        <optgroup label="Frequency">
-                            ${renderEditorFormOptions('frequencies')}
-                        </optgroup>
-                    </select>
-                    <select name="duration">
-                        <optgroup label="Duration">
-                            ${renderEditorFormOptions('durations')}
-                        </optgroup>
-                    </select>
-                    <select name="velocity">
-                        <optgroup label="Velocity">
-                            ${renderEditorFormOptions('velocities')}
-                        </optgroup>
-                    </select>
-                </form>
+                    </li>
+                    
+                    <li><a class="menu-item">View</a></li>
+                    <li><a class="menu-item">Editor</a></li>
+                    <li><a class="menu-item">Instruments</a></li>
+                    <li><a class="menu-item">Collaborate</a></li>
+                </div>
+                <div class="editor-panel">
+                    <label class="row-label">Song:</label>
+                    <form class="form-song-play" data-command="song:play">
+                        <button name="play">Play</button>
+                    </form>
+                    <form class="form-song-pause" data-command="song:pause">
+                        <button name="pause">Pause</button>
+                    </form>
+                    <form class="form-song-resume" data-command="song:resume">
+                        <button name="resume">Resume</button>
+                    </form>
+                    <form class="form-song-info" data-command="song:info">
+                        <button name="info">info</button>
+                    </form>
+        
+                    <br/>
+         
+                    <form class="form-group" data-command="group:edit">
+                        <label>Group:</label>
+                        <button name="edit">Edit</button>
+                        <button name="remove">-</button>
+                    </form>
+                    <form class="form-row" data-command="row:edit">
+                        <label class="row-label">Row:</label>
+                        <button name="duplicate">+</button>
+                        <button name="remove">-</button>
+                        <select name="pause">
+                            <optgroup label="Pause">
+                                ${renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
+                        <button name="split">Split</button>
+                    </form>
+                    
+                    <br/>
+        
+                    <form class="form-instruction" data-command="instruction:edit">
+                        <label class="row-label">Note:</label>
+                        <button name="duplicate">+</button>
+                        <button name="remove">-</button>
+                        <select name="instrument">
+                            <optgroup label="Song Instruments">
+                                ${renderEditorFormOptions('song-instruments', this)}
+                            </optgroup>
+                            <optgroup label="Available Instruments">
+                                ${renderEditorFormOptions('instruments-available')}
+                            </optgroup>
+                        </select>
+                        <select name="frequency">
+                            <optgroup label="Frequency">
+                                ${renderEditorFormOptions('frequencies')}
+                            </optgroup>
+                        </select>
+                        <select name="duration">
+                            <optgroup label="Duration">
+                                ${renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
+                        <select name="velocity">
+                            <optgroup label="Velocity">
+                                ${renderEditorFormOptions('velocities')}
+                            </optgroup>
+                        </select>
+                    </form>
+                </div>
+                <div class="editor-grid">
+                    ${renderGrid(this)}
+                </div>
             </div>
-            <music-editor-grid>
-            </music-editor-grid>
         `;
+    }
+
+    function renderGrid(editor) {
+        const song = editor.getSong();
+        const instructionList = song.instructions;
+
+        var odd = false;
+
+        var editorHTML = '', rowHTML = '';
+        for(let i=0; i<instructionList.length; i++) {
+            const instruction = instructionList[i];
+
+            switch(instruction.type) {
+                case 'note':
+                    rowHTML += `<div class="grid-data">`;
+                    rowHTML += `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
+                    rowHTML += `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
+                    if(instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.pause)
+                        rowHTML += `<div class="grid-parameter duration">${instruction.duration}</div>`;
+                    if(instruction.velocity)
+                        rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                    rowHTML += `</div>`;
+                    break;
+
+                case 'group':
+                    rowHTML += `<div class="grid-data>`;
+                    rowHTML += `<div class="grid-parameter group">${instruction.group}</div>`
+                    rowHTML += `</div>`;
+                    break;
+
+                case 'pause':
+                    editorHTML += `<div class="grid-row ${odd = !odd ? 'odd' : ''}">`;
+                    editorHTML += rowHTML;
+                    editorHTML += `</div>`;
+                    rowHTML = '';
+                    break;
+            }
+        }
+        return editorHTML;
     }
 
     function renderEditorFormOptions(optionType, editor) {
@@ -754,16 +661,16 @@
             const song = loadSongFromMemory(songGUID);
             if(song) {
                 menuItemsHTML +=
-                    `<music-editor-menu-item data-command="load:memory" guid="${songGUID}">
-                        <span>${song.name || "unnamed"}</span>
-                    </music-editor-menu-item>`;
+                    `<li>
+                        <a class="menu-item" data-command="load:memory" data-guid="${songGUID}">${song.name || "unnamed"}</a>
+                    </li>`;
             } else {
                 console.error("Song GUID not found: " + songGUID);
             }
         }
 
         return `
-            <ul>
+            <ul class="sub-menu">
                 ${menuItemsHTML}
             </ul>
         `;
@@ -817,9 +724,134 @@
         },
     };
 
+    var depressedKeys = [];
+    function handleEditorInput(e, editor) {
+
+        if(e.defaultPrevented)
+            return;
+        console.log(e.type, e.target);
+        switch(e.type) {
+            case 'keydown':
+                if(depressedKeys.indexOf(e.key) > -1) {
+                    // console.info("Ignoring repeat keydown: ", e);
+                    return;
+                }
+                depressedKeys.push(e.key);
+
+                if(e.altKey) {
+                    if(keyboardCommands.alt[e.key]) {
+                        keyboardCommands.alt[e.key].call(editor, e);
+                        e.preventDefault();
+                        return;
+                    }
+                }
+                if(e.ctrlKey) {
+                    if(keyboardCommands.ctrl[e.key]) {
+                        keyboardCommands.ctrl[e.key].call(editor, e);
+                        e.preventDefault();
+                        return;
+                    }
+                }
+                if(keyboardCommands.default[e.key]) {
+                    keyboardCommands.default[e.key].call(editor, e);
+                    e.preventDefault();
+                    return;
+                }
+
+
+                const selectedCell = editor.querySelector('music-editor-grid-cell.selected')
+                    || editor.querySelector('music-editor-grid-cell');
+
+                selectedCell.onInput(e);
+                if(!e.defaultPrevented)
+                    console.info('Unused input', e);
+                break;
+
+            case 'keyup':
+                const i = depressedKeys.indexOf(e.key);
+                if(i > -1) {
+                    depressedKeys.splice(i, 1);
+                }
+                break;
+
+            case 'click':
+                let classList = e.target.classList;
+                if(classList.contains('menu-item'))
+                    handleMenuClickEvent(e, editor);
+
+                else if(classList.contains('grid-parameter')
+                    || classList.contains('grid-data')
+                    || classList.contains('grid-row'))
+                    handleGridClickEvent(e, editor);
+
+                else editor.menuClose();
+                break;
+
+            case 'submit':
+            case 'change':
+                e.preventDefault();
+                const form = e.target.form || e.target;
+                console.log("Form " + e.type + ": ", form.target.form, e);
+                const formCommandName = form.getAttribute('data-command');
+                let formCommand = formCommands[formCommandName];
+                if(!formCommand)
+                    throw new Error("Form command not found: " + formCommandName);
+                formCommand.call(editor, e, form);
+                break;
+        }
+    }
+
+    function handleGridClickEvent(e, editor) {
+        const gridItem = e.target;
+        console.log("Grid " + e.type, gridItem);
+
+        clearElementClass('selected', '.grid-data');
+        clearElementClass('selected', '.grid-row');
+        if(gridItem.classList.contains('grid-parameter')) {
+            gridItem.parentNode.classList.add('selected');
+            gridItem.parentNode.parentNode.classList.add('selected');
+            return;
+        }
+        if(gridItem.classList.contains('grid-data')) {
+            gridItem.classList.add('selected');
+            gridItem.parentNode.classList.add('selected');
+            return;
+        }
+        if(gridItem.classList.contains('grid-row')) {
+            gridItem.classList.add('selected');
+            return;
+        }
+
+        console.warn("Unhandled menu click", e);
+    }
+
+
+    function handleMenuClickEvent(e, editor) {
+        const menuItem = e.target;
+        console.log("Menu " + e.type, menuItem);
+        var dataCommand = menuItem.getAttribute('data-command');
+        if(dataCommand) {
+            let menuCommand = menuCommands[dataCommand];
+            if (!menuCommand)
+                throw new Error("Unknown menu command: " + dataCommand);
+            menuCommand.call(editor, e);
+            editor.menuClose();
+            return;
+        }
+
+        if(menuItem.nextElementSibling
+            && menuItem.nextElementSibling.classList.contains('sub-menu')) {
+            const subMenu = menuItem.nextElementSibling;
+            subMenu.classList.toggle('open');
+            return;
+        }
+
+        console.warn("Unhandled menu click", e);
+    }
+
     function handleArrowKeyEvent(e) {
-        const selectedCell = this.querySelector('music-editor-grid-cell.selected')
-            || this.querySelector('music-editor-grid-cell');
+        const selectedCell = this.querySelector('.grid-data.selected')
+            || this.querySelector('.grid-da');
         let newSelectedCell = selectedCell;
 
         const selectedRow = selectedCell.parentNode;
