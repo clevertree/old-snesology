@@ -134,7 +134,7 @@
             }.bind(this));
         }
 
-        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, callback) {
+        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, instructionGroup) {
             const instrumentPath = this.getInstrumentPath(instrumentID);
             const instrument = this.getInstrument(instrumentPath);
             if(instrument.getNamedFrequency)
@@ -148,24 +148,22 @@
                 startOffset: noteStartTime,
                 duration: noteDuration,
                 instruction: instruction,
+                instructionGroup: instructionGroup,
                 instrumentPath: instrumentPath,
             });
 
             if(noteStartTime > currentTime)
                 setTimeout(function() {
                     dispatchEvent.call(this, true);
-                    callback && callback(true);
                 }.bind(this), (noteStartTime - currentTime) * 1000);
             else {
                 // Start immediately
                 dispatchEvent.call(this, true);
-                callback && callback(true);
             }
 
             if(noteDuration) {
                 setTimeout(function() {
                     dispatchEvent.call(this, false);
-                    callback && callback(false);
                 }.bind(this), (noteStartTime - currentTime + noteDuration) * 1000);
             }
 
@@ -175,6 +173,7 @@
                     detail: {
                         playing: playing,
                         instruction: instruction,
+                        instructionGroup: instructionGroup,
                         startTime: noteStartTime,
                         duration: noteDuration,
                         noteEvent: noteEvent
@@ -185,43 +184,42 @@
             return noteEvent;
         }
 
-        playInstruction(instruction, noteStartTime, bpm, onPlayback) {
+        playInstruction(instruction, instructionGroup, noteStartTime, bpm) {
             if(instruction.type === 'note') {
                 const instrumentName = instruction.instrument;
                 const noteFrequency = instruction.frequency;
                 const noteDuration = (instruction.duration || 1) * (240 / (bpm || 240));
-                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, onPlayback);
+                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, instructionGroup);
             }
             return null;
         }
 
         playInstructions(instructionList, seekPosition, seekLength) {
             instructionList = instructionList || this.song.instructions;
-            return this.eachInstruction(instructionList, function(noteInstruction, currentPosition, currentBPM) {
+            return this.eachInstruction(instructionList, function(noteInstruction, instructionGroup, currentPosition, currentBPM) {
                 if(currentPosition < seekPosition)
                     return;   // Instructions were already played
                 if(seekLength && currentPosition >= seekPosition + seekLength)
                     return;
-                this.playInstruction(noteInstruction, this.startTime + currentPosition, currentBPM);
+                this.playInstruction(noteInstruction, instructionGroup, this.startTime + currentPosition, currentBPM);
             }.bind(this));
         }
 
         eachInstruction(instructionList, callback) {
 
             var currentBPM = this.getStartingBPM();
-            return playGroup.call(this, instructionList, currentBPM, 0);
+            return playGroup.call(this, instructionList, null, currentBPM, 0);
 
-            function playGroup(instructionList, currentBPM, groupPlaytimeOffset) {
+            function playGroup(instructionList, groupName, currentBPM, groupPlaytimeOffset) {
                 let currentPosition = 0;
                 var currentGroupPlayTime = groupPlaytimeOffset;
                 var maxPlayTime = 0;
                 for(let i=0; i<instructionList.length; i++) {
-                    var current
                     const instruction = instructionList[i];
 
                     switch(instruction.type) {
                         case 'note':
-                            callback(instruction, currentGroupPlayTime, currentBPM);
+                            callback(instruction, groupName, currentGroupPlayTime, currentBPM);
                             break;
 
                         case 'pause':
@@ -235,7 +233,7 @@
                             let instructionGroupList = this.song.instructionGroups[instruction.group];
                             if(!instructionGroupList)
                                 throw new Error("Instruction group not found: " + instruction.group);
-                            var subGroupPlayTime = playGroup.call(this, instructionGroupList, currentBPM, currentGroupPlayTime);
+                            var subGroupPlayTime = playGroup.call(this, instructionGroupList, instruction.group, currentBPM, currentGroupPlayTime);
                             if(subGroupPlayTime > maxPlayTime)
                                 maxPlayTime = subGroupPlayTime;
                             break;

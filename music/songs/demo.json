@@ -1,9 +1,11 @@
 {
   "name": "Demo Song",
-  "bpm": 240,
   "guid": "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
   "version": "0.0.1",
   "description": "Demonstration song",
+  "beatsPerMinute": 240,
+  "pausesPerBeat": 4,
+  "beatsPerMeasure": 4,
   "load": [
     "instruments/oscillator.js"
   ],

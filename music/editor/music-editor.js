@@ -8,12 +8,11 @@
     //     window.MusicEditor = MusicEditor;
 
     class MusicEditorElement extends HTMLElement {
-        constructor(options) {
-            options = options || {};
+        constructor() {
             super();
             this.depressedKeys = [];
             this.config = DEFAULT_CONFIG;
-            this.playerElement = null;
+            this.gridCurrentGroup = null;
         }
 
         get player() { return this.playerElement; }
@@ -43,20 +42,24 @@
                 if(this.getSongURL())
                     this.playerElement.loadSong(this.getSongURL(), function() {
                         this.render();
-                        this.gridDataSelect(this.querySelector('.grid-data'));
+                        let selectElm = this.querySelector('.grid-data');
+                        if(selectElm) this.gridDataSelect(selectElm);
+                        else console.warn("No selected element");
                         // this.focus();
                     }.bind(this));
             }.bind(this));
         }
 
         gridDataSelect(gridElm, previewInstruction) {
+            this.querySelector('.editor-grid').focus();
             this.gridRowSelect(gridElm.parentNode, previewInstruction);
             clearElementClass('selected', '.grid-data.selected');
             gridElm.classList.add('selected');
             let instruction = this.gridDataGetInstruction(gridElm);
+            let instructionGroup = this.gridCurrentGroup;
             this.setEditableInstruction(instruction);
-            if(previewInstruction && this.config.previewInstructionsOnSelect !== false)
-                this.playInstruction(instruction);
+            if(this.config.previewInstructionsOnSelect !== false)
+                this.playInstruction(instruction, instructionGroup);
 
         }
         gridRowSelect(rowElm, previewInstruction) {
@@ -72,8 +75,10 @@
             return instruction;
         }
 
-        findAssociatedElement(instruction) {
-            let position = this.getInstructionPosition(instruction);
+        findAssociatedElement(instruction, instructionGroup) {
+            if(instructionGroup && instructionGroup !== this.gridCurrentGroup)
+                return false;
+            let position = this.getInstructionPosition(instruction, this.gridCurrentGroup);
             return this.findGridDataPosition(position);
         }
 
@@ -100,6 +105,19 @@
         }
 
         // Player commands
+
+        playInstruction(instruction, instructionGroup) {
+            var associatedElement = this.findAssociatedElement(instruction, instructionGroup);
+            return this.player.playInstruction(
+                instruction,
+                instructionGroup,
+                this.playerElement.getAudioContext().currentTime,
+                this.playerElement.getStartingBPM(),
+                function(playing) {
+                    associatedElement && associatedElement.classList.toggle('playing', playing);
+                }.bind(this),
+            );
+        }
 
         loadSong(songURL, onLoaded) {
             return this.player.loadSong(songURL, onLoaded);
@@ -144,6 +162,17 @@
             if(p === -1)
                 throw new Error("Instruction not found in instruction list");
             return p;
+        }
+
+        swapInstructionElement(dataElement1, dataElement2) {
+            var instruction1 = this.gridDataGetInstruction(dataElement1)
+            var instruction2 = this.gridDataGetInstruction(dataElement2)
+            this.swapInstructions(
+                instruction1,
+                instruction2,
+            );
+            this.render();
+            this.findAssociatedElement(this.instruction).select();
         }
 
         swapInstructions(instruction1, instruction2, groupName) {
@@ -201,12 +230,12 @@
 //             console.log("Playback", e.type, e.detail);
             switch(e.type) {
                 case 'note:start':
-                    const startElm = this.grid.findAssociatedElement(e.detail.instruction);
+                    const startElm = this.findAssociatedElement(e.detail.instruction, e.detail.instructionGroup);
                     if(startElm)
                         startElm.classList.add('playing');
                     break;
                 case 'note:end':
-                    const endElm = this.grid.findAssociatedElement(e.detail.instruction);
+                    const endElm = this.findAssociatedElement(e.detail.instruction, e.detail.instructionGroup);
                     if(endElm)
                         endElm.classList.remove('playing');
                     break;
@@ -233,128 +262,9 @@
 
     }
 
-    // Grid elements
-
-    class MusicEditorGridElement extends HTMLElement {
-        get editor() { return findParentNode(this, MusicEditorElement); }
-
-
-        render(instructionList) {
-            this.innerHTML = '';
-
-            let rowCommands = [];
-            for(let i=0; i<instructionList.length; i++) {
-                const instruction = instructionList[i];
-
-                switch(instruction.type) {
-                    case 'note':
-                    case 'group':
-                        rowCommands.push(instruction);
-                        break;
-
-                    case 'pause':
-                        const rowElm = new MusicEditorGridRowElement(instruction);
-                        rowElm.addCommands(rowCommands);
-                        if(this.children.length % 2 === 0)
-                            rowElm.classList.add('odd');
-                        rowCommands = [];
-                        this.appendChild(rowElm);
-                        break;
-                }
-            }
-        }
-    }
-
-    class MusicEditorGridRowElement extends HTMLElement {
-        constructor(instruction) {
-            super();
-            this.instruction = instruction;
-        }
-        get editor() { return findParentNode(this, MusicEditorElement); }
-
-        connectedCallback() {
-            this.addEventListener('click', this.select.bind(this));
-        }
-
-
-        addCommands(commandList) {
-            for(let i=0; i<commandList.length; i++)
-                this.addCommand(commandList[i]);
-        }
-
-        addCommand(command) {
-            if(!command)
-                throw new Error("Invalid command");
-            const cellElm = new MusicEditorGridCellElement(command);
-            this.appendChild(cellElm);
-        }
-
-        select() {
-            clearElementClass('selected', 'music-editor-grid-row.selected');
-            this.classList.add('selected');
-        }
-    }
-
-    class MusicEditorGridCellElement extends HTMLElement {
-
-
-        select(e, previewInstruction) {
-            this.parentNode.select(e);
-            clearElementClass('selected', 'music-editor-grid-cell.selected');
-            this.classList.add('selected');
-            this.editor.setEditableInstruction(this.instruction);
-            if(previewInstruction && this.editor.config.previewInstructionsOnSelect !== false)
-                this.playInstruction();
-        }
-
-        playInstruction() {
-            return this.editor.player.playInstruction(
-                this.instruction,
-                this.editor.playerElement.getAudioContext().currentTime,
-                this.editor.playerElement.getStartingBPM(),
-                function(playing) {
-                    this.classList.toggle('playing', playing);
-                }.bind(this),
-            );
-        }
-
-        swapInstructionElement(targetCellElement) {
-            this.editor.swapInstructions(
-                this.instruction,
-                targetCellElement.instruction
-            );
-            this.editor.grid.render();
-            this.editor.grid.findAssociatedElement(this.instruction).select();
-        }
-
-        onInput(e) {
-            switch(e.type) {
-                case 'click':
-                    break;
-                case 'keydown':
-                    if(this.instruction.frequency) {
-                        const keyboard = DEFAULT_KEYBOARD_LAYOUT;
-                        if(keyboard[e.key]) {
-                            e.preventDefault();
-                            this.instruction.frequency = keyboard[e.key];
-                            this.render();
-                            this.editor.setEditableInstruction(this.instruction);
-                            this.playInstruction();
-                            return;
-                        }
-                    }
-                    break;
-            }
-        }
-
-
-    }
 
     // Define custom elements
     customElements.define('music-editor', MusicEditorElement);
-    customElements.define('music-editor-grid', MusicEditorGridElement);
-    customElements.define('music-editor-grid-row', MusicEditorGridRowElement);
-    customElements.define('music-editor-grid-cell', MusicEditorGridCellElement);
 
 
     // Load Javascript dependencies
@@ -499,8 +409,20 @@
                     <form class="form-song-resume" data-command="song:resume">
                         <button name="resume">Resume</button>
                     </form>
+                    <form class="form-song-bpm" data-command="row:edit">
+                        <select name="pause-per-beat">
+                            <optgroup label="Pauses per beat">
+                                ${renderEditorFormOptions('pauses-per-beat')}
+                            </optgroup>
+                        </select>
+                        <select name="pause-per-beat">
+                            <optgroup label="Beats per measure">
+                                ${renderEditorFormOptions('beats-per-measure')}
+                            </optgroup>
+                        </select>
+                    </form>
                     <form class="form-song-info" data-command="song:info">
-                        <button name="info">info</button>
+                        <button name="info">Info</button>
                     </form>
         
                     <br/>
@@ -553,7 +475,7 @@
                         </select>
                     </form>
                 </div>
-                <div class="editor-grid" tabindex="1">
+                <div class="editor-grid" data-group="${this.gridCurrentGroup}" tabindex="1">
                     ${renderGrid(this)}
                 </div>
             </div>
@@ -631,7 +553,7 @@
                 break;
 
             case 'velocities':
-                for(let vi=100; vi>=0; vi--) {
+                for(let vi=100; vi>=0; vi-=10) {
                     options.push([vi, vi]);
                 }
                 break;
@@ -692,28 +614,25 @@
     // Form Actions
 
     const formCommands = {
-        'instruction:edit': function (e, form) {
+        'instruction:edit': function (e, form, editor) {
             let instruction = form.editableInstruction;
             if(!instruction) throw new Error("editableInstruction not found");
-            let associatedElement = this.grid.findAssociatedElement(instruction);
+            let associatedElement = editor.findAssociatedElement(instruction);
             let instrumentID = form.instrument.value;
-            let renderElement = associatedElement;
-            if(instrumentID.indexOf('add:') === 0) {
-                instrumentID = this.addSongInstrument(instrumentID.substr(4));
-                renderElement = this;
-            }
+            if(instrumentID.indexOf('add:') === 0)
+                instrumentID = editor.addSongInstrument(instrumentID.substr(4));
 
             instruction.instrument = parseInt(instrumentID);
             instruction.frequency = form.frequency.value;
             instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
-            renderElement.render();
-            associatedElement = this.grid.findAssociatedElement(instruction);
-            associatedElement.select();
+            editor.render();
+            associatedElement = editor.findAssociatedElement(instruction);
+            editor.gridDataSelect(associatedElement);
         },
-        'song:play': function (e, form) { this.player.play(); },
-        'song:pause': function (e, form) { this.player.pause(); },
-        'song:playback': function (e, form) {
+        'song:play': function (e, form, editor) { editor.player.play(); },
+        'song:pause': function (e, form, editor) { editor.player.pause(); },
+        'song:playback': function (e, form, editor) {
             console.log(e.target);
         }
     };
@@ -730,7 +649,7 @@
             'ArrowLeft': handleArrowKeyEvent,
             'ArrowDown': handleArrowKeyEvent,
             'ArrowUp': handleArrowKeyEvent,
-            ' ': function() { this.player.play(); }
+            ' ': function(e, editor) { editor.player.play(); }
         },
         'alt': {
             'ArrowRight': handleArrowKeyEvent,
@@ -739,7 +658,7 @@
             'ArrowUp': handleArrowKeyEvent,
         },
         'ctrl': {
-            's': function () { this.saveSongToMemory(); },
+            's': function (e, editor) { editor.saveSongToMemory(); },
         },
     };
 
@@ -749,7 +668,7 @@
 
         if(e.defaultPrevented)
             return;
-        console.log(e.type, e.target);
+//         console.log(e.type, e.target);
         switch(e.type) {
             case 'keydown':
                 if(depressedKeys.indexOf(e.key) > -1) {
@@ -760,29 +679,42 @@
 
                 if(e.altKey) {
                     if(keyboardCommands.alt[e.key]) {
-                        keyboardCommands.alt[e.key].call(editor, e);
+                        keyboardCommands.alt[e.key](e, editor);
                         e.preventDefault();
                         return;
                     }
                 }
                 if(e.ctrlKey) {
                     if(keyboardCommands.ctrl[e.key]) {
-                        keyboardCommands.ctrl[e.key].call(editor, e);
+                        keyboardCommands.ctrl[e.key](e, editor);
                         e.preventDefault();
                         return;
                     }
                 }
                 if(keyboardCommands.default[e.key]) {
-                    keyboardCommands.default[e.key].call(editor, e);
+                    keyboardCommands.default[e.key](e, editor);
                     e.preventDefault();
                     return;
                 }
 
 
-                const selectedCell = editor.querySelector('music-editor-grid-cell.selected')
-                    || editor.querySelector('music-editor-grid-cell');
+                var selectedData = editor.querySelector('.grid-data.selected')
+                    || editor.querySelector('.grid-data');
 
-                selectedCell.onInput(e);
+                var selectedInstruction = editor.gridDataGetInstruction(selectedData);
+                if(selectedInstruction.frequency) {
+                    const keyboard = DEFAULT_KEYBOARD_LAYOUT;
+                    if(keyboard[e.key]) {
+                        e.preventDefault();
+                        selectedInstruction.frequency = keyboard[e.key];
+                        editor.render();
+                        selectedData = editor.findAssociatedElement(selectedInstruction);
+                        editor.gridDataSelect(selectedData);
+                        // editor.playInstruction(selectedInstruction);
+                        return;
+                    }
+                }
+
                 if(!e.defaultPrevented)
                     console.info('Unused input', e);
                 break;
@@ -796,15 +728,17 @@
 
             case 'click':
                 let classList = e.target.classList;
-                if(classList.contains('menu-item'))
+                if(classList.contains('menu-item')) {
                     handleMenuClickEvent(e, editor);
+                    break;
+                }
+                editor.menuClose();
 
-                else if(classList.contains('grid-parameter')
+                if(classList.contains('grid-parameter')
                     || classList.contains('grid-data')
                     || classList.contains('grid-row'))
                     handleGridClickEvent(e, editor);
 
-                else editor.menuClose();
                 break;
 
             case 'submit':
@@ -816,14 +750,14 @@
                 let formCommand = formCommands[formCommandName];
                 if(!formCommand)
                     throw new Error("Form command not found: " + formCommandName);
-                formCommand.call(editor, e, form);
+                formCommand(e, form, editor);
                 break;
         }
     }
 
     function handleGridClickEvent(e, editor) {
         const gridItem = e.target;
-        console.log("Grid " + e.type, gridItem);
+//         console.log("Grid " + e.type, gridItem);
 
         clearElementClass('selected', '.grid-data');
         clearElementClass('selected', '.grid-row');
@@ -852,7 +786,7 @@
             let menuCommand = menuCommands[dataCommand];
             if (!menuCommand)
                 throw new Error("Unknown menu command: " + dataCommand);
-            menuCommand.call(editor, e);
+            menuCommand(e, editor);
             editor.menuClose();
             return;
         }
@@ -867,38 +801,38 @@
         console.warn("Unhandled menu click", e);
     }
 
-    function handleArrowKeyEvent(e) {
-        const selectedCell = this.querySelector('.grid-data.selected')
-            || this.querySelector('.grid-data');
-        let newSelectedCell = selectedCell;
+    function handleArrowKeyEvent(e, editor) {
+        const selectedData = editor.querySelector('.grid-data.selected')
+            || editor.querySelector('.grid-data');
+        let newSelectedData = selectedData;
 
-        const selectedRow = selectedCell.parentNode;
+        const selectedRow = selectedData.parentNode;
         switch(e.key) {
             case 'ArrowRight':
-                newSelectedCell = selectedCell.nextElementSibling
+                newSelectedData = selectedData.nextElementSibling
                     || (selectedRow.nextElementSibling ? selectedRow.nextElementSibling.firstChild : null);
                 break;
             case 'ArrowLeft':
-                newSelectedCell = selectedCell.previousSibling
+                newSelectedData = selectedData.previousSibling
                     || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
                 break;
             case 'ArrowDown':
                 if(selectedRow.nextElementSibling)
-                    newSelectedCell = selectedRow.nextElementSibling.firstChild;
+                    newSelectedData = selectedRow.nextElementSibling.firstChild;
                 break;
             case 'ArrowUp':
                 if(selectedRow.previousSibling)
-                    newSelectedCell = selectedRow.previousSibling.firstChild;
+                    newSelectedData = selectedRow.previousSibling.firstChild;
                 break;
         }
 
-        if(newSelectedCell) {
+        if(newSelectedData) {
             if (e.altKey) {
-                selectedCell.swapInstructionElement(newSelectedCell);
+                editor.swapInstructionElement(newSelectedData, selectedData)
 
             } else {
-                if (newSelectedCell !== selectedCell) {
-                    newSelectedCell.select(e, true);
+                if (newSelectedData !== selectedData) {
+                    editor.gridDataSelect(newSelectedData);
                 }
             }
         }
