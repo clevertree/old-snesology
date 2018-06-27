@@ -112,7 +112,7 @@
                 instruction,
                 instructionGroup,
                 this.playerElement.getAudioContext().currentTime,
-                this.playerElement.getStartingBPM(),
+                this.playerElement.getStartingBeatsPerMinute(),
                 function(playing) {
                     associatedElement && associatedElement.classList.toggle('playing', playing);
                 }.bind(this),

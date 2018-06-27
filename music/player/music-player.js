@@ -4,6 +4,9 @@
  */
 
 (function() {
+    const DEFAULT_BEATS_PER_MINUTE = 120;
+    const DEFAULT_PAUSES_PER_BEAT = 4;
+    const DEFAULT_BEATS_PER_MEASURE = 4;
     // if (!window.MusicPlayer)
     //     window.MusicPlayer = MusicPlayer;
 
@@ -12,7 +15,6 @@
             super();
             this.audioContext = null;
             this.song = null;
-            this.bpm = 160;
             this.seekLength = 1;
             this.seekPosition = 0;
             this.playing = false;
@@ -22,7 +24,9 @@
 
         getAudioContext() { return this.audioContext || (this.audioContext = new AudioContext()); }
         getSong() { return this.song; }
-        getStartingBPM() { return this.song.bpm; }
+        getStartingBeatsPerMinute() { return this.song.beatsPerMinute; }
+        getStartingPausesPerBeat() { return this.song.pausesPerBeat; }
+        getStartingBeatsPerMeasure() { return this.song.beatsPerMeasure; }
 
         connectedCallback() {
             this.addEventListener('keydown', this.onInput.bind(this));
@@ -41,7 +45,9 @@
         getSongURL() { return this.getAttribute('src');}
 
         loadSongData(songData) {
-            songData.bpm = (songData.bpm || 120);
+            songData.beatsPerMinute =   (songData.beatsPerMinute || DEFAULT_BEATS_PER_MINUTE);
+            songData.pausesPerBeat =    (songData.pausesPerBeat || DEFAULT_PAUSES_PER_BEAT);
+            songData.beatsPerMeasure =  (songData.beatsPerMeasure || DEFAULT_BEATS_PER_MEASURE);
             songData.instruments = (songData.instruments || []);
             songData.instructions = this.processInstructions(songData.instructions || [], songData.instruments);
             songData.instructionGroups = songData.instructionGroups || {};
@@ -207,7 +213,7 @@
 
         eachInstruction(instructionList, callback) {
 
-            var currentBPM = this.getStartingBPM();
+            var currentBPM = this.getStartingBeatsPerMinute();
             return playGroup.call(this, instructionList, null, currentBPM, 0);
 
             function playGroup(instructionList, groupName, currentBPM, groupPlaytimeOffset) {
