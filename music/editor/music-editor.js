@@ -57,8 +57,8 @@
             gridElm.classList.add('selected');
             let instruction = this.gridDataGetInstruction(gridElm);
             let instructionGroup = this.gridCurrentGroup;
-            this.setEditableInstruction(instruction);
-            if(this.config.previewInstructionsOnSelect !== false)
+            this.selectInstructions(instruction);
+            if(previewInstruction && this.config.previewInstructionsOnSelect !== false)
                 this.playInstruction(instruction, instructionGroup);
 
         }
@@ -69,7 +69,7 @@
 
         gridDataGetInstruction(gridElm) {
             let position = parseInt(gridElm.getAttribute('data-position'));
-            var instruction = this.getSong().instructions[position];
+            let instruction = this.getSong().instructions[position];
             if(!instruction)
                 throw new Error("Instruction not found at position: " + position);
             return instruction;
@@ -102,12 +102,13 @@
 
         render() {
             this.innerHTML = renderEditorContent.call(this);
+            this.selectInstructions(this.selectInstructions);
         }
 
         // Player commands
 
         playInstruction(instruction, instructionGroup) {
-            var associatedElement = this.findAssociatedElement(instruction, instructionGroup);
+            const associatedElement = this.findAssociatedElement(instruction, instructionGroup);
             return this.player.playInstruction(
                 instruction,
                 instructionGroup,
@@ -165,8 +166,8 @@
         }
 
         swapInstructionElement(dataElement1, dataElement2) {
-            var instruction1 = this.gridDataGetInstruction(dataElement1)
-            var instruction2 = this.gridDataGetInstruction(dataElement2)
+            const instruction1 = this.gridDataGetInstruction(dataElement1);
+            const instruction2 = this.gridDataGetInstruction(dataElement2);
             this.swapInstructions(
                 instruction1,
                 instruction2,
@@ -198,22 +199,27 @@
 
         // Forms
 
-        setEditableInstruction(instruction) {
-            const formInstruction = this.querySelector('form.form-instruction');
-            formInstruction.classList.add('hidden');
-            if(instruction.frequency) {
-                formInstruction.instrument.value = ""+instruction.instrument || '';
-                formInstruction.frequency.value = instruction.frequency || '';
-                formInstruction.duration.value = instruction.duration || '';
-                formInstruction.velocity.value = instruction.velocity || '';
-                formInstruction.editableInstruction = instruction;
-                formInstruction.classList.remove('hidden');
-            }
+        selectInstructions(instructions) {
+            this.selectedInstructions = Array.isArray(instructions) ? instructions : [instructions];
+            var firstInstruction = this.selectedInstructions[0];
 
+            const formInstructionElm = this.querySelector('form.form-instruction');
+            formInstructionElm.classList.add('hidden');
             const formGroup = this.querySelector('form.form-group');
             formGroup.classList.add('hidden');
-            if(instruction.groupExecute) {
-                formGroup.classList.remove('hidden');
+            switch(firstInstruction.type) {
+                case 'note':
+                    formInstructionElm.instrument.value = ""+firstInstruction.instrument || '';
+                    formInstructionElm.frequency.value = firstInstruction.frequency || '';
+                    formInstructionElm.duration.value = firstInstruction.duration || '';
+                    formInstructionElm.velocity.value = firstInstruction.velocity || '';
+                    // formInstruction.editableInstruction = instruction;
+                    formInstructionElm.classList.remove('hidden');
+                    break;
+
+                case 'group':
+                    formGroup.classList.remove('hidden');
+                    break;
             }
 
             // var formRow = this.querySelector('form.form-row');
@@ -240,11 +246,11 @@
                         endElm.classList.remove('playing');
                     break;
                 case 'song:start':
-                    this.classList.add('playing');
+                    this.querySelector('.music-editor').classList.add('playing');
                     break;
                 case 'song:end':
                 case 'song:pause':
-                    this.classList.remove('playing');
+                    this.querySelector('.music-editor').classList.remove('playing');
                     break;
             }
         }
@@ -409,15 +415,20 @@
                     <form class="form-song-resume" data-command="song:resume">
                         <button name="resume">Resume</button>
                     </form>
-                    <form class="form-song-bpm" data-command="row:edit">
-                        <select name="pause-per-beat">
-                            <optgroup label="Pauses per beat">
-                                ${renderEditorFormOptions('pauses-per-beat')}
+                    <form class="form-song-bpm" data-command="song:edit">
+                        <select name="beats-per-minute">
+                            <optgroup label="Beats per minute">
+                                ${renderEditorFormOptions('beats-per-minute', this)}
                             </optgroup>
                         </select>
-                        <select name="pause-per-beat">
+                        <select name="pauses-per-beat">
+                            <optgroup label="Pauses per beat">
+                                ${renderEditorFormOptions('pauses-per-beat', this)}
+                            </optgroup>
+                        </select>
+                        <select name="beats-per-measure">
                             <optgroup label="Beats per measure">
-                                ${renderEditorFormOptions('beats-per-measure')}
+                                ${renderEditorFormOptions('beats-per-measure', this)}
                             </optgroup>
                         </select>
                     </form>
@@ -523,9 +534,10 @@
 
     function renderEditorFormOptions(optionType, editor) {
         let options = [];
+        let song = editor ? editor.getSong() : null;
+        var selectedCallback = function() { return false; };
         switch(optionType) {
             case 'song-instruments':
-                const song = editor.getSong();
                 for(let instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
                     const instrumentInfo = song.instruments[instrumentID];
                     var instrument = editor.player.getInstrument(instrumentInfo.path);
@@ -571,13 +583,45 @@
                     [0.125, '0.125 - Thirty-second'],
                 ];
                 break;
+
+            case 'pauses-per-beat':
+                options = [
+                    [1,  '1 Pause per beat'],
+                    [2,  '2 Pauses per beat'],
+                    [3,  '3 Pauses per beat'],
+                    [4,  '4 Pauses per beat'],
+                    [5,  '5 Pauses per beat'],
+                    [6,  '6 Pauses per beat'],
+                    [7,  '7 Pauses per beat'],
+                    [8,  '8 Pauses per beat'],
+                ];
+                selectedCallback = function(vi) { return vi === song.pausesPerBeat; };
+                break;
+
+            case 'beats-per-measure':
+                options = [
+                    [1,  '1 Beat per measure'],
+                    [2,  '2 Beats per measure'],
+                    [3,  '3 Beats per measure'],
+                    [4,  '4 Beats per measure'],
+                ];
+                selectedCallback = function(vi) { return vi === song.beatsPerMeasure; };
+                break;
+
+            case 'beats-per-minute':
+                for(let vi=40; vi<=200; vi+=10) {
+                    options.push([vi, vi, vi === song.beatsPerMinute]);
+                }
+                selectedCallback = function(vi) { return vi === song.beatsPerMinute; };
+                break;
         }
 
         let optionHTML = '';
         for (let oi=0; oi<options.length; oi++) {
             const value = options[oi][0];
             const label = options[oi][1] || value;
-            optionHTML += `<option value="${value}">${label}</option>`;
+            const selected = selectedCallback(value) ? ` selected="selected"` : '';
+            optionHTML += `<option value="${value}" ${selected}>${label}</option>`;
         }
         return optionHTML;
     }
@@ -615,7 +659,7 @@
 
     const formCommands = {
         'instruction:edit': function (e, form, editor) {
-            let instruction = form.editableInstruction;
+            let instruction = editor.selectedInstructions[0];
             if(!instruction) throw new Error("editableInstruction not found");
             let associatedElement = editor.findAssociatedElement(instruction);
             let instrumentID = form.instrument.value;
@@ -628,7 +672,14 @@
             instruction.velocity = parseInt(form.velocity.value);
             editor.render();
             associatedElement = editor.findAssociatedElement(instruction);
-            editor.gridDataSelect(associatedElement);
+            editor.gridDataSelect(associatedElement, true);
+        },
+        'song:edit': function(e, form, editor) {
+            const song = editor.getSong();
+            song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+            song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
+            song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
+            editor.render();
         },
         'song:play': function (e, form, editor) { editor.player.play(); },
         'song:pause': function (e, form, editor) { editor.player.pause(); },
@@ -698,10 +749,10 @@
                 }
 
 
-                var selectedData = editor.querySelector('.grid-data.selected')
+                let selectedData = editor.querySelector('.grid-data.selected')
                     || editor.querySelector('.grid-data');
 
-                var selectedInstruction = editor.gridDataGetInstruction(selectedData);
+                const selectedInstruction = editor.gridDataGetInstruction(selectedData);
                 if(selectedInstruction.frequency) {
                     const keyboard = DEFAULT_KEYBOARD_LAYOUT;
                     if(keyboard[e.key]) {

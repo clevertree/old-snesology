@@ -198,6 +198,7 @@
     border-radius: 5px;
     border: 1px solid #AAA;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
+    max-width: 100px;
 }
 
 .music-editor .editor-panel select[name=instrument] {
