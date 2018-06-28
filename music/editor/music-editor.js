@@ -760,7 +760,7 @@
                         selectedInstruction.frequency = keyboard[e.key];
                         editor.render();
                         selectedData = editor.findAssociatedElement(selectedInstruction);
-                        editor.gridDataSelect(selectedData);
+                        editor.gridDataSelect(selectedData, false);
                         // editor.playInstruction(selectedInstruction);
                         return;
                     }
@@ -813,15 +813,15 @@
         clearElementClass('selected', '.grid-data');
         clearElementClass('selected', '.grid-row');
         if(gridItem.classList.contains('grid-parameter')) {
-            editor.gridDataSelect(gridItem.parentNode);
+            editor.gridDataSelect(gridItem.parentNode, true);
             return;
         }
         if(gridItem.classList.contains('grid-data')) {
-            editor.gridDataSelect(gridItem);
+            editor.gridDataSelect(gridItem, true);
             return;
         }
         if(gridItem.classList.contains('grid-row')) {
-            editor.gridRowSelect(gridItem);
+            editor.gridRowSelect(gridItem, true);
             return;
         }
 
