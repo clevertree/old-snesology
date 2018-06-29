@@ -124,14 +124,14 @@
                             scriptsLoading--;
                             if(scriptsLoading === 0) {
                                 loadJSON.call(this);
-                                onLoaded && onLoaded(); // initInstructions.call(this);
+                                onLoaded && onLoaded(json); // initInstructions.call(this);
                             }
                         }.bind(this));
                     }
                 }
                 if(scriptsLoading === 0) {
                     loadJSON.call(this);
-                    onLoaded && onLoaded(); // initInstructions.call(this);
+                    onLoaded && onLoaded(json); // initInstructions.call(this);
                 }
                 function loadJSON() {
                     this.loadSongData(json);
@@ -140,7 +140,7 @@
             }.bind(this));
         }
 
-        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, instructionGroup) {
+        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction) {
             const instrumentPath = this.getInstrumentPath(instrumentID);
             const instrument = this.getInstrument(instrumentPath);
             if(instrument.getNamedFrequency)
@@ -154,7 +154,6 @@
                 startOffset: noteStartTime,
                 duration: noteDuration,
                 instruction: instruction,
-                instructionGroup: instructionGroup,
                 instrumentPath: instrumentPath,
             });
 
@@ -179,7 +178,6 @@
                     detail: {
                         playing: playing,
                         instruction: instruction,
-                        instructionGroup: instructionGroup,
                         startTime: noteStartTime,
                         duration: noteDuration,
                         noteEvent: noteEvent
@@ -190,33 +188,63 @@
             return noteEvent;
         }
 
-        playInstruction(instruction, instructionGroup, noteStartTime, bpm) {
+        findInstructionGroup(instruction) {
+            if(this.song.instructions.indexOf(instruction) !== -1)
+                return null;
+            for(let groupName in this.song.instructionGroups) {
+                if(this.song.instructionGroups.hasOwnProperty(groupName)) {
+                    if(this.song.instructionGroups[groupName].indexOf(instruction) !== -1)
+                        return groupName;
+                }
+            }
+            throw new Error("Instruction not found in song");
+        }
+
+        getInstructions(groupName) {
+            if(groupName) {
+                let instructionList = this.song.instructionGroups[groupName];
+                if(!instructionList)
+                    throw new Error("Instruction group not found: " + groupName);
+                return instructionList;
+            }
+            return this.song.instructions;
+        }
+
+        getInstructionPosition(instruction, groupName) {
+            const instructionList = this.getInstructions(groupName);
+            const p = instructionList.indexOf(instruction);
+            if(p === -1)
+                throw new Error("Instruction not found in instruction list");
+            return p;
+        }
+
+        playInstruction(instruction, noteStartTime, bpm) {
             if(instruction.type === 'note') {
                 const instrumentName = instruction.instrument;
                 const noteFrequency = instruction.frequency;
                 const noteDuration = (instruction.duration || 1) * (240 / (bpm || 240));
-                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, instructionGroup);
+                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction);
             }
             return null;
         }
 
         playInstructions(instructionList, seekPosition, seekLength) {
             instructionList = instructionList || this.song.instructions;
-            return this.eachInstruction(instructionList, function(noteInstruction, instructionGroup, currentPosition, currentBPM) {
+            return this.eachInstruction(instructionList, function(noteInstruction, currentPosition, currentBPM) {
                 if(currentPosition < seekPosition)
                     return;   // Instructions were already played
                 if(seekLength && currentPosition >= seekPosition + seekLength)
                     return;
-                this.playInstruction(noteInstruction, instructionGroup, this.startTime + currentPosition, currentBPM);
+                this.playInstruction(noteInstruction, this.startTime + currentPosition, currentBPM);
             }.bind(this));
         }
 
         eachInstruction(instructionList, callback) {
 
             var currentBPM = this.getStartingBeatsPerMinute();
-            return playGroup.call(this, instructionList, null, currentBPM, 0);
+            return playGroup.call(this, instructionList, currentBPM, 0);
 
-            function playGroup(instructionList, groupName, currentBPM, groupPlaytimeOffset) {
+            function playGroup(instructionList, currentBPM, groupPlaytimeOffset) {
                 let currentPosition = 0;
                 var currentGroupPlayTime = groupPlaytimeOffset;
                 var maxPlayTime = 0;
@@ -225,7 +253,7 @@
 
                     switch(instruction.type) {
                         case 'note':
-                            callback(instruction, groupName, currentGroupPlayTime, currentBPM);
+                            callback(instruction, currentGroupPlayTime, currentBPM);
                             break;
 
                         case 'pause':
@@ -239,7 +267,7 @@
                             let instructionGroupList = this.song.instructionGroups[instruction.group];
                             if(!instructionGroupList)
                                 throw new Error("Instruction group not found: " + instruction.group);
-                            var subGroupPlayTime = playGroup.call(this, instructionGroupList, instruction.group, currentBPM, currentGroupPlayTime);
+                            var subGroupPlayTime = playGroup.call(this, instructionGroupList, currentBPM, currentGroupPlayTime);
                             if(subGroupPlayTime > maxPlayTime)
                                 maxPlayTime = subGroupPlayTime;
                             break;
@@ -253,6 +281,38 @@
             }
         }
 
+
+        // Edit Song
+
+        setInstruction(position, instruction, groupName) {
+            const instructionList = this.getInstructions(groupName);
+            if(instructionList.length < position)
+                throw new Error("Invalid instruction position: " + position + (groupName ? " for group: " + groupName : ''));
+            instructionList[position] = instruction;
+        }
+
+        swapInstructions(instruction1, instruction2, groupName) {
+            const p1 = this.getInstructionPosition(instruction1, groupName);
+            const p2 = this.getInstructionPosition(instruction2, groupName);
+            this.setInstruction(p2, instruction1);
+            this.setInstruction(p1, instruction2);
+        }
+
+        addSongInstrument(instrumentPath, config) {
+            const instrumentList = this.getSong().instruments;
+            const instrument = this.getInstrument(instrumentPath);
+            const instrumentID = instrumentList.length;
+            const defaultName = instrument.getDefaultName ? instrument.getDefaultName(instrumentPath)
+                : instrumentPath.substr(instrumentPath.lastIndexOf('.') + 1);
+            config = Object.assign({path: instrumentPath}, config || {}, {name: defaultName});
+            config.name = prompt("New Instrument Name (" + formatInstrumentID(instrumentID) + "): ", config.name);
+            if(!config.name)
+                throw new Error("Invalid new instrument name");
+            instrumentList[instrumentID] = config;
+            return instrumentID;
+        }
+
+        // Playback
 
         play (seekPosition) {
             this.seekPosition = seekPosition || 0;
@@ -373,7 +433,6 @@
             // Return frequency of instruction
             return 440 * Math.pow(2, (keyNumber- 49) / 12);
         }
-
         // Input
 
         onInput(e) {

@@ -95,6 +95,12 @@
 }
 
 
+.music-editor .editor-grid .beat-end{
+    border-bottom: 1px solid #666;
+}
+.music-editor .editor-grid .measure-end {
+    border-bottom: 2px solid #555;
+}
 
 
 /** Menu **/
