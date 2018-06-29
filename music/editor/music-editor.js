@@ -395,6 +395,44 @@
         },
     };
 
+    function handleArrowKeyEvent(e, editor) {
+        const selectedData = editor.querySelector('.grid-data.selected')
+            || editor.querySelector('.grid-data');
+        let newSelectedData = null;
+
+        const selectedRow = selectedData.parentNode;
+        switch(e.key) {
+            case 'ArrowRight':
+                newSelectedData = selectedData.nextElementSibling
+                    || (selectedRow.nextElementSibling ? selectedRow.nextElementSibling.firstChild : null);
+                break;
+            case 'ArrowLeft':
+                newSelectedData = selectedData.previousSibling
+                    || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
+                break;
+            case 'ArrowDown':
+                if(selectedRow.nextElementSibling)
+                    newSelectedData = selectedRow.nextElementSibling.firstChild;
+                break;
+            case 'ArrowUp':
+                if(selectedRow.previousSibling)
+                    newSelectedData = selectedRow.previousSibling.firstChild;
+                break;
+        }
+
+        if(newSelectedData) {
+            if (e.ctrlKey || e.metaKey) {
+                editor.gridSwapInstructions(newSelectedData, selectedData)
+
+            } else {
+                if (newSelectedData !== selectedData) {
+                    let instruction = editor.gridDataGetInstruction(newSelectedData);
+                    editor.selectInstructions(instruction, true);
+                }
+            }
+        }
+    }
+
     function handleEditorInput(e, editor) {
         console.log(e.type, e);
         if(e.defaultPrevented)
@@ -433,8 +471,6 @@
                         selectedInstruction.frequency = keyboard[e.key];
                         editor.render();
                         editor.querySelector('.editor-grid').focus();
-                        // selectedData = editor.findAssociatedElement(selectedInstruction);
-                        // editor.gridDataSelectelect(selectedData, false);
                         editor.playInstruction(selectedInstruction);
                         return;
                     }
@@ -480,6 +516,7 @@
         }
     }
 
+
     function handleGridClickEvent(e, editor) {
         const gridItem = e.target;
 //         console.log("Grid " + e.type, gridItem);
@@ -504,7 +541,6 @@
         console.warn("Unhandled menu click", e);
     }
 
-
     function handleMenuClickEvent(e, editor) {
         const menuItem = e.target;
         console.log("Menu " + e.type, menuItem);
@@ -526,44 +562,6 @@
         }
 
         console.warn("Unhandled menu click", e);
-    }
-
-    function handleArrowKeyEvent(e, editor) {
-        const selectedData = editor.querySelector('.grid-data.selected')
-            || editor.querySelector('.grid-data');
-        let newSelectedData = selectedData;
-
-        const selectedRow = selectedData.parentNode;
-        switch(e.key) {
-            case 'ArrowRight':
-                newSelectedData = selectedData.nextElementSibling
-                    || (selectedRow.nextElementSibling ? selectedRow.nextElementSibling.firstChild : null);
-                break;
-            case 'ArrowLeft':
-                newSelectedData = selectedData.previousSibling
-                    || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
-                break;
-            case 'ArrowDown':
-                if(selectedRow.nextElementSibling)
-                    newSelectedData = selectedRow.nextElementSibling.firstChild;
-                break;
-            case 'ArrowUp':
-                if(selectedRow.previousSibling)
-                    newSelectedData = selectedRow.previousSibling.firstChild;
-                break;
-        }
-
-        if(newSelectedData) {
-            if (e.ctrlKey || e.metaKey) {
-                editor.gridSwapInstructions(newSelectedData, selectedData)
-
-            } else {
-                if (newSelectedData !== selectedData) {
-                    let instruction = editor.gridDataGetInstruction(newSelectedData);
-                    editor.selectInstructions(instruction, true);
-                }
-            }
-        }
     }
 
     // Rendering templates
