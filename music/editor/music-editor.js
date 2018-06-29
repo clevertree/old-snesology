@@ -432,6 +432,7 @@
                         e.preventDefault();
                         selectedInstruction.frequency = keyboard[e.key];
                         editor.render();
+                        editor.querySelector('.editor-grid').focus();
                         // selectedData = editor.findAssociatedElement(selectedInstruction);
                         // editor.gridDataSelectelect(selectedData, false);
                         editor.playInstruction(selectedInstruction);
