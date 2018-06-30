@@ -141,7 +141,7 @@
         //     return this.player.playInstructions(commandList, startPosition, seekLength, playbackOffset);
         // }
         // play (seekPosition) { return this.player.play(seekPosition); }
-        // pause () { return this.player.pause(); }
+        // pause () { return this.player.duration(); }
 
 
 
@@ -153,7 +153,7 @@
                 instruction2,
             );
             this.render();
-            this.querySelector('.editor-grid').focus();
+            this.querySelector('.music-editor').focus();
             // this.formUpdate(instruction1);
             // this.findAssociatedElement(instruction1).select();
         }
@@ -186,8 +186,8 @@
 
             // var formRow = this.querySelector('form.form-row');
             // formRow.classList.add('hidden');
-            // if(instruction.pause) {
-            //     formRow.pause.value = instruction.pause || '';
+            // if(instruction.duration) {
+            //     formRow.duration.value = instruction.duration || '';
             //     formRow.classList.remove('hidden');
             // }
         }
@@ -470,7 +470,7 @@
                         e.preventDefault();
                         selectedInstruction.frequency = keyboard[e.key];
                         editor.render();
-                        editor.querySelector('.editor-grid').focus();
+                        editor.querySelector('.music-editor').focus();
                         editor.playInstruction(selectedInstruction);
                         return;
                     }
@@ -581,13 +581,14 @@
 
             switch(instruction.type) {
                 case 'note':
+                    var nextPause = getNextPause(i);
                     var noteCSS = [];
                     if(editor.selectedInstructions.indexOf(instruction) !== -1) noteCSS.push('selected');
                     rowHTML += `<div class="grid-data ${noteCSS.join(' ')}" data-position="${i}">`;
                     rowHTML += `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                     rowHTML += `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
-                    if (instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.pause)
-                        rowHTML += `<div class="grid-parameter duration">${instruction.duration}</div>`;
+                    if (instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.duration)
+                        rowHTML += `<div class="grid-parameter duration${nextPause === instruction.duration ? ' matches-pause' : ''}">${instruction.duration}</div>`;
                     if (instruction.velocity)
                         rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                     rowHTML += `</div>`;
@@ -624,6 +625,17 @@
                     break;
             }
         }
+
+        function getNextPause(p) {
+            for(let i=0; i<instructionList.length; i++) {
+                const instruction = instructionList[i];
+                switch(instruction.type) {
+                    case 'pause':
+                        return instruction.duration;
+                }
+            }
+        }
+
         return editorHTML;
     }
 
@@ -690,7 +702,7 @@
                     [7,  '7 Pauses per beat'],
                     [8,  '8 Pauses per beat'],
                 ];
-                selectedCallback = function(vi) { return vi === song.pausesPerBeat; };
+                selectedCallback = function(vi) { return vi === song.durationsPerBeat; };
                 break;
 
             case 'beats-per-measure':
@@ -752,10 +764,10 @@
 
     function renderEditorContent() {
         return `
-            <div class="music-editor">
+            <div class="music-editor" tabindex="1">
                 <div class="editor-menu">
                     <li>
-                        <a class="menu-item">File</a>
+                        <a class="menu-item" tabindex="2">File</a>
                         <ul class="sub-menu">
                             <li>
                                 <a class="menu-item">Open from memory ></a>
@@ -773,12 +785,12 @@
                         </ul>
                     </li>
                     
-                    <li><a class="menu-item">View</a></li>
-                    <li><a class="menu-item">Editor</a></li>
-                    <li><a class="menu-item">Instruments</a></li>
-                    <li><a class="menu-item">Collaborate</a></li>
+                    <li><a class="menu-item" tabindex="3">View</a></li>
+                    <li><a class="menu-item" tabindex="4">Editor</a></li>
+                    <li><a class="menu-item" tabindex="5">Instruments</a></li>
+                    <li><a class="menu-item" tabindex="6">Collaborate</a></li>
                 </div>
-                <div class="editor-panel" tabindex="2">
+                <div class="editor-panel">
                     <label class="row-label">Song:</label>
                     <form class="form-song-play" data-command="song:play">
                         <button name="play">Play</button>
@@ -860,7 +872,7 @@
                         </select>
                     </form>
                 </div>
-                <div class="editor-grid" data-group="${this.gridCurrentGroup}" tabindex="1">
+                <div class="editor-grid" data-group="${this.gridCurrentGroup}">
                     ${renderGrid(this)}
                 </div>
             </div>

@@ -65,7 +65,7 @@
                 let instruction = instructionList[i];
                 switch (typeof instruction) {
                     case 'number':
-                        instruction = instructionList[i] = {type: "pause", pause: instruction};
+                        instruction = instructionList[i] = {type: "pause", duration: instruction};
                         break;
                     case 'string':
                         instruction = instructionList[i] = Object.assign({}, lastInstruction, {type: "note", frequency: instruction});
@@ -95,7 +95,7 @@
 
                     case 'pause':
                         for(var pni=0; pni<pauseNotes.length; pni++)
-                            pauseNotes[pni].duration = instruction.pause;
+                            pauseNotes[pni].duration = instruction.duration;
                         pauseNotes = [];
                         break;
                 }
@@ -257,8 +257,8 @@
                             break;
 
                         case 'pause':
-                            currentPosition += instruction.pause;
-                            currentGroupPlayTime += instruction.pause * (240 / currentBPM);
+                            currentPosition += instruction.duration;
+                            currentGroupPlayTime += instruction.duration * (240 / currentBPM);
                             break;
 
                         case 'group':
