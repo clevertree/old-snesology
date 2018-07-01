@@ -15,6 +15,7 @@
   ],
   "instructions": [
     {"type": "note", "instrument":0, "frequency":"C4"},
+    "F3",
     0.25,
     "D4",
     0.25,

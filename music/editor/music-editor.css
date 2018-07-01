@@ -46,6 +46,13 @@
      border-radius: 4px;
      background-color: #CCC;
 }
+
+.music-editor .editor-grid .grid-data-new {
+    /* min-height: 1em; */
+    /* min-width: 0.5em; */
+    opacity: 0.5;
+}
+
 .music-editor .editor-grid .grid-data:last-child {
     margin-right: 0;
 }
@@ -76,6 +83,9 @@
     margin-left: 3px;
     padding-left: 3px;
     border-left: 1px solid #888;
+    max-width: 40px;
+    opacity: 1;
+    transition: all 0.25s ease-out;
 }
 
 .music-editor .editor-grid .grid-parameter.instrument {
@@ -100,6 +110,15 @@
 }
 .music-editor .editor-grid .measure-end {
     border-bottom: 2px solid #555;
+}
+
+.music-editor .editor-grid .grid-data:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
+    max-width: 0px;
+    margin-left: 0px;
+    padding-left: 0;
+    border-left: 0px;
+    opacity: 0;
+    transition-delay: 0.25s;
 }
 
 

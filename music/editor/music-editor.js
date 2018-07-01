@@ -65,6 +65,11 @@
             }
         }
 
+        gridDataSelect(dataElm, previewInstruction) {
+            let instruction = this.gridDataGetInstruction(dataElm);
+            this.selectInstructions(instruction, previewInstruction);
+        }
+
         gridRowSelect(rowElm, previewInstruction) {
             clearElementClass('selected', '.grid-row.selected');
             rowElm.classList.add('selected');
@@ -285,15 +290,6 @@
         }.bind(this));
     }
 
-    // Element commands
-
-    function findParentNode(editorChildElement, parentNodeClass) {
-        while(editorChildElement = editorChildElement.parentNode)
-            if(editorChildElement instanceof parentNodeClass)
-                break;
-        return editorChildElement;
-    }
-
     // File Commands
 
     function saveSongToMemory(song) {
@@ -398,38 +394,32 @@
     function handleArrowKeyEvent(e, editor) {
         const selectedData = editor.querySelector('.grid-data.selected')
             || editor.querySelector('.grid-data');
-        let newSelectedData = null;
+        let selectedRow = selectedData.parentNode;
 
-        const selectedRow = selectedData.parentNode;
+        let nextRow = selectedRow.nextElementSibling;
+        let lastRow = selectedRow.previousElementSibling;
+        let nextElement = selectedData.nextElementSibling || (nextRow ? nextRow.firstChild : null);
+        let lastElement = selectedData.previousElementSibling || (lastRow ? lastRow.lastChild: null);
+        let nextData = nextElement.classList.contains('grid-data-new') ? (nextRow ? nextRow.firstChild : null) : nextElement;
+        let lastData = lastElement.classList.contains('grid-data-new') ? (lastRow ? lastRow.lastChild : null) : lastElement;
+
         switch(e.key) {
             case 'ArrowRight':
-                newSelectedData = selectedData.nextElementSibling
-                    || (selectedRow.nextElementSibling ? selectedRow.nextElementSibling.firstChild : null);
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(nextData, selectedData);
+                else                            editor.gridDataSelect(nextElement);
                 break;
             case 'ArrowLeft':
-                newSelectedData = selectedData.previousSibling
-                    || (selectedRow.previousSibling ? selectedRow.previousSibling.lastChild : null);
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(lastData, selectedData);
+                else                            editor.gridDataSelect(lastElement);
                 break;
             case 'ArrowDown':
-                if(selectedRow.nextElementSibling)
-                    newSelectedData = selectedRow.nextElementSibling.firstChild;
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(nextRow.firstChild, selectedData);
+                else                            editor.gridDataSelect(nextRow.firstChild);
                 break;
             case 'ArrowUp':
-                if(selectedRow.previousSibling)
-                    newSelectedData = selectedRow.previousSibling.firstChild;
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(lastRow.lastChild, selectedData);
+                else                            editor.gridDataSelect(lastRow.lastChild);
                 break;
-        }
-
-        if(newSelectedData) {
-            if (e.ctrlKey || e.metaKey) {
-                editor.gridSwapInstructions(newSelectedData, selectedData)
-
-            } else {
-                if (newSelectedData !== selectedData) {
-                    let instruction = editor.gridDataGetInstruction(newSelectedData);
-                    editor.selectInstructions(instruction, true);
-                }
-            }
         }
     }
 
@@ -575,7 +565,7 @@
 
         let odd = false;
 
-        let editorHTML = '', rowHTML = '', pauseCount = 0;
+        let editorHTML = '', rowHTML = '', pauseCount = 0, lastPause = 0;
         for(let i=0; i<instructionList.length; i++) {
             const instruction = instructionList[i];
 
@@ -585,8 +575,8 @@
                     var noteCSS = [];
                     if(editor.selectedInstructions.indexOf(instruction) !== -1) noteCSS.push('selected');
                     rowHTML += `<div class="grid-data ${noteCSS.join(' ')}" data-position="${i}">`;
-                    rowHTML += `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
-                    rowHTML += `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
+                    rowHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
+                    rowHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
                     if (instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.duration)
                         rowHTML += `<div class="grid-parameter duration${nextPause === instruction.duration ? ' matches-pause' : ''}">${instruction.duration}</div>`;
                     if (instruction.velocity)
@@ -596,7 +586,7 @@
 
                 case 'group':
                     rowHTML += `<div class="grid-data" data-position="${i}">`;
-                    rowHTML += `<div class="grid-parameter group">${instruction.group}</div>`;
+                    rowHTML +=  `<div class="grid-parameter group">${instruction.group}</div>`;
                     rowHTML += `</div>`;
                     break;
 
@@ -614,17 +604,23 @@
                         pauseCSS.push('measure-end');
                     pauseCount++;
 
+                    lastPause = instruction.duration;
 
-
-                    editorHTML += `<div class="grid-row ${pauseCSS.join(' ')}" data-beats-per-minute="${beatsPerMinute}">`;
+                    editorHTML += `<div class="grid-row ${pauseCSS.join(' ')}" data-duration="${instruction.duration}" data-beats-per-minute="${beatsPerMinute}">`;
                     editorHTML += rowHTML;
+                    editorHTML +=   `<div class="grid-data grid-data-new"><div class="grid-parameter">+</div></div>`;
                     editorHTML += `</div>`;
                     rowHTML = '';
 
 
                     break;
             }
+
         }
+
+        editorHTML += `<div class="grid-row grid-row-new${odd ? ' odd' : ''}" data-duration="${lastPause}" data-beats-per-minute="${beatsPerMinute}">`;
+        editorHTML +=   `<div class="grid-data grid-data-new"><div class="grid-parameter">+</div></div>`;
+        editorHTML += `</div>`;
 
         function getNextPause(p) {
             for(let i=0; i<instructionList.length; i++) {
@@ -872,7 +868,7 @@
                         </select>
                     </form>
                 </div>
-                <div class="editor-grid" data-group="${this.gridCurrentGroup}">
+                <div class="editor-grid" data-group="${this.gridCurrentGroup || ''}">
                     ${renderGrid(this)}
                 </div>
             </div>
