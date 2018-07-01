@@ -15,7 +15,6 @@
   ],
   "instructions": [
     {"type": "note", "instrument":0, "frequency":"C4"},
-    "F3",
     0.25,
     "D4",
     0.25,
@@ -28,6 +27,7 @@
     "A4",
     0.25,
     "B4",
+    "F3",
     0.25,
     {"type": "note", "instrument":0, "frequency":"C5", "duration":0.25, "velocity": 25},
     0.25,

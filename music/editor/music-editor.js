@@ -57,17 +57,25 @@
 
             // Update UI
             clearElementClass('selected', '.grid-data.selected');
+            clearElementClass('selected', '.grid-row.selected');
             for(var i=0; i<this.selectedInstructions.length; i++) {
                 let associatedElement = this.findAssociatedElement(this.selectedInstructions[i]);
                 if(associatedElement) {
                     associatedElement.classList.add('selected');
+                    associatedElement.parentNode.classList.add('selected');
                 }
             }
         }
 
         gridDataSelect(dataElm, previewInstruction) {
-            let instruction = this.gridDataGetInstruction(dataElm);
-            this.selectInstructions(instruction, previewInstruction);
+            clearElementClass('selected', '.grid-data.selected');
+            dataElm.classList.add('selected');
+            this.gridRowSelect(dataElm.parentElement, previewInstruction);
+            if(dataElm.hasAttribute('data-position')) {
+                var instruction = this.gridDataGetInstruction(dataElm);
+                this.selectedInstructions = [instruction];
+                this.formUpdate();
+            }
         }
 
         gridRowSelect(rowElm, previewInstruction) {
@@ -112,9 +120,6 @@
         render() {
             this.innerHTML = renderEditorContent.call(this);
             this.formUpdate();
-            if(this.selectedInstructions.length > 0) {
-
-            }
         }
 
         // Player commands
@@ -400,25 +405,25 @@
         let lastRow = selectedRow.previousElementSibling;
         let nextElement = selectedData.nextElementSibling || (nextRow ? nextRow.firstChild : null);
         let lastElement = selectedData.previousElementSibling || (lastRow ? lastRow.lastChild: null);
-        let nextData = nextElement.classList.contains('grid-data-new') ? (nextRow ? nextRow.firstChild : null) : nextElement;
-        let lastData = lastElement.classList.contains('grid-data-new') ? (lastRow ? lastRow.lastChild : null) : lastElement;
+        let nextData = nextElement && nextElement.classList.contains('grid-data-new') ? (nextRow ? nextRow.firstChild : null) : nextElement;
+        let lastData = lastElement && lastElement.classList.contains('grid-data-new') ? (lastRow ? lastRow.lastChild : null) : lastElement;
 
         switch(e.key) {
             case 'ArrowRight':
-                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(nextData, selectedData);
-                else                            editor.gridDataSelect(nextElement);
+                if (e.ctrlKey || e.metaKey)     nextData && editor.gridSwapInstructions(nextData, selectedData);
+                else                            editor.gridDataSelect(nextElement || selectedData);
                 break;
             case 'ArrowLeft':
-                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(lastData, selectedData);
-                else                            editor.gridDataSelect(lastElement);
+                if (e.ctrlKey || e.metaKey)     lastData && editor.gridSwapInstructions(lastData, selectedData);
+                else                            editor.gridDataSelect(lastElement || selectedData);
                 break;
             case 'ArrowDown':
-                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(nextRow.firstChild, selectedData);
-                else                            editor.gridDataSelect(nextRow.firstChild);
+                if (e.ctrlKey || e.metaKey)     nextRow && editor.gridSwapInstructions(nextRow.firstChild, selectedData);
+                else                            editor.gridDataSelect((nextRow || selectedRow).firstChild);
                 break;
             case 'ArrowUp':
-                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(lastRow.lastChild, selectedData);
-                else                            editor.gridDataSelect(lastRow.lastChild);
+                if (e.ctrlKey || e.metaKey)     lastRow && editor.gridSwapInstructions(lastRow.lastChild, selectedData);
+                else                            editor.gridDataSelect((lastRow || selectedRow).lastChild);
                 break;
         }
     }
@@ -514,13 +519,11 @@
         clearElementClass('selected', '.grid-data');
         clearElementClass('selected', '.grid-row');
         if(gridItem.classList.contains('grid-parameter')) {
-            let instruction = editor.gridDataGetInstruction(gridItem.parentNode);
-            editor.selectInstructions(instruction, true);
+            editor.gridDataSelect(gridItem.parentNode, true);
             return;
         }
         if(gridItem.classList.contains('grid-data')) {
-            let instruction = editor.gridDataGetInstruction(gridItem);
-            editor.selectInstructions(instruction, true);
+            editor.gridDataSelect(gridItem, true);
             return;
         }
         if(gridItem.classList.contains('grid-row')) {
