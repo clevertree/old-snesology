@@ -130,7 +130,8 @@
             saveSongToMemory(this.getSong());
         }
         loadSongFromMemory(guid) {
-            this.loadSongData(loadSongFromMemory(guid));
+            this.player.loadSongData(loadSongFromMemory(guid));
+            this.render();
         }
 
         render() {
@@ -399,8 +400,8 @@
     // Menu Actions
 
     const menuCommands = {
-        'save:memory': function() { this.saveSongToMemory(); },
-        'load:memory': function(e) { this.loadSongFromMemory(e.target.getAttribute('guid')); },
+        'save:memory': function(e, editor) { editor.saveSongToMemory(); },
+        'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
     };
     const keyboardCommands = {
         'default': {
