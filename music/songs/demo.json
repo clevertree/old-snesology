@@ -30,8 +30,7 @@
     "F3",
     0.25,
     {"type": "note", "instrument":0, "frequency":"C5", "duration":0.25, "velocity": 25},
-    0.25,
-    {"type": "group", "group":"beat"}
+    0.25
   ],
   "instructionGroups": {
     "beat": [

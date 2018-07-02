@@ -32,7 +32,10 @@
 }
 
 .music-editor .editor-grid .grid-row.selected {
-    background-color: #BBB;
+    background-color: #ffeedd;
+    position: relative;
+    box-shadow: #ffeedd 0px 0px 9px;
+    /* z-index: 1; */
 }
 
 /** Grid Cell **/

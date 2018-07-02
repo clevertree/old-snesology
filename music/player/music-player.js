@@ -284,6 +284,18 @@
 
         // Edit Song
 
+        insertInstruction(instruction, groupName, beforePosition) {
+            const instructionList = this.getInstructions(groupName);
+            if(typeof beforePosition === 'number') {
+                if (instructionList.length < beforePosition)
+                    throw new Error("Invalid instruction position: " + beforePosition + (groupName ? " for group: " + groupName : ''));
+                instructionList.splice(beforePosition, 0, instruction);
+            } else {
+                instructionList.push(instruction);
+            }
+
+        }
+
         setInstruction(position, instruction, groupName) {
             const instructionList = this.getInstructions(groupName);
             if(instructionList.length < position)
