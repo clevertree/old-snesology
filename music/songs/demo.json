@@ -20,16 +20,17 @@
     "E4",
     1,
     "F4",
-    1,
+    2,
     "G4",
     1,
     "A4",
     1,
     "B4",
-    "F3",
     1,
-    {"type": "note", "instrument":0, "frequency":"C5", "duration":1, "velocity": 25},
-    1
+    "C5",
+    4,
+    "C4",
+    2
   ],
   "instructionGroups": {
     "beat": [
