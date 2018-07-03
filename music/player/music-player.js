@@ -22,7 +22,7 @@
             this.loadSongData({});
         }
 
-        getAudioContext() { return this.audioContext || (this.audioContext = new AudioContext()); }
+        getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
         getSong() { return this.song; }
         getStartingBeatsPerMinute() { return this.song.beatsPerMinute; }
         getStartingBeatsPerMeasure() { return this.song.beatsPerMeasure; }
