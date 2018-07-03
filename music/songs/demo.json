@@ -4,7 +4,6 @@
   "version": "0.0.1",
   "description": "Demonstration song",
   "beatsPerMinute": 240,
-  "pausesPerBeat": 4,
   "beatsPerMeasure": 4,
   "load": [
     "instruments/oscillator.js"
@@ -15,41 +14,41 @@
   ],
   "instructions": [
     {"type": "note", "instrument":0, "frequency":"C4"},
-    0.25,
+    1,
     "D4",
-    0.25,
+    1,
     "E4",
-    0.25,
+    1,
     "F4",
-    0.25,
+    1,
     "G4",
-    0.25,
+    1,
     "A4",
-    0.25,
+    1,
     "B4",
     "F3",
-    0.25,
-    {"type": "note", "instrument":0, "frequency":"C5", "duration":0.25, "velocity": 25},
-    0.25
+    1,
+    {"type": "note", "instrument":0, "frequency":"C5", "duration":1, "velocity": 25},
+    1
   ],
   "instructionGroups": {
     "beat": [
       {"type": "note", "instrument":1, "frequency":"C5", "velocity": 25},
-      0.125,
+      0.5,
       "C5",
-      0.125,
+      0.5,
       "C5",
-      0.125,
+      0.5,
       "C5",
-      0.125,
+      0.5,
       "C5",
-      0.125,
+      0.5,
       "C5",
-      0.125,
+      0.5,
       "C5",
-      0.125,
+      0.5,
       "C5",
-      0.125
+      0.5
     ]
   }
 }

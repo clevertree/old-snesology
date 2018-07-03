@@ -192,8 +192,13 @@
 
             const formInstructionElm = this.querySelector('form.form-instruction');
             formInstructionElm.classList.add('hidden');
+
+            const formRowElm = this.querySelector('form.form-row');
+            formRowElm.classList.add('hidden');
+
             const formGroup = this.querySelector('form.form-group');
             formGroup.classList.add('hidden');
+
             if(currentInstruction) {
                 switch (currentInstruction.type) {
                     case 'note':
@@ -203,6 +208,13 @@
                         formInstructionElm.velocity.value = currentInstruction.velocity || '';
                         // formInstruction.editableInstruction = instruction;
                         formInstructionElm.classList.remove('hidden');
+
+                        var instructionList = this.player.getInstructions(this.gridCurrentGroup);
+                        var instructionPosition = this.player.getInstructionPosition(currentInstruction, this.gridCurrentGroup);
+                        var nextPause = findNextInstruction('pause', instructionList, instructionPosition);
+                        formRowElm.duration.value = nextPause.duration || '';
+                        formRowElm.classList.remove('hidden');
+
                         break;
 
                     case 'group':
@@ -226,13 +238,17 @@
             switch(e.type) {
                 case 'note:start':
                     const startElm = this.findAssociatedElement(e.detail.instruction);
-                    if(startElm)
+                    if(startElm) {
                         startElm.classList.add('playing');
+                        startElm.parentNode.classList.add('playing');
+                    }
                     break;
                 case 'note:end':
                     const endElm = this.findAssociatedElement(e.detail.instruction);
-                    if(endElm)
+                    if(endElm) {
                         endElm.classList.remove('playing');
+                        endElm.parentNode.classList.remove('playing');
+                    }
                     break;
                 case 'song:start':
                     this.querySelector('.music-editor').classList.add('playing');
@@ -293,11 +309,14 @@
         }
     }
 
+    // Element Commands
+
     function clearElementClass(className, selector) {
         const clearElms = document.querySelectorAll(selector || '.' + className);
         for(let i=0; i<clearElms.length; i++)
             clearElms[i].classList.remove(className);
     }
+
 
     // Instrument Commands
 
@@ -367,7 +386,7 @@
     const formCommands = {
         'instruction:edit': function (e, form, editor) {
             let instruction = editor.selectedInstructions[0];
-            if(!instruction) throw new Error("editableInstruction not found");
+            if(!instruction) throw new Error("no instructions are currently selected");
             // let associatedElement = editor.findAssociatedElement(instruction);
             let instrumentID = form.instrument.value;
             if(instrumentID.indexOf('add:') === 0)
@@ -383,9 +402,21 @@
             if(editor.config.previewInstructionsOnSelect !== false)
                 editor.playInstruction(instruction);
         },
+        'row:edit': function(e, form, editor) {
+            let instruction = editor.selectedInstructions[0];
+            if(!instruction)
+                throw new Error("no instructions are currently selected");
+            var instructionList = editor.player.getInstructions(editor.gridCurrentGroup);
+            var instructionPosition = editor.player.getInstructionPosition(instruction, editor.gridCurrentGroup);
+            var nextPause = findNextInstruction('pause', instructionList, instructionPosition);
+            if(!nextPause)
+                throw new Error("no pauses follow selected instruction");
+            nextPause.duration = parseFloat(form.duration.value);
+            editor.render();
+        },
         'song:edit': function(e, form, editor) {
             const song = editor.getSong();
-            song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+            // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
             song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
             song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
             editor.render();
@@ -426,14 +457,14 @@
     function handleGridKeyboardEvent(e, editor) {
         const selectedData = editor.querySelector('.grid-data.selected')
             || editor.querySelector('.grid-data');
-        let selectedRow = selectedData.parentNode;
+        // let selectedRow = selectedData.parentNode;
 
-        let nextRow = selectedRow.nextElementSibling;
-        let lastRow = selectedRow.previousElementSibling;
-        let nextElement = selectedData.nextElementSibling || (nextRow ? nextRow.firstChild : null);
-        let lastElement = selectedData.previousElementSibling || (lastRow ? lastRow.lastChild: null);
-        let nextData = nextElement && nextElement.classList.contains('grid-data-new') ? (nextRow ? nextRow.firstChild : null) : nextElement;
-        let lastData = lastElement && lastElement.classList.contains('grid-data-new') ? (lastRow ? lastRow.lastChild : null) : lastElement;
+        // let nextRow = selectedRow.nextElementSibling;
+        // let lastRow = selectedRow.previousElementSibling;
+        // let nextElement = findNextDataElement(selectedData); // .nextElementSibling || (nextRow ? nextRow.firstChild : null);
+        // let lastElement = findPreviousDataElement(selectedData); // selectedData.previousElementSibling || (lastRow ? lastRow.lastChild: null);
+        // let nextData = nextElement && nextElement.classList.contains('grid-data-new') ? (nextRow ? nextRow.firstChild : null) : nextElement;
+        // let lastData = lastElement && lastElement.classList.contains('grid-data-new') ? (lastRow ? lastRow.lastChild : null) : lastElement;
 
         switch(e.key) {
             case 'Delete':
@@ -442,21 +473,42 @@
                 editor.querySelector('.music-editor').focus();
                 break;
             case 'ArrowRight':
-                if (e.ctrlKey || e.metaKey)     nextData && editor.gridSwapInstructions(nextData, selectedData);
-                else                            editor.gridDataSelect(nextElement || selectedData);
+                let nextData = findNextDataElement(selectedData);
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(selectedData, nextData);
+                else                            editor.gridDataSelect(nextData || selectedData);
                 break;
             case 'ArrowLeft':
-                if (e.ctrlKey || e.metaKey)     lastData && editor.gridSwapInstructions(lastData, selectedData);
-                else                            editor.gridDataSelect(lastElement || selectedData);
+                let previousData = findPreviousDataElement(selectedData);
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(selectedData, previousData);
+                else                            editor.gridDataSelect(previousData || selectedData);
                 break;
             case 'ArrowDown':
-                if (e.ctrlKey || e.metaKey)     nextRow && editor.gridSwapInstructions(nextRow.firstChild, selectedData);
-                else                            editor.gridDataSelect((nextRow || selectedRow).firstChild);
+                let nextRowData = findNextDataElement(selectedData.parentNode.lastChild);
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(selectedData, nextRowData);
+                else                            editor.gridDataSelect(nextRowData || selectedData);
                 break;
             case 'ArrowUp':
-                if (e.ctrlKey || e.metaKey)     lastRow && editor.gridSwapInstructions(lastRow.lastChild, selectedData);
-                else                            editor.gridDataSelect((lastRow || selectedRow).lastChild);
+                let previousRowData = findPreviousDataElement(selectedData.parentNode.firstChild);
+                if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(selectedData, previousRowData);
+                else                            editor.gridDataSelect(previousRowData || selectedData);
                 break;
+        }
+
+
+        function findNextDataElement(sourceElement) {
+            if(sourceElement.nextElementSibling)
+                return sourceElement.nextElementSibling;
+            if(sourceElement.parentNode.nextElementSibling)
+                return sourceElement.parentNode.nextElementSibling.firstChild;
+            return null;
+        }
+
+        function findPreviousDataElement(sourceElement) {
+            if(sourceElement.previousElementSibling)
+                return sourceElement.previousElementSibling;
+            if(sourceElement.parentNode.previousElementSibling)
+                return sourceElement.parentNode.previousElementSibling.firstChild;
+            return null;
         }
     }
 
@@ -612,7 +664,7 @@
         const song = editor.getSong();
         var beatsPerMinute = song.beatsPerMinute;
         var beatsPerMeasure = song.beatsPerMeasure;
-        var pausesPerBeat = song.pausesPerBeat;
+        // var pausesPerBeat = song.pausesPerBeat;
         const instructionList = song.instructions;
 
         let odd = false, selectedRow = false;
@@ -633,7 +685,7 @@
                     rowHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                     rowHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
                     if (instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.duration)
-                        rowHTML += `<div class="grid-parameter duration${nextPause === instruction.duration ? ' matches-pause' : ''}">${instruction.duration}</div>`;
+                        rowHTML += `<div class="grid-parameter duration${nextPause === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
                     if (instruction.velocity)
                         rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                     rowHTML += `</div>`;
@@ -647,16 +699,16 @@
 
                 case 'pause':
                     var pauseCSS = (odd = !odd) ? ['odd'] : [];
-                    if (pauseCount % pausesPerBeat === 0)
-                        pauseCSS.push('beat-start');
+                    // if (pauseCount % pausesPerBeat === 0)
+                    //     pauseCSS.push('beat-start');
 
-                    if (pauseCount % pausesPerBeat === pausesPerBeat - 1)
-                        pauseCSS.push('beat-end');
+                    // if (pauseCount % pausesPerBeat === pausesPerBeat - 1)
+                    //     pauseCSS.push('beat-end');
 
-                    if (pauseCount % (pausesPerBeat * beatsPerMeasure) === 0)
-                        pauseCSS.push('measure-start');
-                    if (pauseCount % (pausesPerBeat * beatsPerMeasure) === pausesPerBeat * beatsPerMeasure - 1)
-                        pauseCSS.push('measure-end');
+                    // if (pauseCount % (pausesPerBeat * beatsPerMeasure) === 0)
+                    //     pauseCSS.push('measure-start');
+                    // if (pauseCount % (pausesPerBeat * beatsPerMeasure) === pausesPerBeat * beatsPerMeasure - 1)
+                    //     pauseCSS.push('measure-end');
                     pauseCount++;
 
                     lastPause = instruction.duration;
@@ -667,6 +719,7 @@
                     editorHTML += `<div class="grid-row ${pauseCSS.join(' ')}" data-duration="${instruction.duration}" data-beats-per-minute="${beatsPerMinute}">`;
                     editorHTML += rowHTML;
                     editorHTML +=   `<div class="grid-data grid-data-new" data-insert-position="${i}"><div class="grid-parameter">+</div></div>`;
+                    editorHTML +=   `<div class="grid-data grid-pause" data-duration="${instruction.duration}"><div class="grid-pause-parameter">${formatDuration(instruction.duration)}</div></div>`;
                     editorHTML += `</div>`;
                     rowHTML = '';
                     selectedRow = false;
@@ -676,8 +729,9 @@
 
         }
 
-        editorHTML += `<div class="grid-row grid-row-new${odd ? ' odd' : ''}" data-duration="${lastPause}" data-beats-per-minute="${beatsPerMinute}">`;
+        editorHTML += `<div class="grid-row grid-row-new${odd ? '' : ' odd'}" data-duration="${lastPause}" data-beats-per-minute="${beatsPerMinute}">`;
         editorHTML +=   `<div class="grid-data grid-data-new grid-data-new-last" data-insert-pause="${lastPause}" data-insert-position="${instructionList.length}"><div class="grid-parameter">+</div></div>`;
+        editorHTML +=   `<div class="grid-data grid-pause" data-duration="${lastPause}"><div class="grid-pause-parameter">${formatDuration(lastPause)}</div></div>`;
         editorHTML += `</div>`;
 
         return editorHTML;
@@ -723,30 +777,17 @@
 
             case 'durations':
                 options = [
-                    [32.0,  '32 - Octuple'],
-                    [16.0,  '16 - Quadruple'],
-                    [8.0,   '8 - Double'],
-                    [4.0,   '4 - Whole'],
-                    [2.0,   '2 - Half'],
-                    [1.0,   '1 - Quarter'],
-                    [0.5,   '0.5 - Eighth'],
-                    [0.25,  '0.25 - Sixteenth'],
-                    [0.125, '0.125 - Thirty-second'],
+                    [1/64, '1/64'],
+                    [1/32, '1/32'],
+                    [1/16,  '1/16'],
+                    [1/8,   '1/8'],
+                    [1/4,   '1/4'],
+                    [1/2,   '1/2'],
+                    [1.0,   '1.0'],
+                    [2.0,   '2.0'],
+                    [4.0,  '4.0'],
+                    [8.0,  '8.0'],
                 ];
-                break;
-
-            case 'pauses-per-beat':
-                options = [
-                    [1,  '1 Pause per beat'],
-                    [2,  '2 Pauses per beat'],
-                    [3,  '3 Pauses per beat'],
-                    [4,  '4 Pauses per beat'],
-                    [5,  '5 Pauses per beat'],
-                    [6,  '6 Pauses per beat'],
-                    [7,  '7 Pauses per beat'],
-                    [8,  '8 Pauses per beat'],
-                ];
-                selectedCallback = function(vi) { return vi === song.durationsPerBeat; };
                 break;
 
             case 'beats-per-measure':
@@ -760,8 +801,8 @@
                 break;
 
             case 'beats-per-minute':
-                for(let vi=40; vi<=200; vi+=10) {
-                    options.push([vi, vi, vi === song.beatsPerMinute]);
+                for(let vi=40; vi<=300; vi+=10) {
+                    options.push([vi, vi+ ' bpm', vi === song.beatsPerMinute]);
                 }
                 selectedCallback = function(vi) { return vi === song.beatsPerMinute; };
                 break;
@@ -802,9 +843,12 @@
         `;
     }
 
+    // Format Functions
+
     function formatInstrumentID(number) {
         return number < 10 ? "0" + number : "" + number;
     }
+    function formatDuration(duration) { return parseFloat(duration).toFixed(2); }
 
     function renderEditorContent() {
         return `
@@ -851,11 +895,6 @@
                                 ${renderEditorFormOptions('beats-per-minute', this)}
                             </optgroup>
                         </select>
-                        <select name="pauses-per-beat">
-                            <optgroup label="Pauses per beat">
-                                ${renderEditorFormOptions('pauses-per-beat', this)}
-                            </optgroup>
-                        </select>
                         <select name="beats-per-measure">
                             <optgroup label="Beats per measure">
                                 ${renderEditorFormOptions('beats-per-measure', this)}
@@ -877,8 +916,8 @@
                         <label class="row-label">Row:</label>
                         <button name="duplicate">+</button>
                         <button name="remove">-</button>
-                        <select name="pause">
-                            <optgroup label="Pause">
+                        <select name="duration">
+                            <optgroup label="Row Duration">
                                 ${renderEditorFormOptions('durations')}
                             </optgroup>
                         </select>
@@ -891,6 +930,11 @@
                         <label class="row-label">Note:</label>
                         <button name="duplicate">+</button>
                         <button name="remove">-</button>
+                        <select name="duration">
+                            <optgroup label="Note Duration">
+                                ${renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
                         <select name="instrument">
                             <optgroup label="Song Instruments">
                                 ${renderEditorFormOptions('song-instruments', this)}
@@ -902,11 +946,6 @@
                         <select name="frequency">
                             <optgroup label="Frequency">
                                 ${renderEditorFormOptions('frequencies')}
-                            </optgroup>
-                        </select>
-                        <select name="duration">
-                            <optgroup label="Duration">
-                                ${renderEditorFormOptions('durations')}
                             </optgroup>
                         </select>
                         <select name="velocity">

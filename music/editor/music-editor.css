@@ -6,6 +6,7 @@
     /* line-height: 16px; */
     font-family: monospace;
     user-select: none;
+    position: relative;
 }
 
 /** Grid **/
@@ -25,6 +26,7 @@
     cursor: pointer;
     background-color: #999;
     height: 18px;
+    position: relative;
 }
 
 .music-editor .editor-grid .grid-row.odd {
@@ -35,8 +37,15 @@
     background-color: #ffeedd;
     position: relative;
     box-shadow: #ffeedd 0px 0px 9px;
-    /* z-index: 1; */
+    z-index: 2;
 }
+.music-editor .editor-grid .grid-row.playing {
+    background-color: #609060;
+    position: relative;
+    box-shadow: #AFA 0px 0px 4px;
+    z-index: 1;
+}
+
 
 /** Grid Cell **/
 
@@ -48,6 +57,8 @@
      border: solid 1px #666;
      border-radius: 4px;
      background-color: #CCC;
+     position: relative;
+     z-index: 1;
 }
 
 .music-editor .editor-grid .grid-data-new {
@@ -74,8 +85,8 @@
     border-color: orangered;
     box-shadow: #441200 0 1px 10px;
     background-color: white;
-    z-index: 1;
-    position: relative;
+    z-index: 2;
+    /* position: relative; */
 }
 
 .music-editor .editor-grid .grid-parameter{
@@ -124,6 +135,19 @@
     border-left: 0px;
     opacity: 0;
     transition-delay: 0.25s;
+}
+
+.music-editor .editor-grid .grid-pause {
+    position: absolute;
+    /* top: 0; */
+    right: 0;
+    color: #000;
+    z-index: 1;
+    opacity: 0.3;
+}
+.music-editor .editor-grid .grid-row.selected .grid-pause {
+    opacity: 1;
+
 }
 
 
@@ -238,13 +262,16 @@
     max-width: 42px;
 }
 .music-editor .editor-panel select[name=duration] {
-    max-width: 50px;
+    max-width: 51px;
 }
 .music-editor .editor-panel select[name=velocity] {
     max-width: 46px;
 }
 .music-editor .editor-panel select[name=pause] {
     max-width: 100px;
+}
+.music-editor .editor-panel select[name=beats-per-minute] {
+    max-width: 77px;
 }
 
 .music-editor:not(.playing) form.form-song-pause { display: none; }

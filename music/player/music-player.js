@@ -5,7 +5,7 @@
 
 (function() {
     const DEFAULT_BEATS_PER_MINUTE = 120;
-    const DEFAULT_PAUSES_PER_BEAT = 4;
+    // const DEFAULT_PAUSES_PER_BEAT = 4;
     const DEFAULT_BEATS_PER_MEASURE = 4;
     // if (!window.MusicPlayer)
     //     window.MusicPlayer = MusicPlayer;
@@ -25,7 +25,6 @@
         getAudioContext() { return this.audioContext || (this.audioContext = new AudioContext()); }
         getSong() { return this.song; }
         getStartingBeatsPerMinute() { return this.song.beatsPerMinute; }
-        getStartingPausesPerBeat() { return this.song.pausesPerBeat; }
         getStartingBeatsPerMeasure() { return this.song.beatsPerMeasure; }
 
         connectedCallback() {
@@ -46,7 +45,7 @@
 
         loadSongData(songData) {
             songData.beatsPerMinute =   (songData.beatsPerMinute || DEFAULT_BEATS_PER_MINUTE);
-            songData.pausesPerBeat =    (songData.pausesPerBeat || DEFAULT_PAUSES_PER_BEAT);
+            // songData.pausesPerBeat =    (songData.pausesPerBeat || DEFAULT_PAUSES_PER_BEAT);
             songData.beatsPerMeasure =  (songData.beatsPerMeasure || DEFAULT_BEATS_PER_MEASURE);
             songData.instruments = (songData.instruments || []);
             songData.instructions = this.processInstructions(songData.instructions || [], songData.instruments);
@@ -222,7 +221,7 @@
             if(instruction.type === 'note') {
                 const instrumentName = instruction.instrument;
                 const noteFrequency = instruction.frequency;
-                const noteDuration = (instruction.duration || 1) * (240 / (bpm || 240));
+                const noteDuration = (instruction.duration || 1) * (60 / (bpm || 60));
                 return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction);
             }
             return null;
@@ -258,7 +257,7 @@
 
                         case 'pause':
                             currentPosition += instruction.duration;
-                            currentGroupPlayTime += instruction.duration * (240 / currentBPM);
+                            currentGroupPlayTime += instruction.duration * (60 / currentBPM);
                             break;
 
                         case 'group':
