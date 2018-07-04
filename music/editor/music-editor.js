@@ -6,14 +6,16 @@
 (function() {
     // if (!window.MusicEditor)
     //     window.MusicEditor = MusicEditor;
+    const DEFAULT_GROUP = 'root';
 
     class MusicEditorElement extends HTMLElement {
         constructor() {
             super();
             this.depressedKeys = [];
             this.config = DEFAULT_CONFIG;
-            this.gridCurrentGroup = null;
+            this.gridCurrentGroup = DEFAULT_GROUP;
             this.selectedInstructions = [];
+            this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
         }
 
         get player() { return this.playerElement; }
@@ -25,7 +27,7 @@
             // this.render();
 
             this.addEventListener('keydown', this.onInput.bind(this));
-            this.addEventListener('keyup', this.onInput.bind(this));
+            // this.addEventListener('keyup', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
             this.addEventListener('change', this.onInput.bind(this));
             this.addEventListener('submit', this.onInput.bind(this));
@@ -42,8 +44,9 @@
 
                 if(this.getSongURL())
                     this.playerElement.loadSong(this.getSongURL(), function() {
+                        this.gridCurrentGroup = this.getSong().root || DEFAULT_GROUP;
                         this.render();
-                        this.selectInstructions(this.getSong().instructions[0]);
+                        // this.selectInstructions(this.getSong().getInstructions(this.gridCurrentGroup)[0]);
                     }.bind(this));
             }.bind(this));
         }
@@ -96,7 +99,7 @@
 
         gridDataGetInstruction(gridElm) {
             let position = parseInt(gridElm.getAttribute('data-position'));
-            let instruction = this.getSong().instructions[position];
+            let instruction = this.player.getInstructions(this.gridCurrentGroup)[position];
             if(!instruction)
                 throw new Error("Instruction not found at position: " + position);
             return instruction;
@@ -186,13 +189,13 @@
             var currentInstruction = this.selectedInstructions[0];
 
             const formInstructionElm = this.querySelector('form.form-instruction');
-            formInstructionElm.classList.add('hidden');
+            formInstructionElm.firstElementChild.setAttribute('disabled', 'disabled');
 
             const formRowElm = this.querySelector('form.form-row');
-            formRowElm.classList.add('hidden');
+            formRowElm.firstElementChild.setAttribute('disabled', 'disabled');
 
             const formGroup = this.querySelector('form.form-group');
-            formGroup.classList.add('hidden');
+            // formGroup.classList.add('hidden');
 
             if(currentInstruction) {
                 switch (currentInstruction.type) {
@@ -202,18 +205,18 @@
                         formInstructionElm.duration.value = currentInstruction.duration || '';
                         formInstructionElm.velocity.value = currentInstruction.velocity || '';
                         // formInstruction.editableInstruction = instruction;
-                        formInstructionElm.classList.remove('hidden');
+                        formInstructionElm.firstElementChild.removeAttribute('disabled');
 
                         var instructionList = this.player.getInstructions(this.gridCurrentGroup);
                         var instructionPosition = this.player.getInstructionPosition(currentInstruction, this.gridCurrentGroup);
                         var nextPause = findNextInstruction('pause', instructionList, instructionPosition);
                         formRowElm.duration.value = nextPause.duration || '';
-                        formRowElm.classList.remove('hidden');
+                        formRowElm.firstElementChild.removeAttribute('disabled');
 
                         break;
 
                     case 'group':
-                        formGroup.classList.remove('hidden');
+                        // formGroup.classList.remove('hidden');
                         break;
                 }
             }
@@ -409,6 +412,10 @@
             nextPause.duration = parseFloat(form.duration.value);
             editor.render();
         },
+        'group:edit': function(e, form, editor) {
+            editor.gridCurrentGroup = form.groupName.value;
+            editor.render();
+        },
         'song:edit': function(e, form, editor) {
             const song = editor.getSong();
             // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
@@ -436,7 +443,34 @@
             'ArrowLeft': handleGridKeyboardEvent,
             'ArrowDown': handleGridKeyboardEvent,
             'ArrowUp': handleGridKeyboardEvent,
-            ' ': function(e, editor) { editor.player.play(); }
+            ' ': function(e, editor) { editor.player.play(); },
+            'PlayFrequency': function(e, editor) {
+                let selectedInstruction = editor.selectedInstructions[0]; // editor.gridDataGetInstruction(selectedData);
+
+                let selectedData = editor.querySelector('.grid-data.selected');
+                if(selectedData && selectedData.classList.contains('grid-data-new')) {
+                    let insertPosition = parseInt(selectedData.getAttribute('data-position'));
+                    selectedInstruction = Object.assign({}, selectedInstruction, {
+                        type: 'note',
+                        instrument: 0,
+                        frequency: 'C4',
+                        duration: parseFloat(selectedData.parentNode.getAttribute('data-duration'))
+                    }); // new instruction
+                    editor.selectedInstructions = [selectedInstruction]; // select new instruction
+                    editor.player.insertInstruction(selectedInstruction, editor.gridCurrentGroup, insertPosition);
+                    if(selectedData.classList.contains('grid-data-new-last'))
+                        editor.player.insertInstruction({
+                            type: 'pause',
+                            duration: parseFloat(selectedData.getAttribute('data-insert-pause')),
+                        }, editor.gridCurrentGroup, insertPosition+1);
+                    // editor.render();
+                }
+
+                selectedInstruction.frequency = editor.keyboardLayout[e.key];
+                editor.render();
+                editor.querySelector('.music-editor').focus();
+                editor.playInstruction(selectedInstruction);
+            }
         },
         'alt': {
         },
@@ -516,50 +550,18 @@
                     return;
                 }
 
-                let selectedInstruction = editor.selectedInstructions[0]; // editor.gridDataGetInstruction(selectedData);
-
-                let selectedData = editor.querySelector('.grid-data.selected');
-                if(selectedData && selectedData.classList.contains('grid-data-new')) {
-                    let insertPosition = parseInt(selectedData.getAttribute('data-position'));
-                    selectedInstruction = Object.assign({}, selectedInstruction, {
-                        type: 'note',
-                        instrument: 0,
-                        frequency: 'C4',
-                        duration: parseFloat(selectedData.parentNode.getAttribute('data-duration'))
-                    }); // new instruction
-                    editor.selectedInstructions = [selectedInstruction]; // select new instruction
-                    editor.player.insertInstruction(selectedInstruction, editor.gridCurrentGroup, insertPosition);
-                    if(selectedData.classList.contains('grid-data-new-last'))
-                        editor.player.insertInstruction({
-                            type: 'pause',
-                            duration: parseFloat(selectedData.getAttribute('data-insert-pause')),
-                        }, editor.gridCurrentGroup, insertPosition+1);
-                    // editor.render();
-                }
-                //     || editor.querySelector('.grid-data');
-
-                if(selectedInstruction.frequency) {
-                    const keyboard = DEFAULT_KEYBOARD_LAYOUT;
-                    if(keyboard[e.key]) {
-                        e.preventDefault();
-                        selectedInstruction.frequency = keyboard[e.key];
-                        editor.render();
-                        editor.querySelector('.music-editor').focus();
-                        editor.playInstruction(selectedInstruction);
-                        return;
-                    }
+                if(editor.keyboardLayout[e.key]) {
+                    e.preventDefault();
+                    keyboardCommands.default.PlayFrequency(e, editor);
+                    return;
                 }
 
                 if(!e.defaultPrevented)
                     console.info('Unused input', e);
                 break;
 
-            case 'keyup':
-                // const i = depressedKeys.indexOf(e.key);
-                // if(i > -1) {
-                //     depressedKeys.splice(i, 1);
-                // }
-                break;
+            // case 'keyup':
+            //     break;
 
             case 'click':
                 let classList = e.target.classList;
@@ -606,7 +608,7 @@
             return;
         }
         if(gridItem.classList.contains('grid-row')) {
-            editor.gridDataSelect(gridItem.firstChild, true);
+            editor.gridDataSelect(gridItem.lastChild.previousElementSibling, true);
             return;
         }
 
@@ -643,7 +645,9 @@
         var beatsPerMinute = song.beatsPerMinute;
         var beatsPerMeasure = song.beatsPerMeasure;
         // var pausesPerBeat = song.pausesPerBeat;
-        const instructionList = song.instructions;
+        const instructionList = song.instructions[editor.gridCurrentGroup];
+        if(!instructionList)
+            throw new Error("Could not find instruction group: " + editor.gridCurrentGroup);
 
         let odd = false, selectedRow = false;
 
@@ -719,10 +723,10 @@
         return editorHTML;
     }
 
-    function renderEditorFormOptions(optionType, editor) {
+    function getEditorFormOptions(optionType, editor, callback) {
+        let html = '';
         let options = [];
         let song = editor ? editor.getSong() : null;
-        var selectedCallback = function() { return false; };
         switch(optionType) {
             case 'song-instruments':
                 for(let instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
@@ -774,26 +778,38 @@
 
             case 'beats-per-measure':
                 for(let vi=1; vi<=12; vi++) {
-                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`]);
+                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`, vi === song.beatsPerMeasure]);
                 }
-                selectedCallback = function(vi) { return vi === song.beatsPerMeasure; };
                 break;
 
             case 'beats-per-minute':
                 for(let vi=40; vi<=300; vi+=10) {
                     options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`, vi === song.beatsPerMinute]);
                 }
-                selectedCallback = function(vi) { return vi === song.beatsPerMinute; };
+                break;
+
+            case 'groups':
+                options = [];
+                Object.keys(song.instructions).map(function(key, i) {
+                    options.push([key, key, editor.gridCurrentGroup === key]);
+                });
                 break;
         }
 
-        let optionHTML = '';
         for (let oi=0; oi<options.length; oi++) {
             const value = options[oi][0];
             const label = options[oi][1] || value;
-            const selected = selectedCallback(value) ? ` selected="selected"` : '';
-            optionHTML += `<option value="${value}" ${selected}>${label}</option>`;
+            const selected = options[oi][2];
+            html += callback.call(this, value, label, selected);
         }
+        return html;
+    }
+
+    function renderEditorFormOptions(optionType, editor) {
+        let optionHTML = '';
+        getEditorFormOptions(optionType, editor, function(value, label, selected) {
+            optionHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`;
+        });
         return optionHTML;
     }
 
@@ -871,69 +887,81 @@
                     <form class="form-song-bpm" data-command="song:edit">
                         <select name="beats-per-minute" title="Beats per minute">
                             <optgroup label="Beats per minute">
-                                ${renderEditorFormOptions('beats-per-minute', this)}
+                            ${getEditorFormOptions('beats-per-minute', this, (value, label, selected) =>
+                                `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
+                            )}
                             </optgroup>
                         </select>
                         <select name="beats-per-measure" title="Beats per measure">
                             <optgroup label="Beats per measure">
-                                ${renderEditorFormOptions('beats-per-measure', this)}
+                            ${getEditorFormOptions('beats-per-measure', this, (value, label, selected) =>
+                                `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
+                            )}
                             </optgroup>
                         </select>
                     </form>
                     <form class="form-song-info" data-command="song:info">
                         <button name="info" disabled>Info</button>
                     </form>
+                    
+                    <br/>
+        
+                    <label class="row-label">Group:</label>
+                    ${getEditorFormOptions('groups', this, (value, label, selected) => 
+                        `<form class="form-group" data-command="group:edit">`
+                        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
+                        + `</form> `
+                    )}
         
                     <br/>
          
-                    <form class="form-group" data-command="group:edit">
-                        <label>Group:</label>
-                        <button name="edit">Edit</button>
-                        <button name="remove" disabled>-</button>
-                    </form>
                     <form class="form-row" data-command="row:edit">
-                        <label class="row-label">Row:</label>
-                        <select name="duration" title="Row Duration">
-                            <optgroup label="Row Duration">
-                                ${renderEditorFormOptions('durations')}
-                            </optgroup>
-                        </select>
-                        <button name="new" disabled>+</button>
-                        <button name="duplicate" disabled>c</button>
-                        <button name="remove" disabled>-</button>
-                        <button name="split" disabled>Split</button>
+                        <fieldset>
+                            <label class="row-label">Row:</label>
+                            <select name="duration" title="Row Duration">
+                                <optgroup label="Row Duration">
+                                    ${renderEditorFormOptions('durations')}
+                                </optgroup>
+                            </select>
+                            <button name="new" disabled>+</button>
+                            <button name="duplicate" disabled>c</button>
+                            <button name="remove" disabled>-</button>
+                            <button name="split" disabled>Split</button>
+                        </fieldset>
                     </form>
                     
                     <br/>
         
                     <form class="form-instruction" data-command="instruction:edit">
-                        <label class="row-label">Note:</label>
-                        <select name="instrument" title="Note Instrument">
-                            <optgroup label="Song Instruments">
-                                ${renderEditorFormOptions('song-instruments', this)}
-                            </optgroup>
-                            <optgroup label="Available Instruments">
-                                ${renderEditorFormOptions('instruments-available')}
-                            </optgroup>
-                        </select>
-                        <select name="frequency" title="Note Frequency">
-                            <optgroup label="Frequency">
-                                ${renderEditorFormOptions('frequencies')}
-                            </optgroup>
-                        </select>
-                        <select name="duration" title="Note Duration">
-                            <optgroup label="Note Duration">
-                                ${renderEditorFormOptions('durations')}
-                            </optgroup>
-                        </select>
-                        <select name="velocity" title="Note Velocity">
-                            <optgroup label="Velocity">
-                                <option value="">Default</option>
-                                ${renderEditorFormOptions('velocities')}
-                            </optgroup>
-                        </select>
-                        <button name="duplicate" disabled>+</button>
-                        <button name="remove" disabled>-</button>
+                        <fieldset>
+                            <label class="row-label">Note:</label>
+                            <select name="instrument" title="Note Instrument">
+                                <optgroup label="Song Instruments">
+                                    ${renderEditorFormOptions('song-instruments', this)}
+                                </optgroup>
+                                <optgroup label="Available Instruments">
+                                    ${renderEditorFormOptions('instruments-available')}
+                                </optgroup>
+                            </select>
+                            <select name="frequency" title="Note Frequency">
+                                <optgroup label="Frequency">
+                                    ${renderEditorFormOptions('frequencies')}
+                                </optgroup>
+                            </select>
+                            <select name="duration" title="Note Duration">
+                                <optgroup label="Note Duration">
+                                    ${renderEditorFormOptions('durations')}
+                                </optgroup>
+                            </select>
+                            <select name="velocity" title="Note Velocity">
+                                <optgroup label="Velocity">
+                                    <option value="">Default</option>
+                                    ${renderEditorFormOptions('velocities')}
+                                </optgroup>
+                            </select>
+                            <button name="duplicate" disabled>+</button>
+                            <button name="remove" disabled>-</button>
+                        </fieldset>
                     </form>
                 </div>
                 <div class="editor-grid" data-group="${this.gridCurrentGroup || ''}">

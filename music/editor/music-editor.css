@@ -230,6 +230,7 @@
     padding: 4px 0px;
     color: black;
 }
+
 .music-editor .editor-panel form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
@@ -237,7 +238,11 @@
     padding: 2px 0px;
     display: inline-block;
 }
-
+.music-editor .editor-panel form fieldset {
+    border: 0;
+    padding: 0 0;
+    margin: 0 0;
+}
 
 .music-editor .editor-panel label.row-label {
     display: inline-block;
@@ -254,7 +259,7 @@
 .music-editor .editor-panel select,
 .music-editor .editor-panel button {
     border-radius: 5px;
-    border: 1px solid #AAA;
+    border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
     max-width: 100px;
     cursor: pointer;
@@ -290,4 +295,9 @@
 .music-editor .editor-panel button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+.music-editor .editor-panel button.selected {
+    border: 1px inset;
+    font-weight: bold;
 }
