@@ -25,7 +25,6 @@
         getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
         getSong() { return this.song; }
         getStartingBeatsPerMinute() { return this.song.beatsPerMinute; }
-        getStartingBeatsPerMeasure() { return this.song.beatsPerMeasure; }
 
         connectedCallback() {
             this.addEventListener('keydown', this.onInput.bind(this));
@@ -33,9 +32,7 @@
             this.addEventListener('click', this.onInput.bind(this));
 
             if(this.getSongURL())
-                this.loadSong(this.getSongURL(), function() {
-
-                }.bind(this));
+                this.loadSong(this.getSongURL());
 
             if(!this.getAttribute('tabindex'))
                 this.setAttribute('tabindex', '1');
@@ -59,7 +56,7 @@
 
         processInstructions(instructionList, songInstruments) {
             let lastInstruction = instructionList[0];
-            var pauseNotes = [];
+            let pauseNotes = [];
             for (let i = 0; i < instructionList.length; i++) {
                 let instruction = instructionList[i];
                 switch (typeof instruction) {
@@ -93,7 +90,7 @@
                         break;
 
                     case 'pause':
-                        for(var pni=0; pni<pauseNotes.length; pni++)
+                        for(let pni=0; pni<pauseNotes.length; pni++)
                             pauseNotes[pni].duration = instruction.duration;
                         pauseNotes = [];
                         break;
@@ -145,7 +142,7 @@
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
-            var currentTime = this.getAudioContext().currentTime;
+            const currentTime = this.getAudioContext().currentTime;
 
             const noteEvent = instrument(this.getAudioContext(), {
                 frequency: noteFrequency,
@@ -240,13 +237,13 @@
 
         eachInstruction(instructionList, callback) {
 
-            var currentBPM = this.getStartingBeatsPerMinute();
+            const currentBPM = this.getStartingBeatsPerMinute();
             return playGroup.call(this, instructionList, currentBPM, 0);
 
             function playGroup(instructionList, currentBPM, groupPlaytimeOffset) {
                 let currentPosition = 0;
-                var currentGroupPlayTime = groupPlaytimeOffset;
-                var maxPlayTime = 0;
+                let currentGroupPlayTime = groupPlaytimeOffset;
+                let maxPlayTime = 0;
                 for(let i=0; i<instructionList.length; i++) {
                     const instruction = instructionList[i];
 
@@ -266,7 +263,7 @@
                             let instructionGroupList = this.song.instructionGroups[instruction.group];
                             if(!instructionGroupList)
                                 throw new Error("Instruction group not found: " + instruction.group);
-                            var subGroupPlayTime = playGroup.call(this, instructionGroupList, currentBPM, currentGroupPlayTime);
+                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, currentBPM, currentGroupPlayTime);
                             if(subGroupPlayTime > maxPlayTime)
                                 maxPlayTime = subGroupPlayTime;
                             break;
@@ -347,15 +344,15 @@
                 console.info("Playing paused");
                 return;
             }
-            var totalPlayTime = this.playInstructions(
+            const totalPlayTime = this.playInstructions(
                 this.song.instructions,
                 this.seekPosition,
                 this.seekLength
             );
 
             // this.seekPosition += this.seekLength;
-            var currentTime = this.getAudioContext().currentTime;
-            var finishTime = this.startTime + totalPlayTime;
+            const currentTime = this.getAudioContext().currentTime;
+            const finishTime = this.startTime + totalPlayTime;
             // this.seekPosition = currentTime - this.startTime;
             this.seekPosition += this.seekLength;
 
@@ -405,13 +402,13 @@
             if(!fullPath)
                 throw new Error("Invalid instrument path");
 
-            var pathSplit = fullPath.split(':');
-            var pathDomain = pathSplit[0];
+            const pathSplit = fullPath.split(':');
+            const pathDomain = pathSplit[0];
             if(!window.instruments[pathDomain])
                 throw new Error("Instrument domain not found: " + pathDomain);
-            var collection = window.instruments[pathDomain];
+            const collection = window.instruments[pathDomain];
 
-            var pathInstrument = pathSplit[1];
+            const pathInstrument = pathSplit[1];
             if(!collection[pathInstrument])
                 throw new Error("Instrument not found: " + pathInstrument);
 

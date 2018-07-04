@@ -647,7 +647,7 @@
 
         let odd = false, selectedRow = false;
 
-        let editorHTML = '', rowHTML = '', pauseCount = 0, lastPause = 0;
+        let editorHTML = '', rowHTML = '', songPosition = 0, lastPause = 0;
         for(let i=0; i<instructionList.length; i++) {
             const instruction = instructionList[i];
 
@@ -662,9 +662,9 @@
                     rowHTML += `<div class="grid-data grid-data-note ${noteCSS.join(' ')}" data-position="${i}">`;
                     rowHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                     rowHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
-                    if (instruction.duration) //  && this.instruction.duration !== this.parentNode.instruction.duration)
+                    if (typeof instruction.duration !== 'undefined')
                         rowHTML += `<div class="grid-parameter duration${nextPause === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
-                    if (instruction.velocity)
+                    if (typeof instruction.velocity !== 'undefined')
                         rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                     rowHTML += `</div>`;
                     break;
@@ -687,9 +687,13 @@
                     //     pauseCSS.push('measure-start');
                     // if (pauseCount % (pausesPerBeat * beatsPerMeasure) === pausesPerBeat * beatsPerMeasure - 1)
                     //     pauseCSS.push('measure-end');
-                    pauseCount++;
+                    if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.duration) / beatsPerMeasure))
+                        pauseCSS.push('measure-end');
+
 
                     lastPause = instruction.duration;
+                    songPosition += instruction.duration;
+
 
                     if(selectedRow)
                         pauseCSS.push('selected');
@@ -769,18 +773,15 @@
                 break;
 
             case 'beats-per-measure':
-                options = [
-                    [1,  '1 Beat per measure'],
-                    [2,  '2 Beats per measure'],
-                    [3,  '3 Beats per measure'],
-                    [4,  '4 Beats per measure'],
-                ];
+                for(let vi=1; vi<=12; vi++) {
+                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`]);
+                }
                 selectedCallback = function(vi) { return vi === song.beatsPerMeasure; };
                 break;
 
             case 'beats-per-minute':
                 for(let vi=40; vi<=300; vi+=10) {
-                    options.push([vi, vi+ ' bpm', vi === song.beatsPerMinute]);
+                    options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`, vi === song.beatsPerMinute]);
                 }
                 selectedCallback = function(vi) { return vi === song.beatsPerMinute; };
                 break;
@@ -840,21 +841,21 @@
                                 ${renderEditorMenuLoadFromMemory()}
                             </li>
                             <li><a class="menu-item" data-command="load:file">Open from file</a></li>
-                            <li><a class="menu-item" data-command="load:url">Open from url</a></li>
+                            <li><a class="menu-item disabled" data-command="load:url">Open from url</a></li>
                             
                             <hr/>
                             <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
-                            <li><a class="menu-item" data-command="save:file">Save to file</a></li>
+                            <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
                             
                             <hr/>
-                            <li><a class="menu-item" data-command="export:file">Export to audio file</a></li>
+                            <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
                         </ul>
                     </li>
                     
-                    <li><a class="menu-item" tabindex="3">View</a></li>
-                    <li><a class="menu-item" tabindex="4">Editor</a></li>
-                    <li><a class="menu-item" tabindex="5">Instruments</a></li>
-                    <li><a class="menu-item" tabindex="6">Collaborate</a></li>
+                    <li><a class="menu-item disabled" tabindex="3">View</a></li>
+                    <li><a class="menu-item disabled" tabindex="4">Editor</a></li>
+                    <li><a class="menu-item disabled" tabindex="5">Instruments</a></li>
+                    <li><a class="menu-item disabled" tabindex="6">Collaborate</a></li>
                 </div>
                 <div class="editor-panel">
                     <label class="row-label">Song:</label>
@@ -868,19 +869,19 @@
                         <button name="resume">Resume</button>
                     </form>
                     <form class="form-song-bpm" data-command="song:edit">
-                        <select name="beats-per-minute">
+                        <select name="beats-per-minute" title="Beats per minute">
                             <optgroup label="Beats per minute">
                                 ${renderEditorFormOptions('beats-per-minute', this)}
                             </optgroup>
                         </select>
-                        <select name="beats-per-measure">
+                        <select name="beats-per-measure" title="Beats per measure">
                             <optgroup label="Beats per measure">
                                 ${renderEditorFormOptions('beats-per-measure', this)}
                             </optgroup>
                         </select>
                     </form>
                     <form class="form-song-info" data-command="song:info">
-                        <button name="info">Info</button>
+                        <button name="info" disabled>Info</button>
                     </form>
         
                     <br/>
@@ -888,32 +889,26 @@
                     <form class="form-group" data-command="group:edit">
                         <label>Group:</label>
                         <button name="edit">Edit</button>
-                        <button name="remove">-</button>
+                        <button name="remove" disabled>-</button>
                     </form>
                     <form class="form-row" data-command="row:edit">
                         <label class="row-label">Row:</label>
-                        <button name="duplicate">+</button>
-                        <button name="remove">-</button>
-                        <select name="duration">
+                        <select name="duration" title="Row Duration">
                             <optgroup label="Row Duration">
                                 ${renderEditorFormOptions('durations')}
                             </optgroup>
                         </select>
-                        <button name="split">Split</button>
+                        <button name="new" disabled>+</button>
+                        <button name="duplicate" disabled>c</button>
+                        <button name="remove" disabled>-</button>
+                        <button name="split" disabled>Split</button>
                     </form>
                     
                     <br/>
         
                     <form class="form-instruction" data-command="instruction:edit">
                         <label class="row-label">Note:</label>
-                        <button name="duplicate">+</button>
-                        <button name="remove">-</button>
-                        <select name="duration">
-                            <optgroup label="Note Duration">
-                                ${renderEditorFormOptions('durations')}
-                            </optgroup>
-                        </select>
-                        <select name="instrument">
+                        <select name="instrument" title="Note Instrument">
                             <optgroup label="Song Instruments">
                                 ${renderEditorFormOptions('song-instruments', this)}
                             </optgroup>
@@ -921,16 +916,24 @@
                                 ${renderEditorFormOptions('instruments-available')}
                             </optgroup>
                         </select>
-                        <select name="frequency">
+                        <select name="frequency" title="Note Frequency">
                             <optgroup label="Frequency">
                                 ${renderEditorFormOptions('frequencies')}
                             </optgroup>
                         </select>
-                        <select name="velocity">
+                        <select name="duration" title="Note Duration">
+                            <optgroup label="Note Duration">
+                                ${renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
+                        <select name="velocity" title="Note Velocity">
                             <optgroup label="Velocity">
+                                <option value="">Default</option>
                                 ${renderEditorFormOptions('velocities')}
                             </optgroup>
                         </select>
+                        <button name="duplicate" disabled>+</button>
+                        <button name="remove" disabled>-</button>
                     </form>
                 </div>
                 <div class="editor-grid" data-group="${this.gridCurrentGroup || ''}">

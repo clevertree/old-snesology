@@ -29,7 +29,7 @@
 
         // Velocity
         let gain = context.createGain();
-        gain.gain.value = (note.instruction.velocity || 50) / 100;
+        gain.gain.value = (typeof note.instruction.velocity === 'undefined' ? 100 : note.instruction.velocity) / 100;
 
         // Connect
         osc.connect(gain);

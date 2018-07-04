@@ -121,11 +121,9 @@
 }
 
 
-.music-editor .editor-grid .beat-end{
-    border-bottom: 1px solid #666;
-}
 .music-editor .editor-grid .measure-end {
     border-bottom: 2px solid #555;
+    border-bottom: 1px solid #666;
 }
 
 .music-editor .editor-grid .grid-data:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
@@ -186,6 +184,12 @@
 .music-editor .menu-item > * {
     white-space: nowrap;
 }
+
+.music-editor .menu-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .music-editor .sub-menu {
     display: none;
     border: 1px solid grey;
@@ -253,6 +257,7 @@
     border: 1px solid #AAA;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
     max-width: 100px;
+    cursor: pointer;
 }
 
 .music-editor .editor-panel select[name=instrument] {
@@ -265,15 +270,24 @@
     max-width: 51px;
 }
 .music-editor .editor-panel select[name=velocity] {
-    max-width: 46px;
+    max-width: 62px;
 }
 .music-editor .editor-panel select[name=pause] {
     max-width: 100px;
 }
 .music-editor .editor-panel select[name=beats-per-minute] {
-    max-width: 77px;
+    max-width: 138px;
+}
+.music-editor .editor-panel select[name=beats-per-measure] {
+    max-width: 133px;
 }
 
 .music-editor:not(.playing) form.form-song-pause { display: none; }
 .music-editor.playing form.form-song-play { display: none; }
 .music-editor:not(.paused) form.form-song-resume { display: none; }
+
+.music-editor .editor-panel select:disabled,
+.music-editor .editor-panel button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}

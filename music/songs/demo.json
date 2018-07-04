@@ -9,7 +9,7 @@
     "instruments/oscillator.js"
   ],
   "instruments": [
-    {"path": "snesology.org:oscillator.sawtooth", "name": "sawtooth"},
+    {"path": "snesology.org:oscillator.square", "name": "square"},
     {"path": "snesology.org:oscillator.triangle", "name": "triangle"}
   ],
   "instructions": [
