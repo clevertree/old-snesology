@@ -16,7 +16,7 @@
     "root": [
       "@seq",
       2,
-      {"type": "group", "group": "seq", "groupOptions": {"defaultVelocity": 40}},
+      {"type": "group", "group": "seq", "velocity": 40},
       1
     ],
     "seq": [

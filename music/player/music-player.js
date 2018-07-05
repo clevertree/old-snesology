@@ -61,7 +61,7 @@
             const instructionList = songData.instructions[groupName];
             if(!instructionList)
                 throw new Error("Group instructions not found: " + groupName);
-            let lastInstruction = instructionList[0];
+            let lastInstruction = {}; //instructionList[0];
             let pauseNotes = [];
             for (let i = 0; i < instructionList.length; i++) {
                 let instruction = instructionList[i];
@@ -149,21 +149,24 @@
             }.bind(this));
         }
 
-        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, groupOptions) {
+        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, stats) {
             const instrumentPath = this.getInstrumentPath(instrumentID);
             const instrument = this.getInstrument(instrumentPath);
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
             const currentTime = this.getAudioContext().currentTime;
-
+            let calculatedVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
+            if(stats.groupInstruction.velocity)
+                calculatedVelocity *= stats.groupInstruction.velocity/100;
             const noteEvent = instrument(this.getAudioContext(), {
                 frequency: noteFrequency,
                 startTime: noteStartTime,
                 startOffset: noteStartTime,
                 duration: noteDuration,
+                calculatedVelocity: calculatedVelocity,
                 instruction: instruction,
-                groupOptions: groupOptions || {},
+                stats: stats || {},
                 instrumentPath: instrumentPath,
             });
 
@@ -226,26 +229,26 @@
             return p;
         }
 
-        playInstruction(instruction, noteStartTime, groupOptions) {
+        playInstruction(instruction, noteStartTime, stats) {
             if(instruction.type === 'note') {
-                const bpm = groupOptions.currentBPM || 60;
+                const bpm = stats.currentBPM || 60;
                 const instrumentName = instruction.instrument;
                 const noteFrequency = instruction.frequency;
                 const noteDuration = (instruction.duration || 1) * (60 / bpm);
-                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, groupOptions);
+                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, stats);
             }
             return null;
         }
 
         playInstructions(instructionList, seekPosition, seekLength) {
             instructionList = instructionList || this.song.instructions;
-            return this.eachInstruction(instructionList, function(noteInstruction, groupOptions) {
-                if(groupOptions.absolutePlaytime < seekPosition)
+            return this.eachInstruction(instructionList, function(noteInstruction, stats) {
+                if(stats.absolutePlaytime < seekPosition)
                     return;   // Instructions were already played
-                if(seekLength && groupOptions.absolutePlaytime >= seekPosition + seekLength)
+                if(seekLength && stats.absolutePlaytime >= seekPosition + seekLength)
                     return;
-                // console.log("Note played", noteInstruction, options, seekPosition, seekLength);
-                this.playInstruction(noteInstruction, this.startTime + groupOptions.absolutePlaytime, groupOptions);
+                // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
+                this.playInstruction(noteInstruction, this.startTime + stats.absolutePlaytime, stats);
             }.bind(this));
         }
 
@@ -258,31 +261,29 @@
                 "parentPlaytime": 0
             });
 
-            function playGroup(instructionList, options) {
-                options = options || {};
-                options.currentBPM = options.parentBPM;
-                options.parentPosition = options.parentPosition || 0;
-                options.groupPosition = 0;
-                options.groupPlaytime = 0;
-                options.maxPlaytime = 0;
+            function playGroup(instructionList, stats) {
+                stats = Object.assign({}, stats);
+                stats.currentBPM = stats.parentBPM;
+                stats.parentPosition = stats.parentPosition || 0;
+                stats.groupPosition = 0;
+                stats.groupPlaytime = 0;
+                stats.maxPlaytime = 0;
                 for(let i=0; i<instructionList.length; i++) {
                     const instruction = instructionList[i];
 
                     switch(instruction.type) {
                         case 'note':
-                            let noteOptions = Object.assign({}, options, {
-                                "parentBPM": options.currentBPM,
-                                "absolutePosition": options.groupPosition + options.parentPosition,
-                                "absolutePlaytime": options.groupPlaytime + options.parentPlaytime
-                            });
-                            callback(instruction, noteOptions);
+                            stats.parentBPM = stats.currentBPM;
+                            stats.absolutePosition = stats.groupPosition + stats.parentPosition;
+                            stats.absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
+                            callback(instruction, stats);
                             break;
 
                         case 'pause':
-                            options.groupPosition += instruction.duration;
-                            options.groupPlaytime += instruction.duration * (60 / options.currentBPM);
-                            if(options.groupPlaytime > options.maxPlaytime)
-                                options.maxPlaytime = options.groupPlaytime;
+                            stats.groupPosition += instruction.duration;
+                            stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
+                            if(stats.groupPlaytime > stats.maxPlaytime)
+                                stats.maxPlaytime = stats.groupPlaytime;
                             break;
 
                         case 'group':
@@ -292,22 +293,21 @@
                             if(!instructionGroupList)
                                 throw new Error("Instruction group not found: " + instruction.group);
                             // console.log("Group Offset", instruction.group, currentGroupPlayTime);
-                            let groupOptions = Object.assign({}, options, instruction.groupOptions || {}, {
-                                "parentBPM": options.currentBPM,
-                                "parentPosition": options.groupPosition + options.parentPosition,
-                                "parentPlaytime": options.groupPlaytime + options.parentPlaytime
-                            });
-                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, groupOptions);
-                            if(subGroupPlayTime > options.maxPlaytime)
-                                options.maxPlaytime = subGroupPlayTime;
+                            stats.parentBPM = stats.currentBPM;
+                            stats.parentPosition = stats.groupPosition + stats.parentPosition;
+                            stats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
+                            stats.groupInstruction = instruction;
+                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, stats);
+                            if(subGroupPlayTime > stats.maxPlaytime)
+                                stats.maxPlaytime = subGroupPlayTime;
                             break;
                         default:
                             console.warn("Unknown instruction type: " + instruction.type, instruction);
                     }
                 }
-                if(options.groupPlaytime > options.maxPlaytime)
-                    options.maxPlaytime = options.groupPlaytime;
-                return options.maxPlaytime;
+                if(stats.groupPlaytime > stats.maxPlaytime)
+                    stats.maxPlaytime = stats.groupPlaytime;
+                return stats.maxPlaytime;
             }
         }
 
