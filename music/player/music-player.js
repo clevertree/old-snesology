@@ -149,7 +149,7 @@
             }.bind(this));
         }
 
-        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction) {
+        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, groupOptions) {
             const instrumentPath = this.getInstrumentPath(instrumentID);
             const instrument = this.getInstrument(instrumentPath);
             if(instrument.getNamedFrequency)
@@ -163,6 +163,7 @@
                 startOffset: noteStartTime,
                 duration: noteDuration,
                 instruction: instruction,
+                groupOptions: groupOptions || {},
                 instrumentPath: instrumentPath,
             });
 
@@ -225,25 +226,26 @@
             return p;
         }
 
-        playInstruction(instruction, noteStartTime, bpm) {
+        playInstruction(instruction, noteStartTime, groupOptions) {
             if(instruction.type === 'note') {
+                const bpm = groupOptions.currentBPM || 60;
                 const instrumentName = instruction.instrument;
                 const noteFrequency = instruction.frequency;
-                const noteDuration = (instruction.duration || 1) * (60 / (bpm || 60));
-                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction);
+                const noteDuration = (instruction.duration || 1) * (60 / bpm);
+                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, groupOptions);
             }
             return null;
         }
 
         playInstructions(instructionList, seekPosition, seekLength) {
             instructionList = instructionList || this.song.instructions;
-            return this.eachInstruction(instructionList, function(noteInstruction, options) {
-                if(options.absolutePlaytime < seekPosition)
+            return this.eachInstruction(instructionList, function(noteInstruction, groupOptions) {
+                if(groupOptions.absolutePlaytime < seekPosition)
                     return;   // Instructions were already played
-                if(seekLength && options.absolutePlaytime >= seekPosition + seekLength)
+                if(seekLength && groupOptions.absolutePlaytime >= seekPosition + seekLength)
                     return;
                 // console.log("Note played", noteInstruction, options, seekPosition, seekLength);
-                this.playInstruction(noteInstruction, this.startTime + options.absolutePlaytime, options.currentBPM);
+                this.playInstruction(noteInstruction, this.startTime + groupOptions.absolutePlaytime, groupOptions);
             }.bind(this));
         }
 
