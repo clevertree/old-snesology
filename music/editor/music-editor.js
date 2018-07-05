@@ -1,6 +1,6 @@
 /**
  * Editor requires a modern browser
- * One groups displays at a time. Columns imply simultaneous instructions. Pauses are implied by the scale
+ * One groups displays at a time. Columns imply simultaneous instructions.
  */
 
 (function() {
@@ -11,15 +11,14 @@
     class MusicEditorElement extends HTMLElement {
         constructor() {
             super();
-            this.depressedKeys = [];
             this.config = DEFAULT_CONFIG;
-            this.gridCurrentGroup = DEFAULT_GROUP;
+            this.gridGroupPath = [DEFAULT_GROUP];
             this.selectedInstructions = [];
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
         }
 
         get player() { return this.playerElement; }
-
+        
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
 
@@ -44,9 +43,9 @@
 
                 if(this.getSongURL())
                     this.playerElement.loadSong(this.getSongURL(), function() {
-                        this.gridCurrentGroup = this.getSong().root || DEFAULT_GROUP;
+                        this.gridGroupPath = [this.getSong().root || DEFAULT_GROUP];
                         this.render();
-                        // this.selectInstructions(this.getSong().getInstructions(this.gridCurrentGroup)[0]);
+                        // this.selectInstructions(this.getSong().getInstructions(this.gridGroupPath[0])[0]);
                     }.bind(this));
             }.bind(this));
         }
@@ -85,7 +84,7 @@
 
         gridDataDelete(dataElm) {
             var instruction = this.gridDataGetInstruction(dataElm);
-            const instructionList = this.player.getInstructions(this.gridCurrentGroup);
+            const instructionList = this.player.getInstructions(this.gridGroupPath[0]);
             var p = instructionList.indexOf(instruction);
             if(p === -1)
                 throw new Error("Instruction not found");
@@ -99,7 +98,7 @@
 
         gridDataGetInstruction(gridElm) {
             let position = parseInt(gridElm.getAttribute('data-position'));
-            let instruction = this.player.getInstructions(this.gridCurrentGroup)[position];
+            let instruction = this.player.getInstructions(this.gridGroupPath[0])[position];
             if(!instruction)
                 throw new Error("Instruction not found at position: " + position);
             return instruction;
@@ -107,7 +106,7 @@
 
         findAssociatedElement(instruction) {
             let instructionGroup = this.player.findInstructionGroup(instruction);
-            if(instructionGroup !== this.gridCurrentGroup)
+            if(instructionGroup !== this.gridGroupPath[0])
                 return false;
             let position = this.player.getInstructionPosition(instruction, instructionGroup);
             return this.findGridDataPosition(position);
@@ -132,9 +131,17 @@
             this.render();
         }
 
-        render() {
+        render(focus) {
             this.innerHTML = renderEditorContent.call(this);
             this.formUpdate();
+            let selectedData = this.querySelector('.grid-data.selected');
+            if(!selectedData) {
+                selectedData = this.querySelector('.grid-data');
+                this.gridDataSelect(selectedData);
+            }
+            if(focus === true || typeof focus === 'undefined') {
+                this.querySelector('.music-editor').focus();
+            }
         }
 
         // Player commands
@@ -177,8 +184,7 @@
                 instruction1,
                 instruction2,
             );
-            this.render();
-            this.querySelector('.music-editor').focus();
+            this.render(true);
             // this.formUpdate(instruction1);
             // this.findAssociatedElement(instruction1).select();
         }
@@ -207,8 +213,8 @@
                         // formInstruction.editableInstruction = instruction;
                         formInstructionElm.firstElementChild.removeAttribute('disabled');
 
-                        var instructionList = this.player.getInstructions(this.gridCurrentGroup);
-                        var instructionPosition = this.player.getInstructionPosition(currentInstruction, this.gridCurrentGroup);
+                        var instructionList = this.player.getInstructions(this.gridGroupPath[0]);
+                        var instructionPosition = this.player.getInstructionPosition(currentInstruction, this.gridGroupPath[0]);
                         var nextPause = findNextInstruction('pause', instructionList, instructionPosition);
                         formRowElm.duration.value = nextPause.duration || '';
                         formRowElm.firstElementChild.removeAttribute('disabled');
@@ -394,8 +400,7 @@
             instruction.frequency = form.frequency.value;
             instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
-            editor.render();
-            editor.querySelector('.music-editor').focus();
+            editor.render(true);
 
             if(editor.config.previewInstructionsOnSelect !== false)
                 editor.playInstruction(instruction);
@@ -404,8 +409,8 @@
             let instruction = editor.selectedInstructions[0];
             if(!instruction)
                 throw new Error("no instructions are currently selected");
-            var instructionList = editor.player.getInstructions(editor.gridCurrentGroup);
-            var instructionPosition = editor.player.getInstructionPosition(instruction, editor.gridCurrentGroup);
+            var instructionList = editor.player.getInstructions(editor.gridGroupPath[0]);
+            var instructionPosition = editor.player.getInstructionPosition(instruction, editor.gridGroupPath[0]);
             var nextPause = findNextInstruction('pause', instructionList, instructionPosition);
             if(!nextPause)
                 throw new Error("no pauses follow selected instruction");
@@ -413,7 +418,7 @@
             editor.render();
         },
         'group:edit': function(e, form, editor) {
-            editor.gridCurrentGroup = form.groupName.value;
+            editor.gridGroupPath = [form.groupName.value];
             editor.render();
         },
         'song:edit': function(e, form, editor) {
@@ -438,43 +443,21 @@
     };
     const keyboardCommands = {
         'default': {
+            'Enter': handleGridKeyboardEvent,
             'Delete': handleGridKeyboardEvent,
+            'Backspace': handleGridKeyboardEvent,
+            'Escape': handleGridKeyboardEvent,
             'ArrowRight': handleGridKeyboardEvent,
             'ArrowLeft': handleGridKeyboardEvent,
             'ArrowDown': handleGridKeyboardEvent,
             'ArrowUp': handleGridKeyboardEvent,
-            ' ': function(e, editor) { editor.player.play(); },
-            'PlayFrequency': function(e, editor) {
-                let selectedInstruction = editor.selectedInstructions[0]; // editor.gridDataGetInstruction(selectedData);
-
-                let selectedData = editor.querySelector('.grid-data.selected');
-                if(selectedData && selectedData.classList.contains('grid-data-new')) {
-                    let insertPosition = parseInt(selectedData.getAttribute('data-position'));
-                    selectedInstruction = Object.assign({}, selectedInstruction, {
-                        type: 'note',
-                        instrument: 0,
-                        frequency: 'C4',
-                        duration: parseFloat(selectedData.parentNode.getAttribute('data-duration'))
-                    }); // new instruction
-                    editor.selectedInstructions = [selectedInstruction]; // select new instruction
-                    editor.player.insertInstruction(selectedInstruction, editor.gridCurrentGroup, insertPosition);
-                    if(selectedData.classList.contains('grid-data-new-last'))
-                        editor.player.insertInstruction({
-                            type: 'pause',
-                            duration: parseFloat(selectedData.getAttribute('data-insert-pause')),
-                        }, editor.gridCurrentGroup, insertPosition+1);
-                    // editor.render();
-                }
-
-                selectedInstruction.frequency = editor.keyboardLayout[e.key];
-                editor.render();
-                editor.querySelector('.music-editor').focus();
-                editor.playInstruction(selectedInstruction);
-            }
+            'PlayFrequency': handleGridKeyboardEvent,
+            ' ': function(e, editor) { editor.player.play(); }
         },
         'alt': {
         },
         'ctrl': {
+            'Enter': handleGridKeyboardEvent,
             'ArrowRight': handleGridKeyboardEvent,
             'ArrowLeft': handleGridKeyboardEvent,
             'ArrowDown': handleGridKeyboardEvent,
@@ -484,7 +467,7 @@
     };
 
     function handleGridKeyboardEvent(e, editor) {
-        const selectedData = editor.querySelector('.grid-data.selected')
+        let selectedData = editor.querySelector('.grid-data.selected')
             || editor.querySelector('.grid-data');
         let selectedRow = selectedData.parentNode;
         let column = Array.prototype.indexOf.call(selectedData.parentNode.childNodes, selectedData);
@@ -501,8 +484,28 @@
         switch(e.key) {
             case 'Delete':
                 editor.gridDataDelete(selectedData);
+                editor.render(true);
+                break;
+            case 'Escape':
+            case 'Backspace':
+                editor.gridGroupPath.shift();
+                if(editor.gridGroupPath.length === 0)
+                    editor.gridGroupPath = [editor.getSong().root || DEFAULT_GROUP];
+                editor.selectedInstructions = [];
                 editor.render();
-                editor.querySelector('.music-editor').focus();
+                break;
+            case 'Enter':
+                if(selectedData.classList.contains('grid-data-group')) {
+                    if(e.ctrlKey || e.metaKey) {
+                        editor.gridGroupPath.unshift(selectedData.getAttribute('data-group'));
+                        editor.render();
+                    } else {
+                        editor.player.playInstructions(selectedData.getAttribute('data-group'));
+                    }
+                } else {
+                    let selectedInstruction = editor.selectedInstructions[0]; // editor.gridDataGetInstruction(selectedData);
+                    editor.playInstruction(selectedInstruction);
+                }
                 break;
             case 'ArrowRight':
                 if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(selectedData, nextElement);
@@ -520,6 +523,34 @@
                 if (e.ctrlKey || e.metaKey)     editor.gridSwapInstructions(selectedData, previousRowElement);
                 else                            editor.gridDataSelect(previousRowElement || selectedData);
                 break;
+
+            case 'PlayFrequency':
+                let selectedInstruction = editor.selectedInstructions[0]; // editor.gridDataGetInstruction(selectedData);
+
+                selectedData = editor.querySelector('.grid-data.selected');
+                if(selectedData && selectedData.classList.contains('grid-data-new')) {
+                    let insertPosition = parseInt(selectedData.getAttribute('data-position'));
+                    selectedInstruction = Object.assign({}, selectedInstruction, {
+                        type: 'note',
+                        instrument: 0,
+                        frequency: 'C4',
+                        duration: parseFloat(selectedData.parentNode.getAttribute('data-duration'))
+                    }); // new instruction
+                    editor.selectedInstructions = [selectedInstruction]; // select new instruction
+                    editor.player.insertInstruction(selectedInstruction, editor.gridGroupPath[0], insertPosition);
+                    if(selectedData.classList.contains('grid-data-new-last'))
+                        editor.player.insertInstruction({
+                            type: 'pause',
+                            duration: parseFloat(selectedData.getAttribute('data-insert-pause')),
+                        }, editor.gridGroupPath[0], insertPosition+1);
+                    // editor.render();
+                }
+
+                selectedInstruction.frequency = editor.keyboardLayout[e.key];
+                editor.render(true);
+                editor.playInstruction(selectedInstruction);
+                break;
+
         }
 
     }
@@ -645,9 +676,9 @@
         var beatsPerMinute = song.beatsPerMinute;
         var beatsPerMeasure = song.beatsPerMeasure;
         // var pausesPerBeat = song.pausesPerBeat;
-        const instructionList = song.instructions[editor.gridCurrentGroup];
+        const instructionList = song.instructions[editor.gridGroupPath[0]];
         if(!instructionList)
-            throw new Error("Could not find instruction group: " + editor.gridCurrentGroup);
+            throw new Error("Could not find instruction group: " + editor.gridGroupPath[0]);
 
         let odd = false, selectedRow = false;
 
@@ -674,8 +705,10 @@
                     break;
 
                 case 'group':
-                    rowHTML += `<div class="grid-data" data-position="${i}">`;
+                    rowHTML += `<div class="grid-data grid-data-group" data-position="${i}" data-group="${instruction.group}">`;
                     rowHTML +=  `<div class="grid-parameter group">${instruction.group}</div>`;
+                    if (typeof instruction.velocity !== 'undefined')
+                        rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                     rowHTML += `</div>`;
                     break;
 
@@ -791,7 +824,7 @@
             case 'groups':
                 options = [];
                 Object.keys(song.instructions).map(function(key, i) {
-                    options.push([key, key, editor.gridCurrentGroup === key]);
+                    options.push([key, key, editor.gridGroupPath[0] === key]);
                 });
                 break;
         }
@@ -964,7 +997,7 @@
                         </fieldset>
                     </form>
                 </div>
-                <div class="editor-grid" data-group="${this.gridCurrentGroup || ''}">
+                <div class="editor-grid" data-group="${this.gridGroupPath[0] || ''}">
                     ${renderGrid(this)}
                 </div>
             </div>

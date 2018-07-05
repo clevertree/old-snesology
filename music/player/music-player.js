@@ -157,7 +157,7 @@
             noteFrequency = this.getInstructionFrequency(noteFrequency);
             const currentTime = this.getAudioContext().currentTime;
             let calculatedVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
-            if(stats.groupInstruction.velocity)
+            if(stats.groupInstruction && stats.groupInstruction.velocity)
                 calculatedVelocity *= stats.groupInstruction.velocity/100;
             const noteEvent = instrument(this.getAudioContext(), {
                 frequency: noteFrequency,
@@ -240,25 +240,30 @@
             return null;
         }
 
-        playInstructions(instructionList, seekPosition, seekLength) {
-            instructionList = instructionList || this.song.instructions;
-            return this.eachInstruction(instructionList, function(noteInstruction, stats) {
+        playInstructions(instructionGroup, seekPosition, seekLength, startTime) {
+            seekPosition = seekPosition || 0;
+            startTime = startTime || this.getAudioContext().currentTime;
+            // instructionList = instructionList || this.song.instructions;
+            return this.eachInstruction(instructionGroup, function(noteInstruction, stats) {
                 if(stats.absolutePlaytime < seekPosition)
                     return;   // Instructions were already played
                 if(seekLength && stats.absolutePlaytime >= seekPosition + seekLength)
                     return;
                 // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
-                this.playInstruction(noteInstruction, this.startTime + stats.absolutePlaytime, stats);
+                this.playInstruction(noteInstruction, startTime + stats.absolutePlaytime, stats);
             }.bind(this));
         }
 
-        eachInstruction(instructionList, callback) {
 
+        eachInstruction(rootGroup, callback) {
+            rootGroup = rootGroup || DEFAULT_GROUP;
+            var instructionList = this.getInstructions(rootGroup);
             const currentBPM = this.getStartingBeatsPerMinute();
             return playGroup.call(this, instructionList, {
                 "parentBPM": currentBPM,
                 "parentPosition": 0,
-                "parentPlaytime": 0
+                "parentPlaytime": 0,
+                "currentGroup": rootGroup,
             });
 
             function playGroup(instructionList, stats) {
@@ -297,6 +302,7 @@
                             stats.parentPosition = stats.groupPosition + stats.parentPosition;
                             stats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
                             stats.groupInstruction = instruction;
+                            stats.currentGroup = instruction.group;
                             const subGroupPlayTime = playGroup.call(this, instructionGroupList, stats);
                             if(subGroupPlayTime > stats.maxPlaytime)
                                 stats.maxPlaytime = subGroupPlayTime;
@@ -379,9 +385,10 @@
                 return;
             }
             const totalPlayTime = this.playInstructions(
-                this.song.instructions[this.song.root || DEFAULT_GROUP],
+                this.song.root || DEFAULT_GROUP,
                 this.seekPosition,
-                this.seekLength
+                this.seekLength,
+                this.startTime
             );
 
             // this.seekPosition += this.seekLength;
