@@ -14,6 +14,12 @@
   ],
   "instructions": {
     "root": [
+      "@seq",
+      2,
+      {"type": "group", "group": "seq", "groupOptions": {"defaultVelocity": 40}},
+      1
+    ],
+    "seq": [
       {"type": "note", "instrument":0, "frequency":"C4"},
       1,
       "D4",
@@ -31,27 +37,7 @@
       "C5",
       4,
       "C4",
-      2,
-      {"type": "group", "group": "beat"},
-      1
-    ],
-    "beat": [
-      {"type": "note", "instrument":1, "frequency":"C5", "velocity": 25},
-      0.5,
-      "C5",
-      0.5,
-      "C5",
-      0.5,
-      "C5",
-      0.5,
-      "C5",
-      0.5,
-      "C5",
-      0.5,
-      "C5",
-      0.5,
-      "C5",
-      0.5
+      2
     ]
   }
 }
