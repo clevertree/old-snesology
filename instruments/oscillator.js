@@ -27,13 +27,7 @@
         osc.type = oscillatorType;  // set Type
         osc.frequency.value = note.frequency;    // set Frequency (hz)
 
-        // Velocity
-        let gain = context.createGain();
-        gain.gain.value = note.calculatedVelocity / 100;
-
-        // Connect
-        osc.connect(gain);
-        gain.connect(context.destination);
+        note.connect(osc);
 
         // Play note
         osc.start(note.startTime);               // start the oscillator

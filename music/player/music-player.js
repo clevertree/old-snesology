@@ -16,7 +16,7 @@
             super();
             this.audioContext = null;
             this.song = null;
-            this.seekLength = 2;
+            this.seekLength = 1;
             this.seekPosition = 0;
             this.playing = false;
             this.config = DEFAULT_CONFIG;
@@ -156,46 +156,52 @@
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
             const currentTime = this.getAudioContext().currentTime;
-            let calculatedVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
-            if(stats.groupInstruction && stats.groupInstruction.velocity)
-                calculatedVelocity *= stats.groupInstruction.velocity/100;
-            const noteEvent = instrument(this.getAudioContext(), {
+            var context = this.getAudioContext();
+            const noteEventData = {
+                noteEvent: null,
                 frequency: noteFrequency,
                 startTime: noteStartTime,
                 startOffset: noteStartTime,
                 duration: noteDuration,
-                calculatedVelocity: calculatedVelocity,
                 instruction: instruction,
+                groupInstruction: stats.groupInstruction,
                 stats: stats || {},
                 instrumentPath: instrumentPath,
-            });
+                calculateVelocity: function() {
+                    let calculatedVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
+                    if(stats.groupInstruction && stats.groupInstruction.velocity)
+                        calculatedVelocity *= stats.groupInstruction.velocity/100;
+                    return calculatedVelocity;
+                },
+                connectGain: function(source, destination) {
+                    // Velocity
+                    let gain = context.createGain();
+                    gain.gain.value = this.calculateVelocity() / 100;
+                    source.connect(gain);
+                    gain.connect(destination || context.destination);
+                    return gain;
+                },
+                connect: function(source, destination) {
+                    this.connectGain(source, destination);
+                }
+            };
+
+            const noteEvent = instrument(context, noteEventData);
+            noteEventData.noteEvent = noteEvent;
 
             if(noteStartTime > currentTime)
                 setTimeout(function() {
-                    dispatchEvent.call(this, true);
+                    this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
                 }.bind(this), (noteStartTime - currentTime) * 1000);
             else {
                 // Start immediately
-                dispatchEvent.call(this, true);
+                this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
             }
 
             if(noteDuration) {
                 setTimeout(function() {
-                    dispatchEvent.call(this, false);
+                    this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
                 }.bind(this), (noteStartTime - currentTime + noteDuration) * 1000);
-            }
-
-            function dispatchEvent(playing) {
-                const type = playing ? 'note:start' : 'note:end';
-                this.dispatchEvent(new CustomEvent(type, {
-                    detail: {
-                        playing: playing,
-                        instruction: instruction,
-                        startTime: noteStartTime,
-                        duration: noteDuration,
-                        noteEvent: noteEvent
-                    }
-                }));
             }
 
             return noteEvent;
@@ -227,6 +233,14 @@
             if(p === -1)
                 throw new Error("Instruction not found in instruction list");
             return p;
+        }
+
+        getInstructionGroup(instruction) {
+            for(var groupName in this.song.instructions)
+                if(this.song.instructions.hasOwnProperty(groupName))
+                    if(this.song.instructions[groupName].indexOf(instruction) !== -1)
+                        return groupName;
+            throw new Error("Instruction not found in any group");
         }
 
         playInstruction(instruction, noteStartTime, stats) {

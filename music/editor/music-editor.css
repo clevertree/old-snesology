@@ -27,6 +27,7 @@
     background-color: #999;
     height: 18px;
     position: relative;
+    transition: background-color 0.1s ease-out;
 }
 
 .music-editor .editor-grid .grid-row.odd {
@@ -40,6 +41,7 @@
     z-index: 2;
 }
 .music-editor .editor-grid .grid-row.playing {
+    transition: background-color 0s;
     background-color: #609060;
     position: relative;
     box-shadow: #AFA 0px 0px 4px;
@@ -135,7 +137,7 @@
     transition-delay: 0.25s;
 }
 
-.music-editor .editor-grid .grid-pause {
+.music-editor .editor-grid .grid-data-pause {
     position: absolute;
     /* top: 0; */
     right: 0;
@@ -143,7 +145,7 @@
     z-index: 1;
     opacity: 0.3;
 }
-.music-editor .editor-grid .grid-row.selected .grid-pause {
+.music-editor .editor-grid .grid-row.selected .grid-data-pause {
     opacity: 1;
 
 }
@@ -239,9 +241,12 @@
     display: inline-block;
 }
 .music-editor .editor-panel form fieldset {
-    border: 0;
-    padding: 0 0;
-    margin: 0 0;
+    
+border: 0;
+    
+padding: 0 0;
+    
+margin: 0 0;
 }
 
 .music-editor .editor-panel label.row-label {
