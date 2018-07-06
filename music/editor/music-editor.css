@@ -226,6 +226,22 @@
     background-color: #888;
 }
 
+.music-editor .editor-context-menu {
+    position: fixed;
+    display: none;
+    z-index: 99;
+}
+.music-editor .editor-context-menu.show {
+    display: block;
+}
+.music-editor .editor-context-menu.show .sub-menu {
+    /* display: block; */
+    display: inline-block;
+    opacity: 1;
+    max-height: 800px;
+    transition: max-height 2s, opacity 1s;
+    /*transition: max-height 2s;*/
+}
 
 /** Form **/
 .music-editor .editor-panel {

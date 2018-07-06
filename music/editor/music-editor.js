@@ -40,6 +40,7 @@
             this.addEventListener('click', this.onInput.bind(this));
             this.addEventListener('change', this.onInput.bind(this));
             this.addEventListener('submit', this.onInput.bind(this));
+            this.addEventListener('contextmenu', this.onInput.bind(this));
 
             loadScript('music/player/music-player.js', function() {
 
@@ -685,6 +686,16 @@
                     throw new Error("Form command not found: " + formCommandName);
                 formCommand(e, form, editor);
                 break;
+
+            case 'contextmenu':
+                break;
+                var contextMenu = editor.querySelector('.editor-context-menu');
+                console.info("Context menu", contextMenu);
+                contextMenu.classList.add('show');
+                contextMenu.style.left = e.clientX + 'px';
+                contextMenu.style.top = e.clientY + 'px';
+                e.preventDefault();
+                break;
         }
     }
 
@@ -1064,6 +1075,11 @@
                 </div>
                 <div class="editor-grid" data-group="${this.gridGroupPath[0] || ''}">
                     ${renderGrid(this)}
+                </div>
+                <div class="editor-context-menu">
+                    <ul class="sub-menu">
+                        <li><a class="menu-item disabled" data-command="load:url">Context Menu</a></li>
+                    </ul>
                 </div>
             </div>
         `;
