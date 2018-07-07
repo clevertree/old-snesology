@@ -35,6 +35,7 @@
         connectedCallback() {
             // this.render();
 
+            this.addEventListener('contextmenu', this.onInput.bind(this));
             this.addEventListener('keydown', this.onInput.bind(this));
             // this.addEventListener('keyup', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
@@ -142,6 +143,7 @@
                 throw new Error("Instruction not found at position: " + position);
             return instruction;
         }
+
 
         findAssociatedElement(instruction) {
             let instructionGroup = this.player.findInstructionGroup(instruction);
@@ -321,10 +323,42 @@
             }
         }
 
+        // Menu
+
+        openContextMenu(e, target) {
+            var dataElm = null;
+            target = target || e.target;
+            var xy = {x:e.clientX, y:e.clientY};
+
+            clearElementClass('open', '.sub-menu.open');
+            clearElementClass('selected-context-menu', '.selected-context-menu');
+            var contextMenu = this.querySelector('.editor-context-menu');
+            // console.info("Context menu", contextMenu);
+
+            contextMenu.setAttribute('class', 'editor-context-menu');
+            contextMenu.firstElementChild.classList.add('open');
+
+            if(target.classList.contains('grid-parameter'))
+                target = target.parentNode;
+            if(target.classList.contains('grid-data')) {
+                dataElm = target;
+                contextMenu.classList.add('selected-data');
+                contextMenu.classList.add('selected-row');
+                var rect = dataElm.getBoundingClientRect();
+                xy = {x:rect.x + rect.width, y:rect.y + rect.height};
+                this.gridSelectData(dataElm);
+            } else if(target.classList.contains('grid-row')) {
+                contextMenu.classList.add('selected-row');
+            }
+
+            contextMenu.classList.add('show');
+
+            contextMenu.style.left = xy.x + 'px';
+            contextMenu.style.top = xy.y + 'px';
+        }
+
         menuClose() {
-            const openElements = this.querySelectorAll('.sub-menu.open');
-            for(let i=openElements.length-1; i>=0; i--)
-                openElements[i].classList.remove('open');
+            clearElementClass('.sub-menu.open', 'open');
         }
         // Input
 
@@ -344,7 +378,7 @@
 
     function loadScript(scriptPath, onLoaded) {
         let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
-        let scriptElm = document.head.querySelector('script[src$=' + scriptPathEsc + ']');
+        let scriptElm = document.head.querySelector(`script[src$=${scriptPathEsc}]`);
         if (!scriptElm) {
             scriptElm = document.createElement('script');
             scriptElm.src = scriptPath;
@@ -360,7 +394,7 @@
     }
     function loadStylesheet(styleSheetPath, onLoaded) {
         let styleSheetPathEsc = styleSheetPath.replace(/[/.]/g, '\\$&');
-        let foundScript = document.head.querySelectorAll('link[href$=' + styleSheetPathEsc + ']');
+        let foundScript = document.head.querySelectorAll(`link[href$=${styleSheetPathEsc}]`);
         if (foundScript.length === 0) {
             let styleSheetElm = document.createElement('link');
             styleSheetElm.href = styleSheetPath;
@@ -392,12 +426,13 @@
         }.bind(this));
     }
 
-    function findNextInstruction(type, instructionList, startingPosiion) {
-        for(let i=startingPosiion >= 0 ? startingPosiion : 0; i<instructionList.length; i++) {
+    function findNextInstruction(type, instructionList, startingPosition) {
+        for(let i=startingPosition >= 0 ? startingPosition : 0; i<instructionList.length; i++) {
             const instruction = instructionList[i];
             if(!type || type === instruction.type)
                 return instruction;
         }
+        return null;
     }
 
     // File Commands
@@ -508,6 +543,7 @@
             'Delete': handleGridKeyboardEvent,
             'Backspace': handleGridKeyboardEvent,
             'Escape': handleGridKeyboardEvent,
+            'ContextMenu': handleGridKeyboardEvent,
             'ArrowRight': handleGridKeyboardEvent,
             'ArrowLeft': handleGridKeyboardEvent,
             'ArrowDown': handleGridKeyboardEvent,
@@ -516,6 +552,7 @@
             ' ': function(e, editor) { editor.player.play(); }
         },
         'alt': {
+            'Enter': handleGridKeyboardEvent,
         },
         'ctrl': {
             'Enter': handleGridKeyboardEvent,
@@ -544,7 +581,16 @@
         var keyEvent = e.key;
         if(editor.keyboardLayout[e.key])
             keyEvent = 'PlayFrequency';
+        if(keyEvent === 'Enter' && e.altKey)
+            keyEvent = 'ContextMenu';
         switch(keyEvent) {
+            case 'ContextMenu':
+                editor.openContextMenu(e, selectedData);
+                e.preventDefault();
+
+
+                // editor.render(true);
+                break;
             case 'Delete':
                 editor.gridDataDelete(selectedData);
                 // editor.render(true);
@@ -625,6 +671,7 @@
         // console.log(e.type, e);
         if(e.defaultPrevented)
             return;
+        let targetClassList = e.target.classList;
         switch(e.type) {
             case 'keydown':
                 if(e.altKey) {
@@ -661,18 +708,26 @@
             //     break;
 
             case 'click':
-                let classList = e.target.classList;
-                if(classList.contains('menu-item')) {
+                if(targetClassList.contains('menu-item')) {
                     handleMenuClickEvent(e, editor);
                     break;
                 }
                 editor.menuClose();
 
-                if(classList.contains('grid-parameter')
-                    || classList.contains('grid-data')
-                    || classList.contains('grid-row'))
+                if(targetClassList.contains('grid-parameter')
+                    || targetClassList.contains('grid-data')
+                    || targetClassList.contains('grid-row'))
                     handleGridClickEvent(e, editor);
 
+                break;
+
+            case 'contextmenu':
+                if(targetClassList.contains('grid-parameter')
+                    || targetClassList.contains('grid-data')
+                    || targetClassList.contains('grid-row')) {
+                    editor.openContextMenu(e);
+                    if(!e.altKey) e.preventDefault();
+                }
                 break;
 
             case 'submit':
@@ -687,15 +742,8 @@
                 formCommand(e, form, editor);
                 break;
 
-            case 'contextmenu':
-                break;
-                var contextMenu = editor.querySelector('.editor-context-menu');
-                console.info("Context menu", contextMenu);
-                contextMenu.classList.add('show');
-                contextMenu.style.left = e.clientX + 'px';
-                contextMenu.style.top = e.clientY + 'px';
-                e.preventDefault();
-                break;
+            default:
+                console.error("Unhandled ", e);
         }
     }
 
@@ -982,6 +1030,31 @@
                     <li><a class="menu-item disabled" tabindex="5">Instruments</a></li>
                     <li><a class="menu-item disabled" tabindex="6">Collaborate</a></li>
                 </div>
+                <div class="editor-context-menu">
+                    <ul class="sub-menu">
+                        <li><a class="menu-section-title">- Cell Actions -</a></li>
+                        <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Note</a></li>
+                        <li><a class="menu-item" data-command=""><span class="key">D</span>elete Note</a></li>
+                        <hr />
+                        <li><a class="menu-section-title">- Row Actions -</a></li>
+                        <li>
+                            <a class="menu-item"><span class="key">P</span>ause ></a>
+                            <ul class="sub-menu">
+                                <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
+                                <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
+                            </ul>
+                        </li>
+                        <hr />
+                        <li><a class="menu-section-title">- Group Actions -</a></li>
+                        <li>
+                            <a class="menu-item"><span class="key">G</span>roup ></a>
+                            <ul class="sub-menu">
+                                <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
+                                <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
                 <div class="editor-panel">
                     <label class="row-label">Song:</label>
                     <form class="form-song-play" data-command="song:play">
@@ -1075,11 +1148,6 @@
                 </div>
                 <div class="editor-grid" data-group="${this.gridGroupPath[0] || ''}">
                     ${renderGrid(this)}
-                </div>
-                <div class="editor-context-menu">
-                    <ul class="sub-menu">
-                        <li><a class="menu-item disabled" data-command="load:url">Context Menu</a></li>
-                    </ul>
                 </div>
             </div>
         `;

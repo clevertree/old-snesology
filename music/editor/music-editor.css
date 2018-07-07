@@ -174,13 +174,29 @@
     display: inline-block;
 }
 
+.music-editor .menu-section-title {
+    text-align: center;
+    display: block;
+    /* font-weight: bold; */
+    font-size: 0.7em;
+    padding: 3px 18px;
+    white-space: nowrap;
+    /* border-bottom: 1px solid #AAA; */
+    /* text-decoration: underline; */
+}
+
+.music-editor .menu-item > .key {
+    /*font-weight: bold;*/
+    text-decoration: underline;
+}
 
 .music-editor .menu-item {
     vertical-align: top;
-    display: block;
+    display: inline-block;
     padding: 3px 8px;
     /* position: relative; */
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .music-editor .menu-item > * {
@@ -227,6 +243,9 @@
 }
 
 .music-editor .editor-context-menu {
+    /* border: 1px solid grey; */
+    background-color: #BBB;
+    color: black;
     position: fixed;
     display: none;
     z-index: 99;
@@ -234,13 +253,16 @@
 .music-editor .editor-context-menu.show {
     display: block;
 }
-.music-editor .editor-context-menu.show .sub-menu {
+.music-editor .editor-context-menu ul.sub-menu {
     /* display: block; */
-    display: inline-block;
+    /*display: inline-block;*/
     opacity: 1;
     max-height: 800px;
     transition: max-height 2s, opacity 1s;
     /*transition: max-height 2s;*/
+}
+.music-editor .editor-context-menu ul.sub-menu li {
+    list-style-type: none;
 }
 
 /** Form **/
