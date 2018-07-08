@@ -358,7 +358,7 @@
         }
 
         menuClose() {
-            clearElementClass('.sub-menu.open', 'open');
+            clearElementClass('open', '.sub-menu.open');
         }
         // Input
 
@@ -785,8 +785,12 @@
 
         if(menuItem.nextElementSibling
             && menuItem.nextElementSibling.classList.contains('sub-menu')) {
-            const subMenu = menuItem.nextElementSibling;
-            subMenu.classList.toggle('open');
+            let subMenu = menuItem.nextElementSibling;
+            clearElementClass('open', '.sub-menu');
+            while(subMenu.classList.contains('sub-menu')) {
+                subMenu.classList.toggle('open');
+                subMenu = subMenu.parentNode.parentNode;
+            }
             return;
         }
 
@@ -1010,7 +1014,7 @@
                         <a class="menu-item" tabindex="2">File</a>
                         <ul class="sub-menu">
                             <li>
-                                <a class="menu-item">Open from memory ></a>
+                                <a class="menu-item">Open from memory =></a>
                                 ${renderEditorMenuLoadFromMemory()}
                             </li>
                             <li><a class="menu-item" data-command="load:file">Open from file</a></li>
@@ -1032,22 +1036,22 @@
                 </div>
                 <div class="editor-context-menu">
                     <ul class="sub-menu">
-                        <li><a class="menu-section-title">- Cell Actions -</a></li>
+                        <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
                         <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Note</a></li>
                         <li><a class="menu-item" data-command=""><span class="key">D</span>elete Note</a></li>
                         <hr />
-                        <li><a class="menu-section-title">- Row Actions -</a></li>
+                        <!--<li><a class="menu-section-title">- Row Actions -</a></li>-->
                         <li>
-                            <a class="menu-item"><span class="key">P</span>ause ></a>
+                            <a class="menu-item"><span class="key">P</span>ause Actions =></a>
                             <ul class="sub-menu">
                                 <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
                                 <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
                             </ul>
                         </li>
                         <hr />
-                        <li><a class="menu-section-title">- Group Actions -</a></li>
+                        <!--<li><a class="menu-section-title">- Group Actions -</a></li>-->
                         <li>
-                            <a class="menu-item"><span class="key">G</span>roup ></a>
+                            <a class="menu-item"><span class="key">G</span>roup Actions =></a>
                             <ul class="sub-menu">
                                 <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
                                 <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>

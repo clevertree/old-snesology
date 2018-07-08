@@ -223,9 +223,12 @@
     /* min-width: 200px; */
 }
 
+.music-editor .sub-menu:hover,
+.music-editor .menu-item:hover + .sub-menu,
 .music-editor .sub-menu.open {
     /* display: block; */
     display: inline-block;
+    white-space: nowrap;
     opacity: 1;
     max-height: 800px;
     transition: max-height 2s, opacity 1s;

@@ -254,17 +254,17 @@
             return null;
         }
 
-        playInstructions(instructionGroup, seekPosition, seekLength, startTime) {
-            seekPosition = seekPosition || 0;
-            startTime = startTime || this.getAudioContext().currentTime;
+        playInstructions(instructionGroup, playbackPosition, playbackLength, currentTime) {
+            playbackPosition = playbackPosition || 0;
+            currentTime = currentTime || this.getAudioContext().currentTime;
             // instructionList = instructionList || this.song.instructions;
             return this.eachInstruction(instructionGroup, function(noteInstruction, stats) {
-                if(stats.absolutePlaytime < seekPosition)
+                if(stats.absolutePlaytime < playbackPosition)
                     return;   // Instructions were already played
-                if(seekLength && stats.absolutePlaytime >= seekPosition + seekLength)
+                if(playbackLength && stats.absolutePlaytime >= playbackPosition + playbackLength)
                     return;
                 // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
-                this.playInstruction(noteInstruction, startTime + stats.absolutePlaytime, stats);
+                this.playInstruction(noteInstruction, currentTime + stats.absolutePlaytime, stats);
             }.bind(this));
         }
 
@@ -398,21 +398,26 @@
                 console.info("Playing paused");
                 return;
             }
+            var startTime = this.seekPosition;
+            const currentTime = this.getAudioContext().currentTime - this.startTime;
+            var endTime = startTime + this.seekLength;
+            while(endTime < currentTime)
+                endTime += this.seekLength;
+            this.seekPosition = endTime;
+
             const totalPlayTime = this.playInstructions(
                 this.song.root || DEFAULT_GROUP,
-                this.seekPosition,
-                this.seekLength,
+                startTime,
+                endTime,
                 this.startTime
             );
 
             // this.seekPosition += this.seekLength;
-            const currentTime = this.getAudioContext().currentTime;
-            const finishTime = this.startTime + totalPlayTime;
             // this.seekPosition = currentTime - this.startTime;
-            this.seekPosition += this.seekLength;
+            // this.seekPosition += this.seekLength;
 
-            if(currentTime < finishTime) {
-                // console.log("Instructions playing:", instructionEvents, this.seekPosition, this.currentPosition);
+            if(currentTime < totalPlayTime) {
+                console.log("Instructions playing:", this.seekPosition, this.seekLength, currentTime - this.startTime);
 
                 this.dispatchEvent(new CustomEvent('song:playback'));
                 setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
@@ -425,7 +430,7 @@
 
                     // Update UI
                     this.dispatchEvent(new CustomEvent('song:end'));
-                }.bind(this), finishTime - currentTime)
+                }.bind(this), totalPlayTime - currentTime)
             }
         }
 
