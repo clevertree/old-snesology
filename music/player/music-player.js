@@ -16,7 +16,7 @@
             super();
             this.audioContext = null;
             this.song = null;
-            this.seekLength = 1;
+            this.seekLength = 4;
             this.seekPosition = 0;
             this.playing = false;
             this.config = DEFAULT_CONFIG;
