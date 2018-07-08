@@ -197,6 +197,10 @@
     /* position: relative; */
     cursor: pointer;
     white-space: nowrap;
+    position: relative;
+}
+.music-editor .submenu .menu-item {
+    min-width: 128px;
 }
 
 .music-editor .menu-item > * {
@@ -208,7 +212,7 @@
     cursor: not-allowed;
 }
 
-.music-editor .sub-menu {
+.music-editor .submenu {
     display: none;
     border: 1px solid grey;
     background-color: #BBB;
@@ -219,14 +223,15 @@
 
     max-height: 0px;
     transition: max-height 2s, opacity 0.5s;
+    list-style-type: none;
     /*overflow: hidden;*/
     /* min-width: 200px; */
 }
 
-.music-editor .sub-menu:hover,
-.music-editor .menu-item:hover + .sub-menu,
-.music-editor .menu-item.open + .sub-menu,
-.music-editor .sub-menu.open {
+.music-editor .submenu:hover,
+.music-editor .menu-item:hover + .submenu,
+.music-editor .menu-item.open + .submenu,
+.music-editor .submenu.open {
     /* display: block; */
     display: inline-block;
     white-space: nowrap;
@@ -234,6 +239,10 @@
     max-height: 800px;
     transition: max-height 2s, opacity 1s;
     /*transition: max-height 2s;*/
+    z-index: 98;
+}
+.music-editor .submenu:hover,
+.music-editor .menu-item:hover + .submenu {
     z-index: 99;
 }
 .music-editor .menu-item:hover {
@@ -246,6 +255,17 @@
     background-color: #888;
 }
 
+.music-editor .submenu-pointer {
+    /* float: right; */
+    position:  absolute;
+    right: 4px;
+}
+.music-editor .submenu-pointer:after {
+    content: '➤';
+}
+
+/** Context Menu **/
+
 .music-editor .editor-context-menu {
     /* border: 1px solid grey; */
     background-color: #BBB;
@@ -254,19 +274,8 @@
     display: none;
     z-index: 99;
 }
-.music-editor .editor-context-menu.show {
+.music-editor .editor-context-menu.open {
     display: block;
-}
-.music-editor .editor-context-menu ul.sub-menu {
-    /* display: block; */
-    /*display: inline-block;*/
-    opacity: 1;
-    max-height: 800px;
-    transition: max-height 2s, opacity 1s;
-    /*transition: max-height 2s;*/
-}
-.music-editor .editor-context-menu ul.sub-menu li {
-    list-style-type: none;
 }
 
 /** Form **/
