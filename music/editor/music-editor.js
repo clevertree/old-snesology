@@ -205,20 +205,6 @@
             return this.player.loadSong(songURL, onLoaded);
         }
 
-        // playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, options, associatedElement) {
-        //     return this.player.playInstrument(instrumentName, instructionFrequency, instructionStartTime, instructionLength, options, associatedElement);
-        // }
-        //
-        // playInstruction(instructionArgs, instructionStartTime, bpm, associatedElement) {
-        //     return this.player.playInstruction(instructionArgs, instructionStartTime, bpm, associatedElement);
-        // }
-        // playInstructions(commandList, startPosition, seekLength, playbackOffset) {
-        //     return this.player.playInstructions(commandList, startPosition, seekLength, playbackOffset);
-        // }
-        // play (seekPosition) { return this.player.play(seekPosition); }
-        // pause () { return this.player.duration(); }
-
-
 
         gridSwapInstructions(dataElement1, dataElement2) {
             const instruction1 = this.gridDataGetInstruction(dataElement1);
@@ -330,7 +316,7 @@
             target = target || e.target;
             var xy = {x:e.clientX, y:e.clientY};
 
-            clearElementClass('open', '.sub-menu.open');
+            clearElementClass('open', '.menu-item.open');
             clearElementClass('selected-context-menu', '.selected-context-menu');
             var contextMenu = this.querySelector('.editor-context-menu');
             // console.info("Context menu", contextMenu);
@@ -358,7 +344,7 @@
         }
 
         menuClose() {
-            clearElementClass('open', '.sub-menu.open');
+            clearElementClass('open', '.menu-item.open');
         }
         // Input
 
@@ -771,7 +757,7 @@
     }
 
     function handleMenuClickEvent(e, editor) {
-        const menuItem = e.target;
+        let menuItem = e.target;
         console.log("Menu " + e.type, menuItem);
         const dataCommand = menuItem.getAttribute('data-command');
         if(dataCommand) {
@@ -785,11 +771,11 @@
 
         if(menuItem.nextElementSibling
             && menuItem.nextElementSibling.classList.contains('sub-menu')) {
-            let subMenu = menuItem.nextElementSibling;
-            clearElementClass('open', '.sub-menu');
-            while(subMenu.classList.contains('sub-menu')) {
-                subMenu.classList.toggle('open');
-                subMenu = subMenu.parentNode.parentNode;
+            // let subMenu = menuItem.nextElementSibling;
+            clearElementClass('open', '.menu-item');
+            while(menuItem && menuItem.classList.contains('menu-item')) {
+                menuItem.classList.toggle('open');
+                menuItem = menuItem.parentNode.parentNode.previousElementSibling;
             }
             return;
         }
@@ -1014,7 +1000,7 @@
                         <a class="menu-item" tabindex="2">File</a>
                         <ul class="sub-menu">
                             <li>
-                                <a class="menu-item">Open from memory =></a>
+                                <a class="menu-item">Open from memory &#9658;</a>
                                 ${renderEditorMenuLoadFromMemory()}
                             </li>
                             <li><a class="menu-item" data-command="load:file">Open from file</a></li>
@@ -1037,12 +1023,16 @@
                 <div class="editor-context-menu">
                     <ul class="sub-menu">
                         <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
-                        <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Note</a></li>
-                        <li><a class="menu-item" data-command=""><span class="key">D</span>elete Note</a></li>
+                        <li><a class="menu-item" data-command="note:insert"><span class="key">C</span>reate Note</a></li>
+                        <li><a class="menu-item" data-command="note:frequency">Set <span class="key">I</span>nstrument</a></li>
+                        <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
+                        <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
+                        <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
+                        <li><a class="menu-item" data-command="note:delete"><span class="key">D</span>elete Note</a></li>
                         <hr />
                         <!--<li><a class="menu-section-title">- Row Actions -</a></li>-->
                         <li>
-                            <a class="menu-item"><span class="key">P</span>ause Actions =></a>
+                            <a class="menu-item"><span class="key">R</span>ow Actions &#9658;</a>
                             <ul class="sub-menu">
                                 <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
                                 <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
@@ -1051,12 +1041,13 @@
                         <hr />
                         <!--<li><a class="menu-section-title">- Group Actions -</a></li>-->
                         <li>
-                            <a class="menu-item"><span class="key">G</span>roup Actions =></a>
+                            <a class="menu-item"><span class="key">G</span>roup Actions &#9658;</a>
                             <ul class="sub-menu">
                                 <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
                                 <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
                             </ul>
                         </li>
+                        <hr />
                     </ul>
                 </div>
                 <div class="editor-panel">

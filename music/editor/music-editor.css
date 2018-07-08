@@ -225,6 +225,7 @@
 
 .music-editor .sub-menu:hover,
 .music-editor .menu-item:hover + .sub-menu,
+.music-editor .menu-item.open + .sub-menu,
 .music-editor .sub-menu.open {
     /* display: block; */
     display: inline-block;
@@ -239,7 +240,7 @@
     background-color: #AAA;
 }
 .music-editor .menu-item.open {
-    background-color: #777;
+    background-color: #99C;
 }
 .music-editor .menu-item:active {
     background-color: #888;
