@@ -5,8 +5,12 @@
     font-size: 14px;
     /* line-height: 16px; */
     font-family: monospace;
-    user-select: none;
     position: relative;
+    
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
 }
 
 /** Grid **/
