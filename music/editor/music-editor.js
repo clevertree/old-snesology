@@ -84,7 +84,7 @@
 
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            deletePositions = deletePositions || this.gridCurrent().cursorPositions;
+            deletePositions = deletePositions || this.grid.getCursorPositions();
             deletePositions.sort((a, b) => b - a);
             for(var i=0; i<deletePositions.length; i++) {
                 var position = deletePositions[i];
@@ -92,7 +92,7 @@
                     throw new Error("Instruction not found at position: " + position);
                 instructionList.splice(p, 1);
             }
-            this.gridCurrent().cursorPositions = [deletePositions[deletePositions.length-1]];
+            this.grid.select([deletePositions[deletePositions.length-1]]);
         }
 
 
@@ -120,30 +120,16 @@
                 instruction,
                 this.player.getAudioContext().currentTime,
                 this.player.getStartingBeatsPerMinute(),
-                function(playing) {
+                function (playing) {
                     associatedElement && associatedElement.classList.toggle('playing', playing);
                 }.bind(this),
             );
+        }
 
 
         loadSong(songURL, onLoaded) {
             return this.player.loadSong(songURL, onLoaded);
         }
-
-
-        // gridSwapInstructions(dataElement1, dataElement2) {
-        //     throw new Error("TODO: refactor")
-        //     const instruction1 = this.gridDataGetInstruction(dataElement1);
-        //     const instruction2 = this.gridDataGetInstruction(dataElement2);
-        //     this.player.swapInstructions(
-        //         instruction1,
-        //         instruction2,
-        //     );
-        //     this.render();
-        //     this.gridSelect(p);
-        //     // this.formUpdate(instruction1);
-        //     // this.gridFindInstruction(instruction1).select();
-        // }
 
         // Forms
 
@@ -289,6 +275,16 @@
 
         get editor() { return this.parentNode.parentNode; }
 
+        get selectedCells() { return this.querySelectorAll('.grid-data.selected'); }
+        get currentCell() { return this.querySelector('.grid-data.cursor,.grid-data.selected'); }
+        get currentRow() { return this.currentCell.parentNode; }
+        get nextRow() { return this.currentRow.nextElementSibling; }
+        get nextRowCell() { return this.nextRow.firstElementChild; }
+        get previousRow() { return this.currentRow.previousElementSibling; }
+        get previousRowCell() { return this.previousRow.lastElementChild; }
+        get nextCell() { return this.currentCell.nextElementSibling || this.nextRowCell; }
+        get previousCell() { return this.currentCell.previousElementSibling || this.previousRowCell; }
+
         connectedCallback() {
             this.render();
         }
@@ -354,6 +350,7 @@
         }
 
         render() {
+            const cursorPositions = this.getCursorPositions();
             const editor = this.editor;
             const song = editor.getSong();
             var beatsPerMinute = song.beatsPerMinute;
@@ -365,7 +362,7 @@
 
             let odd = false, selectedRow = false;
 
-            let editorHTML = '', rowHTML = '', songPosition = 0, lastPause = 0;
+            let editorHTML = '', cellHTML = '', songPosition = 0, lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
 
@@ -373,57 +370,42 @@
                     case 'note':
                         var nextPause = instructionList.find( (i, p) => i.type === 'pause' && p > position);
                         var noteCSS = [];
-                        if(editor.getSelectedInstructions().indexOf(instruction) !== -1)
+                        if(cursorPositions.indexOf(position) !== -1) {
                             selectedRow = true;
-                        if(selectedRow)
                             noteCSS.push('selected');
-                        rowHTML += `<div class="grid-data grid-data-note ${noteCSS.join(' ')}" data-position="${position}">`;
-                        rowHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
-                        rowHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
+                        }
+
+                        cellHTML += `<div class="grid-data grid-data-note ${noteCSS.join(' ')}" data-position="${position}">`;
+                        cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
+                        cellHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
                         if (typeof instruction.duration !== 'undefined')
-                            rowHTML += `<div class="grid-parameter duration${nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
+                            cellHTML += `<div class="grid-parameter duration${nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
                         if (typeof instruction.velocity !== 'undefined')
-                            rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                        rowHTML += `</div>`;
+                            cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                        cellHTML += `</div>`;
                         break;
 
                     case 'group':
-                        rowHTML += `<div class="grid-data grid-data-group" data-position="${position}" data-group="${instruction.group}">`;
-                        rowHTML +=  `<div class="grid-parameter group">${instruction.group}</div>`;
+                        cellHTML += `<div class="grid-data grid-data-group" data-position="${position}" data-group="${instruction.group}">`;
+                        cellHTML +=  `<div class="grid-parameter group">${instruction.group}</div>`;
                         if (typeof instruction.velocity !== 'undefined')
-                            rowHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                        rowHTML += `</div>`;
+                            cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                        cellHTML += `</div>`;
                         break;
 
                     case 'pause':
                         var pauseCSS = (odd = !odd) ? ['odd'] : [];
-                        // if (pauseCount % pausesPerBeat === 0)
-                        //     pauseCSS.push('beat-start');
-
-                        // if (pauseCount % pausesPerBeat === pausesPerBeat - 1)
-                        //     pauseCSS.push('beat-end');
-
-                        // if (pauseCount % (pausesPerBeat * beatsPerMeasure) === 0)
-                        //     pauseCSS.push('measure-start');
-                        // if (pauseCount % (pausesPerBeat * beatsPerMeasure) === pausesPerBeat * beatsPerMeasure - 1)
-                        //     pauseCSS.push('measure-end');
                         if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.duration) / beatsPerMeasure))
                             pauseCSS.push('measure-end');
-
 
                         lastPause = instruction.duration;
                         songPosition += instruction.duration;
 
-
                         if(selectedRow)
                             pauseCSS.push('selected');
 
-                        editorHTML += `<div class="grid-row ${pauseCSS.join(' ')}" data-duration="${instruction.duration}" data-beats-per-minute="${beatsPerMinute}">`;
-                        editorHTML += rowHTML;
-                        editorHTML +=   `<div class="grid-data grid-data-new" data-position="${position}"><div class="grid-parameter">+</div></div>`;
-                        editorHTML +=   `<div class="grid-data grid-data-pause" data-position="${position}" data-duration="${instruction.duration}"><div class="grid-parameter">${formatDuration(instruction.duration)}</div></div>`;
-                        editorHTML += `</div>`;
-                        rowHTML = '';
+                        addRowHTML(cellHTML, position, instruction.duration);
+                        cellHTML = '';
                         selectedRow = false;
 
                         break;
@@ -431,12 +413,25 @@
 
             }
 
-            editorHTML += `<div class="grid-row grid-row-new${odd ? '' : ' odd'}" data-duration="${lastPause}" data-beats-per-minute="${beatsPerMinute}">`;
-            editorHTML +=   `<div class="grid-data grid-data-new grid-data-new-last" data-insert-pause="${lastPause}" data-position="${instructionList.length}"><div class="grid-parameter">+</div></div>`;
-            editorHTML +=   `<div class="grid-data grid-data-pause" data-position="${instructionList.length}" data-duration="${lastPause}"><div class="grid-parameter">${formatDuration(lastPause)}</div></div>`;
-            editorHTML += `</div>`;
+            addRowHTML('', instructionList.length, lastPause);
 
-            this.innerHTML = editorHTML;
+            this.innerHTML =
+                  `<div class="editor-grid">`
+                +   editorHTML
+                + `</div>`;
+
+            function addRowHTML(cellHTML, position, duration) {
+                editorHTML +=
+                    `<div class="grid-row ${pauseCSS.join(' ')}" data-duration="${duration}" data-beats-per-minute="${beatsPerMinute}">`
+                    +   cellHTML
+                    +   `<div class="grid-data grid-data-new" data-position="${position}">`
+                    +     `<div class="grid-parameter">+</div>`
+                    +   `</div>`
+                    +   `<div class="grid-data grid-data-pause" data-position="${position}" data-duration="${duration}">`
+                    +     `<div class="grid-parameter">${formatDuration(duration)}</div>`
+                    +   `</div>`
+                    + `</div>`;
+            }
         }
 
     }
@@ -622,7 +617,7 @@
             ' ': function(e, editor) { editor.player.play(); }
         },
         'alt': {
-            'Enter': handleGridKeyboardE45ggvent,
+            'Enter': handleGridKeyboardEvent,
         },
         'ctrl': {
             'Enter': handleGridKeyboardEvent,
@@ -636,23 +631,23 @@
 
     function handleGridKeyboardEvent(e, editor) {
         const song = editor.getSong();
-        const grid = editor.gridCurrent();
-        const instructionList = song.instructions[editor.grid.getGroupName()];
-        const cursorPositions = editor.grid.getCursorPositions();
+        const grid = editor.grid;
+        const instructionList = song.instructions[grid.getGroupName()];
+        const cursorPositions = grid.getCursorPositions();
         const initialCursorPosition = cursorPositions[0];
         const currentCursorPosition = cursorPositions[cursorPositions.length-1];
         const nextSectionCursorPosition = (p=>p===-1?currentCursorPosition:p)(instructionList.indexOf((i, p) => i.type === 'pause' && p > currentCursorPosition));
         const previousSectionCursorPosition = (p=>p===-1?currentCursorPosition:p)(instructionList.reverse().indexOf((i, p) => i.type === 'pause' && p < currentCursorPosition));
-        let selectedData = editor.querySelector('.grid-data.selected')  // Select any kind of data, not just instructions
-            || editor.querySelector('.grid-data');
-        let selectedRow = selectedData.parentNode;
-        let column = Array.prototype.indexOf.call(selectedData.parentNode.childNodes, selectedData);
-        let nextRow = selectedRow.nextElementSibling;
-        let previousRow = selectedRow.previousElementSibling;
-        let nextElement = selectedData.nextElementSibling || (nextRow ? nextRow.firstChild : null);
-        let previousElement = selectedData.previousElementSibling || (previousRow ? previousRow.lastChild: null);
-        let nextRowElement = nextRow ? nextRow.childNodes[column] || nextRow.firstChild : null;
-        let previousRowElement = previousRow ? previousRow.childNodes[column] || previousRow.lastChild: null;
+        // let selectedData = editor.querySelector('.grid-data.selected')  // Select any kind of data, not just instructions
+        //     || editor.querySelector('.grid-data');
+        // let selectedRow = selectedData.parentNode;
+        // let column = Array.prototype.indexOf.call(selectedData.parentNode.childNodes, selectedData);
+        // let nextRow = selectedRow.nextElementSibling;
+        // let previousRow = selectedRow.previousElementSibling;
+        // let nextElement = selectedData.nextElementSibling || (nextRow ? nextRow.firstChild : null);
+        // let previousElement = selectedData.previousElementSibling || (previousRow ? previousRow.lastChild: null);
+        // let nextRowElement = nextRow ? nextRow.childNodes[column] || nextRow.firstChild : null;
+        // let previousRowElement = previousRow ? previousRow.childNodes[column] || previousRow.lastChild: null;
         // let nextNote = nextElement && nextElement.classList.contains('grid-data-note') ? nextElement : nextRow.firstChild
         // let nextData = nextElement && nextElement.classList.contains('grid-data-new') ? (nextRow ? nextRow.firstChild : null) : nextElement;
         // let lastData = lastElement && lastElement.classList.contains('grid-data-new') ? (lastRow ? lastRow.lastChild : null) : lastElement;
@@ -663,7 +658,7 @@
             keyEvent = 'ContextMenu';
         switch(keyEvent) {
             case 'ContextMenu':
-                editor.openContextMenu(e, selectedData);
+                editor.openContextMenu(e, grid.selectedCells);
                 e.preventDefault();
 
 
@@ -683,13 +678,13 @@
                 editor.gridSelect(0);
                 break;
             case 'Enter':
-                if(selectedData.classList.contains('grid-data-group')) {
+                if(grid.currentCell.classList.contains('grid-data-group')) {
                     if(e.ctrlKey || e.metaKey) {
-                        editor.grid.groupPath.unshift(selectedData.getAttribute('data-group'));
+                        editor.grid.groupPath.unshift(grid.currentCell.getAttribute('data-group'));
                         editor.render();
                         editor.gridSelect(0);
                     } else {
-                        editor.player.playInstructions(selectedData.getAttribute('data-group'));
+                        editor.player.playInstructions(grid.currentCell.getAttribute('data-group'));
                     }
                 } else {
                     let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
@@ -701,35 +696,35 @@
             case 'ArrowRight':
                 if (e.shiftKey)                     grid.selectRange(initialCursorPosition, currentCursorPosition+1);
                 // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                else                                grid.selectData(nextElement || selectedData);
+                else if(grid.nextCell)              grid.selectData(grid.nextCell);
                 break;
             case 'ArrowLeft':
                 if (e.shiftKey)                     grid.selectRange(initialCursorPosition, currentCursorPosition-1);
                 // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                else                                grid.selectData(previousElement || selectedData);
+                else if(grid.previousCell)          grid.selectData(grid.previousCell);
                 break;
             case 'ArrowDown':
                 if (e.shiftKey)                     grid.selectRange(initialCursorPosition, nextSectionCursorPosition);
                 // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                else                                grid.selectData(nextRowElement || selectedData);
+                else if(grid.nextRowCell)              grid.selectData(grid.nextRowCell);
                 break;
             case 'ArrowUp':
                 if (e.shiftKey)                     grid.selectRange(initialCursorPosition, previousSectionCursorPosition);
                 // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                else                                grid.selectData(previousRowElement || selectedData);
+                else if(grid.previousRowCell)       grid.selectData(grid.previousRowCell);
                 break;
 
             case 'PlayFrequency':
                 let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
 
-                selectedData = editor.querySelector('.grid-data.selected');
-                if(selectedData && selectedData.classList.contains('grid-data-new')) {
-                    let insertPosition = parseInt(selectedData.getAttribute('data-position'));
+                // selectedData = editor.querySelector('.grid-data.selected');
+                if(grid.currentCell.classList.contains('grid-data-new')) {
+                    let insertPosition = parseInt(grid.currentCell.getAttribute('data-position'));
                     selectedInstruction = Object.assign({}, selectedInstruction, {
                         type: 'note',
                         instrument: 0,
                         frequency: 'C4',
-                        duration: parseFloat(selectedData.parentNode.getAttribute('data-duration'))
+                        duration: parseFloat(grid.currentRow.getAttribute('data-duration'))
                     }); // new instruction
                     // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
                     editor.player.insertInstruction(selectedInstruction, editor.grid.getGroupName(), insertPosition);
