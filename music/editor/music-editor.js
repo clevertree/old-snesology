@@ -98,9 +98,9 @@
             // var selectedInstructions = this.getSelectedInstructions();
             this.innerHTML = renderEditorContent.call(this);
             this.formUpdate();
-            // let selectedData = this.querySelector('.grid-data.selected');
+            // let selectedData = this.querySelector('.grid-cell.selected');
             // if(!selectedData) {
-            //     selectedData = this.querySelector('.grid-data');
+            //     selectedData = this.querySelector('.grid-cell');
             //     this.gridDataSelect(selectedData);
             // }
             if(focus === true || typeof focus === 'undefined') {
@@ -236,14 +236,14 @@
                 target = target.parentNode;
 
             contextMenu.classList.remove('selected-data', 'selected-row');
-            if(target.classList.contains('grid-data')) {
+            if(target.classList.contains('grid-cell')) {
                 dataElm = target;
                 contextMenu.classList.add('selected-data');
                 contextMenu.classList.add('selected-row');
                 var rect = dataElm.getBoundingClientRect();
                 x = rect.x + rect.width;
                 y = rect.y + rect.height;
-                this.grid.selectData(dataElm);
+                this.grid.selectCell(dataElm);
             } else if(target.classList.contains('grid-row')) {
                 contextMenu.classList.add('selected-row');
             }
@@ -315,14 +315,16 @@
                         break;
                     }
                     this.menuClose();
+                    break;
 
+                case 'mouseup':
+                    break;
                 case 'click':
-
                     break;
 
                 case 'contextmenu':
                     if(targetClassList.contains('grid-parameter')
-                        || targetClassList.contains('grid-data')
+                        || targetClassList.contains('grid-cell')
                         || targetClassList.contains('grid-row')) {
                         editor.openContextMenu(e);
                         if(!e.altKey) e.preventDefault();
@@ -356,13 +358,13 @@
 
         get editor() { return this.parentNode.parentNode; }
 
-        get selectedCells() { return this.querySelectorAll('.grid-data.selected'); }
-        get currentCell() { return this.querySelector('.grid-data.cursor,.grid-data.selected'); }
+        get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
+        get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); }
         get currentRow() { return this.currentCell.parentNode; }
         get nextRow() { return this.currentRow.nextElementSibling; }
-        get nextRowCell() { return this.nextRow.firstElementChild; }
+        get nextRowCell() { return this.nextRow ? this.nextRow.firstElementChild : this.currentRow.firstElementChild; }
         get previousRow() { return this.currentRow.previousElementSibling; }
-        get previousRowCell() { return this.previousRow.lastElementChild; }
+        get previousRowCell() { return this.previousRow ? this.previousRow.lastElementChild : this.currentRow.lastElementChild; }
         get nextCell() { return this.currentCell.nextElementSibling || this.nextRowCell; }
         get previousCell() { return this.currentCell.previousElementSibling || this.previousRowCell; }
 
@@ -373,7 +375,7 @@
         getGroupName() { return this.getAttribute('data-group');}
         getCursorPositions() {
             var cursorPositions = [];
-            this.querySelectorAll('.grid-data.selected').forEach(function(elm) {
+            this.querySelectorAll('.grid-cell.selected').forEach(function(elm) {
                 var p = elm.getAttribute('data-position');
                 if(typeof p !== "undefined")
                     cursorPositions.push(p);
@@ -394,19 +396,19 @@
         select(cursorPositions) {
             cursorPositions = Array.isArray(cursorPositions) ? cursorPositions : [cursorPositions];
             // this.cursorPositions = cursorPositions;
-            this.querySelectorAll('.grid-data.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
+            this.querySelectorAll('.grid-cell.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
             for(let i=0; i<cursorPositions.length; i++) {
                 const p = cursorPositions[i];
-                const dataElm = this.querySelector(`.grid-data[data-position='${p}']`);
+                const dataElm = this.querySelector(`.grid-cell[data-position='${p}']`);
                 dataElm.classList.add('selected');
                 dataElm.parentElement.classList.add('selected');
             }
         }
 
-        selectData(gridDataList) {
-            gridDataList = Array.isArray(gridDataList) ? gridDataList : [gridDataList];
-            this.querySelectorAll('.grid-data.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
-            gridDataList.forEach(elm => {
+        selectCell(gridCellList) {
+            gridCellList = Array.isArray(gridCellList) ? gridCellList : [gridCellList];
+            this.querySelectorAll('.grid-cell.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
+            gridCellList.forEach(elm => {
                 elm.classList.add('selected');
                 elm.parentElement.classList.add('selected');
             });
@@ -423,7 +425,7 @@
 
 
         findDataElement(instrumentPosition) {
-            let gridDataElms = this.querySelectorAll('.grid-data');
+            let gridDataElms = this.querySelectorAll('.grid-cell');
             for(let i=0; i<gridDataElms.length; i++)
                 if(parseInt(gridDataElms[i].getAttribute('data-position')) === instrumentPosition)
                     return gridDataElms[i];
@@ -456,7 +458,7 @@
                             noteCSS.push('selected');
                         }
 
-                        cellHTML += `<div class="grid-data grid-data-note ${noteCSS.join(' ')}" data-position="${position}">`;
+                        cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
                         cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                         cellHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
                         if (typeof instruction.duration !== 'undefined')
@@ -467,7 +469,7 @@
                         break;
 
                     case 'group':
-                        cellHTML += `<div class="grid-data grid-data-group" data-position="${position}" data-group="${instruction.group}">`;
+                        cellHTML += `<div class="grid-cell grid-cell-group" data-position="${position}" data-group="${instruction.group}">`;
                         cellHTML +=  `<div class="grid-parameter group">${instruction.group}</div>`;
                         if (typeof instruction.velocity !== 'undefined')
                             cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
@@ -505,10 +507,10 @@
                 editorHTML +=
                     `<div class="grid-row ${pauseCSS.join(' ')}" data-duration="${duration}" data-beats-per-minute="${beatsPerMinute}">`
                     +   cellHTML
-                    +   `<div class="grid-data grid-data-new" data-position="${position}">`
+                    +   `<div class="grid-cell grid-cell-new" data-position="${position}">`
                     +     `<div class="grid-parameter">+</div>`
                     +   `</div>`
-                    +   `<div class="grid-data grid-data-pause" data-position="${position}" data-duration="${duration}">`
+                    +   `<div class="grid-cell grid-cell-pause" data-position="${position}" data-duration="${duration}">`
                     +     `<div class="grid-parameter">${formatDuration(duration)}</div>`
                     +   `</div>`
                     + `</div>`;
@@ -536,8 +538,9 @@
                 target = target.parentNode;
             if(target.classList.contains('grid-row'))
                 target = target.firstElementChild;
-            if(!target.classList.contains('grid-data'))
-                return;
+            if(!target.classList.contains('grid-cell'))
+                target = grid.querySelector('.grid-cell.selected,.grid-cell');
+
 
             switch (e.type) {
                 case 'keydown':
@@ -550,6 +553,7 @@
                     switch (keyEvent) {
                         case 'Delete':
                             editor.deleteInstructions();
+                            e.preventDefault();
                             // editor.render(true);
                             break;
                         case 'Escape':
@@ -560,9 +564,10 @@
                             // editor.getSelectedInstructions() = [];
                             editor.render();
                             editor.gridSelect(0);
+                            e.preventDefault();
                             break;
                         case 'Enter':
-                            if (target.classList.contains('grid-data-group')) {
+                            if (target.classList.contains('grid-cell-group')) {
                                 if (e.ctrlKey || e.metaKey) {
                                     editor.grid.groupPath.unshift(target.getAttribute('data-group'));
                                     editor.render();
@@ -574,35 +579,40 @@
                                 let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
                                 editor.playInstruction(selectedInstruction);
                             }
+                            e.preventDefault();
                             break;
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
                             if (e.shiftKey) grid.selectRange(initialCursorPosition, currentCursorPosition + 1);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else if (grid.nextCell) grid.selectData(grid.nextCell);
+                            else grid.nextCell && grid.selectCell(grid.nextCell);
+                            e.preventDefault();
                             break;
                         case 'ArrowLeft':
                             if (e.shiftKey) grid.selectRange(initialCursorPosition, currentCursorPosition - 1);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                            else if (grid.previousCell) grid.selectData(grid.previousCell);
+                            else grid.previousCell && grid.selectCell(grid.previousCell);
+                            e.preventDefault();
                             break;
                         case 'ArrowDown':
                             if (e.shiftKey) grid.selectRange(initialCursorPosition, nextSectionCursorPosition);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else if (grid.nextRowCell) grid.selectData(grid.nextRowCell);
+                            else grid.nextRowCell && grid.selectCell(grid.nextRowCell);
+                            e.preventDefault();
                             break;
                         case 'ArrowUp':
                             if (e.shiftKey) grid.selectRange(initialCursorPosition, previousSectionCursorPosition);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                            else if (grid.previousRowCell) grid.selectData(grid.previousRowCell);
+                            else grid.previousRowCell && grid.selectCell(grid.previousRowCell);
+                            e.preventDefault();
                             break;
 
                         case 'PlayFrequency':
                             let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
 
-                            // selectedData = editor.querySelector('.grid-data.selected');
-                            if (target.classList.contains('grid-data-new')) {
+                            // selectedData = editor.querySelector('.grid-cell.selected');
+                            if (target.classList.contains('grid-cell-new')) {
                                 let insertPosition = parseInt(target.getAttribute('data-position'));
                                 selectedInstruction = Object.assign({}, selectedInstruction, {
                                     type: 'note',
@@ -612,7 +622,7 @@
                                 }); // new instruction
                                 // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
                                 editor.player.insertInstruction(selectedInstruction, editor.grid.getGroupName(), insertPosition);
-                                // if(selectedData.classList.contains('grid-data-new-last'))
+                                // if(selectedData.classList.contains('grid-cell-new-last'))
                                 //     editor.player.insertInstruction({
                                 //         type: 'pause',
                                 //         duration: parseFloat(selectedData.getAttribute('data-insert-pause')),
@@ -625,13 +635,14 @@
                             editor.render(true);
                             editor.playInstruction(selectedInstruction);
                             // editor.gridSelectInstructions([selectedInstruction]);
+                            e.preventDefault();
                             break;
 
                     }
                     break;
                 case 'mousedown':
                     editor.menuClose();
-                    editor.grid.selectData(target, true);
+                    editor.grid.selectCell(target, true);
 
                     // Longpress
                     clearTimeout(this.longPressTimeout);
@@ -641,9 +652,11 @@
                             bubbles: true
                         }));
                     }, DEFAULT_LONG_PRESS_TIMEOUT);
+                    e.preventDefault();
                     break;
 
                 case 'mouseup':
+                    e.preventDefault();
                     clearTimeout(this.longPressTimeout);
                     break;
 
@@ -654,6 +667,7 @@
                     break;
 
                 case 'click':
+                    e.preventDefault();
                     break;
 
                 case 'contextmenu':
@@ -820,7 +834,7 @@
         'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
 
         'note:frequency': function (e, editor) {
-            let insertPosition = parseInt(editor.querySelector('.grid-data.selected').getAttribute('data-position'));
+            let insertPosition = parseInt(editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
             var newInstruction = {
                 type: 'note',
                 instrument: 0,
@@ -903,7 +917,7 @@
             case 'groups':
                 options = [];
                 Object.keys(song.instructions).map(function(key, i) {
-                    options.push([key, key, editor.grid.getGroupName() === key]);
+                    options.push([key, key, editor.grid && editor.grid.getGroupName() === key]);
                 });
                 break;
         }
