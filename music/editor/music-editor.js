@@ -131,13 +131,22 @@
 
         formUpdate() {
             const formInstructionElm = this.querySelector('form.form-instruction');
-            formInstructionElm.firstElementChild.setAttribute('disabled', 'disabled');
+            formInstructionElm.querySelector('fieldset').setAttribute('disabled', 'disabled');
 
             const formRowElm = this.querySelector('form.form-row');
-            formRowElm.firstElementChild.setAttribute('disabled', 'disabled');
+            formRowElm.querySelector('fieldset').setAttribute('disabled', 'disabled');
 
             const formGroup = this.querySelector('form.form-group');
             // formGroup.classList.add('hidden');
+
+            var cursorPositions = this.grid.getCursorPositions();
+            var instructionList = this.player.getInstructions(this.grid.getGroupName());
+            var nextPause = instructionList.find( (i, p) => i.type === 'pause' && p > cursorPositions[0]);
+
+            if(nextPause) {
+                formRowElm.duration.value = nextPause.duration || '';
+                formRowElm.querySelector('fieldset').removeAttribute('disabled');
+            }
 
             var currentInstruction = this.getSelectedInstructions()[0];
             if(currentInstruction) {
@@ -148,13 +157,7 @@
                         formInstructionElm.duration.value = currentInstruction.duration || '';
                         formInstructionElm.velocity.value = currentInstruction.velocity || '';
                         // formInstruction.editableInstruction = instruction;
-                        formInstructionElm.firstElementChild.removeAttribute('disabled');
-
-                        var instructionList = this.player.getInstructions(this.grid.groupPath[0]);
-                        var instructionPosition = this.player.getInstructionPosition(currentInstruction, this.grid.groupPath[0]);
-                        var nextPause = instructionList.find( (i, p) => i.type === 'pause' && p > instructionPosition);
-                        formRowElm.duration.value = nextPause.duration || '';
-                        formRowElm.firstElementChild.removeAttribute('disabled');
+                        formInstructionElm.querySelector('fieldset').removeAttribute('disabled');
 
                         break;
 
@@ -344,7 +347,7 @@
                     break;
 
                 default:
-                    console.error("Unhandled ", e);
+                    console.error("Unhandled " + e.type, e);
             }
         }
 
@@ -362,9 +365,9 @@
         get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); }
         get currentRow() { return this.currentCell.parentNode; }
         get nextRow() { return this.currentRow.nextElementSibling; }
-        get nextRowCell() { return this.nextRow ? this.nextRow.firstElementChild : this.currentRow.firstElementChild; }
+        get nextRowCell() { return this.nextRow ? this.nextRow.firstElementChild : null; }
         get previousRow() { return this.currentRow.previousElementSibling; }
-        get previousRowCell() { return this.previousRow ? this.previousRow.lastElementChild : this.currentRow.lastElementChild; }
+        get previousRowCell() { return this.previousRow ? this.previousRow.lastElementChild : null; }
         get nextCell() { return this.currentCell.nextElementSibling || this.nextRowCell; }
         get previousCell() { return this.currentCell.previousElementSibling || this.previousRowCell; }
 
@@ -378,7 +381,7 @@
             this.querySelectorAll('.grid-cell.selected').forEach(function(elm) {
                 var p = elm.getAttribute('data-position');
                 if(typeof p !== "undefined")
-                    cursorPositions.push(p);
+                    cursorPositions.push(parseInt(p));
             });
             if(cursorPositions.length === 0)
                 return [0];
@@ -403,6 +406,7 @@
                 dataElm.classList.add('selected');
                 dataElm.parentElement.classList.add('selected');
             }
+            this.editor.formUpdate();
         }
 
         selectCell(gridCellList) {
@@ -412,14 +416,15 @@
                 elm.classList.add('selected');
                 elm.parentElement.classList.add('selected');
             });
+            this.editor.formUpdate();
         }
 
 
         findInstruction(instruction) {
-            let instructionGroup = this.player.findInstructionGroup(instruction);
-            if(instructionGroup !== this.grid.getGroupName())
+            let instructionGroup = this.editor.player.findInstructionGroup(instruction);
+            if(instructionGroup !== this.getGroupName())
                 return null;
-            let position = this.player.getInstructionPosition(instruction, instructionGroup);
+            let position = this.editor.player.getInstructionPosition(instruction, instructionGroup);
             return this.findDataElement(position);
         }
 
@@ -522,14 +527,14 @@
             if (e.defaultPrevented)
                 return;
             const editor = this.editor;
+            let grid = editor.grid; // Use grid instead of 'this', incase the editor refreshes
             const song = editor.getSong();
-            const grid = editor.grid;
-            const instructionList = song.instructions[grid.getGroupName()];
-            const cursorPositions = grid.getCursorPositions();
+            // const instructionList = song.instructions[grid.getGroupName()];
+            const cursorPositions = this.getCursorPositions();
             const initialCursorPosition = cursorPositions[0];
             const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
-            const nextSectionCursorPosition = (p => p === -1 ? currentCursorPosition : p)(instructionList.indexOf((i, p) => i.type === 'pause' && p > currentCursorPosition));
-            const previousSectionCursorPosition = (p => p === -1 ? currentCursorPosition : p)(instructionList.reverse().indexOf((i, p) => i.type === 'pause' && p < currentCursorPosition));
+            // const nextSectionCursorPosition = (p => p === -1 ? currentCursorPosition : p)(instructionList.indexOf((i, p) => i.type === 'pause' && p > currentCursorPosition));
+            // const previousSectionCursorPosition = (p => p === -1 ? currentCursorPosition : p)(instructionList.reverse().indexOf((i, p) => i.type === 'pause' && p < currentCursorPosition));
 
             var target = e.target;
             if(target.classList.contains('grid-parameter'))
@@ -539,7 +544,7 @@
             if(target.classList.contains('grid-row'))
                 target = target.firstElementChild;
             if(!target.classList.contains('grid-cell'))
-                target = grid.querySelector('.grid-cell.selected,.grid-cell');
+                target = grid.querySelector('.grid-cell.selected') || grid.querySelector('.grid-cell');
 
 
             switch (e.type) {
@@ -550,6 +555,37 @@
                         keyEvent = 'PlayFrequency';
                     if (keyEvent === 'Enter' && e.altKey)
                         keyEvent = 'ContextMenu';
+
+
+                    if (target.classList.contains('grid-cell-new')) {
+                        let insertPosition = parseInt(target.getAttribute('data-position'));
+                        let newInstruction = null;
+                        let duration = parseFloat(grid.currentRow.getAttribute('data-duration'));
+                        switch (keyEvent) {
+                            case 'Enter':
+                            case 'ArrowDown':
+                                newInstruction = {
+                                    type: 'pause',
+                                    duration: duration
+                                }; // new instruction
+                                break;
+                            case 'PlayFrequency':
+                                newInstruction = {
+                                    type: 'note',
+                                    instrument: 0,
+                                    frequency: 'C4',
+                                    duration: duration
+                                }; // new instruction
+                                break;
+                        }
+                        if(newInstruction) {
+                            editor.player.insertInstruction(newInstruction, grid.getGroupName(), insertPosition);
+                            editor.render();
+                            grid = editor.grid;
+                            grid.select(insertPosition);
+                        }
+                    }
+
                     switch (keyEvent) {
                         case 'Delete':
                             editor.deleteInstructions();
@@ -563,7 +599,7 @@
                                 editor.grid.groupPath = [editor.getSong().root || DEFAULT_GROUP];
                             // editor.getSelectedInstructions() = [];
                             editor.render();
-                            editor.gridSelect(0);
+                            editor.grid.select(0);
                             e.preventDefault();
                             break;
                         case 'Enter':
@@ -598,55 +634,36 @@
                         case 'ArrowDown':
                             if (e.shiftKey) grid.selectRange(initialCursorPosition, nextSectionCursorPosition);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else grid.nextRowCell && grid.selectCell(grid.nextRowCell);
+                            else grid.selectCell(grid.nextRowCell || grid.parentNode.firstElementChild);
                             e.preventDefault();
                             break;
                         case 'ArrowUp':
                             if (e.shiftKey) grid.selectRange(initialCursorPosition, previousSectionCursorPosition);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                            else grid.previousRowCell && grid.selectCell(grid.previousRowCell);
+                            else grid.selectCell(grid.previousRowCell || grid.parentNode.lastElementChild);
                             e.preventDefault();
                             break;
 
                         case 'PlayFrequency':
                             let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
-
-                            // selectedData = editor.querySelector('.grid-cell.selected');
-                            if (target.classList.contains('grid-cell-new')) {
-                                let insertPosition = parseInt(target.getAttribute('data-position'));
-                                selectedInstruction = Object.assign({}, selectedInstruction, {
-                                    type: 'note',
-                                    instrument: 0,
-                                    frequency: 'C4',
-                                    duration: parseFloat(grid.currentRow.getAttribute('data-duration'))
-                                }); // new instruction
-                                // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                                editor.player.insertInstruction(selectedInstruction, editor.grid.getGroupName(), insertPosition);
-                                // if(selectedData.classList.contains('grid-cell-new-last'))
-                                //     editor.player.insertInstruction({
-                                //         type: 'pause',
-                                //         duration: parseFloat(selectedData.getAttribute('data-insert-pause')),
-                                //     }, editor.grid.getGroupName(), insertPosition+1);
-                                // editor.render();
-                                // TODO: make insert function
-                            }
-
                             selectedInstruction.frequency = editor.keyboardLayout[e.key];
                             editor.render(true);
                             editor.playInstruction(selectedInstruction);
+
                             // editor.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
                             break;
 
                     }
                     break;
+
                 case 'mousedown':
                     editor.menuClose();
-                    editor.grid.selectCell(target, true);
+                    grid.selectCell(target, true);
 
                     // Longpress
-                    clearTimeout(this.longPressTimeout);
-                    this.longPressTimeout = setTimeout(function() {
+                    clearTimeout(grid.longPressTimeout);
+                    grid.longPressTimeout = setTimeout(function() {
                         e.target.dispatchEvent(new CustomEvent('longpress', {
                             detail: {originalEvent: e},
                             bubbles: true
@@ -657,7 +674,7 @@
 
                 case 'mouseup':
                     e.preventDefault();
-                    clearTimeout(this.longPressTimeout);
+                    clearTimeout(grid.longPressTimeout);
                     break;
 
                 case 'longpress':
@@ -676,6 +693,8 @@
                     break;
 
             }
+
+
         }
     }
 
