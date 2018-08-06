@@ -335,6 +335,8 @@
         // Edit Song
 
         insertInstruction(instruction, groupName, beforePosition) {
+            if(typeof instruction !== 'object')
+                throw new Error("Invalid instruction: " + typeof instruction);
             const instructionList = this.getInstructions(groupName);
             if(typeof beforePosition === 'number') {
                 if (instructionList.length < beforePosition)

@@ -30,7 +30,7 @@
             this.addEventListener('contextmenu', this.onInput.bind(this));
             this.addEventListener('keydown', this.onInput.bind(this));
             // this.addEventListener('keyup', this.onInput.bind(this));
-            this.addEventListener('click', this.onInput.bind(this));
+            // this.addEventListener('click', this.onInput.bind(this));
             this.addEventListener('mousedown', this.onInput.bind(this));
             this.addEventListener('mouseup', this.onInput.bind(this));
             this.addEventListener('longpress', this.onInput.bind(this));
@@ -62,7 +62,7 @@
         loadSongFromMemory(guid) {
             this.player.loadSongData(loadSongFromMemory(guid));
             this.render();
-            this.gridSelect(0);
+            this.grid.select(0);
         }
 
         // Grid Functions 
@@ -191,7 +191,7 @@
                     if(instructionElm) {
                         instructionElm.classList.add('playing');
                         instructionElm.parentNode.classList.add('playing');
-                        console.log("show", instructionElm);
+                        // console.log("show", instructionElm);
                     }
                     if(groupElm) {
                         groupElm.classList.add('playing');
@@ -203,7 +203,7 @@
                     if(instructionElm) {
                         instructionElm.classList.remove('playing');
                         instructionElm.parentNode.classList.remove('playing');
-                        console.log("hide", instructionElm);
+                        // console.log("hide", instructionElm);
                     }
                     if(groupElm) {
                         // if(groupPlayActive <= 1) {
@@ -278,13 +278,20 @@
                     switch(e.key) {
                         case 'Tab': break;
                         case ' ': this.player.play(); e.preventDefault(); break;
-                        case 's': this.player.saveSongToMemory(); e.preventDefault(); break;
+                        case 'Escape': this.grid.focus(); break;
+                        // case 'ArrowDown':
+                        // case 's': this.player.saveSongToMemory(); e.preventDefault(); break;
+                            // Send keystroke to default grid
+                            // this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
+                            // if(!e.defaultPrevented)
+                            //     console.info("Unhandled " + e.type, e);
                         default:
-                            // console.info('Unused input ' + e.type, e);
                     }
                     break;
 
                 // case 'keyup':
+                //     // Send keystroke to default grid
+                //     this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
                 //     break;
 
                 case 'mousedown':
@@ -328,8 +335,8 @@
 
                 case 'mouseup':
                     break;
-                case 'click':
-                    break;
+                // case 'click':
+                //     break;
 
                 case 'contextmenu':
                     if(targetClassList.contains('grid-parameter')
@@ -355,12 +362,6 @@
                 default:
                     // console.error("Unhandled " + e.type, e);
             }
-
-            if(e.defaultPrevented)
-                return;
-            this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
-            if(!e.defaultPrevented)
-                console.info("Unhandled " + e.type, e);
         }
 
     }
@@ -398,9 +399,9 @@
             if (e.defaultPrevented)
                 return;
 
-            const cursorPositions = this.getCursorPositions();
-            const initialCursorPosition = cursorPositions[0];
-            const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
+            // const cursorPositions = this.getCursorPositions();
+            // const initialCursorPosition = cursorPositions[0];
+            // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
             const editor = this.editor;
             
@@ -442,7 +443,7 @@
                                 break;
                         }
                         if(newInstruction) {
-                            editor.player.insertInstruction(newInstruction, this.getGroupName(), insertPosition);
+                            this.insertInstruction(newInstruction, insertPosition);
                             this.render();
                             this.select(insertPosition);
                         }
@@ -480,40 +481,31 @@
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
-                            if (e.shiftKey) this.selectRange(initialCursorPosition, currentCursorPosition + 1);
+                            if(!this.nextCell) createNextRow.call(this);
+                            if (e.shiftKey) this.selectCellRange(cellElm, this.nextCell);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else this.nextCell && this.selectCell(this.nextCell);
+                            else this.selectCell(this.nextCell);
                             this.focus();
                             e.preventDefault();
                             break;
                         case 'ArrowLeft':
-                            if (e.shiftKey) this.selectRange(initialCursorPosition, currentCursorPosition - 1);
+                            if (e.shiftKey) this.selectCellRange(cellElm, this.previousCell);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
                             else this.previousCell && this.selectCell(this.previousCell);
                             this.focus();
                             e.preventDefault();
                             break;
                         case 'ArrowDown':
-                            if (e.shiftKey) this.selectRange(initialCursorPosition, nextSectionCursorPosition);
+                            if(!this.nextRowCell) createNextRow.call(this);
+                            if (e.shiftKey) this.selectCellRange(cellElm, this.nextRowCell);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
                             else this.selectCell(this.nextRowCell || this.parentNode.firstElementChild);
 
-                            if (cellElm.classList.contains('grid-cell-new')) {
-                                let insertPosition = parseInt(cellElm.getAttribute('data-position'));
-                                let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
-                                let pauseInstruction = {
-                                    type: 'pause',
-                                    duration: duration
-                                }; // new instruction
-                                editor.player.insertInstruction(pauseInstruction, this.getGroupName(), insertPosition);
-                                this.render();
-                                this.select(insertPosition);
-                            }
                             this.focus();
                             e.preventDefault();
                             break;
                         case 'ArrowUp':
-                            if (e.shiftKey) this.selectRange(initialCursorPosition, previousSectionCursorPosition);
+                            if (e.shiftKey) this.selectCellRange(cellElm, this.previousRowCell);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
                             else this.selectCell(this.previousRowCell || this.parentNode.lastElementChild);
                             this.focus();
@@ -537,6 +529,7 @@
                 case 'mousedown':
                     editor.menuClose();
                     this.selectCell(cellElm, true);
+                    this.focus();
 
                     // Longpress
                     clearTimeout(this.longPressTimeout);
@@ -567,7 +560,23 @@
 
             }
 
+            function createNextRow() {
 
+                let insertPosition = parseInt(cellElm.getAttribute('data-position'));
+                let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
+                let pauseInstruction = {
+                    type: 'pause',
+                    duration: duration
+                }; // new instruction
+                this.insertInstruction(pauseInstruction, insertPosition);
+                this.render();
+                this.select(insertPosition);
+            }
+
+        }
+
+        insertInstruction(instruction, insertPosition) {
+            return this.editor.player.insertInstruction(instruction, this.getGroupName(), insertPosition);
         }
 
         render() {
@@ -600,7 +609,7 @@
                         cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                         cellHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
                         if (typeof instruction.duration !== 'undefined')
-                            cellHTML += `<div class="grid-parameter duration${nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
+                            cellHTML += `<div class="grid-parameter duration${nextPause && nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
                         if (typeof instruction.velocity !== 'undefined')
                             cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                         cellHTML += `</div>`;
@@ -634,10 +643,10 @@
 
             }
 
-            addRowHTML('', instructionList.length, lastPause);
+            addRowHTML(cellHTML, instructionList.length, lastPause);
 
             this.innerHTML =
-                `<div class="editor-grid" tabindex="2">`
+                `<div class="editor-grid">`
                 +   editorHTML
                 + `</div>`;
 
@@ -670,14 +679,6 @@
             return cursorPositions;
         }
 
-        selectRange(startPosition, length) {
-            let cursorPositions = [];
-            for(let p=startPosition; p<startPosition+length; p++)
-                cursorPositions.push(p);
-            this.select(cursorPositions);
-        }
-
-
         select(cursorPositions) {
             cursorPositions = Array.isArray(cursorPositions) ? cursorPositions : [cursorPositions];
             // this.cursorPositions = cursorPositions;
@@ -685,6 +686,10 @@
             for(let i=0; i<cursorPositions.length; i++) {
                 const p = cursorPositions[i];
                 const dataElm = this.querySelector(`.grid-cell[data-position='${p}']`);
+                if(!dataElm) {
+                    console.warn("Could not find grid-cell for position " + p);
+                    continue;
+                }
                 dataElm.classList.add('selected');
                 dataElm.parentElement.classList.add('selected');
             }
@@ -702,6 +707,20 @@
                 elm.parentElement.classList.add('selected');
             });
             this.editor.formUpdate();
+        }
+
+
+        selectCellRange(startCell, endCell) {
+            var pos = [
+                parseInt(startCell.getAttribute('data-position')),
+                parseInt(endCell.getAttribute('data-position'))
+            ]
+            if(pos[0] > pos[1])
+                pos = [pos[1], pos[0]];
+            let cursorPositions = [];
+            for(let p=pos[0]; p<pos[1]; p++)
+                cursorPositions.push(p);
+            this.select(cursorPositions);
         }
 
         findInstruction(instruction) {
@@ -848,12 +867,12 @@
                 throw new Error("no pauses follow selected instruction");
             nextPause.duration = parseFloat(form.duration.value);
             editor.render();
-            // editor.gridSelectInstructions([instruction]);
+            // editor.grid.select([instruction]);
         },
         'group:edit': function(e, form, editor) {
             editor.grid.groupPath = [form.getGroupName().value];
             editor.render();
-            editor.gridSelect(0);
+            editor.grid.select(0);
         },
         'song:edit': function(e, form, editor) {
             const song = editor.getSong();
@@ -861,7 +880,7 @@
             song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
             song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
             editor.render();
-            editor.gridSelect(0);
+            editor.grid.select(0);
         },
         'song:play': function (e, form, editor) { editor.player.play(); },
         'song:pause': function (e, form, editor) { editor.player.pause(); },
@@ -1019,7 +1038,7 @@
             <div class="music-editor" tabindex="1">
                 <div class="editor-menu">
                     <li>
-                        <a class="menu-item" tabindex="2">File</a>
+                        <a class="menu-item">File</a>
                         <ul class="submenu">
                             <li>
                                 <a class="menu-item">Open from memory &#9658;</a>
@@ -1037,7 +1056,7 @@
                         </ul>
                     </li>
                     <li>
-                        <a class="menu-item" tabindex="3">Note</a>
+                        <a class="menu-item">Note</a>
                         <ul class="submenu submenu:note">
                             <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
                             <li><a class="menu-item" data-command="note:frequency">Set <span class="key">I</span>nstrument</a></li>
@@ -1048,20 +1067,20 @@
                         </ul>
                     </li>
                     <li>
-                        <a class="menu-item" tabindex="4"><span class="key">R</span>ow</a>
+                        <a class="menu-item"<span class="key">R</span>ow</a>
                         <ul class="submenu submenu:pause">
                             <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
                             <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
                         </ul>
                     </li>
                     <li>
-                        <a class="menu-item" tabindex="5"><span class="key">G</span>roup</a>
+                        <a class="menu-item"><span class="key">G</span>roup</a>
                         <ul class="submenu submenu:group">
                             <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
                             <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
                         </ul>
                     </li>
-                    <li><a class="menu-item disabled" tabindex="6">Collaborate</a></li>
+                    <li><a class="menu-item disabled">Collaborate</a></li>
                 </div>
                 <ul class="editor-context-menu submenu">
                     <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
@@ -1169,7 +1188,7 @@
                         </fieldset>
                     </form>
                 </div>
-                <music-editor-grid data-group="${this.grid ? this.grid.getGroupName() : 'root'}">
+                <music-editor-grid data-group="${this.grid ? this.grid.getGroupName() : 'root'}" tabindex="2">
                 </music-editor-grid>
             </div>
         `;
