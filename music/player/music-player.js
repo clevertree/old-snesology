@@ -342,8 +342,10 @@
                 if (instructionList.length < beforePosition)
                     throw new Error("Invalid instruction position: " + beforePosition + (groupName ? " for group: " + groupName : ''));
                 instructionList.splice(beforePosition, 0, instruction);
+                return beforePosition;
             } else {
                 instructionList.push(instruction);
+                return instructionList.length-1;
             }
 
         }

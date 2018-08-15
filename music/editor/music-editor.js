@@ -27,26 +27,26 @@
         connectedCallback() {
             // this.render();
 
-            this.addEventListener('contextmenu', this.onInput.bind(this));
-            this.addEventListener('keydown', this.onInput.bind(this));
-            // this.addEventListener('keyup', this.onInput.bind(this));
-            // this.addEventListener('click', this.onInput.bind(this));
-            this.addEventListener('mousedown', this.onInput.bind(this));
-            this.addEventListener('mouseup', this.onInput.bind(this));
-            this.addEventListener('longpress', this.onInput.bind(this));
-            this.addEventListener('change', this.onInput.bind(this));
-            this.addEventListener('submit', this.onInput.bind(this));
+            this.addEventListener('contextmenu', this.onInput);
+            this.addEventListener('keydown', this.onInput);
+            // this.addEventListener('keyup', this.onInput);
+            // this.addEventListener('click', this.onInput);
+            this.addEventListener('mousedown', this.onInput);
+            this.addEventListener('mouseup', this.onInput);
+            this.addEventListener('longpress', this.onInput);
+            this.addEventListener('change', this.onInput);
+            this.addEventListener('submit', this.onInput);
 
             loadScript('music/player/music-player.js', function() {
 
                 const playerElement = document.createElement('music-player');
                 this.player = playerElement;
-                playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
-                playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:start', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
+                playerElement.addEventListener('note:end', this.onSongEvent);
+                playerElement.addEventListener('note:start', this.onSongEvent);
+                playerElement.addEventListener('song:start', this.onSongEvent);
+                playerElement.addEventListener('song:playback', this.onSongEvent);
+                playerElement.addEventListener('song:end', this.onSongEvent);
+                playerElement.addEventListener('song:pause', this.onSongEvent);
 
                 if(this.getSongURL())
                     playerElement.loadSong(this.getSongURL(), function() {
@@ -561,14 +561,13 @@
             }
 
             function createNextRow() {
-
-                let insertPosition = parseInt(cellElm.getAttribute('data-position'));
+                // let insertPosition = parseInt(cellElm.getAttribute('data-position'));
                 let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
                 let pauseInstruction = {
                     type: 'pause',
                     duration: duration
                 }; // new instruction
-                this.insertInstruction(pauseInstruction, insertPosition);
+                let insertPosition = this.insertInstruction(pauseInstruction); // insertPosition
                 this.render();
                 this.select(insertPosition);
             }
