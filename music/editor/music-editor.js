@@ -17,6 +17,7 @@
             // this.grid = [new EditorGrid(DEFAULT_GROUP)];
             // this.getSelectedInstructions() = [];
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
+            this.gridStack = [DEFAULT_GROUP];
         }
         get grid() { return this.querySelector('music-editor-grid'); }
 
@@ -72,9 +73,6 @@
             return this.grid.getCursorPositions().map(p => instructionList[p]);
         }
 
-
-
-
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
             deletePositions = deletePositions || this.grid.getCursorPositions();
@@ -88,27 +86,24 @@
             this.grid.select([deletePositions[deletePositions.length-1]]);
         }
 
+        gridNavigate(groupName) {
+            if(groupName === null) {
+                this.gridStack.shift();
+                if(this.gridStack.length === 0)
+                    this.gridStack = [DEFAULT_GROUP];
+            } else {
+                this.gridStack.unshift(groupName);
+            }
+            console.log("Navigate: ", this.gridStack[0]);
+            this.render();
+        }
+
 
         // Rendering
 
-        render(focus) {
-            // var selectedInstructions = this.getSelectedInstructions();
+        render() {
             this.innerHTML = renderEditorContent.call(this);
             this.formUpdate();
-            // let selectedData = this.querySelector('.grid-cell.selected');
-            // if(!selectedData) {
-            //     selectedData = this.querySelector('.grid-cell');
-            //     this.gridDataSelect(selectedData);
-            // }
-            if(focus === true || typeof focus === 'undefined') {
-                this.querySelector('.music-editor').focus();
-            }
-        }
-
-        // Grid Commands
-
-        gridNavigate(groupName) {
-            console.log("Navigate: ", groupName);
         }
 
         // Player commands
@@ -870,7 +865,6 @@
         },
         'group:edit': function(e, form, editor) {
             editor.gridNavigate(form.groupName.value);
-            editor.render();
             editor.grid.select(0);
         },
         'song:edit': function(e, form, editor) {
@@ -978,7 +972,7 @@
             case 'groups':
                 options = [];
                 Object.keys(song.instructions).map(function(key, i) {
-                    options.push([key, key, editor.grid && editor.grid.getGroupName() === key]);
+                    options.push([key, key, editor.gridStack[0] === key]);
                 });
                 break;
         }
@@ -1187,7 +1181,7 @@
                         </fieldset>
                     </form>
                 </div>
-                <music-editor-grid data-group="${this.grid ? this.grid.getGroupName() : 'root'}" tabindex="2">
+                <music-editor-grid data-group="${this.gridStack[0] || 'root'}" tabindex="2">
                 </music-editor-grid>
             </div>
         `;
