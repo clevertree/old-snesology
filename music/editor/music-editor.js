@@ -55,7 +55,7 @@
                     }.bind(this));
             }.bind(this));
         }
-        
+
         saveSongToMemory() {
             saveSongToMemory(this.getSong());
         }
@@ -65,7 +65,7 @@
             this.grid.select(0);
         }
 
-        // Grid Functions 
+        // Grid Functions
 
         getSelectedInstructions() {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
@@ -108,7 +108,7 @@
         // Grid Commands
 
         gridNavigate(groupName) {
-
+            console.log("Navigate: ", groupName);
         }
 
         // Player commands
@@ -404,7 +404,7 @@
             // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
             const editor = this.editor;
-            
+
             let cellElm = e.target;
             if (cellElm.classList.contains('grid-parameter'))
                 cellElm = cellElm.parentNode;
@@ -869,7 +869,7 @@
             // editor.grid.select([instruction]);
         },
         'group:edit': function(e, form, editor) {
-            editor.grid.groupPath = [form.getGroupName().value];
+            editor.gridNavigate(form.groupName.value);
             editor.render();
             editor.grid.select(0);
         },
