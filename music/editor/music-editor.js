@@ -73,9 +73,6 @@
             return this.grid.getCursorPositions().map(p => instructionList[p]);
         }
 
-
-
-
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
             deletePositions = deletePositions || this.grid.getCursorPositions();
@@ -89,21 +86,24 @@
             this.grid.select([deletePositions[deletePositions.length-1]]);
         }
 
+        gridNavigate(groupName) {
+            if(groupName === null) {
+                this.gridStack.shift();
+                if(this.gridStack.length === 0)
+                    this.gridStack = [DEFAULT_GROUP];
+            } else {
+                this.gridStack.unshift(groupName);
+            }
+            console.log("Navigate: ", this.gridStack[0]);
+            this.render();
+        }
+
 
         // Rendering
 
         render() {
-            // var selectedInstructions = this.getSelectedInstructions();
             this.innerHTML = renderEditorContent.call(this);
             this.formUpdate();
-            // let selectedData = this.querySelector('.grid-cell.selected');
-            // if(!selectedData) {
-            //     selectedData = this.querySelector('.grid-cell');
-            //     this.gridDataSelect(selectedData);
-            // }
-            // if(focus === true || typeof focus === 'undefined') {
-            //     this.querySelector('.music-editor').focus();
-            // }
         }
 
         // Grid Commands
@@ -886,7 +886,6 @@
         },
         'group:edit': function(e, form, editor) {
             editor.gridNavigate(form.groupName.value);
-            editor.render();
             editor.grid.select(0);
         },
         'song:edit': function(e, form, editor) {

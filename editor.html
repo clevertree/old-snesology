@@ -12,7 +12,9 @@
         <script src="music/editor/music-editor.js" ></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-               document.querySelector('music-editor').focus();
+                setTimeout(function() {
+                    document.querySelector('music-editor-grid').focus();
+                }, 200);
             });
         </script>
     </head>
