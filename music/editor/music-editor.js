@@ -14,9 +14,10 @@
             super();
             this.player = null;
             this.config = DEFAULT_CONFIG;
-            // this.grid = [new EditorGrid(DEFAULT_GROUP)];
-            // this.getSelectedInstructions() = [];
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
+            this.status = {
+                grids: [{group: DEFAULT_GROUP}]
+            }
         }
         get grid() { return this.querySelector('music-editor-grid'); }
 
@@ -91,7 +92,7 @@
 
         // Rendering
 
-        render(focus) {
+        render() {
             // var selectedInstructions = this.getSelectedInstructions();
             this.innerHTML = renderEditorContent.call(this);
             this.formUpdate();
@@ -100,15 +101,23 @@
             //     selectedData = this.querySelector('.grid-cell');
             //     this.gridDataSelect(selectedData);
             // }
-            if(focus === true || typeof focus === 'undefined') {
-                this.querySelector('.music-editor').focus();
-            }
+            // if(focus === true || typeof focus === 'undefined') {
+            //     this.querySelector('.music-editor').focus();
+            // }
         }
 
         // Grid Commands
 
         gridNavigate(groupName) {
             console.log("Navigate: ", groupName);
+            if(groupName === null) {
+                this.status.grids.shift();
+                if(this.status.grids.length === 0)
+                    this.status.grids = [{group: DEFAULT_GROUP}]
+            } else {
+                this.status.grids.unshift({group: groupName});
+            }
+            this.render();
         }
 
         // Player commands
@@ -465,13 +474,20 @@
                         case 'Enter':
                             if (cellElm.classList.contains('grid-cell-group')) {
                                 const groupName = cellElm.getAttribute('data-group');
-                                if (e.ctrlKey || e.metaKey) {
-                                    editor.gridNavigate(groupName);
-                                    editor.grid.select(0);
-                                    editor.grid.focus();
-                                } else {
-                                    editor.player.playInstructions(groupName);
-                                }
+                                editor.gridNavigate(groupName);
+                                editor.grid.select(0);
+                                editor.grid.focus();
+                            } else {
+                                let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
+                                editor.playInstruction(selectedInstruction);
+                            }
+                            e.preventDefault();
+                            break;
+
+                        case 'Play':
+                            if (cellElm.classList.contains('grid-cell-group')) {
+                                const groupName = cellElm.getAttribute('data-group');
+                                editor.player.playInstructions(groupName);
                             } else {
                                 let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
                                 editor.playInstruction(selectedInstruction);
@@ -978,7 +994,7 @@
             case 'groups':
                 options = [];
                 Object.keys(song.instructions).map(function(key, i) {
-                    options.push([key, key, editor.grid && editor.grid.getGroupName() === key]);
+                    options.push([key, key, editor.status.grids[0].group === key]);
                 });
                 break;
         }
@@ -1187,7 +1203,7 @@
                         </fieldset>
                     </form>
                 </div>
-                <music-editor-grid data-group="${this.grid ? this.grid.getGroupName() : 'root'}" tabindex="2">
+                <music-editor-grid data-group="${this.status.grids[0].group}" tabindex="2">
                 </music-editor-grid>
             </div>
         `;
