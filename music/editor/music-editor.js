@@ -98,6 +98,15 @@
             this.render();
         }
 
+        gridFindInstruction(instruction) {
+            let grids = this.querySelectorAll('music-editor-grid');
+            for(let i=0; i<grids.length; i++) {
+                const instructionElm = grids[i].findInstruction(instruction);
+                if(instructionElm)
+                    return instructionElm;
+            }
+            return null;
+        }
 
         // Rendering
 
@@ -183,8 +192,8 @@
         onSongEvent(e) {
             // console.log("onSongEvent", e);
             const detail = e.detail || {stats:{}};
-            const instructionElm = detail.instruction ? this.grid.findInstruction(detail.instruction) : null;
-            const groupElm = detail.groupInstruction ? this.grid.findInstruction(detail.groupInstruction) : null;
+            const instructionElm = detail.instruction ? this.gridFindInstruction(detail.instruction) : null;
+            const groupElm = detail.groupInstruction ? this.gridFindInstruction(detail.groupInstruction) : null;
             // var groupPlayActive = groupElm ? parseInt(groupElm.getAttribute('data-play-active')||0) : 0;
             switch(e.type) {
                 case 'note:start':
