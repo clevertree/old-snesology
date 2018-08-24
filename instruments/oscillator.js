@@ -1,10 +1,10 @@
 
 
 (function() {
-    // snesology.org.instruments.oscillator
+    // snesology.net.instruments.oscillator
     var domain = {};
     if(!window.instruments)             window.instruments = {};
-    window.instruments['snesology.org'] = domain;
+    window.instruments['snesology.net'] = domain;
 
     domain['oscillator.sine'] = OscillatorSimple;
     domain['oscillator.sawtooth'] = OscillatorSimple;

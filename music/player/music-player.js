@@ -61,53 +61,31 @@
             const instructionList = songData.instructions[groupName];
             if(!instructionList)
                 throw new Error("Group instructions not found: " + groupName);
-            let lastInstruction = {}; //instructionList[0];
             let pauseNotes = [];
             for (let i = 0; i < instructionList.length; i++) {
                 let instruction = instructionList[i];
-                switch (typeof instruction) {
-                    case 'number':
-                        instruction = instructionList[i] = {type: "pause", duration: instruction};
-                        break;
-                    case 'string':
-                        if(instruction[0] === '@')
-                            instruction = instructionList[i] = Object.assign({}, lastInstruction, {type: "group", group: instruction.substr(1)});
-                        else
-                            instruction = instructionList[i] = Object.assign({}, lastInstruction, {type: "note", frequency: instruction});
-                        break;
-                    case 'object':
-                        if (Array.isArray(instruction))
-                            instruction = instructionList[i]
-                                = Object.assign({}, lastInstruction, {
-                                type: "note",
-                                frequency: instruction[0],
-                                length: instruction[1]
-                            });
-                        switch (instruction.type) {
-                            case 'note':
-                                if (typeof instruction.instrument === 'string')
-                                    instruction.instrument = this.findInstrumentID(instruction.instrument, songData.instruments);
-                                if(typeof instruction.duration === 'undefined') // Note's duration equals the next paus
-                                    pauseNotes.push(instruction);
-                        }
-                        break;
+                if (typeof instruction === 'number')
+                    instruction = {pause: instruction};
+                if (typeof instruction === 'string')
+                    instruction = instruction.split(':');
+                if (Array.isArray(instruction)) {
+                    instruction = {
+                        command: instruction[0],
+                        duration: instruction[1]
+                    };
                 }
+                if (typeof instruction.instrument === 'string')
+                    instruction.instrument = this.findInstrumentID(instruction.instrument, songData.instruments);
 
-                switch(instruction.type) {
-                    case 'note':
-                        lastInstruction = instruction;
-                        break;
+                instructionList[i] = instruction;
 
-                    case 'pause':
-                        for(let pni=0; pni<pauseNotes.length; pni++)
-                            pauseNotes[pni].duration = instruction.duration;
-                        pauseNotes = [];
-                        break;
-
-                    // case 'group':
-                    //     if(!processedKeys || processedKeys.indexOf(instruction.group) === -1)
-                    //         this.processInstructions(songData, instruction.group, processedKeys);
-                    //     break;
+                // Handle pauses
+                if (typeof instruction.pause === 'undefined') { // Note's duration equals the next pause
+                    pauseNotes.push(instruction);
+                } else {
+                    for(let pni=0; pni<pauseNotes.length; pni++)
+                        pauseNotes[pni].duration = instruction.pause;
+                    pauseNotes = [];
                 }
             }
         }
@@ -223,7 +201,7 @@
             groupName = groupName || this.song.root;
             let instructionList = this.song.instructions[groupName];
             if(!instructionList)
-                throw new Error("Instruction group not found: " + groupName);
+                throw new Error("Instruction groupName not found: " + groupName);
             return instructionList;
         }
 
@@ -240,18 +218,16 @@
                 if(this.song.instructions.hasOwnProperty(groupName))
                     if(this.song.instructions[groupName].indexOf(instruction) !== -1)
                         return groupName;
-            throw new Error("Instruction not found in any group");
+            throw new Error("Instruction not found in any groupName");
         }
 
         playInstruction(instruction, noteStartTime, stats) {
-            if(instruction.type === 'note') {
-                const bpm = stats.currentBPM || 60;
-                const instrumentName = instruction.instrument;
-                const noteFrequency = instruction.frequency;
-                const noteDuration = (instruction.duration || 1) * (60 / bpm);
-                return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, stats);
-            }
-            return null;
+            // TODO: play groups too
+            const bpm = stats.currentBPM || 60;
+            const instrumentName = instruction.instrument;
+            const noteFrequency = instruction.command;
+            const noteDuration = (instruction.duration || 1) * (60 / bpm);
+            return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, stats);
         }
 
         playInstructions(instructionGroup, playbackPosition, playbackLength, currentTime) {
@@ -290,40 +266,39 @@
                 for(let i=0; i<instructionList.length; i++) {
                     const instruction = instructionList[i];
 
-                    switch(instruction.type) {
-                        case 'note':
-                            stats.parentBPM = stats.currentBPM;
-                            stats.absolutePosition = stats.groupPosition + stats.parentPosition;
-                            stats.absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
-                            callback(instruction, stats);
-                            break;
-
-                        case 'pause':
-                            stats.groupPosition += instruction.duration;
-                            stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
-                            if(stats.groupPlaytime > stats.maxPlaytime)
-                                stats.maxPlaytime = stats.groupPlaytime;
-                            break;
-
-                        case 'group':
-                            // if(groupPosition < startPosition) // Execute all groups each time
-                            //     continue;
-                            let instructionGroupList = this.song.instructions[instruction.group];
-                            if(!instructionGroupList)
-                                throw new Error("Instruction group not found: " + instruction.group);
-                            // console.log("Group Offset", instruction.group, currentGroupPlayTime);
-                            stats.parentBPM = stats.currentBPM;
-                            stats.parentPosition = stats.groupPosition + stats.parentPosition;
-                            stats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
-                            stats.groupInstruction = instruction;
-                            stats.currentGroup = instruction.group;
-                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, stats);
-                            if(subGroupPlayTime > stats.maxPlaytime)
-                                stats.maxPlaytime = subGroupPlayTime;
-                            break;
-                        default:
-                            console.warn("Unknown instruction type: " + instruction.type, instruction);
+                    if(instruction.pause) {
+                        stats.groupPosition += instruction.duration;
+                        stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
+                        if(stats.groupPlaytime > stats.maxPlaytime)
+                            stats.maxPlaytime = stats.groupPlaytime;
                     }
+
+                    if(instruction.command[0] === '@') {
+                        // if(groupPosition < startPosition) // Execute all groups each time
+                        //     continue;
+                        let groupName = instruction.command.substr(1);
+                        let instructionGroupList = this.song.instructions[groupName];
+                        if(!instructionGroupList)
+                            throw new Error("Instruction groupName not found: " + groupName);
+                        // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
+                        stats.parentBPM = stats.currentBPM;
+                        stats.parentPosition = stats.groupPosition + stats.parentPosition;
+                        stats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
+                        stats.groupInstruction = instruction;
+                        stats.currentGroup = groupName;
+                        const subGroupPlayTime = playGroup.call(this, instructionGroupList, stats);
+                        if(subGroupPlayTime > stats.maxPlaytime)
+                            stats.maxPlaytime = subGroupPlayTime;
+
+                    } else {
+                        stats.parentBPM = stats.currentBPM;
+                        stats.absolutePosition = stats.groupPosition + stats.parentPosition;
+                        stats.absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
+                        callback(instruction, stats);
+                    // } else {
+                    //     console.warn("Unknown instruction: ", instruction);
+                    }
+
                 }
                 if(stats.groupPlaytime > stats.maxPlaytime)
                     stats.maxPlaytime = stats.groupPlaytime;
@@ -340,7 +315,7 @@
             const instructionList = this.getInstructions(groupName);
             if(typeof beforePosition === 'number') {
                 if (instructionList.length < beforePosition)
-                    throw new Error("Invalid instruction position: " + beforePosition + (groupName ? " for group: " + groupName : ''));
+                    throw new Error("Invalid instruction position: " + beforePosition + (groupName ? " for groupName: " + groupName : ''));
                 instructionList.splice(beforePosition, 0, instruction);
                 return beforePosition;
             } else {
@@ -353,7 +328,7 @@
         setInstruction(position, instruction, groupName) {
             const instructionList = this.getInstructions(groupName);
             if(instructionList.length < position)
-                throw new Error("Invalid instruction position: " + position + (groupName ? " for group: " + groupName : ''));
+                throw new Error("Invalid instruction position: " + position + (groupName ? " for groupName: " + groupName : ''));
             instructionList[position] = instruction;
         }
 

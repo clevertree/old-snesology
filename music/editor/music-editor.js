@@ -16,7 +16,7 @@
             this.config = DEFAULT_CONFIG;
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
             this.status = {
-                grids: [{group: DEFAULT_GROUP}]
+                grids: [{groupName: DEFAULT_GROUP}]
             }
         }
         get grid() { return this.querySelector('music-editor-grid'); }
@@ -113,9 +113,9 @@
             if(groupName === null) {
                 this.status.grids.shift();
                 if(this.status.grids.length === 0)
-                    this.status.grids = [{group: DEFAULT_GROUP}]
+                    this.status.grids = [{groupName: DEFAULT_GROUP}]
             } else {
-                this.status.grids.unshift({group: groupName});
+                this.status.grids.unshift({groupName: groupName});
             }
             this.render();
         }
@@ -148,12 +148,12 @@
             const formRowElm = this.querySelector('form.form-row');
             formRowElm.querySelector('fieldset').setAttribute('disabled', 'disabled');
 
-            const formGroup = this.querySelector('form.form-group');
+            const formGroup = this.querySelector('form.form-groupName');
             // formGroup.classList.add('hidden');
 
             const cursorPositions = this.grid.getCursorPositions();
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            const nextPause = instructionList.find((i, p) => i.type === 'pause' && p > cursorPositions[0]);
+            const nextPause = instructionList.find((i, p) => i.pause && p > cursorPositions[0]);
 
             if(nextPause) {
                 formRowElm.duration.value = nextPause.duration || '';
@@ -162,21 +162,12 @@
 
             const currentInstruction = this.getSelectedInstructions()[0];
             if(currentInstruction) {
-                switch (currentInstruction.type) {
-                    case 'note':
-                        formInstructionElm.instrument.value = "" + currentInstruction.instrument || '';
-                        formInstructionElm.frequency.value = currentInstruction.frequency || '';
-                        formInstructionElm.duration.value = currentInstruction.duration || '';
-                        formInstructionElm.velocity.value = currentInstruction.velocity || '';
-                        // formInstruction.editableInstruction = instruction;
-                        formInstructionElm.querySelector('fieldset').removeAttribute('disabled');
-
-                        break;
-
-                    case 'group':
-                        // formGroup.classList.remove('hidden');
-                        break;
-                }
+                formInstructionElm.instrument.value = "" + currentInstruction.instrument || '';
+                formInstructionElm.command.value = currentInstruction.command || '';
+                formInstructionElm.duration.value = currentInstruction.duration || '';
+                formInstructionElm.velocity.value = currentInstruction.velocity || '';
+                // formInstruction.editableInstruction = instruction;
+                formInstructionElm.querySelector('fieldset').removeAttribute('disabled');
             }
 
             // var formRow = this.querySelector('form.form-row');
@@ -446,7 +437,7 @@
                                 newInstruction = {
                                     type: 'note',
                                     instrument: 0,
-                                    frequency: 'C4',
+                                    command: 'C4',
                                     duration: duration
                                 }; // new instruction
                                 break;
@@ -472,8 +463,8 @@
                             e.preventDefault();
                             break;
                         case 'Enter':
-                            if (cellElm.classList.contains('grid-cell-group')) {
-                                const groupName = cellElm.getAttribute('data-group');
+                            if (cellElm.classList.contains('grid-cell-groupName')) {
+                                const groupName = cellElm.getAttribute('data-groupName');
                                 editor.gridNavigate(groupName);
                                 editor.grid.select(0);
                                 editor.grid.focus();
@@ -485,8 +476,8 @@
                             break;
 
                         case 'Play':
-                            if (cellElm.classList.contains('grid-cell-group')) {
-                                const groupName = cellElm.getAttribute('data-group');
+                            if (cellElm.classList.contains('grid-cell-groupName')) {
+                                const groupName = cellElm.getAttribute('data-groupName');
                                 editor.player.playInstructions(groupName);
                             } else {
                                 let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
@@ -530,7 +521,7 @@
 
                         case 'PlayFrequency':
                             let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
-                            selectedInstruction.frequency = editor.keyboardLayout[e.key];
+                            selectedInstruction.command = editor.keyboardLayout[e.key];
                             this.render();
                             this.focus();
                             editor.playInstruction(selectedInstruction);
@@ -603,57 +594,43 @@
             // var pausesPerBeat = song.pausesPerBeat;
             const instructionList = song.instructions[this.getGroupName()];
             if(!instructionList)
-                throw new Error("Could not find instruction group: " + this.getGroupName());
+                throw new Error("Could not find instruction groupName: " + this.getGroupName());
 
             let odd = false, selectedRow = false;
 
             let editorHTML = '', cellHTML = '', songPosition = 0, lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
+                const nextPause = instructionList.find((i, p) => i.type === 'pause' && p > position);
+                const noteCSS = [];
+                if(cursorPositions.indexOf(position) !== -1) {
+                    selectedRow = true;
+                    noteCSS.push('selected');
+                }
 
-                switch(instruction.type) {
-                    case 'note':
-                        const nextPause = instructionList.find((i, p) => i.type === 'pause' && p > position);
-                        const noteCSS = [];
-                        if(cursorPositions.indexOf(position) !== -1) {
-                            selectedRow = true;
-                            noteCSS.push('selected');
-                        }
+                cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
+                cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
+                cellHTML +=  `<div class="grid-parameter command">${instruction.command}</div>`;
+                if (typeof instruction.duration !== 'undefined')
+                    cellHTML += `<div class="grid-parameter duration${nextPause && nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
+                if (typeof instruction.velocity !== 'undefined')
+                    cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                cellHTML += `</div>`;
 
-                        cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
-                        cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
-                        cellHTML +=  `<div class="grid-parameter frequency">${instruction.frequency}</div>`;
-                        if (typeof instruction.duration !== 'undefined')
-                            cellHTML += `<div class="grid-parameter duration${nextPause && nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
-                        if (typeof instruction.velocity !== 'undefined')
-                            cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                        cellHTML += `</div>`;
-                        break;
+                if(instruction.pause) {
+                    var pauseCSS = (odd = !odd) ? ['odd'] : [];
+                    if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.duration) / beatsPerMeasure))
+                        pauseCSS.push('measure-end');
 
-                    case 'group':
-                        cellHTML += `<div class="grid-cell grid-cell-group" data-position="${position}" data-group="${instruction.group}">`;
-                        cellHTML +=  `<div class="grid-parameter group">${instruction.group}</div>`;
-                        if (typeof instruction.velocity !== 'undefined')
-                            cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                        cellHTML += `</div>`;
-                        break;
+                    lastPause = instruction.duration;
+                    songPosition += instruction.duration;
 
-                    case 'pause':
-                        var pauseCSS = (odd = !odd) ? ['odd'] : [];
-                        if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.duration) / beatsPerMeasure))
-                            pauseCSS.push('measure-end');
+                    if(selectedRow)
+                        pauseCSS.push('selected');
 
-                        lastPause = instruction.duration;
-                        songPosition += instruction.duration;
-
-                        if(selectedRow)
-                            pauseCSS.push('selected');
-
-                        addRowHTML(cellHTML, position, instruction.duration);
-                        cellHTML = '';
-                        selectedRow = false;
-
-                        break;
+                    addRowHTML(cellHTML, position, instruction.duration);
+                    cellHTML = '';
+                    selectedRow = false;
                 }
 
             }
@@ -679,7 +656,7 @@
             }
         }
 
-        getGroupName() { return this.getAttribute('data-group');}
+        getGroupName() { return this.getAttribute('data-groupName');}
 
 
         getCursorPositions() {
@@ -862,7 +839,7 @@
                 instrumentID = editor.addSongInstrument(instrumentID.substr(4));
 
             instruction.instrument = parseInt(instrumentID);
-            instruction.frequency = form.frequency.value;
+            instruction.command = form.command.value;
             instruction.duration = parseFloat(form.duration.value);
             instruction.velocity = parseInt(form.velocity.value);
             editor.render();
@@ -909,12 +886,12 @@
         'save:memory': function(e, editor) { editor.saveSongToMemory(); },
         'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
 
-        'note:frequency': function (e, editor) {
+        'note:command': function (e, editor) {
             let insertPosition = parseInt(editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
             const newInstruction = {
                 type: 'note',
                 instrument: 0,
-                frequency: 'C4',
+                command: 'C4',
                 duration: 1
             }; // new instruction
             // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
@@ -993,7 +970,7 @@
             case 'groups':
                 options = [];
                 Object.keys(song.instructions).map(function(key, i) {
-                    options.push([key, key, editor.status.grids[0].group === key]);
+                    options.push([key, key, editor.status.grids[0].groupName === key]);
                 });
                 break;
         }
@@ -1073,7 +1050,7 @@
                         <a class="menu-item">Note</a>
                         <ul class="submenu submenu:note">
                             <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
-                            <li><a class="menu-item" data-command="note:frequency">Set <span class="key">I</span>nstrument</a></li>
+                            <li><a class="menu-item" data-command="note:instrument">Set <span class="key">I</span>nstrument</a></li>
                             <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
                             <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
                             <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
@@ -1181,8 +1158,8 @@
                                     ${renderEditorFormOptions('instruments-available')}
                                 </optgroup>
                             </select>
-                            <select name="frequency" title="Note Frequency">
-                                <optgroup label="Frequency">
+                            <select name="command" title="Command">
+                                <optgroup label="Frequencies">
                                     ${renderEditorFormOptions('frequencies')}
                                 </optgroup>
                             </select>
@@ -1202,7 +1179,7 @@
                         </fieldset>
                     </form>
                 </div>
-                <music-editor-grid data-group="${this.status.grids[0].group}" tabindex="2">
+                <music-editor-grid data-group="${this.status.grids[0].groupName}" tabindex="2">
                 </music-editor-grid>
             </div>
         `;

@@ -9,18 +9,18 @@
     "instruments/oscillator.js"
   ],
   "instruments": [
-    {"path": "snesology.org:oscillator.square", "name": "square"},
-    {"path": "snesology.org:oscillator.triangle", "name": "triangle"}
+    {"path": "snesology.net:oscillator.square", "name": "square"},
+    {"path": "snesology.net:oscillator.triangle", "name": "triangle"}
   ],
   "instructions": {
     "root": [
       "@seq",
       2,
-      {"type": "group", "group": "seq", "velocity": 40},
+      {"command": "@seq", "velocity": 40},
       1,1,1,1,1,1
     ],
     "seq": [
-      {"type": "note", "instrument":0, "frequency":"C4"},
+      {"command":"C4", "instrument":0},
       1,
       "D4",
       1,
