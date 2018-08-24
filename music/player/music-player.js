@@ -61,32 +61,32 @@
             const instructionList = songData.instructions[groupName];
             if(!instructionList)
                 throw new Error("Group instructions not found: " + groupName);
-            let pauseNotes = [];
+            // let pauseNotes = [];
             for (let i = 0; i < instructionList.length; i++) {
                 let instruction = instructionList[i];
                 if (typeof instruction === 'number')
                     instruction = {pause: instruction};
                 if (typeof instruction === 'string')
                     instruction = instruction.split(':');
-                if (Array.isArray(instruction)) {
-                    instruction = {
-                        command: instruction[0],
-                        duration: instruction[1]
-                    };
-                }
+                if (Array.isArray(instruction))
+                    instruction = function(args) {
+                        const instruction = {command: args[0]};
+                        if(args.length>1)   instruction.duration = args[1];
+                        return instruction;
+                    }(instruction);
                 if (typeof instruction.instrument === 'string')
                     instruction.instrument = this.findInstrumentID(instruction.instrument, songData.instruments);
 
                 instructionList[i] = instruction;
 
                 // Handle pauses
-                if (typeof instruction.pause === 'undefined') { // Note's duration equals the next pause
-                    pauseNotes.push(instruction);
-                } else {
-                    for(let pni=0; pni<pauseNotes.length; pni++)
-                        pauseNotes[pni].duration = instruction.pause;
-                    pauseNotes = [];
-                }
+                // if (typeof instruction.pause === 'undefined') { // Note's duration equals the next pause
+                //     pauseNotes.push(instruction);
+                // } else {
+                //     for(let pni=0; pni<pauseNotes.length; pni++)
+                //         pauseNotes[pni].duration = instruction.pause;
+                //     pauseNotes = [];
+                // }
             }
         }
 
@@ -267,8 +267,8 @@
                     const instruction = instructionList[i];
 
                     if(instruction.pause) {
-                        stats.groupPosition += instruction.duration;
-                        stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
+                        stats.groupPosition += instruction.pause;
+                        stats.groupPlaytime += instruction.pause * (60 / stats.currentBPM);
                         if(stats.groupPlaytime > stats.maxPlaytime)
                             stats.maxPlaytime = stats.groupPlaytime;
                     }

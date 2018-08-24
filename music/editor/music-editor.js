@@ -439,7 +439,7 @@
                     if (cellElm.classList.contains('grid-cell-new')) {
                         let insertPosition = parseInt(cellElm.getAttribute('data-position'));
                         let newInstruction = null;
-                        let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
+                        // let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
                         switch (keyEvent) {
                             case 'Enter':
                             case 'PlayFrequency':
@@ -447,7 +447,7 @@
                                     type: 'note',
                                     instrument: 0,
                                     command: 'C4',
-                                    duration: duration
+                                    // duration: duration
                                 }; // new instruction
                                 break;
                         }
@@ -623,7 +623,7 @@
                     if (typeof instruction.instrument !== 'undefined')
                         cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
                     if (typeof instruction.duration !== 'undefined')
-                        cellHTML += `<div class="grid-parameter duration${nextPause && nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
+                        cellHTML += `<div class="grid-parameter duration">${formatDuration(instruction.duration)}</div>`;
                     if (typeof instruction.velocity !== 'undefined')
                         cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                     cellHTML += `</div>`;
@@ -631,16 +631,16 @@
 
                 if(instruction.pause) {
                     var pauseCSS = (odd = !odd) ? ['odd'] : [];
-                    if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.duration) / beatsPerMeasure))
+                    if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.pause) / beatsPerMeasure))
                         pauseCSS.push('measure-end');
 
-                    lastPause = instruction.duration;
-                    songPosition += instruction.duration;
+                    lastPause = instruction.pause;
+                    songPosition += instruction.pause;
 
                     if(selectedRow)
                         pauseCSS.push('selected');
 
-                    addRowHTML(cellHTML, position, instruction.duration);
+                    addRowHTML(cellHTML, position, instruction.pause);
                     cellHTML = '';
                     selectedRow = false;
                 }
@@ -852,7 +852,7 @@
 
             instruction.instrument = parseInt(instrumentID);
             instruction.command = form.command.value;
-            instruction.duration = parseFloat(form.duration.value);
+            instruction.duration = parseFloat(form.duration.value) || null;
             instruction.velocity = parseInt(form.velocity.value);
             editor.render();
             // editor.gridSelectInstructions([instruction]);
