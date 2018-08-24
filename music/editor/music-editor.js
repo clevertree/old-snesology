@@ -42,12 +42,12 @@
 
                 const playerElement = document.createElement('music-player');
                 this.player = playerElement;
-                playerElement.addEventListener('note:end', this.onSongEvent);
-                playerElement.addEventListener('note:start', this.onSongEvent);
-                playerElement.addEventListener('song:start', this.onSongEvent);
-                playerElement.addEventListener('song:playback', this.onSongEvent);
-                playerElement.addEventListener('song:end', this.onSongEvent);
-                playerElement.addEventListener('song:pause', this.onSongEvent);
+                playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
+                playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:start', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
 
                 if(this.getSongURL())
                     playerElement.loadSong(this.getSongURL(), function() {
@@ -608,14 +608,17 @@
                     noteCSS.push('selected');
                 }
 
-                cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
-                cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
-                cellHTML +=  `<div class="grid-parameter command">${instruction.command}</div>`;
-                if (typeof instruction.duration !== 'undefined')
-                    cellHTML += `<div class="grid-parameter duration${nextPause && nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
-                if (typeof instruction.velocity !== 'undefined')
-                    cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                cellHTML += `</div>`;
+                if(instruction.command) {
+                    cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
+                    cellHTML +=  `<div class="grid-parameter command">${instruction.command}</div>`;
+                    if (typeof instruction.instrument !== 'undefined')
+                        cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
+                    if (typeof instruction.duration !== 'undefined')
+                        cellHTML += `<div class="grid-parameter duration${nextPause && nextPause.duration === instruction.duration ? ' matches-pause' : ''}">${formatDuration(instruction.duration)}</div>`;
+                    if (typeof instruction.velocity !== 'undefined')
+                        cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                    cellHTML += `</div>`;
+                }
 
                 if(instruction.pause) {
                     var pauseCSS = (odd = !odd) ? ['odd'] : [];
@@ -656,7 +659,7 @@
             }
         }
 
-        getGroupName() { return this.getAttribute('data-groupName');}
+        getGroupName() { return this.getAttribute('data-group');}
 
 
         getCursorPositions() {

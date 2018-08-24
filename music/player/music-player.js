@@ -224,7 +224,7 @@
         playInstruction(instruction, noteStartTime, stats) {
             // TODO: play groups too
             const bpm = stats.currentBPM || 60;
-            const instrumentName = instruction.instrument;
+            const instrumentName = instruction.instrument || 0; // TODO: use current set instrument
             const noteFrequency = instruction.command;
             const noteDuration = (instruction.duration || 1) * (60 / bpm);
             return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, stats);
@@ -273,30 +273,30 @@
                             stats.maxPlaytime = stats.groupPlaytime;
                     }
 
-                    if(instruction.command[0] === '@') {
-                        // if(groupPosition < startPosition) // Execute all groups each time
-                        //     continue;
-                        let groupName = instruction.command.substr(1);
-                        let instructionGroupList = this.song.instructions[groupName];
-                        if(!instructionGroupList)
-                            throw new Error("Instruction groupName not found: " + groupName);
-                        // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
-                        stats.parentBPM = stats.currentBPM;
-                        stats.parentPosition = stats.groupPosition + stats.parentPosition;
-                        stats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
-                        stats.groupInstruction = instruction;
-                        stats.currentGroup = groupName;
-                        const subGroupPlayTime = playGroup.call(this, instructionGroupList, stats);
-                        if(subGroupPlayTime > stats.maxPlaytime)
-                            stats.maxPlaytime = subGroupPlayTime;
+                    if(instruction.command) {
+                        if (instruction.command[0] === '@') {
+                            // if(groupPosition < startPosition) // Execute all groups each time
+                            //     continue;
+                            let groupName = instruction.command.substr(1);
+                            let instructionGroupList = this.song.instructions[groupName];
+                            if (!instructionGroupList)
+                                throw new Error("Instruction groupName not found: " + groupName);
+                            // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
+                            stats.parentBPM = stats.currentBPM;
+                            stats.parentPosition = stats.groupPosition + stats.parentPosition;
+                            stats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
+                            stats.groupInstruction = instruction;
+                            stats.currentGroup = groupName;
+                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, stats);
+                            if (subGroupPlayTime > stats.maxPlaytime)
+                                stats.maxPlaytime = subGroupPlayTime;
 
-                    } else {
-                        stats.parentBPM = stats.currentBPM;
-                        stats.absolutePosition = stats.groupPosition + stats.parentPosition;
-                        stats.absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
-                        callback(instruction, stats);
-                    // } else {
-                    //     console.warn("Unknown instruction: ", instruction);
+                        } else {
+                            stats.parentBPM = stats.currentBPM;
+                            stats.absolutePosition = stats.groupPosition + stats.parentPosition;
+                            stats.absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
+                            callback(instruction, stats);
+                        }
                     }
 
                 }
