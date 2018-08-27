@@ -385,13 +385,47 @@
 
         get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
         get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); }
-        get currentRow() { return this.currentCell.parentNode; }
-        get nextRow() { return this.currentRow.nextElementSibling; }
-        get nextRowCell() { return this.nextRow ? this.nextRow.firstElementChild : null; }
-        get previousRow() { return this.currentRow.previousElementSibling; }
-        get previousRowCell() { return this.previousRow ? this.previousRow.lastElementChild : null; }
-        get nextCell() { return this.currentCell.nextElementSibling || this.nextRowCell; }
-        get previousCell() { return this.currentCell.previousElementSibling || this.previousRowCell; }
+        get currentCellPosition() { return parseInt(this.currentCell.getAttribute('data-position')); }
+
+        get nextCell() { return this.querySelector('.grid-cell[data-position="' + (this.currentCellPosition + 1) + '"]'); }
+        get previousCell() { return this.querySelector('.grid-cell[data-position="' + (this.currentCellPosition - 1) + '"]'); }
+
+        get nextRowCell() {
+            let currentCell = this.currentCell;
+            var column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
+
+            let currentRow = currentCell.parentNode;
+            if(!currentRow.nextElementSibling)
+                return null;
+            let nextRow = currentRow.nextElementSibling,
+                nextCell = nextRow.firstElementChild;
+
+            for(let i=0; i<column; i++) {
+                if(!nextCell.nextElementSibling)                                    break;
+                if(!nextCell.nextElementSibling.classList.contains('grid-cell'))    continue;
+                nextCell = nextCell.nextElementSibling;
+            }
+            return nextCell;
+        }
+
+        get previousRowCell() {
+            let currentCell = this.currentCell;
+            var column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
+            let currentRow = currentCell.parentNode;
+            if(!currentRow.previousElementSibling)
+                return null;
+            let previousRow = currentRow.previousElementSibling,
+                previousCell = previousRow.firstElementChild;
+
+            for(let i=0; i<column; i++) {
+                if(!previousCell.nextElementSibling)                                    break;
+                if(!previousCell.nextElementSibling.classList.contains('grid-cell'))    continue;
+                previousCell = previousCell.nextElementSibling;
+            }
+            return previousCell;
+        }
+        // get nextCellDown() { return this.nextRow ? this.nextRow.childNodes[this.currentCellColumn] : null; }
+        // get previousCellUp() { return this.previousRow ? this.previousRow.childNodes[this.currentCellColumn] : null; }
 
         connectedCallback() {
             this.addEventListener('contextmenu', this.onInput);
@@ -515,7 +549,7 @@
                             if(!this.nextRowCell) createNextRow.call(this);
                             if (e.shiftKey) this.selectCellRange(cellElm, this.nextRowCell);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else this.selectCell(this.nextRowCell || this.parentNode.firstElementChild);
+                            else this.selectCell(this.nextRowCell);
 
                             this.focus();
                             e.preventDefault();
@@ -523,7 +557,7 @@
                         case 'ArrowUp':
                             if (e.shiftKey) this.selectCellRange(cellElm, this.previousRowCell);
                             // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                            else this.selectCell(this.previousRowCell || this.parentNode.lastElementChild);
+                            else this.selectCell(this.previousRowCell || this.previousCell || this.currentCell);
                             this.focus();
                             e.preventDefault();
                             break;
@@ -578,10 +612,9 @@
 
             function createNextRow() {
                 // let insertPosition = parseInt(cellElm.getAttribute('data-position'));
-                let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
+                let pauseLength = parseFloat(this.currentCell.parentNode.getAttribute('data-pause'));
                 let pauseInstruction = {
-                    type: 'pause',
-                    duration: duration
+                    pause: pauseLength
                 }; // new instruction
                 let insertPosition = this.insertInstruction(pauseInstruction); // insertPosition
                 this.render();
@@ -654,15 +687,15 @@
                 +   editorHTML
                 + `</div>`;
 
-            function addRowHTML(cellHTML, position, duration) {
+            function addRowHTML(cellHTML, position, pauseLength) {
                 editorHTML +=
-                    `<div class="grid-row ${pauseCSS.join(' ')}" data-duration="${duration}" data-beats-per-minute="${beatsPerMinute}">`
+                    `<div class="grid-row ${pauseCSS.join(' ')}" data-position="${position}" data-pause="${pauseLength}" data-beats-per-minute="${beatsPerMinute}">`
                     +   cellHTML
                     +   `<div class="grid-cell grid-cell-new" data-position="${position}">`
                     +     `<div class="grid-parameter">+</div>`
                     +   `</div>`
-                    +   `<div class="grid-cell grid-cell-pause" data-position="${position}" data-duration="${duration}">`
-                    +     `<div class="grid-parameter">${formatDuration(duration)}</div>`
+                    +   `<div class="grid-cell-pause" data-position="${position}" data-duration="${pauseLength}">`
+                    +     `<div class="grid-parameter">${formatDuration(pauseLength)}</div>`
                     +   `</div>`
                     + `</div>`;
             }
@@ -715,10 +748,10 @@
 
 
         selectCellRange(startCell, endCell) {
-            var pos = [
+            let pos = [
                 parseInt(startCell.getAttribute('data-position')),
                 parseInt(endCell.getAttribute('data-position'))
-            ]
+            ];
             if(pos[0] > pos[1])
                 pos = [pos[1], pos[0]];
             let cursorPositions = [];
