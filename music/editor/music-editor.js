@@ -86,18 +86,6 @@
             this.grid.select([deletePositions[deletePositions.length-1]]);
         }
 
-        gridNavigate(groupName) {
-            if(groupName === null) {
-                this.gridStack.shift();
-                if(this.gridStack.length === 0)
-                    this.gridStack = [DEFAULT_GROUP];
-            } else {
-                this.gridStack.unshift(groupName);
-            }
-            console.log("Navigate: ", this.gridStack[0]);
-            this.render();
-        }
-
         gridFindInstruction(instruction) {
             let grids = this.querySelectorAll('music-editor-grid');
             for(let i=0; i<grids.length; i++) {
@@ -111,8 +99,7 @@
         // Rendering
 
         render() {
-            this.innerHTML = renderEditorContent.call(this);
-            this.formUpdate();
+            this.innerHTML = renderEditorContent(this);
         }
 
         // Grid Commands
@@ -151,40 +138,8 @@
         // Forms
 
         formUpdate() {
-            const formInstructionElm = this.querySelector('form.form-instruction');
-            formInstructionElm.querySelector('fieldset').setAttribute('disabled', 'disabled');
-
-            const formRowElm = this.querySelector('form.form-row');
-            formRowElm.querySelector('fieldset').setAttribute('disabled', 'disabled');
-
-            const formGroup = this.querySelector('form.form-groupName');
-            // formGroup.classList.add('hidden');
-
-            const cursorPositions = this.grid.getCursorPositions();
-            const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            const nextPause = instructionList.find((i, p) => i.pause && p > cursorPositions[0]);
-
-            if(nextPause) {
-                formRowElm.duration.value = nextPause.duration || '';
-                formRowElm.querySelector('fieldset').removeAttribute('disabled');
-            }
-
-            const currentInstruction = this.getSelectedInstructions()[0];
-            if(currentInstruction) {
-                formInstructionElm.instrument.value = "" + currentInstruction.instrument || '';
-                formInstructionElm.command.value = currentInstruction.command || '';
-                formInstructionElm.duration.value = currentInstruction.duration || '';
-                formInstructionElm.velocity.value = currentInstruction.velocity || '';
-                // formInstruction.editableInstruction = instruction;
-                formInstructionElm.querySelector('fieldset').removeAttribute('disabled');
-            }
-
-            // var formRow = this.querySelector('form.form-row');
-            // formRow.classList.add('hidden');
-            // if(instruction.duration) {
-            //     formRow.duration.value = instruction.duration || '';
-            //     formRow.classList.remove('hidden');
-            // }
+            var editorForms = this.querySelector('.editor-forms');
+            editorForms.outerHTML = renderEditorFormContent(this);
         }
 
         // Playback
@@ -1069,163 +1024,175 @@
     }
     function formatDuration(duration) { return parseFloat(duration).toFixed(2); }
 
-    function renderEditorContent() {
+    function renderEditorContent(editor) {
         return `
             <div class="music-editor" tabindex="1">
-                <div class="editor-menu">
-                    <li>
-                        <a class="menu-item">File</a>
-                        <ul class="submenu">
-                            <li>
-                                <a class="menu-item">Open from memory &#9658;</a>
-                                ${renderEditorMenuLoadFromMemory()}
-                            </li>
-                            <li><a class="menu-item" data-command="load:file">Open from file</a></li>
-                            <li><a class="menu-item disabled" data-command="load:url">Open from url</a></li>
-                            
-                            <hr/>
-                            <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
-                            <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
-                            
-                            <hr/>
-                            <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a class="menu-item">Note</a>
-                        <ul class="submenu submenu:note">
-                            <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
-                            <li><a class="menu-item" data-command="note:instrument">Set <span class="key">I</span>nstrument</a></li>
-                            <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
-                            <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
-                            <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
-                            <li><a class="menu-item" data-command="note:delete"><span class="key">D</span>elete Note</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a class="menu-item"<span class="key">R</span>ow</a>
-                        <ul class="submenu submenu:pause">
-                            <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
-                            <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a class="menu-item"><span class="key">G</span>roup</a>
-                        <ul class="submenu submenu:group">
-                            <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
-                            <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
-                        </ul>
-                    </li>
-                    <li><a class="menu-item disabled">Collaborate</a></li>
-                </div>
-                <ul class="editor-context-menu submenu">
-                    <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
-                    <li>
-                        <a class="menu-item"><span class="key">N</span>otes (Cell) <span class="submenu-pointer"></span></a>
-                        <ul class="submenu" data-submenu-content="submenu:note"></ul>
-                    </li>
-                    <li>
-                        <a class="menu-item"><span class="key">P</span>ause (Row) <span class="submenu-pointer"></span></a>
-                        <ul class="submenu" data-submenu-content="submenu:pause"></ul>
-                    </li>
-                    <li>
-                        <a class="menu-item"><span class="key">G</span>roup <span class="submenu-pointer"></span></a>
-                        <ul class="submenu" data-submenu-content="submenu:group"></ul>
-                    </li>
-                </ul>
-                <div class="editor-panel">
-                    <label class="row-label">Song:</label>
-                    <form class="form-song-play" data-command="song:play">
-                        <button name="play">Play</button>
-                    </form>
-                    <form class="form-song-pause" data-command="song:pause">
-                        <button name="pause">Pause</button>
-                    </form>
-                    <form class="form-song-resume" data-command="song:resume">
-                        <button name="resume">Resume</button>
-                    </form>
-                    <form class="form-song-bpm" data-command="song:edit">
-                        <select name="beats-per-minute" title="Beats per minute">
-                            <optgroup label="Beats per minute">
-                            ${getEditorFormOptions('beats-per-minute', this, (value, label, selected) =>
-                                `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
-                            )}
-                            </optgroup>
-                        </select>
-                        <select name="beats-per-measure" title="Beats per measure">
-                            <optgroup label="Beats per measure">
-                            ${getEditorFormOptions('beats-per-measure', this, (value, label, selected) =>
-                                `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
-                            )}
-                            </optgroup>
-                        </select>
-                    </form>
-                    <form class="form-song-info" data-command="song:info">
-                        <button name="info" disabled>Info</button>
-                    </form>
-                    
-                    <br/>
-        
-                    <label class="row-label">Group:</label>
-                    ${getEditorFormOptions('groups', this, (value, label, selected) => 
-                        `<form class="form-group" data-command="group:edit">`
-                        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                        + `</form> `
-                    )}
-        
-                    <br/>
-         
-                    <form class="form-row" data-command="row:edit">
-                        <fieldset>
-                            <label class="row-label">Row:</label>
-                            <select name="duration" title="Row Duration">
-                                <optgroup label="Row Duration">
-                                    ${renderEditorFormOptions('durations')}
-                                </optgroup>
-                            </select>
-                            <button name="new" disabled>+</button>
-                            <button name="duplicate" disabled>c</button>
-                            <button name="remove" disabled>-</button>
-                            <button name="split" disabled>Split</button>
-                        </fieldset>
-                    </form>
-                    
-                    <br/>
-        
-                    <form class="form-instruction" data-command="instruction:edit">
-                        <fieldset>
-                            <label class="row-label">Note:</label>
-                            <select name="instrument" title="Note Instrument">
-                                <optgroup label="Song Instruments">
-                                    ${renderEditorFormOptions('song-instruments', this)}
-                                </optgroup>
-                                <optgroup label="Available Instruments">
-                                    ${renderEditorFormOptions('instruments-available')}
-                                </optgroup>
-                            </select>
-                            <select name="command" title="Command">
-                                <optgroup label="Frequencies">
-                                    ${renderEditorFormOptions('frequencies')}
-                                </optgroup>
-                            </select>
-                            <select name="duration" title="Note Duration">
-                                <optgroup label="Note Duration">
-                                    ${renderEditorFormOptions('durations')}
-                                </optgroup>
-                            </select>
-                            <select name="velocity" title="Note Velocity">
-                                <optgroup label="Velocity">
-                                    <option value="">Default</option>
-                                    ${renderEditorFormOptions('velocities')}
-                                </optgroup>
-                            </select>
-                            <button name="duplicate" disabled>+</button>
-                            <button name="remove" disabled>-</button>
-                        </fieldset>
-                    </form>
-                </div>
-                <music-editor-grid data-group="${this.status.grids[0].groupName}" tabindex="2">
+                ${renderEditorMenuContent(editor)}
+                ${renderEditorFormContent(editor)}
+                <music-editor-grid data-group="${editor.status.grids[0].groupName}" tabindex="2">
                 </music-editor-grid>
+            </div>
+        `;
+    }
+
+    function renderEditorMenuContent(editor) {
+        return `
+            <div class="editor-menu">
+                <li>
+                    <a class="menu-item">File</a>
+                    <ul class="submenu">
+                        <li>
+                            <a class="menu-item">Open from memory &#9658;</a>
+                            ${renderEditorMenuLoadFromMemory()}
+                        </li>
+                        <li><a class="menu-item" data-command="load:file">Open from file</a></li>
+                        <li><a class="menu-item disabled" data-command="load:url">Open from url</a></li>
+                        
+                        <hr/>
+                        <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
+                        <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
+                        
+                        <hr/>
+                        <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="menu-item">Note</a>
+                    <ul class="submenu submenu:note">
+                        <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
+                        <li><a class="menu-item" data-command="note:instrument">Set <span class="key">I</span>nstrument</a></li>
+                        <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
+                        <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
+                        <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
+                        <li><a class="menu-item" data-command="note:delete"><span class="key">D</span>elete Note</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="menu-item"<span class="key">R</span>ow</a>
+                    <ul class="submenu submenu:pause">
+                        <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
+                        <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="menu-item"><span class="key">G</span>roup</a>
+                    <ul class="submenu submenu:group">
+                        <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
+                        <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
+                    </ul>
+                </li>
+                <li><a class="menu-item disabled">Collaborate</a></li>
+            </div>
+            <ul class="editor-context-menu submenu">
+                <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
+                <li>
+                    <a class="menu-item"><span class="key">N</span>otes (Cell) <span class="submenu-pointer"></span></a>
+                    <ul class="submenu" data-submenu-content="submenu:note"></ul>
+                </li>
+                <li>
+                    <a class="menu-item"><span class="key">P</span>ause (Row) <span class="submenu-pointer"></span></a>
+                    <ul class="submenu" data-submenu-content="submenu:pause"></ul>
+                </li>
+                <li>
+                    <a class="menu-item"><span class="key">G</span>roup <span class="submenu-pointer"></span></a>
+                    <ul class="submenu" data-submenu-content="submenu:group"></ul>
+                </li>
+            </ul>
+        `;
+    }
+
+    function renderEditorFormContent(editor) {
+        return `
+            <div class="editor-forms">
+                <label class="row-label">Song:</label>
+                <form class="form-song-play" data-command="song:play">
+                    <button name="play">Play</button>
+                </form>
+                <form class="form-song-pause" data-command="song:pause">
+                    <button name="pause">Pause</button>
+                </form>
+                <form class="form-song-resume" data-command="song:resume">
+                    <button name="resume">Resume</button>
+                </form>
+                <form class="form-song-bpm" data-command="song:edit">
+                    <select name="beats-per-minute" title="Beats per minute">
+                        <optgroup label="Beats per minute">
+                        ${getEditorFormOptions('beats-per-minute', editor, (value, label, selected) =>
+        `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
+    )}
+                        </optgroup>
+                    </select>
+                    <select name="beats-per-measure" title="Beats per measure">
+                        <optgroup label="Beats per measure">
+                        ${getEditorFormOptions('beats-per-measure', editor, (value, label, selected) =>
+        `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
+    )}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-song-info" data-command="song:info">
+                    <button name="info" disabled>Info</button>
+                </form>
+                
+                <br/>
+    
+                <label class="row-label">Group:</label>
+                ${getEditorFormOptions('groups', editor, (value, label, selected) =>
+        `<form class="form-group" data-command="group:edit">`
+        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
+        + `</form> `
+    )}
+    
+                <br/>
+     
+                <form class="form-row" data-command="row:edit">
+                    <fieldset>
+                        <label class="row-label">Row:</label>
+                        <select name="duration" title="Row Duration">
+                            <optgroup label="Row Duration">
+                                ${renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
+                        <button name="new" disabled>+</button>
+                        <button name="duplicate" disabled>c</button>
+                        <button name="remove" disabled>-</button>
+                        <button name="split" disabled>Split</button>
+                    </fieldset>
+                </form>
+                
+                <br/>
+    
+                <form class="form-instruction" data-command="instruction:edit">
+                    <fieldset>
+                        <label class="row-label">Note:</label>
+                        <select name="instrument" title="Note Instrument">
+                            <optgroup label="Song Instruments">
+                                ${renderEditorFormOptions('song-instruments', editor)}
+                            </optgroup>
+                            <optgroup label="Available Instruments">
+                                ${renderEditorFormOptions('instruments-available')}
+                            </optgroup>
+                        </select>
+                        <select name="command" title="Command">
+                            <optgroup label="Frequencies">
+                                ${renderEditorFormOptions('frequencies')}
+                            </optgroup>
+                        </select>
+                        <select name="duration" title="Note Duration">
+                            <optgroup label="Note Duration">
+                                ${renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
+                        <select name="velocity" title="Note Velocity">
+                            <optgroup label="Velocity">
+                                <option value="">Default</option>
+                                ${renderEditorFormOptions('velocities')}
+                            </optgroup>
+                        </select>
+                        <button name="duplicate" disabled>+</button>
+                        <button name="remove" disabled>-</button>
+                    </fieldset>
+                </form>
             </div>
         `;
     }

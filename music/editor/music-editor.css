@@ -283,19 +283,19 @@
 }
 
 /** Form **/
-.music-editor .editor-panel {
+.music-editor .editor-forms {
     padding: 4px 0px;
     color: black;
 }
 
-.music-editor .editor-panel form {
+.music-editor .editor-forms form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
     /* margin: 0px 0; */
     padding: 2px 0px;
     display: inline-block;
 }
-.music-editor .editor-panel form fieldset {
+.music-editor .editor-forms form fieldset {
     
 border: 0;
     
@@ -304,7 +304,7 @@ padding: 0 0;
 margin: 0 0;
 }
 
-.music-editor .editor-panel label.row-label {
+.music-editor .editor-forms label.row-label {
     display: inline-block;
     min-width: 50px;
     text-align: right;
@@ -312,12 +312,12 @@ margin: 0 0;
     font-weight: bold;
 }
 
-.music-editor .editor-panel form.hidden {
+.music-editor .editor-forms form.hidden {
     display: none;
 }
 
-.music-editor .editor-panel select,
-.music-editor .editor-panel button {
+.music-editor .editor-forms select,
+.music-editor .editor-forms button {
     border-radius: 5px;
     border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
@@ -325,25 +325,25 @@ margin: 0 0;
     cursor: pointer;
 }
 
-.music-editor .editor-panel select[name=instrument] {
+.music-editor .editor-forms select[name=instrument] {
     max-width: 100px;
 }
-.music-editor .editor-panel select[name=frequency] {
+.music-editor .editor-forms select[name=frequency] {
     max-width: 42px;
 }
-.music-editor .editor-panel select[name=duration] {
+.music-editor .editor-forms select[name=duration] {
     max-width: 51px;
 }
-.music-editor .editor-panel select[name=velocity] {
+.music-editor .editor-forms select[name=velocity] {
     max-width: 62px;
 }
-.music-editor .editor-panel select[name=pause] {
+.music-editor .editor-forms select[name=pause] {
     max-width: 100px;
 }
-.music-editor .editor-panel select[name=beats-per-minute] {
+.music-editor .editor-forms select[name=beats-per-minute] {
     max-width: 138px;
 }
-.music-editor .editor-panel select[name=beats-per-measure] {
+.music-editor .editor-forms select[name=beats-per-measure] {
     max-width: 133px;
 }
 
@@ -351,13 +351,13 @@ margin: 0 0;
 .music-editor.playing form.form-song-play { display: none; }
 .music-editor:not(.paused) form.form-song-resume { display: none; }
 
-.music-editor .editor-panel select:disabled,
-.music-editor .editor-panel button:disabled {
+.music-editor .editor-forms select:disabled,
+.music-editor .editor-forms button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
 }
 
-.music-editor .editor-panel button.selected {
+.music-editor .editor-forms button.selected {
     border: 1px inset;
     font-weight: bold;
 }
