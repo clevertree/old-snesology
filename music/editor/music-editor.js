@@ -902,15 +902,17 @@
     // Rendering templates
 
 
-    function getEditorFormOptions(optionType, editor, callback) {
+    function getEditorFormOptions(editor, optionType, callback, selectCallback) {
         let html = '';
         let options = [];
-        let song = editor ? editor.getSong() : null;
+        // let song = editor ? editor.getSong() : null;
+        if(!selectCallback) selectCallback = function() { return null; };
         switch(optionType) {
             case 'song-instruments':
-                for(let instrumentID=0; instrumentID<song.instruments.length; instrumentID++) {
-                    const instrumentInfo = song.instruments[instrumentID];
-                    var instrument = editor.player.getInstrument(instrumentInfo.path);
+                const instrumentList = editor.getSong().instruments;
+                for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
+                    const instrumentInfo = instrumentList[instrumentID];
+                    const instrument = editor.player.getInstrument(instrumentInfo.path);
                     options.push([instrumentID, formatInstrumentID(instrumentID)
                     + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
                 }
@@ -953,24 +955,25 @@
                     [4.0,  '4.0'],
                     [8.0,  '8.0'],
                 ];
+                
                 break;
 
             case 'beats-per-measure':
                 for(let vi=1; vi<=12; vi++) {
-                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`, vi === song.beatsPerMeasure]);
+                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`]);
                 }
                 break;
 
             case 'beats-per-minute':
                 for(let vi=40; vi<=300; vi+=10) {
-                    options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`, vi === song.beatsPerMinute]);
+                    options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`]);
                 }
                 break;
 
             case 'groups':
                 options = [];
-                Object.keys(song.instructions).map(function(key, i) {
-                    options.push([key, key, editor.status.grids[0].groupName === key]);
+                Object.keys(editor.getSong().instructions).map(function(key, i) {
+                    options.push([key, key]);
                 });
                 break;
         }
@@ -978,17 +981,17 @@
         for (let oi=0; oi<options.length; oi++) {
             const value = options[oi][0];
             const label = options[oi][1] || value;
-            const selected = options[oi][2];
+            const selected = selectCallback(value, oi, label);
             html += callback.call(this, value, label, selected);
         }
         return html;
     }
 
-    function renderEditorFormOptions(optionType, editor) {
+    function renderEditorFormOptions(editor, optionType, selectCallback) {
         let optionHTML = '';
-        getEditorFormOptions(optionType, editor, function(value, label, selected) {
+        getEditorFormOptions(editor, optionType, function (value, label, selected) {
             optionHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`;
-        });
+        }, selectCallback);
         return optionHTML;
     }
 
@@ -1102,6 +1105,15 @@
     }
 
     function renderEditorFormContent(editor) {
+        const currentGridName = editor.status.grids[0].groupName;
+
+        const cursorPositions = editor.grid ? editor.grid.getCursorPositions() : [0];
+        const instructionList = editor.player.getInstructions(currentGridName);
+        const currentInstruction = instructionList[cursorPositions[0]];
+        const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions[0]);
+
+        // console.log(cursorPositions,instructionList, currentInstruction, nextPauseInstruction);
+
         return `
             <div class="editor-forms">
                 <label class="row-label">Song:</label>
@@ -1117,16 +1129,14 @@
                 <form class="form-song-bpm" data-command="song:edit">
                     <select name="beats-per-minute" title="Beats per minute">
                         <optgroup label="Beats per minute">
-                        ${getEditorFormOptions('beats-per-minute', editor, (value, label, selected) =>
-        `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
-    )}
+                        ${getEditorFormOptions(editor, 'beats-per-minute', (value, label, selected) =>
+                            `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
                         </optgroup>
                     </select>
                     <select name="beats-per-measure" title="Beats per measure">
                         <optgroup label="Beats per measure">
-                        ${getEditorFormOptions('beats-per-measure', editor, (value, label, selected) =>
-        `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`
-    )}
+                        ${getEditorFormOptions(editor, 'beats-per-measure', (value, label, selected) =>
+                            `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
                         </optgroup>
                     </select>
                 </form>
@@ -1137,11 +1147,10 @@
                 <br/>
     
                 <label class="row-label">Group:</label>
-                ${getEditorFormOptions('groups', editor, (value, label, selected) =>
-        `<form class="form-group" data-command="group:edit">`
-        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-        + `</form> `
-    )}
+                    ${getEditorFormOptions(editor, 'groups', (value, label, selected) =>
+                    `<form class="form-group" data-command="group:edit">`
+                    + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
+                    + `</form>`)}
     
                 <br/>
      
@@ -1150,7 +1159,7 @@
                         <label class="row-label">Row:</label>
                         <select name="duration" title="Row Duration">
                             <optgroup label="Row Duration">
-                                ${renderEditorFormOptions('durations')}
+                                ${renderEditorFormOptions(editor, 'durations', (value, i, label) => value === nextPauseInstruction.pause)}
                             </optgroup>
                         </select>
                         <button name="new" disabled>+</button>
@@ -1167,26 +1176,26 @@
                         <label class="row-label">Note:</label>
                         <select name="instrument" title="Note Instrument">
                             <optgroup label="Song Instruments">
-                                ${renderEditorFormOptions('song-instruments', editor)}
+                                ${renderEditorFormOptions(editor, 'song-instruments', (value, i, label) => value === currentInstruction.instrument)}
                             </optgroup>
                             <optgroup label="Available Instruments">
-                                ${renderEditorFormOptions('instruments-available')}
+                                ${renderEditorFormOptions(editor, 'instruments-available', (value, i, label) => value === currentInstruction.instrument)}
                             </optgroup>
                         </select>
                         <select name="command" title="Command">
                             <optgroup label="Frequencies">
-                                ${renderEditorFormOptions('frequencies')}
+                                ${renderEditorFormOptions(editor, 'frequencies', (value, i, label) => value === currentInstruction.frequency)}
                             </optgroup>
                         </select>
                         <select name="duration" title="Note Duration">
                             <optgroup label="Note Duration">
-                                ${renderEditorFormOptions('durations')}
+                                ${renderEditorFormOptions(editor, 'durations', (value, i, label) => value === currentInstruction.duration)}
                             </optgroup>
                         </select>
                         <select name="velocity" title="Note Velocity">
                             <optgroup label="Velocity">
                                 <option value="">Default</option>
-                                ${renderEditorFormOptions('velocities')}
+                                ${renderEditorFormOptions(editor, 'velocities', (value, i, label) => value === currentInstruction.velocity)}
                             </optgroup>
                         </select>
                         <button name="duplicate" disabled>+</button>
