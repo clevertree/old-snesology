@@ -350,7 +350,7 @@
             const defaultName = instrument.getDefaultName ? instrument.getDefaultName(instrumentPath)
                 : instrumentPath.substr(instrumentPath.lastIndexOf('.') + 1);
             config = Object.assign({path: instrumentPath}, config || {}, {name: defaultName});
-            config.name = prompt("New Instrument Name (" + formatInstrumentID(instrumentID) + "): ", config.name);
+            config.name = prompt("New Instrument Name (" + (instrumentID) + "): ", config.name);
             if(!config.name)
                 throw new Error("Invalid new instrument name");
             instrumentList[instrumentID] = config;
