@@ -31,10 +31,10 @@
 
         // Play note
         osc.start(note.startTime);               // start the oscillator
-        if(note.duration)
-            osc.stop(note.startTime + note.duration);
-        // console.info("OSC", noteStartTime, noteDuration);
+        // if(note.duration)
+        osc.stop(note.startTime + note.duration);
 
+        // console.info("OSC", noteStartTime, noteDuration);
         return osc;
     }
 

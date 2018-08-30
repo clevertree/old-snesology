@@ -53,17 +53,55 @@
                     playerElement.loadSong(this.getSongURL(), function() {
                         this.render();
                         this.grid.select(0);
+
+                        // Load recent
+                        const recentSongGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
+                        if(recentSongGUIDs.length > 0)
+                            this.loadSongFromMemory(recentSongGUIDs[0]);
                     }.bind(this));
             }.bind(this));
         }
 
         saveSongToMemory() {
-            saveSongToMemory(this.getSong());
+            const song = this.getSong();
+            if(!song.guid)
+                song.guid = generateGUID();
+            const songList = JSON.parse(localStorage.getItem('music-editor-saved-list') || "[]");
+            if(songList.indexOf(song.guid) === -1)
+                songList.push(song.guid);
+            console.log("Saving song: ", song, songList);
+            localStorage.setItem('song:' + song.guid, JSON.stringify(song));
+            localStorage.setItem('music-editor-saved-list', JSON.stringify(songList));
+            this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
+            console.info("Song saved to memory: " + song.guid, song);
         }
-        loadSongFromMemory(guid) {
-            this.player.loadSongData(loadSongFromMemory(guid));
+
+        saveSongToFile() {
+            const song = this.getSong();
+            if(!song.guid)
+                song.guid = generateGUID();
+            const jsonString = JSON.stringify(song, null, "\t");
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", (song.name.replace(' ', '_') || song.guid) + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        loadSongFromMemory(songGUID) {
+            let songDataString = localStorage.getItem('song:' + songGUID);
+            if(!songDataString)
+                throw new Error("Song Data not found for guid: " + songGUID);
+            let songData = JSON.parse(songDataString);
+            if(!songData)
+                throw new Error("Invalid Song Data: " + songDataString);
+
+            this.player.loadSongData(songData);
             this.render();
             this.grid.select(0);
+            console.info("Song loaded from memory: " + songGUID, songData);
         }
 
         // Grid Functions
@@ -104,14 +142,14 @@
 
         // Grid Commands
 
-        gridNavigate(groupName) {
+        gridNavigate(groupName, parentInstruction) {
             console.log("Navigate: ", groupName);
             if(groupName === null) {
                 this.status.grids.shift();
                 if(this.status.grids.length === 0)
                     this.status.grids = [{groupName: DEFAULT_GROUP}]
             } else {
-                this.status.grids.unshift({groupName: groupName});
+                this.status.grids.unshift({groupName: groupName, parentInstruction: parentInstruction});
             }
             this.render();
         }
@@ -447,6 +485,7 @@
                         }
                     }
 
+                    let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
                     switch (keyEvent) {
                         case 'Delete':
                             editor.deleteInstructions();
@@ -461,26 +500,19 @@
                             e.preventDefault();
                             break;
                         case 'Enter':
-                            if (cellElm.classList.contains('grid-cell-groupName')) {
-                                const groupName = cellElm.getAttribute('data-groupName');
-                                editor.gridNavigate(groupName);
+                            if (selectedInstruction.command[0] === '@') {
+                                const groupName = selectedInstruction.command.substr(1);
+                                editor.gridNavigate(groupName, selectedInstruction);
                                 editor.grid.select(0);
                                 editor.grid.focus();
                             } else {
-                                let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
                                 editor.playInstruction(selectedInstruction);
                             }
                             e.preventDefault();
                             break;
 
                         case 'Play':
-                            if (cellElm.classList.contains('grid-cell-groupName')) {
-                                const groupName = cellElm.getAttribute('data-groupName');
-                                editor.player.playInstructions(groupName);
-                            } else {
-                                let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
-                                editor.playInstruction(selectedInstruction);
-                            }
+                            editor.playInstruction(selectedInstruction);
                             e.preventDefault();
                             break;
 
@@ -518,7 +550,6 @@
                             break;
 
                         case 'PlayFrequency':
-                            let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
                             selectedInstruction.command = editor.keyboardLayout[e.key];
                             this.render();
                             this.focus();
@@ -595,7 +626,7 @@
 
             let odd = false, selectedRow = false;
 
-            let editorHTML = '', cellHTML = '', songPosition = 0, lastPause = 0;
+            let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
                 const nextPause = instructionList.find((i, p) => i.type === 'pause' && p > position);
@@ -622,7 +653,7 @@
                     if(Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.pause) / beatsPerMeasure))
                         pauseCSS.push('measure-end');
 
-                    lastPause = instruction.pause;
+                    // lastPause = instruction.pause;
                     songPosition += instruction.pause;
 
                     if(selectedRow)
@@ -635,7 +666,7 @@
 
             }
 
-            addRowHTML(cellHTML, instructionList.length, lastPause);
+            // addRowHTML(cellHTML, instructionList.length);
 
             this.innerHTML =
                 `<div class="editor-grid">`
@@ -785,29 +816,7 @@
     }
 
 
-    // File Commands
-
-    function saveSongToMemory(song) {
-        if(!song.guid)
-            song.guid = generateGUID();
-        const songList = JSON.parse(localStorage.getItem('music-editor-saved-list') || "[]");
-        if(songList.indexOf(song.guid) === -1)
-            songList.push(song.guid);
-        console.log("Saving song: ", song, songList);
-        localStorage.setItem('song:' + song.guid, JSON.stringify(song));
-        localStorage.setItem('music-editor-saved-list', JSON.stringify(songList));
-    }
-
-    function loadSongFromMemory(songGUID) {
-        let songDataString = localStorage.getItem('song:' + songGUID);
-        if(!songDataString)
-            throw new Error("Song Data not found for guid: " + songGUID);
-        let songData = JSON.parse(songDataString);
-        if(!songData)
-            throw new Error("Invalid Song Data: " + songDataString);
-        return songData;
-    }
-
+    // Misc Commands
 
     function generateGUID() {
         function s4() {
@@ -884,6 +893,7 @@
 
     const menuCommands = {
         'save:memory': function(e, editor) { editor.saveSongToMemory(); },
+        'save:file': function(e, editor) { editor.saveSongToFile(); },
         'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
 
         'note:command': function (e, editor) {
@@ -937,6 +947,7 @@
                 break;
 
             case 'velocities':
+                // options.push([null, 'Velocity (Default)']);
                 for(let vi=100; vi>=0; vi-=10) {
                     options.push([vi, vi]);
                 }
@@ -944,6 +955,7 @@
 
             case 'durations':
                 options = [
+                    // [null, 'Duration (Default)'],
                     [1/64, '1/64'],
                     [1/32, '1/32'],
                     [1/16,  '1/16'],
@@ -1002,7 +1014,8 @@
         let menuItemsHTML = '';
         for(let i=0; i<songGUIDs.length; i++) {
             const songGUID = songGUIDs[i];
-            const song = loadSongFromMemory(songGUID);
+            let songDataString = localStorage.getItem('song:' + songGUID);
+            const song = JSON.parse(songDataString);
             if(song) {
                 menuItemsHTML +=
                     `<li>
@@ -1106,10 +1119,12 @@
 
     function renderEditorFormContent(editor) {
         const currentGridName = editor.status.grids[0].groupName;
+        const parentInstruction = editor.status.grids[0].parentInstruction || {};
 
         const cursorPositions = editor.grid ? editor.grid.getCursorPositions() : [0];
         const instructionList = editor.player.getInstructions(currentGridName);
         const currentInstruction = instructionList[cursorPositions[0]];
+        const combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, currentInstruction);
         const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions[0]);
 
         // console.log(cursorPositions,instructionList, currentInstruction, nextPauseInstruction);
@@ -1150,57 +1165,72 @@
                     ${getEditorFormOptions(editor, 'groups', (value, label, selected) =>
                     `<form class="form-group" data-command="group:edit">`
                     + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                    + `</form>`)}
+                    + `</form>`, (value) => value === currentGridName)}
     
                 <br/>
      
                 <form class="form-row" data-command="row:edit">
-                    <fieldset>
-                        <label class="row-label">Row:</label>
-                        <select name="duration" title="Row Duration">
-                            <optgroup label="Row Duration">
-                                ${renderEditorFormOptions(editor, 'durations', (value, i, label) => value === nextPauseInstruction.pause)}
-                            </optgroup>
-                        </select>
-                        <button name="new" disabled>+</button>
-                        <button name="duplicate" disabled>c</button>
-                        <button name="remove" disabled>-</button>
-                        <button name="split" disabled>Split</button>
-                    </fieldset>
+                    <label class="row-label">Row:</label>
+                    <select name="duration" title="Row Duration">
+                        <optgroup label="Row Duration">
+                            ${renderEditorFormOptions(editor, 'durations', (value) => nextPauseInstruction && value === nextPauseInstruction.pause)}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-row" data-command="row:split">
+                    <button name="split">Split</button>
+                </form>
+                <form class="form-row" data-command="row:duplicate">
+                    <button name="duplicate">Duplicate</button>
+                </form>
+                <form class="form-row" data-command="row:insert">
+                    <button name="insert">+</button>
+                </form>
+                <form class="form-row" data-command="row:remove">
+                    <button name="remove">-</button>
                 </form>
                 
                 <br/>
     
-                <form class="form-instruction" data-command="instruction:edit">
-                    <fieldset>
-                        <label class="row-label">Note:</label>
-                        <select name="instrument" title="Note Instrument">
-                            <optgroup label="Song Instruments">
-                                ${renderEditorFormOptions(editor, 'song-instruments', (value, i, label) => value === currentInstruction.instrument)}
-                            </optgroup>
-                            <optgroup label="Available Instruments">
-                                ${renderEditorFormOptions(editor, 'instruments-available', (value, i, label) => value === currentInstruction.instrument)}
-                            </optgroup>
-                        </select>
-                        <select name="command" title="Command">
-                            <optgroup label="Frequencies">
-                                ${renderEditorFormOptions(editor, 'frequencies', (value, i, label) => value === currentInstruction.frequency)}
-                            </optgroup>
-                        </select>
-                        <select name="duration" title="Note Duration">
-                            <optgroup label="Note Duration">
-                                ${renderEditorFormOptions(editor, 'durations', (value, i, label) => value === currentInstruction.duration)}
-                            </optgroup>
-                        </select>
-                        <select name="velocity" title="Note Velocity">
-                            <optgroup label="Velocity">
-                                <option value="">Default</option>
-                                ${renderEditorFormOptions(editor, 'velocities', (value, i, label) => value === currentInstruction.velocity)}
-                            </optgroup>
-                        </select>
-                        <button name="duplicate" disabled>+</button>
-                        <button name="remove" disabled>-</button>
-                    </fieldset>
+                <label class="row-label">Command:</label>
+                <form class="form-instruction" data-command="instruction:command">
+                    <select name="command" title="Command">
+                        <optgroup label="Frequencies">
+                            ${renderEditorFormOptions(editor, 'frequencies', (value) => value === combinedInstruction.command)}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-instruction" data-command="instruction:instrument">
+                    <select name="instrument" title="Note Instrument">
+                        <optgroup label="Song Instruments">
+                            ${renderEditorFormOptions(editor, 'song-instruments', (value) => value === combinedInstruction.instrument)}
+                        </optgroup>
+                        <optgroup label="Available Instruments">
+                            ${renderEditorFormOptions(editor, 'instruments-available', (value) => value === combinedInstruction.instrument)}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-instruction" data-command="instruction:duration">
+                    <select name="duration" title="Note Duration">
+                        <optgroup label="Note Duration">
+                            <option value="">Duration (Default)</option>
+                            ${renderEditorFormOptions(editor, 'durations', (value) => value === combinedInstruction.duration)}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-instruction" data-command="instruction:velocity">
+                    <select name="velocity" title="Note Velocity">
+                        <optgroup label="Velocity">
+                            <option value="">Velocity (Default)</option>
+                            ${renderEditorFormOptions(editor, 'velocities', (value) => value === combinedInstruction.velocity)}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-instruction" data-command="instruction:duplicate">
+                    <button name="duplicate">+</button>
+                </form>
+                <form class="form-instruction" data-command="instruction:remove">
+                    <button name="remove">-</button>
                 </form>
             </div>
         `;

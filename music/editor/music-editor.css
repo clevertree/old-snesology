@@ -143,8 +143,8 @@
 
 .music-editor .editor-grid .grid-cell-pause {
     position: absolute;
-    /* top: 0; */
-    right: 0;
+    top: 1px;
+    right: 5px;
     color: #000;
     z-index: 1;
     opacity: 0.3;
@@ -332,10 +332,10 @@ margin: 0 0;
     max-width: 42px;
 }
 .music-editor .editor-forms select[name=duration] {
-    max-width: 51px;
+    max-width: 75px;
 }
 .music-editor .editor-forms select[name=velocity] {
-    max-width: 62px;
+    max-width: 71px;
 }
 .music-editor .editor-forms select[name=pause] {
     max-width: 100px;
