@@ -137,7 +137,9 @@
         // Rendering
 
         render() {
+            var cursorPositions = this.grid ? this.grid.getCursorPositions() : null
             this.innerHTML = renderEditorContent(this);
+            cursorPositions && this.grid.select(cursorPositions);
         }
 
         // Grid Commands
@@ -839,23 +841,35 @@
     // Form Actions
 
     const formCommands = {
-        'instruction:edit': function (e, form, editor) {
+        'instruction:command': function (e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
-            if(!instruction) throw new Error("no instructions are currently selected");
-            // let associatedElement = editor.gridFindInstruction(instruction);
-            let instrumentID = form.instrument.value;
-            if(instrumentID.indexOf('add:') === 0)
-                instrumentID = editor.addSongInstrument(instrumentID.substr(4));
-
-            instruction.instrument = parseInt(instrumentID);
             instruction.command = form.command.value;
-            instruction.duration = parseFloat(form.duration.value) || null;
-            instruction.velocity = parseInt(form.velocity.value);
             editor.render();
-            // editor.gridSelectInstructions([instruction]);
+        },
+        'instruction:instrument': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(form.instrument.value === "") {
+                delete instruction.velocity;
+            } else {
+                let instrumentID = form.instrument.value;
+                if(instrumentID.indexOf('add:') === 0)
+                    instrumentID = editor.player.addSongInstrument(instrumentID.substr(4));
 
-            if(editor.config.previewInstructionsOnSelect !== false)
-                editor.playInstruction(instruction);
+                instruction.instrument = parseInt(instrumentID);
+            }
+            editor.render();
+        },
+        'instruction:duration': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(form.duration.value === "") delete instruction.duration;
+            else instruction.duration = parseFloat(form.duration.value);
+            editor.render();
+        },
+        'instruction:velocity': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(form.velocity.value === "") delete instruction.velocity;
+            else instruction.velocity = parseInt(form.velocity.value);
+            editor.render();
         },
         'row:edit': function(e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
