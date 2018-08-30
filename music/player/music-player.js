@@ -127,7 +127,7 @@
             }.bind(this));
         }
 
-        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, instruction, stats) {
+        playInstrument(instrumentID, noteFrequency, noteStartTime, instruction, stats) {
             const instrumentPath = this.getInstrumentPath(instrumentID);
             const instrument = this.getInstrument(instrumentPath);
             if(instrument.getNamedFrequency)
@@ -135,6 +135,8 @@
             noteFrequency = this.getInstructionFrequency(noteFrequency);
             const currentTime = this.getAudioContext().currentTime;
             var context = this.getAudioContext();
+            const bpm = stats.currentBPM || 60;
+            const noteDuration = (instruction.duration || 1) * (60 / bpm);
             const noteEventData = {
                 noteEvent: null,
                 frequency: noteFrequency,
@@ -222,12 +224,14 @@
         }
 
         playInstruction(instruction, noteStartTime, stats) {
-            // TODO: play groups too
-            const bpm = stats.currentBPM || 60;
+            if (instruction.command[0] === '@') {
+                const commandGroup = instruction.command.substr(1);
+                // TODO: play groups too
+            }
+
             const instrumentName = instruction.instrument || 0; // TODO: use current set instrument
             const noteFrequency = instruction.command;
-            const noteDuration = (instruction.duration || 1) * (60 / bpm);
-            return this.playInstrument(instrumentName, noteFrequency, noteStartTime, noteDuration, instruction, stats);
+            return this.playInstrument(instrumentName, noteFrequency, noteStartTime, instruction, stats);
         }
 
         playInstructions(instructionGroup, playbackPosition, playbackLength, currentTime) {
