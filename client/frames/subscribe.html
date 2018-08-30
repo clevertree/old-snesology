@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <base href="../../" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Cache-control" content="public">
+        <link href="assets/site.css" rel="stylesheet" />
+        <link href="assets/theme/minimal.css" rel="stylesheet" />
+
+        <script src="assets/site.js"></script>
+        <!--<script src="ffsite/messenger/messenger-client.js"></script>-->
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                site.onEvent('subscription-checkbox', 'click', function(e) {
+                    var topics = [], elm;
+                    if((elm = document.getElementsByName('subscription-topic-news')[0]) && elm.checked)
+                        topics.push('news');
+                    if((elm = document.getElementsByName('subscription-topic-dev')[0]) && elm.checked)
+                        topics.push('dev');
+                    messenger.subscribe(topics);
+                });
+            });
+
+        </script>
+    </head>
+    <body style="overflow: hidden;">
+
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.11&appId=24371359772&autoLogAppEvents=1';
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+
+        <section class="themed theme-minimal">
+            <div class="page-option-header">
+                Subscribe for updates
+            </div>
+
+            <form action="ffsite/messenger/api.php">
+                <div class="page-option">
+                    <span>News & Announcements</span>
+
+                    <!-- Rounded switch -->
+                    <label class="page-option-slider">
+                        <input name="subscription-topic-news" class="subscription-checkbox" type="checkbox" />
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="page-option">
+                    <span>Developer Updates</span>
+
+                    <!-- Rounded switch -->
+                    <label class="page-option-slider">
+                        <input name="subscription-topic-dev" class="subscription-checkbox" type="checkbox" />
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="page-option">
+                    <span>Social Media</span>
+
+                    <div style="margin-top: 0px; display: inline-block;">
+                        <!-- Rounded switch -->
+                        <div class="fb-like"
+                             data-href="https://www.facebook.com/snesology/"
+                             data-layout="button_count"
+                             data-action="like"
+                             data-size="small"
+                             data-show-faces="true"
+                             data-share="true">
+                        </div>
+                    </div>
+
+                    <!--<div style="margin-top: 5px; display: inline-block; ">-->
+                        <!--&lt;!&ndash; Place this tag where you want the widget to render. &ndash;&gt;-->
+                        <!--<div class="g-follow"-->
+                             <!--style="margin-top: 4px;"-->
+                             <!--data-annotation="bubble"-->
+                             <!--data-height="20"-->
+                             <!--data-href="//plus.google.com/u/1/107041646572227293252"-->
+                             <!--data-rel="author"></div>-->
+
+                        <!--&lt;!&ndash; Place this tag after the last widget tag. &ndash;&gt;-->
+                        <!--<script type="text/javascript">-->
+                            <!--(function() {-->
+                                <!--var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;-->
+                                <!--po.src = 'https://apis.google.com/js/platform.js';-->
+                                <!--var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);-->
+                            <!--})();-->
+                        <!--</script>-->
+                    <!--</div>-->
+
+                </div>
+            </form>
+
+            <div class="page-option-footer">
+                You will get a browser notification for updates.
+            </div>
+        </section>
+
+    </body>
+</html>

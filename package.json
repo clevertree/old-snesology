@@ -1,0 +1,29 @@
+{
+  "name": "snesology",
+  "version": "0.0.1",
+  "description": "Snesology Website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/clevertree/snesology.git"
+  },
+  "keywords": [
+    "video",
+    "game",
+    "music"
+  ],
+  "author": "Ari Asulin",
+  "license": "GNU GPLv3",
+  "bugs": {
+    "url": "https://github.com/clevertree/snesology/issues"
+  },
+  "homepage": "https://github.com/clevertree/snesology#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "simple-git": "^1.95.1"
+  }
+}
