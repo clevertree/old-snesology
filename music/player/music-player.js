@@ -277,7 +277,7 @@
                             stats.maxPlaytime = stats.groupPlaytime;
                     }
 
-                    if(instruction.command) {
+                    if(typeof instruction.command !== "undefined") {
                         if (instruction.command[0] === '@') {
                             // if(groupPosition < startPosition) // Execute all groups each time
                             //     continue;
