@@ -387,6 +387,8 @@
 
         get nextRowCell() {
             let currentCell = this.currentCell;
+            if(!currentCell)
+                return null;
             const column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
 
             let currentRow = currentCell.parentNode;
@@ -603,9 +605,9 @@
                 let pauseInstruction = {
                     pause: pauseLength
                 }; // new instruction
-                let insertPosition = this.insertInstruction(pauseInstruction); // insertPosition
+                this.insertInstruction(pauseInstruction); // insertPosition
                 this.render();
-                this.select(insertPosition);
+                // this.select(insertPosition);
             }
 
         }
@@ -728,6 +730,9 @@
 
     //    !e.ctrlKey, !e.shiftKey
         selectCell(cursorCell, toggleSelected, clearSelected) {
+            if(!cursorCell)
+                throw new Error("Invalid cursor cell");
+
             // Set selected class
             if(clearSelected)
                 this.querySelectorAll('.grid-cell.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
