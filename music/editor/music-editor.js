@@ -630,7 +630,7 @@
             let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
-                const nextPause = instructionList.find((i, p) => i.type === 'pause' && p > position);
+                const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
                 const noteCSS = [];
                 if(cursorPositions.indexOf(position) !== -1) {
                     selectedRow = true;
@@ -1035,13 +1035,32 @@
 
     function renderEditorFormContent(editor) {
         const currentGridName = editor.status.grids[0].groupName;
-        const parentInstruction = editor.status.grids[0].parentInstruction || {};
+        // const parentInstruction = editor.status.grids[0].parentInstruction || {};
 
-        const cursorPosition = editor.grid ? editor.grid.getCursorPosition() : 0;
-        const instructionList = editor.player.getInstructions(currentGridName);
-        const currentInstruction = instructionList[cursorPosition];
-        const combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, currentInstruction);
-        const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPosition);
+        let combinedInstruction = null;
+        // let combinedPauseInstruction = null;
+        if(editor.grid) {
+            const groupInstructions = editor.player.getInstructions(currentGridName);
+            const selectedPositions = editor.grid.getSelectedPositions();
+            for(var i=0; i<selectedPositions.length; i++) {
+                var p = selectedPositions[i];
+                if(combinedInstruction === null) {
+                    combinedInstruction = groupInstructions[p];
+                } else {
+                    Object.keys(combinedInstruction).map(function(key, i) {
+                        if(groupInstructions[p][key] !== combinedInstruction[key])
+                            delete combinedInstruction[key];
+                    });
+                }
+                // const nextPauseInstruction = groupInstructions.find((i, p2) => i.pause && p2 > p);
+            }
+        } else {
+            combinedInstruction = {command: 'C4'};
+        }
+        console.info(combinedInstruction);
+
+        // combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, combinedInstruction);
+        // const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions);
 
         // TODO: modify all selected cells
 
@@ -1091,7 +1110,7 @@
                     <label class="row-label">Row:</label>
                     <select name="duration" title="Row Duration">
                         <optgroup label="Row Duration">
-                            ${renderEditorFormOptions(editor, 'durations', (value) => nextPauseInstruction && value === nextPauseInstruction.pause)}
+                            ${renderEditorFormOptions(editor, 'durations')}
                         </optgroup>
                     </select>
                 </form>
@@ -1114,6 +1133,7 @@
                 <form class="form-instruction-command" data-command="instruction:command">
                     <select name="command" title="Command">
                         <optgroup label="Frequencies">
+                            <option value="">Frequency (Default)</option>
                             ${renderEditorFormOptions(editor, 'frequencies', (value) => value === combinedInstruction.command)}
                         </optgroup>
                     </select>
@@ -1219,7 +1239,7 @@
                 throw new Error("no instructions are currently selected");
             const instructionList = editor.player.getInstructions(editor.grid.getGroupName());
             const instructionPosition = editor.player.getInstructionPosition(instruction, editor.grid.getGroupName());
-            let nextPause = instructionList.find((i, p) => i.type === 'pause' && p > instructionPosition);
+            let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
             if(!nextPause)
                 throw new Error("no pauses follow selected instruction");
             nextPause.duration = parseFloat(form.duration.value);
@@ -1255,7 +1275,7 @@
         'note:command': function (e, editor) {
             let insertPosition = parseInt(editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
             const newInstruction = {
-                type: 'note',
+                // type: 'note',
                 instrument: 0,
                 command: 'C4',
                 duration: 1
