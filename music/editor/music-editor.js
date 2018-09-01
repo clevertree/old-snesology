@@ -50,7 +50,7 @@
                 playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
 
                 if(this.getSongURL())
-                    playerElement.loadSong(this.getSongURL(), function() {
+                    playerElement.loadSongFromURL(this.getSongURL(), function() {
                         this.render();
                         this.grid.select(0);
 
@@ -104,16 +104,21 @@
             console.info("Song loaded from memory: " + songGUID, songData);
         }
 
+        loadSongFromURL(songURL, onLoaded) {
+            return this.player.loadSongFromURL(songURL, onLoaded);
+        }
+
+
         // Grid Functions
 
         getSelectedInstructions() {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            return this.grid.getCursorPositions().map(p => instructionList[p]);
+            return this.grid.getSelectedPositions().map(p => instructionList[p]);
         }
 
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            deletePositions = deletePositions || this.grid.getCursorPositions();
+            deletePositions = deletePositions || this.grid.getSelectedPositions();
             deletePositions.sort((a, b) => b - a);
             for(let i=0; i<deletePositions.length; i++) {
                 const position = deletePositions[i];
@@ -137,7 +142,7 @@
         // Rendering
 
         render() {
-            var cursorPositions = this.grid ? this.grid.getCursorPositions() : null
+            var cursorPositions = this.grid ? this.grid.getSelectedPositions() : null;
             this.innerHTML = renderEditorContent(this);
             cursorPositions && this.grid.select(cursorPositions);
         }
@@ -171,15 +176,10 @@
         }
 
 
-        loadSong(songURL, onLoaded) {
-            return this.player.loadSong(songURL, onLoaded);
-        }
-
         // Forms
 
         formUpdate() {
-            var editorForms = this.querySelector('.editor-forms');
-            editorForms.outerHTML = renderEditorFormContent(this);
+            this.querySelector('.editor-forms').outerHTML = renderEditorFormContent(this);
         }
 
         // Playback
@@ -253,7 +253,7 @@
                 const rect = dataElm.getBoundingClientRect();
                 x = rect.x + rect.width;
                 y = rect.y + rect.height;
-                this.grid.selectCell(dataElm);
+                this.grid.selectCell(dataElm, !e.ctrlKey, !e.shiftKey);
                 this.grid.focus();
             } else if(target.classList.contains('grid-row')) {
                 contextMenu.classList.add('selected-row');
@@ -281,7 +281,7 @@
                 case 'keydown':
                     switch(e.key) {
                         case 'Tab': break;
-                        case ' ': this.player.play(); e.preventDefault(); break;
+                        // case ' ': this.player.play(); e.preventDefault(); break;
                         case 'Escape': this.grid.focus(); break;
                         // case 'ArrowDown':
                         // case 's': this.player.saveSongToMemory(); e.preventDefault(); break;
@@ -379,7 +379,7 @@
         get editor() { return this.parentNode.parentNode; }
 
         get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
-        get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); }
+        get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected'); }
         get currentCellPosition() { return parseInt(this.currentCell.getAttribute('data-position')); }
 
         get nextCell() { return this.querySelector('.grid-cell[data-position="' + (this.currentCellPosition + 1) + '"]'); }
@@ -387,7 +387,7 @@
 
         get nextRowCell() {
             let currentCell = this.currentCell;
-            var column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
+            const column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
 
             let currentRow = currentCell.parentNode;
             if(!currentRow.nextElementSibling)
@@ -405,7 +405,7 @@
 
         get previousRowCell() {
             let currentCell = this.currentCell;
-            var column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
+            const column = Array.from(currentCell.parentNode.childNodes).indexOf(currentCell);
             let currentRow = currentCell.parentNode;
             if(!currentRow.previousElementSibling)
                 return null;
@@ -419,8 +419,6 @@
             }
             return previousCell;
         }
-        // get nextCellDown() { return this.nextRow ? this.nextRow.childNodes[this.currentCellColumn] : null; }
-        // get previousCellUp() { return this.previousRow ? this.previousRow.childNodes[this.currentCellColumn] : null; }
 
         connectedCallback() {
             this.addEventListener('contextmenu', this.onInput);
@@ -437,125 +435,114 @@
             if (e.defaultPrevented)
                 return;
 
-            // const cursorPositions = this.getCursorPositions();
+            // const cursorPositions = this.getSelectedPositions();
             // const initialCursorPosition = cursorPositions[0];
             // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
-            const editor = this.editor;
-
-            let cellElm = e.target;
-            if (cellElm.classList.contains('grid-parameter'))
-                cellElm = cellElm.parentNode;
-            if (cellElm.classList.contains('grid-parameter'))
-                cellElm = cellElm.parentNode;
-            if (cellElm.classList.contains('grid-row'))
-                cellElm = cellElm.firstElementChild;
-            if (!cellElm.classList.contains('grid-cell'))
-                cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
-            if(!cellElm)
-                throw new Error("Could not find grid-cell");
+            // const editor = this.editor;
 
             switch (e.type) {
                 case 'keydown':
 
                     let keyEvent = e.key;
-                    if (editor.keyboardLayout[e.key])
+                    if (this.editor.keyboardLayout[e.key])
                         keyEvent = 'PlayFrequency';
                     if (keyEvent === 'Enter' && e.altKey)
                         keyEvent = 'ContextMenu';
 
+                    let keydownCellElm = this.currentCell;
 
-                    if (cellElm.classList.contains('grid-cell-new')) {
-                        let insertPosition = parseInt(cellElm.getAttribute('data-position'));
-                        let newInstruction = null;
+                    if (keydownCellElm.classList.contains('grid-cell-new')) {
+                        let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
+                        // let newInstruction = null;
                         // let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
                         switch (keyEvent) {
                             case 'Enter':
                             case 'PlayFrequency':
-                                newInstruction = {
-                                    type: 'note',
-                                    instrument: 0,
-                                    command: 'C4',
+                                let newInstruction = {
+                                    // instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
+                                    command: this.editor.querySelector('form.form-instruction-command').command.value,
                                     // duration: duration
                                 }; // new instruction
+                                if(this.editor.querySelector('form.form-instruction-instrument').instrument.value)
+                                    newInstruction.instrument = parseInt(this.editor.querySelector('form.form-instruction-instrument').instrument.value);
+                                if(this.editor.querySelector('form.form-instruction-duration').duration.value)
+                                    newInstruction.duration = this.editor.querySelector('form.form-instruction-duration').duration.value;
+                                if(newInstruction) {
+                                    this.insertInstruction(newInstruction, insertPosition);
+                                    this.render();
+                                    this.select(insertPosition);
+                                }
                                 break;
-                        }
-                        if(newInstruction) {
-                            this.insertInstruction(newInstruction, insertPosition);
-                            this.render();
-                            this.select(insertPosition);
                         }
                     }
 
-                    let selectedInstruction = editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
+                    let selectedInstruction = this.editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
                     switch (keyEvent) {
                         case 'Delete':
-                            editor.deleteInstructions();
+                            this.editor.deleteInstructions();
                             e.preventDefault();
                             // editor.render(true);
                             break;
                         case 'Escape':
                         case 'Backspace':
-                            editor.gridNavigate(null);
-                            editor.grid.select(0);
-                            editor.grid.focus();
+                            this.editor.gridNavigate(null);
+                            this.editor.grid.select(0);
+                            this.editor.grid.focus();
                             e.preventDefault();
                             break;
                         case 'Enter':
                             if (selectedInstruction.command[0] === '@') {
                                 const groupName = selectedInstruction.command.substr(1);
-                                editor.gridNavigate(groupName, selectedInstruction);
-                                editor.grid.select(0);
-                                editor.grid.focus();
+                                this.editor.gridNavigate(groupName, selectedInstruction);
+                                this.editor.grid.select(0);
+                                this.editor.grid.focus();
                             } else {
-                                editor.playInstruction(selectedInstruction);
+                                this.editor.playInstruction(selectedInstruction);
                             }
                             e.preventDefault();
                             break;
 
                         case 'Play':
-                            editor.playInstruction(selectedInstruction);
+                            this.editor.playInstruction(selectedInstruction);
                             e.preventDefault();
                             break;
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
-                            if(!this.nextCell) createNextRow.call(this);
-                            if (e.shiftKey) this.selectCellRange(cellElm, this.nextCell);
-                            // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else this.selectCell(this.nextCell);
-                            this.focus();
+                            if(!this.nextCell)
+                                createNextRow.call(this);
+                            this.selectCell(this.nextCell, !e.ctrlKey, !e.ctrlKey && !e.shiftKey);
+                            // this.focus();
                             e.preventDefault();
                             break;
                         case 'ArrowLeft':
-                            if (e.shiftKey) this.selectCellRange(cellElm, this.previousCell);
-                            // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                            else this.previousCell && this.selectCell(this.previousCell);
-                            this.focus();
+                            this.previousCell && this.selectCell(this.previousCell, !e.ctrlKey, !e.ctrlKey && !e.shiftKey);
+                            // this.focus();
                             e.preventDefault();
                             break;
                         case 'ArrowDown':
-                            if(!this.nextRowCell) createNextRow.call(this);
-                            if (e.shiftKey) this.selectCellRange(cellElm, this.nextRowCell);
-                            // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(nextSectionElement || nextElement || selectedData);
-                            else this.selectCell(this.nextRowCell);
-
-                            this.focus();
+                            if(!this.nextRowCell)
+                                createNextRow.call(this);
+                            this.selectCell(this.nextRowCell, !e.ctrlKey, !e.ctrlKey && !e.shiftKey);
+                            // this.focus();
                             e.preventDefault();
                             break;
                         case 'ArrowUp':
-                            if (e.shiftKey) this.selectCellRange(cellElm, this.previousRowCell);
-                            // else if (e.ctrlKey || e.metaKey)    editor.gridDataSelect(previousSectionElement || previousElement || selectedData);
-                            else this.selectCell(this.previousRowCell || this.previousCell || this.currentCell);
-                            this.focus();
+                            this.selectCell(this.previousRowCell || this.previousCell || this.currentCell, !e.ctrlKey, !e.ctrlKey && !e.shiftKey);
+                            // this.focus();
                             e.preventDefault();
                             break;
 
+                        case ' ':
+                            this.selectCell(this.currentCell, null, false);
+                            break;
+
                         case 'PlayFrequency':
-                            selectedInstruction.command = editor.keyboardLayout[e.key];
+                            selectedInstruction.command = this.editor.keyboardLayout[e.key];
                             this.render();
                             this.focus();
-                            editor.playInstruction(selectedInstruction);
+                            this.editor.playInstruction(selectedInstruction);
 
                             // editor.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
@@ -565,8 +552,20 @@
                     break;
 
                 case 'mousedown':
-                    editor.menuClose();
-                    this.selectCell(cellElm, true);
+                    this.editor.menuClose();
+                    let cellElm = e.target;
+                    if (cellElm.classList.contains('grid-parameter'))
+                        cellElm = cellElm.parentNode;
+                    if (cellElm.classList.contains('grid-parameter'))
+                        cellElm = cellElm.parentNode;
+                    if (cellElm.classList.contains('grid-row'))
+                        cellElm = cellElm.firstElementChild;
+                    if (!cellElm.classList.contains('grid-cell'))
+                        cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
+                    if(!cellElm)
+                        throw new Error("Could not find grid-cell");
+
+                    this.selectCell(cellElm, !e.ctrlKey, !e.shiftKey);
                     this.focus();
 
                     // Longpress
@@ -587,12 +586,12 @@
 
                 case 'longpress':
                     console.log("Longpress", e);
-                    editor.openContextMenu(e);
+                    this.editor.openContextMenu(e);
                     e.preventDefault();
                     break;
 
                 case 'contextmenu':
-                    editor.openContextMenu(e);
+                    this.editor.openContextMenu(e);
                     if(!e.altKey) e.preventDefault();
                     break;
 
@@ -616,7 +615,7 @@
         }
 
         render() {
-            const cursorPositions = this.getCursorPositions();
+            const cursorPositions = this.getSelectedPositions();
             const editor = this.editor;
             const song = editor.getSong();
             const beatsPerMinute = song.beatsPerMinute;
@@ -691,8 +690,7 @@
 
         getGroupName() { return this.getAttribute('data-group');}
 
-
-        getCursorPositions() {
+        getSelectedPositions() {
             const cursorPositions = [];
             this.querySelectorAll('.grid-cell.selected').forEach(function(elm) {
                 let p = elm.getAttribute('data-position');
@@ -702,6 +700,13 @@
             if(cursorPositions.length === 0)
                 return [0];
             return cursorPositions;
+        }
+
+        getCursorPosition() {
+            const cursorCell = this.querySelector('.grid-cell.cursor');
+            if(cursorCell)
+                return parseInt(cursorCell.getAttribute('data-position'));
+            return null;
         }
 
         select(cursorPositions) {
@@ -721,19 +726,22 @@
             this.editor.formUpdate();
         }
 
+    //    !e.ctrlKey, !e.shiftKey
+        selectCell(cursorCell, toggleSelected, clearSelected) {
+            // Set selected class
+            if(clearSelected)
+                this.querySelectorAll('.grid-cell.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
 
-        selectCell(gridCellList) {
-            if(!gridCellList)
-                throw new Error("Invalid grid cell or array");
-            gridCellList = Array.isArray(gridCellList) ? gridCellList : [gridCellList];
-            this.querySelectorAll('.grid-cell.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
-            gridCellList.forEach(elm => {
-                elm.classList.add('selected');
-                elm.parentElement.classList.add('selected');
-            });
+            if(toggleSelected !== false) {
+                toggleSelected === null ? cursorCell.classList.toggle('selected') : cursorCell.classList.toggle('selected', toggleSelected);
+                cursorCell.parentNode.classList.toggle('selected', cursorCell.parentNode.querySelectorAll('.selected').length > 0);
+            }
+
+            // Set cursor class
+            this.querySelectorAll('.grid-cell.cursor').forEach(elm => elm.classList.remove('cursor'));
+            cursorCell.classList.add('cursor');
             this.editor.formUpdate();
         }
-
 
         selectCellRange(startCell, endCell) {
             let pos = [
@@ -743,7 +751,7 @@
             if(pos[0] > pos[1])
                 pos = [pos[1], pos[0]];
             let cursorPositions = [];
-            for(let p=pos[0]; p<pos[1]; p++)
+            for(let p=pos[0]; p<=pos[1]; p++)
                 cursorPositions.push(p);
             this.select(cursorPositions);
         }
@@ -755,7 +763,6 @@
             let position = this.editor.player.getInstructionPosition(instruction, instructionGroup);
             return this.findDataElement(position);
         }
-
 
         findDataElement(instrumentPosition) {
             let gridDataElms = this.querySelectorAll('.grid-cell');
@@ -817,113 +824,6 @@
         }.bind(this));
     }
 
-
-    // Misc Commands
-
-    function generateGUID() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
-        }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-    }
-
-
-
-    const DEFAULT_KEYBOARD_LAYOUT = {
-        '2':'C#5', '3':'D#5', '5':'F#5', '6':'G#5', '7':'A#5', '9':'C#6', '0':'D#6',
-        'q':'C5', 'w':'D5', 'e':'E5', 'r':'F5', 't':'G5', 'y':'A5', 'u':'B5', 'i':'C6', 'o':'D6', 'p':'E6',
-        's':'C#4', 'd':'D#4', 'g':'F#4', 'h':'G#4', 'j':'A#4', 'l':'C#5', ';':'D#5',
-        'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
-    };
-
-    // Form Actions
-
-    const formCommands = {
-        'instruction:command': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            instruction.command = form.command.value;
-            editor.render();
-        },
-        'instruction:instrument': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(form.instrument.value === "") {
-                delete instruction.velocity;
-            } else {
-                let instrumentID = form.instrument.value;
-                if(instrumentID.indexOf('add:') === 0)
-                    instrumentID = editor.player.addSongInstrument(instrumentID.substr(4));
-
-                instruction.instrument = parseInt(instrumentID);
-            }
-            editor.render();
-        },
-        'instruction:duration': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(form.duration.value === "") delete instruction.duration;
-            else instruction.duration = parseFloat(form.duration.value);
-            editor.render();
-        },
-        'instruction:velocity': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(form.velocity.value === "") delete instruction.velocity;
-            else instruction.velocity = parseInt(form.velocity.value);
-            editor.render();
-        },
-        'row:edit': function(e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(!instruction)
-                throw new Error("no instructions are currently selected");
-            const instructionList = editor.player.getInstructions(editor.grid.getGroupName());
-            const instructionPosition = editor.player.getInstructionPosition(instruction, editor.grid.getGroupName());
-            let nextPause = instructionList.find((i, p) => i.type === 'pause' && p > instructionPosition);
-            if(!nextPause)
-                throw new Error("no pauses follow selected instruction");
-            nextPause.duration = parseFloat(form.duration.value);
-            editor.render();
-            // editor.grid.select([instruction]);
-        },
-        'group:edit': function(e, form, editor) {
-            editor.gridNavigate(form.groupName.value);
-            editor.grid.select(0);
-        },
-        'song:edit': function(e, form, editor) {
-            const song = editor.getSong();
-            // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
-            song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
-            song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
-            editor.render();
-            editor.grid.select(0);
-        },
-        'song:play': function (e, form, editor) { editor.player.play(); },
-        'song:pause': function (e, form, editor) { editor.player.pause(); },
-        'song:playback': function (e, form, editor) {
-            console.log(e.target);
-        }
-    };
-
-    // Menu Actions
-
-    const menuCommands = {
-        'save:memory': function(e, editor) { editor.saveSongToMemory(); },
-        'save:file': function(e, editor) { editor.saveSongToFile(); },
-        'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
-
-        'note:command': function (e, editor) {
-            let insertPosition = parseInt(editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
-            const newInstruction = {
-                type: 'note',
-                instrument: 0,
-                command: 'C4',
-                duration: 1
-            }; // new instruction
-            // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-            editor.player.insertInstruction(newInstruction, editor.grid.getGroupName(), insertPosition);
-        }
-    };
-
-    // Rendering templates
 
 
     function getEditorFormOptions(editor, optionType, callback, selectCallback) {
@@ -1054,12 +954,14 @@
     }
     function formatDuration(duration) { return parseFloat(duration).toFixed(2); }
 
+    // Rendering Templates
+
     function renderEditorContent(editor) {
         return `
-            <div class="music-editor" tabindex="1">
+            <div class="music-editor">
                 ${renderEditorMenuContent(editor)}
                 ${renderEditorFormContent(editor)}
-                <music-editor-grid data-group="${editor.status.grids[0].groupName}" tabindex="2">
+                <music-editor-grid data-group="${editor.status.grids[0].groupName}" tabindex="1">
                 </music-editor-grid>
             </div>
         `;
@@ -1135,11 +1037,13 @@
         const currentGridName = editor.status.grids[0].groupName;
         const parentInstruction = editor.status.grids[0].parentInstruction || {};
 
-        const cursorPositions = editor.grid ? editor.grid.getCursorPositions() : [0];
+        const cursorPosition = editor.grid ? editor.grid.getCursorPosition() : 0;
         const instructionList = editor.player.getInstructions(currentGridName);
-        const currentInstruction = instructionList[cursorPositions[0]];
+        const currentInstruction = instructionList[cursorPosition];
         const combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, currentInstruction);
-        const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions[0]);
+        const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPosition);
+
+        // TODO: modify all selected cells
 
         // console.log(cursorPositions,instructionList, currentInstruction, nextPauseInstruction);
 
@@ -1176,11 +1080,11 @@
                 <br/>
     
                 <label class="row-label">Group:</label>
-                    ${getEditorFormOptions(editor, 'groups', (value, label, selected) =>
-                    `<form class="form-group" data-command="group:edit">`
+                ${getEditorFormOptions(editor, 'groups', (value, label, selected) =>
+                `<form class="form-group" data-command="group:edit">`
                     + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                    + `</form>`, (value) => value === currentGridName)}
-    
+                    + `</form>&nbsp;`, (value) => value === currentGridName)}
+
                 <br/>
      
                 <form class="form-row" data-command="row:edit">
@@ -1207,14 +1111,14 @@
                 <br/>
     
                 <label class="row-label">Command:</label>
-                <form class="form-instruction" data-command="instruction:command">
+                <form class="form-instruction-command" data-command="instruction:command">
                     <select name="command" title="Command">
                         <optgroup label="Frequencies">
                             ${renderEditorFormOptions(editor, 'frequencies', (value) => value === combinedInstruction.command)}
                         </optgroup>
                     </select>
                 </form>
-                <form class="form-instruction" data-command="instruction:instrument">
+                <form class="form-instruction-instrument" data-command="instruction:instrument">
                     <select name="instrument" title="Note Instrument">
                         <optgroup label="Song Instruments">
                             ${renderEditorFormOptions(editor, 'song-instruments', (value) => value === combinedInstruction.instrument)}
@@ -1224,7 +1128,7 @@
                         </optgroup>
                     </select>
                 </form>
-                <form class="form-instruction" data-command="instruction:duration">
+                <form class="form-instruction-duration" data-command="instruction:duration">
                     <select name="duration" title="Note Duration">
                         <optgroup label="Note Duration">
                             <option value="">Duration (Default)</option>
@@ -1232,7 +1136,7 @@
                         </optgroup>
                     </select>
                 </form>
-                <form class="form-instruction" data-command="instruction:velocity">
+                <form class="form-instruction-velocity" data-command="instruction:velocity">
                     <select name="velocity" title="Note Velocity">
                         <optgroup label="Velocity">
                             <option value="">Velocity (Default)</option>
@@ -1240,21 +1144,128 @@
                         </optgroup>
                     </select>
                 </form>
-                <form class="form-instruction" data-command="instruction:duplicate">
+                <form class="form-instruction-duplicate" data-command="instruction:duplicate">
                     <button name="duplicate">+</button>
                 </form>
-                <form class="form-instruction" data-command="instruction:remove">
+                <form class="form-instruction-remove" data-command="instruction:remove">
                     <button name="remove">-</button>
                 </form>
             </div>
         `;
     }
 
+    // Misc Commands
+
+    function generateGUID() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+
+
 
     // Config
 
     const DEFAULT_CONFIG = {
         previewInstructionsOnSelect: true,
-    }
+    };
+    const DEFAULT_KEYBOARD_LAYOUT = {
+        '2':'C#5', '3':'D#5', '5':'F#5', '6':'G#5', '7':'A#5', '9':'C#6', '0':'D#6',
+        'q':'C5', 'w':'D5', 'e':'E5', 'r':'F5', 't':'G5', 'y':'A5', 'u':'B5', 'i':'C6', 'o':'D6', 'p':'E6',
+        's':'C#4', 'd':'D#4', 'g':'F#4', 'h':'G#4', 'j':'A#4', 'l':'C#5', ';':'D#5',
+        'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
+    };
+
+    // Form Actions
+
+    const formCommands = {
+        'instruction:command': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            instruction.command = form.command.value;
+            editor.render();
+        },
+        'instruction:instrument': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(form.instrument.value === "") {
+                delete instruction.velocity;
+            } else {
+                let instrumentID = form.instrument.value;
+                if(instrumentID.indexOf('add:') === 0)
+                    instrumentID = editor.player.addSongInstrument(instrumentID.substr(4));
+
+                instruction.instrument = parseInt(instrumentID);
+            }
+            editor.render();
+        },
+        'instruction:duration': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(form.duration.value === "") delete instruction.duration;
+            else instruction.duration = parseFloat(form.duration.value);
+            editor.render();
+        },
+        'instruction:velocity': function (e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(form.velocity.value === "") delete instruction.velocity;
+            else instruction.velocity = parseInt(form.velocity.value);
+            editor.render();
+        },
+        'row:edit': function(e, form, editor) {
+            let instruction = editor.getSelectedInstructions()[0];
+            if(!instruction)
+                throw new Error("no instructions are currently selected");
+            const instructionList = editor.player.getInstructions(editor.grid.getGroupName());
+            const instructionPosition = editor.player.getInstructionPosition(instruction, editor.grid.getGroupName());
+            let nextPause = instructionList.find((i, p) => i.type === 'pause' && p > instructionPosition);
+            if(!nextPause)
+                throw new Error("no pauses follow selected instruction");
+            nextPause.duration = parseFloat(form.duration.value);
+            editor.render();
+            // editor.grid.select([instruction]);
+        },
+        'group:edit': function(e, form, editor) {
+            editor.gridNavigate(form.groupName.value);
+            editor.grid.select(0);
+        },
+        'song:edit': function(e, form, editor) {
+            const song = editor.getSong();
+            // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+            song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
+            song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
+            editor.render();
+            editor.grid.select(0);
+        },
+        'song:play': function (e, form, editor) { editor.player.play(); },
+        'song:pause': function (e, form, editor) { editor.player.pause(); },
+        'song:playback': function (e, form, editor) {
+            console.log(e.target);
+        }
+    };
+
+    // Menu Actions
+
+    const menuCommands = {
+        'save:memory': function(e, editor) { editor.saveSongToMemory(); },
+        'save:file': function(e, editor) { editor.saveSongToFile(); },
+        'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
+
+        'note:command': function (e, editor) {
+            let insertPosition = parseInt(editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
+            const newInstruction = {
+                type: 'note',
+                instrument: 0,
+                command: 'C4',
+                duration: 1
+            }; // new instruction
+            // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
+            editor.player.insertInstruction(newInstruction, editor.grid.getGroupName(), insertPosition);
+        }
+    };
+
+    // Rendering templates
+
 
 })();

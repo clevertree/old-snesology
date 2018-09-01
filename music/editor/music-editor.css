@@ -84,15 +84,20 @@
 }
 
 
+.music-editor .editor-grid .grid-cell.cursor,
 .music-editor .editor-grid .grid-cell.selected {
     font-weight: bold;
     max-width: 1000px;
-    /* background-color: #444; */
-    border-color: orangered;
     box-shadow: #441200 0 1px 10px;
-    background-color: white;
     z-index: 2;
     /* position: relative; */
+}
+.music-editor .editor-grid .grid-cell.selected {
+    background-color: white;
+}
+
+.music-editor .editor-grid .grid-cell.cursor {
+    border-color: orangered;
 }
 
 .music-editor .editor-grid .grid-parameter{
