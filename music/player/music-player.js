@@ -33,7 +33,7 @@
             this.addEventListener('click', this.onInput.bind(this));
 
             if(this.getSongURL())
-                this.loadSong(this.getSongURL());
+                this.loadSongFromURL(this.getSongURL());
 
             if(!this.getAttribute('tabindex'))
                 this.setAttribute('tabindex', '1');
@@ -90,7 +90,7 @@
             }
         }
 
-        loadSong(songURL, onLoaded) {
+        loadSongFromURL(songURL, onLoaded) {
 //             console.log('Song loading:', songURL);
             loadJSON(songURL, function(err, json) {
                 if(err)
@@ -277,7 +277,7 @@
                             stats.maxPlaytime = stats.groupPlaytime;
                     }
 
-                    if(instruction.command) {
+                    if(typeof instruction.command !== "undefined") {
                         if (instruction.command[0] === '@') {
                             // if(groupPosition < startPosition) // Execute all groups each time
                             //     continue;
