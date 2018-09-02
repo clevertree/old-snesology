@@ -71,6 +71,8 @@
     opacity: 0;
     transition: opacity 0.25s;
 }
+.music-editor .editor-grid .grid-cell-new.cursor,
+.music-editor .editor-grid .grid-cell-new.selected,
 .music-editor .editor-grid .grid-row.selected .grid-cell-new {
     opacity: 1;
 }
@@ -88,7 +90,7 @@
 .music-editor .editor-grid .grid-cell.selected {
     font-weight: bold;
     max-width: 1000px;
-    box-shadow: #441200 0 1px 10px;
+    box-shadow: #441200 0 0 10px;
     z-index: 2;
     /* position: relative; */
 }
@@ -97,7 +99,8 @@
 }
 
 .music-editor .editor-grid .grid-cell.cursor {
-    border-color: orangered;
+    border-color: red;
+    box-shadow: darkred 0 0 12px;
 }
 
 .music-editor .editor-grid .grid-parameter{
