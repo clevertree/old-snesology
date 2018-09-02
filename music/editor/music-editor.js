@@ -50,9 +50,9 @@
                 playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
 
                 if(this.getSongURL())
-                    playerElement.loadSongFromURL(this.getSongURL(), function() {
+                    playerElement.loadSongFromURL(this.getSongURL(), function(e) {
                         this.render();
-                        this.grid.select(0);
+                        this.grid.select(e, 0);
 
                         // Load recent
                         const recentSongGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
@@ -100,7 +100,7 @@
 
             this.player.loadSongData(songData);
             this.render();
-            this.grid.select(0);
+            this.grid.select(null, 0);
             console.info("Song loaded from memory: " + songGUID, songData);
         }
 
@@ -126,7 +126,7 @@
                     throw new Error("Instruction not found at position: " + position);
                 instructionList.splice(p, 1);
             }
-            this.grid.select([deletePositions[deletePositions.length-1]]);
+            this.grid.select(null, [deletePositions[deletePositions.length-1]]);
         }
 
         gridFindInstruction(instruction) {
@@ -142,9 +142,9 @@
         // Rendering
 
         render() {
-            var cursorPositions = this.grid ? this.grid.getSelectedPositions() : null;
+            // var cursorPositions = this.grid ? this.grid.getSelectedPositions() : null;
             this.innerHTML = renderEditorContent(this);
-            cursorPositions && this.grid.select(cursorPositions);
+            // cursorPositions && this.grid.select(null, cursorPositions);
         }
 
         // Grid Commands
@@ -473,7 +473,7 @@
                                 if(newInstruction) {
                                     this.insertInstruction(newInstruction, insertPosition);
                                     this.render();
-                                    this.select(insertPosition);
+                                    this.select(e, insertPosition);
                                 }
                                 break;
                         }
@@ -489,7 +489,7 @@
                         case 'Escape':
                         case 'Backspace':
                             this.editor.gridNavigate(null);
-                            this.editor.grid.select(0);
+                            this.editor.grid.select(e, 0);
                             this.editor.grid.focus();
                             e.preventDefault();
                             break;
@@ -497,7 +497,7 @@
                             if (selectedInstruction.command[0] === '@') {
                                 const groupName = selectedInstruction.command.substr(1);
                                 this.editor.gridNavigate(groupName, selectedInstruction);
-                                this.editor.grid.select(0);
+                                this.editor.grid.select(e, 0);
                                 this.editor.grid.focus();
                             } else {
                                 this.editor.playInstruction(selectedInstruction);
@@ -517,7 +517,7 @@
                                     pause: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
                                 }); // insertPosition
                                 this.render();
-                                this.select(nextRowPosition);
+                                this.select(e, nextRowPosition);
 
                             } else {
                                 this.selectCell(e, this.nextCell);
@@ -538,7 +538,7 @@
                                     pause: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
                                 }); // insertPosition
                                 this.render();
-                                this.select(nextRowPosition);
+                                this.select(e, nextRowPosition);
 
                             } else {
                                 this.selectCell(e, this.nextRowCell);
@@ -624,7 +624,9 @@
         }
 
         render() {
-            const cursorPositions = this.getSelectedPositions();
+            // TODO: render cursor positions
+            const selectedPositions = this.getSelectedPositions();
+            const cursorPosition = this.getCursorPosition();
             const editor = this.editor;
             const song = editor.getSong();
             const beatsPerMinute = song.beatsPerMinute;
@@ -641,7 +643,7 @@
                 const instruction = instructionList[position];
                 const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
                 const noteCSS = [];
-                if(cursorPositions.indexOf(position) !== -1) {
+                if(selectedPositions.indexOf(position) !== -1) {
                     selectedRow = true;
                     noteCSS.push('selected');
                 }
@@ -718,47 +720,72 @@
             return null;
         }
 
-        select(cursorPositions) {
-            cursorPositions = Array.isArray(cursorPositions) ? cursorPositions : [cursorPositions];
-            // this.cursorPositions = cursorPositions;
-            this.querySelectorAll('.grid-cell.selected,.grid-row.selected').forEach(elm => elm.classList.remove('selected'));
-            for(let i=0; i<cursorPositions.length; i++) {
-                const p = cursorPositions[i];
-                const dataElm = this.querySelector(`.grid-cell[data-position='${p}']`);
-                if(!dataElm)
-                    throw new Error("Could not find grid-cell for position " + p);
+        select(e, cursorPosition) {
+            const cursorCell = this.querySelector(`.grid-cell[data-position='${cursorPosition}']`);
+            if(!cursorCell)
+                throw new Error("Could not find grid-cell for position " + p);
 
-                dataElm.classList.add('selected');
-                dataElm.parentElement.classList.add('selected');
-            }
-            this.editor.formUpdate();
+            return this.selectCell(e, cursorCell);
         }
 
-        selectCell(e, cursorCell) {
-            if (!cursorCell)
-                throw new Error("Invalid cursor cell");
+        // selectCell(e, cursorCell) {
+        //     return this.selectCell(e, cursorCell);
+        //     // if (!cursorCell)
+        //     //     throw new Error("Invalid cursor cell");
+        //     //
+        //     // let toggleAction = e.ctrlKey && e.shiftKey ? 'toggle' : 'add';
+        //     //
+        //     // if(e.ctrlKey && !e.shiftKey) {
+        //     //     toggleAction = e.key === ' ' ? 'toggle' : false;
+        //     //
+        //     // } else {
+        //     //     if (!e.ctrlKey && !e.shiftKey)
+        //     //         this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
+        //     //             .forEach(elm => elm.classList.remove('selected'));
+        //     // }
+        //     //
+        //     // if(toggleAction) {
+        //     //     cursorCell.classList[toggleAction]('selected');
+        //     //     cursorCell.parentNode.classList.toggle('selected', cursorCell.parentNode.querySelectorAll('.selected').length > 0);
+        //     // }
+        //     //
+        //     // // Set cursor class
+        //     // this.querySelectorAll('.grid-cell.cursor')
+        //     //     .forEach(elm => elm.classList.remove('cursor'));
+        //     // cursorCell.classList.add('cursor');
+        //     // this.editor.formUpdate();
+        // }
 
-            let toggleAction = e.ctrlKey && e.shiftKey ? 'toggle' : 'add';
+        selectCell(e, cursorCell, selectedCells) {
+            if(cursorCell) {
+                if(typeof cursorCell === 'number')
+                    cursorCell = this.querySelector(`.grid-cell[data-position='${cursorCell}']`);
+                if (!cursorCell)
+                    throw new Error("Invalid cursor cell");
+                // Set cursor class
+                this.querySelectorAll('.grid-cell.cursor')
+                    .forEach(elm => elm.classList.remove('cursor'));
+                cursorCell.classList.add('cursor');
+                this.editor.formUpdate();
+                if(!selectedCells)
+                    selectedCells = [cursorCell];
+            }
 
-            if(e.ctrlKey && !e.shiftKey) {
-                toggleAction = e.key === ' ' ? 'toggle' : false;
-
-            } else {
-                if (!e.ctrlKey && !e.shiftKey)
+            if(selectedCells) {
+                if (e && !e.ctrlKey && !e.shiftKey)
                     this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
                         .forEach(elm => elm.classList.remove('selected'));
-            }
 
-            if(toggleAction) {
-                cursorCell.classList[toggleAction]('selected');
-                cursorCell.parentNode.classList.toggle('selected', cursorCell.parentNode.querySelectorAll('.selected').length > 0);
+                let toggleAction = e && e.ctrlKey && e.shiftKey ? 'toggle' : 'add';
+                for(let i=0; i<selectedCells.length; i++) {
+                    let selectedCell = selectedCells[i];
+                    if(typeof selectedCell === 'number')
+                        selectedCell = this.querySelector(`.grid-cell[data-position='${selectedCell}']`);
+                    selectedCell.classList[toggleAction]('selected');
+                    selectedCell.parentNode.classList.toggle('selected',
+                        selectedCell.parentNode.querySelectorAll('.selected').length > 0);
+                }
             }
-
-            // Set cursor class
-            this.querySelectorAll('.grid-cell.cursor')
-                .forEach(elm => elm.classList.remove('cursor'));
-            cursorCell.classList.add('cursor');
-            this.editor.formUpdate();
         }
 
         // selectCellRange(startCell, endCell) {
@@ -1266,7 +1293,7 @@
         },
         'group:edit': function(e, form, editor) {
             editor.gridNavigate(form.groupName.value);
-            editor.grid.select(0);
+            editor.grid.select(e, 0);
         },
         'song:edit': function(e, form, editor) {
             const song = editor.getSong();
@@ -1274,7 +1301,7 @@
             song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
             song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
             editor.render();
-            editor.grid.select(0);
+            editor.grid.select(e, 0);
         },
         'song:play': function (e, form, editor) { editor.player.play(); },
         'song:pause': function (e, form, editor) { editor.player.pause(); },
