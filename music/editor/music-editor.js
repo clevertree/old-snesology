@@ -142,9 +142,7 @@
         // Rendering
 
         render() {
-            // var cursorPositions = this.grid ? this.grid.getSelectedPositions() : null;
             this.innerHTML = renderEditorContent(this);
-            // cursorPositions && this.grid.select(null, cursorPositions);
         }
 
         // Grid Commands
@@ -382,8 +380,31 @@
         get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected'); }
         get currentCellPosition() { return parseInt(this.currentCell.getAttribute('data-position')); }
 
-        get nextCell() { return this.querySelector('.grid-cell[data-position="' + (this.currentCellPosition + 1) + '"]'); }
-        get previousCell() { return this.querySelector('.grid-cell[data-position="' + (this.currentCellPosition - 1) + '"]'); }
+        get nextCell() {
+            let target = this.currentCell;
+            while(target.nextElementSibling) {
+                target = target.nextElementSibling;
+                if(target.classList.contains('grid-cell'))
+                    return target;
+            }
+            const nextRow = this.currentCell.parentNode.nextElementSibling;
+            if(!nextRow)
+                return null;
+            return nextRow.querySelector('.grid-cell');
+        }
+        get previousCell() {
+            let target = this.currentCell;
+            while(target.previousElementSibling) {
+                target = target.previousElementSibling;
+                if(target.classList.contains('grid-cell'))
+                    return target;
+            }
+            const previousRow = this.currentCell.parentNode.previousElementSibling;
+            if(!previousRow)
+                return null;
+            const children = previousRow.querySelectorAll('.grid-cell');
+            return children[children.length-1];
+        }
 
         get nextRowCell() {
             let currentCell = this.currentCell;
@@ -648,6 +669,10 @@
                     noteCSS.push('selected');
                 }
 
+                if(cursorPosition === position) {
+                    noteCSS.push('cursor');
+                }
+
                 if(typeof instruction.command !== "undefined") {
                     cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
                     cellHTML +=  `<div class="grid-parameter command">${instruction.command}</div>`;
@@ -684,6 +709,7 @@
                 `<div class="editor-grid">`
                 +   editorHTML
                 + `</div>`;
+
 
             function addRowHTML(cellHTML, position, pauseLength) {
                 editorHTML +=
@@ -723,7 +749,7 @@
         select(e, cursorPosition) {
             const cursorCell = this.querySelector(`.grid-cell[data-position='${cursorPosition}']`);
             if(!cursorCell)
-                throw new Error("Could not find grid-cell for position " + p);
+                throw new Error("Could not find grid-cell for position " + cursorPosition);
 
             return this.selectCell(e, cursorCell);
         }
@@ -756,36 +782,31 @@
         //     // this.editor.formUpdate();
         // }
 
-        selectCell(e, cursorCell, selectedCells) {
-            if(cursorCell) {
-                if(typeof cursorCell === 'number')
-                    cursorCell = this.querySelector(`.grid-cell[data-position='${cursorCell}']`);
-                if (!cursorCell)
-                    throw new Error("Invalid cursor cell");
-                // Set cursor class
-                this.querySelectorAll('.grid-cell.cursor')
-                    .forEach(elm => elm.classList.remove('cursor'));
-                cursorCell.classList.add('cursor');
-                this.editor.formUpdate();
-                if(!selectedCells)
-                    selectedCells = [cursorCell];
+        selectCell(e, cursorCell) {
+            const inputProfile = profileInput(e);
+
+            // Manage cursor cell
+            if(typeof cursorCell === 'number')
+                cursorCell = this.querySelector(`.grid-cell[data-position='${cursorCell}']`);
+            if (!cursorCell)
+                throw new Error("Invalid cursor cell");
+
+            this.querySelectorAll('.grid-cell.cursor')
+                .forEach(elm => elm.classList.remove('cursor'));
+            cursorCell.classList.add('cursor');
+
+            // Manage selected cells
+            if (inputProfile.gridClearSelected)
+                this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
+                    .forEach(elm => elm.classList.remove('selected'));
+
+            if (inputProfile.toggleAction && !cursorCell.classList.contains('grid-cell-new')) {
+                cursorCell.classList[inputProfile.toggleAction]('selected');
+                cursorCell.parentNode.classList.toggle('selected',
+                    cursorCell.parentNode.querySelectorAll('.selected').length > 0);
             }
 
-            if(selectedCells) {
-                if (e && !e.ctrlKey && !e.shiftKey)
-                    this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
-                        .forEach(elm => elm.classList.remove('selected'));
-
-                let toggleAction = e && e.ctrlKey && e.shiftKey ? 'toggle' : 'add';
-                for(let i=0; i<selectedCells.length; i++) {
-                    let selectedCell = selectedCells[i];
-                    if(typeof selectedCell === 'number')
-                        selectedCell = this.querySelector(`.grid-cell[data-position='${selectedCell}']`);
-                    selectedCell.classList[toggleAction]('selected');
-                    selectedCell.parentNode.classList.toggle('selected',
-                        selectedCell.parentNode.querySelectorAll('.selected').length > 0);
-                }
-            }
+            this.editor.formUpdate();
         }
 
         // selectCellRange(startCell, endCell) {
@@ -823,6 +844,16 @@
     customElements.define('music-editor', MusicEditorElement);
     customElements.define('music-editor-grid', MusicEditorGridElement);
 
+    // Input Profile
+
+    function profileInput(e) {
+        e = e || {};
+        const profile = {
+            gridClearSelected: !e.ctrlKey && !e.shiftKey,
+            toggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey ? null : 'add'),
+        };
+        return profile;
+    }
 
     // Load Javascript dependencies
     loadStylesheet('music/editor/music-editor.css');
@@ -1090,7 +1121,7 @@
             for(var i=0; i<selectedPositions.length; i++) {
                 var p = selectedPositions[i];
                 if(combinedInstruction === null) {
-                    combinedInstruction = groupInstructions[p];
+                    combinedInstruction = Object.assign({}, groupInstructions[p]);
                 } else {
                     Object.keys(combinedInstruction).map(function(key, i) {
                         if(groupInstructions[p][key] !== combinedInstruction[key])
