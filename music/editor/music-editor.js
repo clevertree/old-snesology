@@ -32,15 +32,15 @@
         connectedCallback() {
             // this.render();
 
-            this.addEventListener('contextmenu', this.onInput);
+            // this.addEventListener('contextmenu', this.onInput);
             this.addEventListener('keydown', this.onInput);
             // this.addEventListener('keyup', this.onInput);
             // this.addEventListener('click', this.onInput);
-            this.addEventListener('mousedown', this.onInput);
-            this.addEventListener('mouseup', this.onInput);
-            this.addEventListener('longpress', this.onInput);
-            this.addEventListener('change', this.onInput);
-            this.addEventListener('submit', this.onInput);
+            // this.addEventListener('mousedown', this.onInput);
+            // this.addEventListener('mouseup', this.onInput);
+            // this.addEventListener('longpress', this.onInput);
+            // this.addEventListener('change', this.onInput);
+            // this.addEventListener('submit', this.onInput);
 
             loadScript('music/player/music-player.js', function() {
 
@@ -64,6 +64,34 @@
                             this.loadSongFromMemory(recentSongGUIDs[0]);
                     }.bind(this));
             }.bind(this));
+        }
+
+        onInput(e) {
+            // console.info(e.type, e);
+            if(e.defaultPrevented)
+                return;
+
+            let targetClassList = e.target.classList;
+            switch(e.type) {
+                case 'keydown':
+                    switch(e.key) {
+                        case 'Tab': break;
+                        case ' ': this.player.play(); e.preventDefault(); break;
+                        case 'Escape': this.grid.focus(); break;
+                        // case 'ArrowDown':
+                        // case 's': this.player.saveSongToMemory(); e.preventDefault(); break;
+                        // Send keystroke to default grid
+                        // this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
+                        // if(!e.defaultPrevented)
+                        //     console.info("Unhandled " + e.type, e);
+                        default:
+                    }
+                    break;
+
+    
+                default:
+                    console.error("Unhandled " + e.type, e);
+            }
         }
 
         saveSongToMemory() {
@@ -108,21 +136,21 @@
             console.info("Song loaded from memory: " + songGUID, songData);
         }
 
+
         loadSongFromURL(songURL, onLoaded) {
             return this.player.loadSongFromURL(songURL, onLoaded);
         }
 
-
         // Grid Functions
-
         getSelectedInstructions() {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
             return this.selectedPositions.map(p => instructionList[p]);
         }
+
+
         getCursorInstruction() {
             return this.player.getInstructions(this.grid.getGroupName())[this.cursorPosition];
         }
-
 
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
@@ -192,7 +220,7 @@
                 }
             }
             this.grid.updateCellSelection(gridStatus);
-            this.formUpdate();
+            this.menu.update(gridStatus);
         }
 
         gridNavigate(groupName, parentInstruction) {
@@ -209,6 +237,7 @@
 
         // Player commands
 
+
         playInstruction(instruction) {
             const associatedElement = this.grid.findInstruction(instruction);
             return this.player.playInstruction(
@@ -221,11 +250,10 @@
             );
         }
 
-
         // Forms
 
         formUpdate() {
-            this.querySelector('music-editor-menu').render();
+            this.menu.setEditableInstruction();
         }
 
         // Playback
@@ -273,146 +301,8 @@
             }
         }
 
-        // Menu
-
-        openContextMenu(e) {
-            let dataElm = null;
-            let target = e.target;
-            let x = e.clientX, y = e.clientY;
-
-            this.querySelectorAll('.menu-item.open').forEach(elm => elm.classList.remove('open'));
-            // this.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
-            const contextMenu = this.querySelector('.editor-context-menu');
-            // console.info("Context menu", contextMenu);
-
-            // contextMenu.setAttribute('class', 'editor-context-menu');
-            // contextMenu.firstElementChild.classList.add('open');
-
-            if(target.classList.contains('grid-parameter'))
-                target = target.parentNode;
-
-            contextMenu.classList.remove('selected-data', 'selected-row');
-            if(target.classList.contains('grid-cell')) {
-                dataElm = target;
-                contextMenu.classList.add('selected-data');
-                contextMenu.classList.add('selected-row');
-                const rect = dataElm.getBoundingClientRect();
-                x = rect.x + rect.width;
-                y = rect.y + rect.height;
-                this.grid.selectCell(e, dataElm);
-                this.grid.focus();
-            } else if(target.classList.contains('grid-row')) {
-                contextMenu.classList.add('selected-row');
-            }
-
-            contextMenu.classList.add('open');
-
-            contextMenu.style.left = x + 'px';
-            contextMenu.style.top = y + 'px';
-        }
-
-        menuClose() {
-            this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
-        }
-
+        
         // Input
-
-        onInput(e) {
-            // console.info(e.type, e);
-            if(e.defaultPrevented)
-                return;
-
-            let targetClassList = e.target.classList;
-            switch(e.type) {
-                case 'keydown':
-                    switch(e.key) {
-                        case 'Tab': break;
-                        case ' ': this.player.play(); e.preventDefault(); break;
-                        case 'Escape': this.grid.focus(); break;
-                        // case 'ArrowDown':
-                        // case 's': this.player.saveSongToMemory(); e.preventDefault(); break;
-                            // Send keystroke to default grid
-                            // this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
-                            // if(!e.defaultPrevented)
-                            //     console.info("Unhandled " + e.type, e);
-                        default:
-                    }
-                    break;
-
-                // case 'keyup':
-                //     // Send keystroke to default grid
-                //     this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
-                //     break;
-
-                case 'mousedown':
-                    if(targetClassList.contains('menu-item')) {
-                        e.preventDefault();
-
-                        let menuItem = e.target;
-                        console.log("Menu " + e.type, menuItem);
-                        const dataCommand = menuItem.getAttribute('data-command');
-                        if(dataCommand) {
-                            let menuCommand = menuCommands[dataCommand];
-                            if (!menuCommand)
-                                throw new Error("Unknown menu command: " + dataCommand);
-                            menuCommand(e, this);
-                            this.menuClose();
-                            return;
-                        }
-
-                        if(menuItem.nextElementSibling
-                            && menuItem.nextElementSibling.classList.contains('submenu')) {
-                            const submenu = menuItem.nextElementSibling;
-                            if(submenu.getAttribute('data-submenu-content')) {
-                                const targetClass = submenu.getAttribute('data-submenu-content');
-                                submenu.innerHTML = this.getElementsByClassName(targetClass)[0].innerHTML;
-                            }
-                            // let subMenu = menuItem.nextElementSibling;
-                            this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
-                            let parentMenuItem = menuItem;
-                            while(parentMenuItem && parentMenuItem.classList.contains('menu-item')) {
-                                parentMenuItem.classList.toggle('open');
-                                parentMenuItem = parentMenuItem.parentNode.parentNode.previousElementSibling;
-                            }
-                            return;
-                        }
-
-                        console.warn("Unhandled menu click", e);
-                        break;
-                    }
-                    this.menuClose();
-                    break;
-
-                case 'mouseup':
-                    break;
-                // case 'click':
-                //     break;
-
-                case 'contextmenu':
-                    if(targetClassList.contains('grid-parameter')
-                        || targetClassList.contains('grid-cell')
-                        || targetClassList.contains('grid-row')) {
-                        this.openContextMenu(e);
-                        if(!e.altKey) e.preventDefault();
-                    }
-                    break;
-
-                case 'submit':
-                case 'change':
-                    e.preventDefault();
-                    const form = e.target.form || e.target;
-//                 console.log("Form " + e.type + ": ", form.target.form, e);
-                    const formCommandName = form.getAttribute('data-command');
-                    let formCommand = formCommands[formCommandName];
-                    if(!formCommand)
-                        throw new Error("Form command not found: " + formCommandName);
-                    formCommand(e, form, this);
-                    break;
-
-                default:
-                    // console.error("Unhandled " + e.type, e);
-            }
-        }
 
     }
 
@@ -641,7 +531,7 @@
                     break;
 
                 case 'mousedown':
-                    this.editor.menuClose();
+                    this.editor.menu.closeMenu();
                     let cellElm = e.target;
                     if (cellElm.classList.contains('grid-parameter'))
                         cellElm = cellElm.parentNode;
@@ -675,12 +565,12 @@
 
                 case 'longpress':
                     console.log("Longpress", e);
-                    this.editor.openContextMenu(e);
+                    this.editor.menu.openContextMenu(e);
                     e.preventDefault();
                     break;
 
                 case 'contextmenu':
-                    this.editor.openContextMenu(e);
+                    this.editor.menu.openContextMenu(e);
                     if(!e.altKey) e.preventDefault();
                     break;
 
@@ -841,53 +731,121 @@
         get editor() { return this.parentNode.parentNode; }
 
         connectedCallback() {
-            this.addEventListener('contextmenu', this.onInput);
-            this.addEventListener('keydown', this.onInput);
-            // this.addEventListener('keyup', this.onInput.bind(this));
-            // this.addEventListener('click', this.onInput.bind(this));
+            // this.addEventListener('contextmenu', this.onInput);
+            // this.addEventListener('keydown', this.onInput);
+            // // this.addEventListener('keyup', this.onInput.bind(this));
+            // // this.addEventListener('click', this.onInput.bind(this));
             this.addEventListener('mousedown', this.onInput);
-            this.addEventListener('mouseup', this.onInput);
-            this.addEventListener('longpress', this.onInput);
+            // this.addEventListener('mouseup', this.onInput);
+            // this.addEventListener('longpress', this.onInput);
             this.render();
         }
 
+
         onInput(e) {
-            if (e.defaultPrevented)
+            if(e.defaultPrevented)
                 return;
 
+            let targetClassList = e.target.classList;
+            switch(e.type) {
+                case 'keydown':
+                    break;
+
+                // case 'keyup':
+                //     // Send keystroke to default grid
+                //     this.grid.onInput(e);   // Check main grid for input event (in case it was a keystroke)
+                //     break;
+
+                case 'mousedown':
+                    if(targetClassList.contains('menu-item')) {
+                        e.preventDefault();
+
+                        let menuItem = e.target;
+                        console.log("Menu " + e.type, menuItem);
+                        const dataCommand = menuItem.getAttribute('data-command');
+                        if(dataCommand) {
+                            let menuCommand = menuCommands[dataCommand];
+                            if (!menuCommand)
+                                throw new Error("Unknown menu command: " + dataCommand);
+                            menuCommand(e, this);
+                            this.menu.closeMenu();
+                            return;
+                        }
+
+                        if(menuItem.nextElementSibling
+                            && menuItem.nextElementSibling.classList.contains('submenu')) {
+                            const submenu = menuItem.nextElementSibling;
+                            if(submenu.getAttribute('data-submenu-content')) {
+                                const targetClass = submenu.getAttribute('data-submenu-content');
+                                submenu.innerHTML = this.getElementsByClassName(targetClass)[0].innerHTML;
+                            }
+                            // let subMenu = menuItem.nextElementSibling;
+                            this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
+                            let parentMenuItem = menuItem;
+                            while(parentMenuItem && parentMenuItem.classList.contains('menu-item')) {
+                                parentMenuItem.classList.toggle('open');
+                                parentMenuItem = parentMenuItem.parentNode.parentNode.previousElementSibling;
+                            }
+                            return;
+                        }
+
+                        console.warn("Unhandled menu click", e);
+                        break;
+                    }
+                    this.menu.closeMenu();
+                    break;
+
+                case 'submit':
+                case 'change':
+                    e.preventDefault();
+                    const form = e.target.form || e.target;
+//                 console.log("Form " + e.type + ": ", form.target.form, e);
+                    const formCommandName = form.getAttribute('data-command');
+                    let formCommand = formCommands[formCommandName];
+                    if(!formCommand)
+                        throw new Error("Form command not found: " + formCommandName);
+                    formCommand(e, form, this);
+                    break;
+
+                default:
+                // console.error("Unhandled " + e.type, e);
+            }
         }
 
-        render() {
-            const currentGridName = this.editor.status.grids[0].groupName;
-            // const parentInstruction = editor.status.grids[0].parentInstruction || {};
-
+        update(gridStatus) {
+            const groupInstructions = this.editor.player.getInstructions(gridStatus.groupName);
             let combinedInstruction = null;
-            // let combinedPauseInstruction = null;
-            const groupInstructions = this.editor.player.getInstructions(currentGridName);
-            const selectedPositions = this.editor.selectedPositions;
-            for(let i=0; i<selectedPositions.length; i++) {
-                const p = selectedPositions[i];
+            for(let i=0; i<gridStatus.selectedPositions.length; i++) {
+                const selectedPosition = gridStatus.selectedPositions[i];
+                const selectedInstruction = groupInstructions[selectedPosition];
+                const nextPause = groupInstructions.find((i, p) => i.pause > 0 && p > selectedPosition);
                 if(combinedInstruction === null) {
-                    combinedInstruction = Object.assign({}, groupInstructions[p]);
+                    combinedInstruction = Object.assign({}, selectedInstruction);
+                    if(nextPause) combinedInstruction.pause = nextPause.pause;
                 } else {
                     Object.keys(combinedInstruction).map(function(key, i) {
-                        if(groupInstructions[p][key] !== combinedInstruction[key])
+                        if(selectedInstruction[key] !== combinedInstruction[key])
                             delete combinedInstruction[key];
                     });
-                    // console.info(combinedInstruction);
+                    if(nextPause && nextPause.pause !== combinedInstruction.pause)
+                        delete combinedInstruction.pause;
                 }
-                // const nextPauseInstruction = groupInstructions.find((i, p2) => i.pause && p2 > p);
             }
             if(!combinedInstruction)
                 combinedInstruction = {command: 'C4'};
 
-            // combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, combinedInstruction);
-            // const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions);
+            // Note Instruction
+            this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command;
+            this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument;
+            this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity;
+            this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration;
 
-            // TODO: modify all selected cells
+            // Row/Pause
+            this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.pause;
+        }
 
-            // console.log(cursorPositions,instructionList, currentInstruction, nextPauseInstruction);
-
+        render(gridStatus) {
+            gridStatus = gridStatus || this.editor.status.grids[0];
             this.innerHTML =
                 `<div class="editor-menu">
                     <li>
@@ -985,11 +943,11 @@
                     ${getEditorFormOptions(this.editor, 'groups', (value, label, selected) =>
                     `<form class="form-group" data-command="group:edit">`
                     + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                    + `</form>&nbsp;`, (value) => value === currentGridName)}
+                    + `</form>&nbsp;`, (value) => value === gridStatus.groupName)}
     
                     <br/>
          
-                    <form class="form-row" data-command="row:edit">
+                    <form class="form-pause-duration" data-command="row:edit">
                         <label class="row-label">Row:</label>
                         <select name="duration" title="Row Duration">
                             <optgroup label="Row Duration">
@@ -997,16 +955,16 @@
                             </optgroup>
                         </select>
                     </form>
-                    <form class="form-row" data-command="row:split">
+                    <form class="form-pause-split" data-command="row:split">
                         <button name="split">Split</button>
                     </form>
-                    <form class="form-row" data-command="row:duplicate">
+                    <form class="form-pause-duplicate" data-command="row:duplicate">
                         <button name="duplicate">Duplicate</button>
                     </form>
-                    <form class="form-row" data-command="row:insert">
+                    <form class="form-pause-insert" data-command="row:insert">
                         <button name="insert">+</button>
                     </form>
-                    <form class="form-row" data-command="row:remove">
+                    <form class="form-pause-remove" data-command="row:remove">
                         <button name="remove">-</button>
                     </form>
                     
@@ -1017,17 +975,17 @@
                         <select name="command" title="Command">
                             <optgroup label="Frequencies">
                                 <option value="">Frequency (Default)</option>
-                                ${renderEditorFormOptions(this.editor, 'frequencies', (value) => value === combinedInstruction.command)}
+                                ${renderEditorFormOptions(this.editor, 'frequencies')}
                             </optgroup>
                         </select>
                     </form>
                     <form class="form-instruction-instrument" data-command="instruction:instrument">
                         <select name="instrument" title="Note Instrument">
                             <optgroup label="Song Instruments">
-                                ${renderEditorFormOptions(this.editor, 'song-instruments', (value) => value === combinedInstruction.instrument)}
+                                ${renderEditorFormOptions(this.editor, 'song-instruments')}
                             </optgroup>
                             <optgroup label="Available Instruments">
-                                ${renderEditorFormOptions(this.editor, 'instruments-available', (value) => value === combinedInstruction.instrument)}
+                                ${renderEditorFormOptions(this.editor, 'instruments-available')}
                             </optgroup>
                         </select>
                     </form>
@@ -1035,7 +993,7 @@
                         <select name="duration" title="Note Duration">
                             <optgroup label="Note Duration">
                                 <option value="">Duration (Default)</option>
-                                ${renderEditorFormOptions(this.editor, 'durations', (value) => value === combinedInstruction.duration)}
+                                ${renderEditorFormOptions(this.editor, 'durations')}
                             </optgroup>
                         </select>
                     </form>
@@ -1043,7 +1001,7 @@
                         <select name="velocity" title="Note Velocity">
                             <optgroup label="Velocity">
                                 <option value="">Velocity (Default)</option>
-                                ${renderEditorFormOptions(this.editor, 'velocities', (value) => value === combinedInstruction.velocity)}
+                                ${renderEditorFormOptions(this.editor, 'velocities')}
                             </optgroup>
                         </select>
                     </form>
@@ -1055,7 +1013,51 @@
                     </form>
                 </div>
             `;
+            this.update(gridStatus);
         }
+
+        // Menu
+
+        openContextMenu(e) {
+            let dataElm = null;
+            let target = e.target;
+            let x = e.clientX, y = e.clientY;
+
+            this.querySelectorAll('.menu-item.open').forEach(elm => elm.classList.remove('open'));
+            // this.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
+            const contextMenu = this.querySelector('.editor-context-menu');
+            // console.info("Context menu", contextMenu);
+
+            // contextMenu.setAttribute('class', 'editor-context-menu');
+            // contextMenu.firstElementChild.classList.add('open');
+
+            if(target.classList.contains('grid-parameter'))
+                target = target.parentNode;
+
+            contextMenu.classList.remove('selected-data', 'selected-row');
+            if(target.classList.contains('grid-cell')) {
+                dataElm = target;
+                contextMenu.classList.add('selected-data');
+                contextMenu.classList.add('selected-row');
+                const rect = dataElm.getBoundingClientRect();
+                x = rect.x + rect.width;
+                y = rect.y + rect.height;
+                this.editor.grid.selectCell(e, dataElm);
+                // this.grid.focus();
+            } else if(target.classList.contains('grid-row')) {
+                contextMenu.classList.add('selected-row');
+            }
+
+            contextMenu.classList.add('open');
+
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+        }
+
+        closeMenu() {
+            this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
+        }
+
     }
 
 
@@ -1068,12 +1070,11 @@
 
     function profileInput(e) {
         e = e || {};
-        const profile = {
+        return {
             gridClearSelected: !e.ctrlKey && !e.shiftKey,
-            gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey ? null : 'add'),
+            gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
             gridCompleteSelection: e.shiftKey
         };
-        return profile;
     }
 
     // Load Javascript dependencies
