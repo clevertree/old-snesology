@@ -20,6 +20,7 @@
             }
         }
         get grid() { return this.querySelector('music-editor-grid'); }
+        get menu() { return this.querySelector('music-editor-menu'); }
 
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
@@ -52,7 +53,7 @@
                 if(this.getSongURL())
                     playerElement.loadSongFromURL(this.getSongURL(), function(e) {
                         this.render();
-                        this.grid.select(e, 0);
+                        this.gridSelect(e, 0);
 
                         // Load recent
                         const recentSongGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
@@ -100,7 +101,7 @@
 
             this.player.loadSongData(songData);
             this.render();
-            this.grid.select(null, 0);
+            this.gridSelect(null, 0);
             console.info("Song loaded from memory: " + songGUID, songData);
         }
 
@@ -126,7 +127,7 @@
                     throw new Error("Instruction not found at position: " + position);
                 instructionList.splice(p, 1);
             }
-            this.grid.select(null, [deletePositions[deletePositions.length-1]]);
+            this.gridSelect(null, [deletePositions[deletePositions.length-1]]);
         }
 
         gridFindInstruction(instruction) {
@@ -142,10 +143,39 @@
         // Rendering
 
         render() {
-            this.innerHTML = renderEditorContent(this);
+            this.innerHTML = `
+                <div class="music-editor">
+                    <music-editor-menu></music-editor-menu>
+                    <music-editor-grid data-group="${this.status.grids[0].groupName}" tabindex="1">
+                    </music-editor-grid>
+                </div>
+            `;
         }
 
         // Grid Commands
+
+        gridSelect(e, cursorPosition) {
+            const inputProfile = profileInput(e);
+            const grid = this.status.grids[0];
+            grid.cursorPosition = cursorPosition;
+
+            // Manage selected cells
+            if (inputProfile.gridClearSelected)
+                grid.selectedPositions = [];
+
+            const existingSelectedPosition = grid.selectedPositions.indexOf(cursorPosition);
+            switch(inputProfile.toggleAction) {
+                case 'toggle':
+                    if(existingSelectedPosition > 0)    grid.selectedPositions.splice(existingSelectedPosition, 1);
+                    else                                grid.selectedPositions.push(cursorPosition);
+                    break;
+                case 'add':
+                    if(existingSelectedPosition === -1) grid.selectedPositions.push(cursorPosition);
+                    break;
+            }
+            this.grid.updateCellSelection();
+            this.formUpdate();
+        }
 
         gridNavigate(groupName, parentInstruction) {
             console.log("Navigate: ", groupName);
@@ -177,7 +207,7 @@
         // Forms
 
         formUpdate() {
-            this.querySelector('.editor-forms').outerHTML = renderEditorFormContent(this);
+            this.querySelector('music-editor-menu').render();
         }
 
         // Playback
@@ -494,7 +524,7 @@
                                 if(newInstruction) {
                                     this.insertInstruction(newInstruction, insertPosition);
                                     this.render();
-                                    this.select(e, insertPosition);
+                                    this.editor.gridSelect(e, insertPosition);
                                 }
                                 break;
                         }
@@ -510,7 +540,7 @@
                         case 'Escape':
                         case 'Backspace':
                             this.editor.gridNavigate(null);
-                            this.editor.grid.select(e, 0);
+                            this.editor.gridSelect(e, 0);
                             this.editor.grid.focus();
                             e.preventDefault();
                             break;
@@ -518,7 +548,7 @@
                             if (selectedInstruction.command[0] === '@') {
                                 const groupName = selectedInstruction.command.substr(1);
                                 this.editor.gridNavigate(groupName, selectedInstruction);
-                                this.editor.grid.select(e, 0);
+                                this.editor.gridSelect(e, 0);
                                 this.editor.grid.focus();
                             } else {
                                 this.editor.playInstruction(selectedInstruction);
@@ -538,7 +568,7 @@
                                     pause: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
                                 }); // insertPosition
                                 this.render();
-                                this.select(e, nextRowPosition);
+                                this.editor.gridSelect(e, nextRowPosition);
 
                             } else {
                                 this.selectCell(e, this.nextCell);
@@ -559,7 +589,7 @@
                                     pause: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
                                 }); // insertPosition
                                 this.render();
-                                this.select(e, nextRowPosition);
+                                this.editor.gridSelect(e, nextRowPosition);
 
                             } else {
                                 this.selectCell(e, this.nextRowCell);
@@ -747,40 +777,8 @@
         }
 
         select(e, cursorPosition) {
-            const cursorCell = this.querySelector(`.grid-cell[data-position='${cursorPosition}']`);
-            if(!cursorCell)
-                throw new Error("Could not find grid-cell for position " + cursorPosition);
-
-            return this.selectCell(e, cursorCell);
+            this.editor.gridSelect(e, cursorPosition);
         }
-
-        // selectCell(e, cursorCell) {
-        //     return this.selectCell(e, cursorCell);
-        //     // if (!cursorCell)
-        //     //     throw new Error("Invalid cursor cell");
-        //     //
-        //     // let toggleAction = e.ctrlKey && e.shiftKey ? 'toggle' : 'add';
-        //     //
-        //     // if(e.ctrlKey && !e.shiftKey) {
-        //     //     toggleAction = e.key === ' ' ? 'toggle' : false;
-        //     //
-        //     // } else {
-        //     //     if (!e.ctrlKey && !e.shiftKey)
-        //     //         this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
-        //     //             .forEach(elm => elm.classList.remove('selected'));
-        //     // }
-        //     //
-        //     // if(toggleAction) {
-        //     //     cursorCell.classList[toggleAction]('selected');
-        //     //     cursorCell.parentNode.classList.toggle('selected', cursorCell.parentNode.querySelectorAll('.selected').length > 0);
-        //     // }
-        //     //
-        //     // // Set cursor class
-        //     // this.querySelectorAll('.grid-cell.cursor')
-        //     //     .forEach(elm => elm.classList.remove('cursor'));
-        //     // cursorCell.classList.add('cursor');
-        //     // this.editor.formUpdate();
-        // }
 
         selectCell(e, cursorCell) {
             const inputProfile = profileInput(e);
@@ -807,6 +805,31 @@
             }
 
             this.editor.formUpdate();
+        }
+
+        updateCellSelection(gridStatus) {
+            const cursorCell = this.querySelector(`.grid-cell[data-position='${gridStatus.cursorPosition}']`);
+            if (!cursorCell)
+                throw new Error("Invalid cursor cell");
+
+            this.querySelectorAll('.grid-cell.cursor')
+                .forEach(elm => elm.classList.remove('cursor'));
+            cursorCell.classList.add('cursor');
+
+            this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
+                .forEach(elm => elm.classList.remove('selected'));
+            for(var i=0; i<gridStatus.selectedPositions.length; i++) {
+                const selectedPosition = gridStatus.selectedPositions[i];
+                const selectedCell = this.querySelector(`.grid-cell[data-position='${selectedPosition}']`);
+                if (!selectedCell)
+                    console.error("Invalid selected cell");
+                selectedPosition.classList.add('selected');
+                selectedPosition.parentNode.classList.toggle('selected',
+                    selectedPosition.parentNode.querySelectorAll('.selected').length > 0);
+
+            }
+
+
         }
 
         // selectCellRange(startCell, endCell) {
@@ -839,10 +862,238 @@
         }
     }
 
+    class MusicEditorMenuElement extends HTMLElement {
+        constructor() {
+            super();
+        }
+
+        get editor() { return this.parentNode.parentNode; }
+
+        connectedCallback() {
+            this.addEventListener('contextmenu', this.onInput);
+            this.addEventListener('keydown', this.onInput);
+            // this.addEventListener('keyup', this.onInput.bind(this));
+            // this.addEventListener('click', this.onInput.bind(this));
+            this.addEventListener('mousedown', this.onInput);
+            this.addEventListener('mouseup', this.onInput);
+            this.addEventListener('longpress', this.onInput);
+            this.render();
+        }
+
+        onInput(e) {
+            if (e.defaultPrevented)
+                return;
+
+        }
+
+        render() {
+            const currentGridName = this.editor.status.grids[0].groupName;
+            // const parentInstruction = editor.status.grids[0].parentInstruction || {};
+
+            let combinedInstruction = null;
+            // let combinedPauseInstruction = null;
+            if(this.editor.grid) {
+                const groupInstructions = this.editor.player.getInstructions(currentGridName);
+                const selectedPositions = this.editor.grid.getSelectedPositions();
+                for(var i=0; i<selectedPositions.length; i++) {
+                    var p = selectedPositions[i];
+                    if(combinedInstruction === null) {
+                        combinedInstruction = Object.assign({}, groupInstructions[p]);
+                    } else {
+                        Object.keys(combinedInstruction).map(function(key, i) {
+                            if(groupInstructions[p][key] !== combinedInstruction[key])
+                                delete combinedInstruction[key];
+                        });
+                        // console.info(combinedInstruction);
+                    }
+                    // const nextPauseInstruction = groupInstructions.find((i, p2) => i.pause && p2 > p);
+                }
+            } else {
+                combinedInstruction = {command: 'C4'};
+            }
+
+            // combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, combinedInstruction);
+            // const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions);
+
+            // TODO: modify all selected cells
+
+            // console.log(cursorPositions,instructionList, currentInstruction, nextPauseInstruction);
+
+            this.innerHTML =
+                `<div class="editor-menu">
+                    <li>
+                        <a class="menu-item">File</a>
+                        <ul class="submenu">
+                            <li>
+                                <a class="menu-item">Open from memory &#9658;</a>
+                                ${renderEditorMenuLoadFromMemory()}
+                            </li>
+                            <li><a class="menu-item" data-command="load:file">Open from file</a></li>
+                            <li><a class="menu-item disabled" data-command="load:url">Open from url</a></li>
+                            
+                            <hr/>
+                            <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
+                            <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
+                            
+                            <hr/>
+                            <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a class="menu-item">Note</a>
+                        <ul class="submenu submenu:note">
+                            <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
+                            <li><a class="menu-item" data-command="note:instrument">Set <span class="key">I</span>nstrument</a></li>
+                            <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
+                            <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
+                            <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
+                            <li><a class="menu-item" data-command="note:delete"><span class="key">D</span>elete Note</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a class="menu-item"<span class="key">R</span>ow</a>
+                        <ul class="submenu submenu:pause">
+                            <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
+                            <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a class="menu-item"><span class="key">G</span>roup</a>
+                        <ul class="submenu submenu:group">
+                            <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
+                            <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="menu-item disabled">Collaborate</a></li>
+                </div>
+                <ul class="editor-context-menu submenu">
+                    <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
+                    <li>
+                        <a class="menu-item"><span class="key">N</span>otes (Cell) <span class="submenu-pointer"></span></a>
+                        <ul class="submenu" data-submenu-content="submenu:note"></ul>
+                    </li>
+                    <li>
+                        <a class="menu-item"><span class="key">P</span>ause (Row) <span class="submenu-pointer"></span></a>
+                        <ul class="submenu" data-submenu-content="submenu:pause"></ul>
+                    </li>
+                    <li>
+                        <a class="menu-item"><span class="key">G</span>roup <span class="submenu-pointer"></span></a>
+                        <ul class="submenu" data-submenu-content="submenu:group"></ul>
+                    </li>
+                </ul>
+                <div class="editor-forms">
+                    <label class="row-label">Song:</label>
+                    <form class="form-song-play" data-command="song:play">
+                        <button name="play">Play</button>
+                    </form>
+                    <form class="form-song-pause" data-command="song:pause">
+                        <button name="pause">Pause</button>
+                    </form>
+                    <form class="form-song-resume" data-command="song:resume">
+                        <button name="resume">Resume</button>
+                    </form>
+                    <form class="form-song-bpm" data-command="song:edit">
+                        <select name="beats-per-minute" title="Beats per minute">
+                            <optgroup label="Beats per minute">
+                            ${getEditorFormOptions(this.editor, 'beats-per-minute', (value, label, selected) =>
+                    `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
+                            </optgroup>
+                        </select>
+                        <select name="beats-per-measure" title="Beats per measure">
+                            <optgroup label="Beats per measure">
+                            ${getEditorFormOptions(this.editor, 'beats-per-measure', (value, label, selected) =>
+                    `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-song-info" data-command="song:info">
+                        <button name="info" disabled>Info</button>
+                    </form>
+                    
+                    <br/>
+        
+                    <label class="row-label">Group:</label>
+                    ${getEditorFormOptions(this.editor, 'groups', (value, label, selected) =>
+                    `<form class="form-group" data-command="group:edit">`
+                    + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
+                    + `</form>&nbsp;`, (value) => value === currentGridName)}
+    
+                    <br/>
+         
+                    <form class="form-row" data-command="row:edit">
+                        <label class="row-label">Row:</label>
+                        <select name="duration" title="Row Duration">
+                            <optgroup label="Row Duration">
+                                ${renderEditorFormOptions(this.editor, 'durations')}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-row" data-command="row:split">
+                        <button name="split">Split</button>
+                    </form>
+                    <form class="form-row" data-command="row:duplicate">
+                        <button name="duplicate">Duplicate</button>
+                    </form>
+                    <form class="form-row" data-command="row:insert">
+                        <button name="insert">+</button>
+                    </form>
+                    <form class="form-row" data-command="row:remove">
+                        <button name="remove">-</button>
+                    </form>
+                    
+                    <br/>
+        
+                    <label class="row-label">Command:</label>
+                    <form class="form-instruction-command" data-command="instruction:command">
+                        <select name="command" title="Command">
+                            <optgroup label="Frequencies">
+                                <option value="">Frequency (Default)</option>
+                                ${renderEditorFormOptions(this.editor, 'frequencies', (value) => value === combinedInstruction.command)}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-instruction-instrument" data-command="instruction:instrument">
+                        <select name="instrument" title="Note Instrument">
+                            <optgroup label="Song Instruments">
+                                ${renderEditorFormOptions(this.editor, 'song-instruments', (value) => value === combinedInstruction.instrument)}
+                            </optgroup>
+                            <optgroup label="Available Instruments">
+                                ${renderEditorFormOptions(this.editor, 'instruments-available', (value) => value === combinedInstruction.instrument)}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-instruction-duration" data-command="instruction:duration">
+                        <select name="duration" title="Note Duration">
+                            <optgroup label="Note Duration">
+                                <option value="">Duration (Default)</option>
+                                ${renderEditorFormOptions(this.editor, 'durations', (value) => value === combinedInstruction.duration)}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-instruction-velocity" data-command="instruction:velocity">
+                        <select name="velocity" title="Note Velocity">
+                            <optgroup label="Velocity">
+                                <option value="">Velocity (Default)</option>
+                                ${renderEditorFormOptions(this.editor, 'velocities', (value) => value === combinedInstruction.velocity)}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-instruction-duplicate" data-command="instruction:duplicate">
+                        <button name="duplicate">+</button>
+                    </form>
+                    <form class="form-instruction-remove" data-command="instruction:remove">
+                        <button name="remove">-</button>
+                    </form>
+                </div>
+            `;
+        }
+    }
+
 
     // Define custom elements
     customElements.define('music-editor', MusicEditorElement);
     customElements.define('music-editor-grid', MusicEditorGridElement);
+    customElements.define('music-editor-menu', MusicEditorMenuElement);
 
     // Input Profile
 
@@ -957,7 +1208,7 @@
                     [4.0,  '4.0'],
                     [8.0,  '8.0'],
                 ];
-                
+
                 break;
 
             case 'beats-per-measure':
@@ -1030,226 +1281,6 @@
     }
     function formatDuration(duration) { return parseFloat(duration).toFixed(2); }
 
-    // Rendering Templates
-
-    function renderEditorContent(editor) {
-        return `
-            <div class="music-editor">
-                ${renderEditorMenuContent(editor)}
-                ${renderEditorFormContent(editor)}
-                <music-editor-grid data-group="${editor.status.grids[0].groupName}" tabindex="1">
-                </music-editor-grid>
-            </div>
-        `;
-    }
-
-    function renderEditorMenuContent(editor) {
-        return `
-            <div class="editor-menu">
-                <li>
-                    <a class="menu-item">File</a>
-                    <ul class="submenu">
-                        <li>
-                            <a class="menu-item">Open from memory &#9658;</a>
-                            ${renderEditorMenuLoadFromMemory()}
-                        </li>
-                        <li><a class="menu-item" data-command="load:file">Open from file</a></li>
-                        <li><a class="menu-item disabled" data-command="load:url">Open from url</a></li>
-                        
-                        <hr/>
-                        <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
-                        <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
-                        
-                        <hr/>
-                        <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a class="menu-item">Note</a>
-                    <ul class="submenu submenu:note">
-                        <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
-                        <li><a class="menu-item" data-command="note:instrument">Set <span class="key">I</span>nstrument</a></li>
-                        <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
-                        <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
-                        <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
-                        <li><a class="menu-item" data-command="note:delete"><span class="key">D</span>elete Note</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a class="menu-item"<span class="key">R</span>ow</a>
-                    <ul class="submenu submenu:pause">
-                        <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
-                        <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a class="menu-item"><span class="key">G</span>roup</a>
-                    <ul class="submenu submenu:group">
-                        <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
-                        <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
-                    </ul>
-                </li>
-                <li><a class="menu-item disabled">Collaborate</a></li>
-            </div>
-            <ul class="editor-context-menu submenu">
-                <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
-                <li>
-                    <a class="menu-item"><span class="key">N</span>otes (Cell) <span class="submenu-pointer"></span></a>
-                    <ul class="submenu" data-submenu-content="submenu:note"></ul>
-                </li>
-                <li>
-                    <a class="menu-item"><span class="key">P</span>ause (Row) <span class="submenu-pointer"></span></a>
-                    <ul class="submenu" data-submenu-content="submenu:pause"></ul>
-                </li>
-                <li>
-                    <a class="menu-item"><span class="key">G</span>roup <span class="submenu-pointer"></span></a>
-                    <ul class="submenu" data-submenu-content="submenu:group"></ul>
-                </li>
-            </ul>
-        `;
-    }
-
-    function renderEditorFormContent(editor) {
-        const currentGridName = editor.status.grids[0].groupName;
-        // const parentInstruction = editor.status.grids[0].parentInstruction || {};
-
-        let combinedInstruction = null;
-        // let combinedPauseInstruction = null;
-        if(editor.grid) {
-            const groupInstructions = editor.player.getInstructions(currentGridName);
-            const selectedPositions = editor.grid.getSelectedPositions();
-            for(var i=0; i<selectedPositions.length; i++) {
-                var p = selectedPositions[i];
-                if(combinedInstruction === null) {
-                    combinedInstruction = Object.assign({}, groupInstructions[p]);
-                } else {
-                    Object.keys(combinedInstruction).map(function(key, i) {
-                        if(groupInstructions[p][key] !== combinedInstruction[key])
-                            delete combinedInstruction[key];
-                    });
-                    // console.info(combinedInstruction);
-                }
-                // const nextPauseInstruction = groupInstructions.find((i, p2) => i.pause && p2 > p);
-            }
-        } else {
-            combinedInstruction = {command: 'C4'};
-        }
-
-        // combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, combinedInstruction);
-        // const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions);
-
-        // TODO: modify all selected cells
-
-        // console.log(cursorPositions,instructionList, currentInstruction, nextPauseInstruction);
-
-        return `
-            <div class="editor-forms">
-                <label class="row-label">Song:</label>
-                <form class="form-song-play" data-command="song:play">
-                    <button name="play">Play</button>
-                </form>
-                <form class="form-song-pause" data-command="song:pause">
-                    <button name="pause">Pause</button>
-                </form>
-                <form class="form-song-resume" data-command="song:resume">
-                    <button name="resume">Resume</button>
-                </form>
-                <form class="form-song-bpm" data-command="song:edit">
-                    <select name="beats-per-minute" title="Beats per minute">
-                        <optgroup label="Beats per minute">
-                        ${getEditorFormOptions(editor, 'beats-per-minute', (value, label, selected) =>
-                            `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
-                        </optgroup>
-                    </select>
-                    <select name="beats-per-measure" title="Beats per measure">
-                        <optgroup label="Beats per measure">
-                        ${getEditorFormOptions(editor, 'beats-per-measure', (value, label, selected) =>
-                            `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
-                        </optgroup>
-                    </select>
-                </form>
-                <form class="form-song-info" data-command="song:info">
-                    <button name="info" disabled>Info</button>
-                </form>
-                
-                <br/>
-    
-                <label class="row-label">Group:</label>
-                ${getEditorFormOptions(editor, 'groups', (value, label, selected) =>
-                `<form class="form-group" data-command="group:edit">`
-                    + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                    + `</form>&nbsp;`, (value) => value === currentGridName)}
-
-                <br/>
-     
-                <form class="form-row" data-command="row:edit">
-                    <label class="row-label">Row:</label>
-                    <select name="duration" title="Row Duration">
-                        <optgroup label="Row Duration">
-                            ${renderEditorFormOptions(editor, 'durations')}
-                        </optgroup>
-                    </select>
-                </form>
-                <form class="form-row" data-command="row:split">
-                    <button name="split">Split</button>
-                </form>
-                <form class="form-row" data-command="row:duplicate">
-                    <button name="duplicate">Duplicate</button>
-                </form>
-                <form class="form-row" data-command="row:insert">
-                    <button name="insert">+</button>
-                </form>
-                <form class="form-row" data-command="row:remove">
-                    <button name="remove">-</button>
-                </form>
-                
-                <br/>
-    
-                <label class="row-label">Command:</label>
-                <form class="form-instruction-command" data-command="instruction:command">
-                    <select name="command" title="Command">
-                        <optgroup label="Frequencies">
-                            <option value="">Frequency (Default)</option>
-                            ${renderEditorFormOptions(editor, 'frequencies', (value) => value === combinedInstruction.command)}
-                        </optgroup>
-                    </select>
-                </form>
-                <form class="form-instruction-instrument" data-command="instruction:instrument">
-                    <select name="instrument" title="Note Instrument">
-                        <optgroup label="Song Instruments">
-                            ${renderEditorFormOptions(editor, 'song-instruments', (value) => value === combinedInstruction.instrument)}
-                        </optgroup>
-                        <optgroup label="Available Instruments">
-                            ${renderEditorFormOptions(editor, 'instruments-available', (value) => value === combinedInstruction.instrument)}
-                        </optgroup>
-                    </select>
-                </form>
-                <form class="form-instruction-duration" data-command="instruction:duration">
-                    <select name="duration" title="Note Duration">
-                        <optgroup label="Note Duration">
-                            <option value="">Duration (Default)</option>
-                            ${renderEditorFormOptions(editor, 'durations', (value) => value === combinedInstruction.duration)}
-                        </optgroup>
-                    </select>
-                </form>
-                <form class="form-instruction-velocity" data-command="instruction:velocity">
-                    <select name="velocity" title="Note Velocity">
-                        <optgroup label="Velocity">
-                            <option value="">Velocity (Default)</option>
-                            ${renderEditorFormOptions(editor, 'velocities', (value) => value === combinedInstruction.velocity)}
-                        </optgroup>
-                    </select>
-                </form>
-                <form class="form-instruction-duplicate" data-command="instruction:duplicate">
-                    <button name="duplicate">+</button>
-                </form>
-                <form class="form-instruction-remove" data-command="instruction:remove">
-                    <button name="remove">-</button>
-                </form>
-            </div>
-        `;
-    }
-
     // Misc Commands
 
     function generateGUID() {
@@ -1282,7 +1313,7 @@
         'instruction:command': function (e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
             instruction.command = form.command.value;
-            editor.render();
+            editor.grid.render();
         },
         'instruction:instrument': function (e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
@@ -1295,19 +1326,19 @@
 
                 instruction.instrument = parseInt(instrumentID);
             }
-            editor.render();
+            editor.grid.render();
         },
         'instruction:duration': function (e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
             if(form.duration.value === "") delete instruction.duration;
             else instruction.duration = parseFloat(form.duration.value);
-            editor.render();
+            editor.grid.render();
         },
         'instruction:velocity': function (e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
             if(form.velocity.value === "") delete instruction.velocity;
             else instruction.velocity = parseInt(form.velocity.value);
-            editor.render();
+            editor.grid.render();
         },
         'row:edit': function(e, form, editor) {
             let instruction = editor.getSelectedInstructions()[0];
@@ -1319,12 +1350,12 @@
             if(!nextPause)
                 throw new Error("no pauses follow selected instruction");
             nextPause.duration = parseFloat(form.duration.value);
-            editor.render();
-            // editor.grid.select([instruction]);
+            editor.grid.render();
+            // editor.gridSelect([instruction]);
         },
         'group:edit': function(e, form, editor) {
             editor.gridNavigate(form.groupName.value);
-            editor.grid.select(e, 0);
+            editor.gridSelect(e, 0);
         },
         'song:edit': function(e, form, editor) {
             const song = editor.getSong();
@@ -1332,7 +1363,7 @@
             song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
             song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
             editor.render();
-            editor.grid.select(e, 0);
+            // editor.gridSelect(e, 0);
         },
         'song:play': function (e, form, editor) { editor.player.play(); },
         'song:pause': function (e, form, editor) { editor.player.pause(); },
