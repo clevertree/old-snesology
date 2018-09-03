@@ -16,11 +16,14 @@
             this.config = DEFAULT_CONFIG;
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
             this.status = {
-                grids: [{groupName: DEFAULT_GROUP}]
+                grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}]
             }
         }
         get grid() { return this.querySelector('music-editor-grid'); }
         get menu() { return this.querySelector('music-editor-menu'); }
+
+        get selectedPositions() { return this.status.grids[0].selectedPositions; }
+        get cursorPosition() { return this.status.grids[0].cursorPosition; }
 
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
@@ -114,12 +117,16 @@
 
         getSelectedInstructions() {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            return this.grid.getSelectedPositions().map(p => instructionList[p]);
+            return this.selectedPositions.map(p => instructionList[p]);
         }
+        getCursorInstruction() {
+            return this.player.getInstructions(this.grid.getGroupName())[this.cursorPosition];
+        }
+
 
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            deletePositions = deletePositions || this.grid.getSelectedPositions();
+            deletePositions = deletePositions || this.selectedPositions;
             deletePositions.sort((a, b) => b - a);
             for(let i=0; i<deletePositions.length; i++) {
                 const position = deletePositions[i];
@@ -156,24 +163,35 @@
 
         gridSelect(e, cursorPosition) {
             const inputProfile = profileInput(e);
-            const grid = this.status.grids[0];
-            grid.cursorPosition = cursorPosition;
+            const gridStatus = this.status.grids[0];
+            cursorPosition = parseInt(cursorPosition);
+            const lastCursorPosition = gridStatus.cursorPosition || 0;
+            gridStatus.cursorPosition = cursorPosition;
 
             // Manage selected cells
             if (inputProfile.gridClearSelected)
-                grid.selectedPositions = [];
+                gridStatus.selectedPositions = [];
+            let selectedPositions = gridStatus.selectedPositions;
 
-            const existingSelectedPosition = grid.selectedPositions.indexOf(cursorPosition);
-            switch(inputProfile.toggleAction) {
-                case 'toggle':
-                    if(existingSelectedPosition > 0)    grid.selectedPositions.splice(existingSelectedPosition, 1);
-                    else                                grid.selectedPositions.push(cursorPosition);
-                    break;
-                case 'add':
-                    if(existingSelectedPosition === -1) grid.selectedPositions.push(cursorPosition);
-                    break;
+            if(inputProfile.gridCompleteSelection) {
+                let low = lastCursorPosition < cursorPosition ? lastCursorPosition : cursorPosition;
+                let high = lastCursorPosition < cursorPosition ? cursorPosition : lastCursorPosition;
+                for(let i=low; i<high; i++)
+                    if(selectedPositions.indexOf(i) === -1)
+                        selectedPositions.push(i);
+            } else {
+                const existingSelectedPosition = selectedPositions.indexOf(cursorPosition);
+                switch(inputProfile.gridToggleAction) {
+                    case 'toggle':
+                        if(existingSelectedPosition > 0)    selectedPositions.splice(existingSelectedPosition, 1);
+                        else                                selectedPositions.push(cursorPosition);
+                        break;
+                    case 'add':
+                        if(existingSelectedPosition === -1) selectedPositions.push(cursorPosition);
+                        break;
+                }
             }
-            this.grid.updateCellSelection();
+            this.grid.updateCellSelection(gridStatus);
             this.formUpdate();
         }
 
@@ -488,7 +506,7 @@
             if (e.defaultPrevented)
                 return;
 
-            // const cursorPositions = this.getSelectedPositions();
+            // const cursorPositions = this.selectedPositions;
             // const initialCursorPosition = cursorPositions[0];
             // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
@@ -530,7 +548,7 @@
                         }
                     }
 
-                    let selectedInstruction = this.editor.getSelectedInstructions()[0]; // editor.gridDataGetInstruction(selectedData);
+                    let selectedInstruction = this.editor.getCursorInstruction(); // editor.gridDataGetInstruction(selectedData);
                     switch (keyEvent) {
                         case 'Delete':
                             this.editor.deleteInstructions();
@@ -676,7 +694,7 @@
 
         render() {
             // TODO: render cursor positions
-            const selectedPositions = this.getSelectedPositions();
+            const selectedPositions = this.editor.selectedPositions;
             const cursorPosition = this.getCursorPosition();
             const editor = this.editor;
             const song = editor.getSong();
@@ -708,10 +726,10 @@
                     cellHTML +=  `<div class="grid-parameter command">${instruction.command}</div>`;
                     if (typeof instruction.instrument !== 'undefined')
                         cellHTML +=  `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
-                    if (typeof instruction.duration !== 'undefined')
-                        cellHTML += `<div class="grid-parameter duration">${formatDuration(instruction.duration)}</div>`;
                     if (typeof instruction.velocity !== 'undefined')
                         cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                    if (typeof instruction.duration !== 'undefined')
+                        cellHTML += `<div class="grid-parameter duration">${formatDuration(instruction.duration)}</div>`;
                     cellHTML += `</div>`;
                 }
 
@@ -757,18 +775,6 @@
 
         getGroupName() { return this.getAttribute('data-group');}
 
-        getSelectedPositions() {
-            const cursorPositions = [];
-            this.querySelectorAll('.grid-cell.selected').forEach(function(elm) {
-                let p = elm.getAttribute('data-position');
-                if(typeof p !== "undefined")
-                    cursorPositions.push(parseInt(p));
-            });
-            if(cursorPositions.length === 0)
-                return [0];
-            return cursorPositions;
-        }
-
         getCursorPosition() {
             const cursorCell = this.querySelector('.grid-cell.cursor');
             if(cursorCell)
@@ -776,35 +782,14 @@
             return null;
         }
 
-        select(e, cursorPosition) {
-            this.editor.gridSelect(e, cursorPosition);
-        }
-
         selectCell(e, cursorCell) {
-            const inputProfile = profileInput(e);
-
             // Manage cursor cell
             if(typeof cursorCell === 'number')
                 cursorCell = this.querySelector(`.grid-cell[data-position='${cursorCell}']`);
             if (!cursorCell)
                 throw new Error("Invalid cursor cell");
 
-            this.querySelectorAll('.grid-cell.cursor')
-                .forEach(elm => elm.classList.remove('cursor'));
-            cursorCell.classList.add('cursor');
-
-            // Manage selected cells
-            if (inputProfile.gridClearSelected)
-                this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
-                    .forEach(elm => elm.classList.remove('selected'));
-
-            if (inputProfile.toggleAction && !cursorCell.classList.contains('grid-cell-new')) {
-                cursorCell.classList[inputProfile.toggleAction]('selected');
-                cursorCell.parentNode.classList.toggle('selected',
-                    cursorCell.parentNode.querySelectorAll('.selected').length > 0);
-            }
-
-            this.editor.formUpdate();
+            return this.editor.gridSelect(e, cursorCell.getAttribute('data-position'));
         }
 
         updateCellSelection(gridStatus) {
@@ -818,32 +803,18 @@
 
             this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
                 .forEach(elm => elm.classList.remove('selected'));
-            for(var i=0; i<gridStatus.selectedPositions.length; i++) {
+            for(let i=0; i<gridStatus.selectedPositions.length; i++) {
                 const selectedPosition = gridStatus.selectedPositions[i];
                 const selectedCell = this.querySelector(`.grid-cell[data-position='${selectedPosition}']`);
+                if(selectedCell.classList.contains('grid-cell-new'))
+                    continue;
                 if (!selectedCell)
-                    console.error("Invalid selected cell");
-                selectedPosition.classList.add('selected');
-                selectedPosition.parentNode.classList.toggle('selected',
-                    selectedPosition.parentNode.querySelectorAll('.selected').length > 0);
-
+                    throw new Error("Invalid selected cell");
+                selectedCell.classList.add('selected');
+                selectedCell.parentNode.classList.toggle('selected',
+                    selectedCell.parentNode.querySelectorAll('.selected').length > 0);
             }
-
-
         }
-
-        // selectCellRange(startCell, endCell) {
-        //     let pos = [
-        //         parseInt(startCell.getAttribute('data-position')),
-        //         parseInt(endCell.getAttribute('data-position'))
-        //     ];
-        //     if(pos[0] > pos[1])
-        //         pos = [pos[1], pos[0]];
-        //     let cursorPositions = [];
-        //     for(let p=pos[0]; p<=pos[1]; p++)
-        //         cursorPositions.push(p);
-        //     this.select(cursorPositions);
-        // }
 
         findInstruction(instruction) {
             let instructionGroup = this.editor.player.findInstructionGroup(instruction);
@@ -892,25 +863,23 @@
 
             let combinedInstruction = null;
             // let combinedPauseInstruction = null;
-            if(this.editor.grid) {
-                const groupInstructions = this.editor.player.getInstructions(currentGridName);
-                const selectedPositions = this.editor.grid.getSelectedPositions();
-                for(var i=0; i<selectedPositions.length; i++) {
-                    var p = selectedPositions[i];
-                    if(combinedInstruction === null) {
-                        combinedInstruction = Object.assign({}, groupInstructions[p]);
-                    } else {
-                        Object.keys(combinedInstruction).map(function(key, i) {
-                            if(groupInstructions[p][key] !== combinedInstruction[key])
-                                delete combinedInstruction[key];
-                        });
-                        // console.info(combinedInstruction);
-                    }
-                    // const nextPauseInstruction = groupInstructions.find((i, p2) => i.pause && p2 > p);
+            const groupInstructions = this.editor.player.getInstructions(currentGridName);
+            const selectedPositions = this.editor.selectedPositions;
+            for(let i=0; i<selectedPositions.length; i++) {
+                const p = selectedPositions[i];
+                if(combinedInstruction === null) {
+                    combinedInstruction = Object.assign({}, groupInstructions[p]);
+                } else {
+                    Object.keys(combinedInstruction).map(function(key, i) {
+                        if(groupInstructions[p][key] !== combinedInstruction[key])
+                            delete combinedInstruction[key];
+                    });
+                    // console.info(combinedInstruction);
                 }
-            } else {
-                combinedInstruction = {command: 'C4'};
+                // const nextPauseInstruction = groupInstructions.find((i, p2) => i.pause && p2 > p);
             }
+            if(!combinedInstruction)
+                combinedInstruction = {command: 'C4'};
 
             // combinedInstruction = Object.assign({command: 'C4'}, parentInstruction, combinedInstruction);
             // const nextPauseInstruction = instructionList.find((i, p) => i.pause && p > cursorPositions);
@@ -1101,7 +1070,8 @@
         e = e || {};
         const profile = {
             gridClearSelected: !e.ctrlKey && !e.shiftKey,
-            toggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey ? null : 'add'),
+            gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey ? null : 'add'),
+            gridCompleteSelection: e.shiftKey
         };
         return profile;
     }
@@ -1311,37 +1281,46 @@
 
     const formCommands = {
         'instruction:command': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
+            let instruction = editor.getCursorInstruction();
             instruction.command = form.command.value;
             editor.grid.render();
         },
         'instruction:instrument': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(form.instrument.value === "") {
-                delete instruction.velocity;
-            } else {
-                let instrumentID = form.instrument.value;
-                if(instrumentID.indexOf('add:') === 0)
-                    instrumentID = editor.player.addSongInstrument(instrumentID.substr(4));
+            const instructions = editor.getSelectedInstructions();
+            for(let i=0; i<instructions.length; i++) {
+                let instruction = instructions[i];
+                if (form.instrument.value === "") {
+                    delete instruction.instrument;
+                } else {
+                    let instrumentID = form.instrument.value;
+                    if (instrumentID.indexOf('add:') === 0)
+                        instrumentID = editor.player.addSongInstrument(instrumentID.substr(4));
 
-                instruction.instrument = parseInt(instrumentID);
+                    instruction.instrument = parseInt(instrumentID);
+                }
             }
             editor.grid.render();
         },
         'instruction:duration': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(form.duration.value === "") delete instruction.duration;
-            else instruction.duration = parseFloat(form.duration.value);
+            const instructions = editor.getSelectedInstructions();
+            for(let i=0; i<instructions.length; i++) {
+                let instruction = instructions[i];
+                if(form.duration.value === "") delete instruction.duration;
+                else instruction.duration = parseFloat(form.duration.value);
+            }
             editor.grid.render();
         },
         'instruction:velocity': function (e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
-            if(form.velocity.value === "") delete instruction.velocity;
-            else instruction.velocity = parseInt(form.velocity.value);
+            const instructions = editor.getSelectedInstructions();
+            for(let i=0; i<instructions.length; i++) {
+                let instruction = instructions[i];
+                if(form.velocity.value === "") delete instruction.velocity;
+                else instruction.velocity = parseInt(form.velocity.value);
+            }
             editor.grid.render();
         },
         'row:edit': function(e, form, editor) {
-            let instruction = editor.getSelectedInstructions()[0];
+            let instruction = editor.getCursorInstruction();
             if(!instruction)
                 throw new Error("no instructions are currently selected");
             const instructionList = editor.player.getInstructions(editor.grid.getGroupName());
