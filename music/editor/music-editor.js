@@ -22,8 +22,8 @@
         get grid() { return this.querySelector('music-editor-grid'); }
         get menu() { return this.querySelector('music-editor-menu'); }
 
-        get selectedPositions() { return this.status.grids[0].selectedPositions; }
-        get cursorPosition() { return this.status.grids[0].cursorPosition; }
+        // get selectedPositions() { return this.status.grids[0].selectedPositions; }
+        // get cursorPosition() { return this.status.grids[0].cursorPosition; }
 
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
@@ -142,19 +142,19 @@
         }
 
         // Grid Functions
+
         getSelectedInstructions() {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            return this.selectedPositions.map(p => instructionList[p]);
+            return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
         }
 
-
         getCursorInstruction() {
-            return this.player.getInstructions(this.grid.getGroupName())[this.cursorPosition];
+            return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
         }
 
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            deletePositions = deletePositions || this.selectedPositions;
+            // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
             deletePositions.sort((a, b) => b - a);
             for(let i=0; i<deletePositions.length; i++) {
                 const position = deletePositions[i];
@@ -582,10 +582,11 @@
             return this.editor.player.insertInstruction(instruction, this.getGroupName(), insertPosition);
         }
 
-        render() {
+        render(gridStatus) {
             // TODO: render cursor positions
-            const selectedPositions = this.editor.selectedPositions;
-            const cursorPosition = this.getCursorPosition();
+            gridStatus = gridStatus || this.editor.status.grids[0];
+            const selectedPositions = gridStatus.selectedPositions;
+            const cursorPosition = gridStatus.cursorPosition;
             const editor = this.editor;
             const song = editor.getSong();
             const beatsPerMinute = song.beatsPerMinute;
@@ -746,7 +747,9 @@
             const command = form.getAttribute('data-command');
             let cursorInstruction = this.editor.getCursorInstruction();
             const selectedInstructions = this.editor.getSelectedInstructions();
+            // const selectedPauses = this.editor.getSelectedPauses();
 
+            e.preventDefault();
             switch(command) {
                 case 'instruction:command':
                     cursorInstruction.command = form.command.value;
@@ -789,11 +792,16 @@
 
                 case 'row:edit':
                     const instructionList = this.editor.player.getInstructions(this.editor.grid.getGroupName());
-                    const instructionPosition = this.editor.player.getInstructionPosition(cursorInstruction, this.editor.grid.getGroupName());
-                    let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
-                    if(!nextPause)
-                        throw new Error("no pauses follow selected instruction");
-                    nextPause.duration = parseFloat(form.duration.value);
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        const instructionPosition = this.editor.player.getInstructionPosition(selectedInstructions[i],
+                            this.editor.grid.getGroupName());
+                        let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
+                        if(!nextPause) {
+                            console.warn("no pauses follow selected instruction");
+                            continue;
+                        }
+                        nextPause.pause = parseFloat(form.duration.value);
+                    }
                     this.editor.grid.render();
                     // this.editor.gridSelect([instruction]);
                     break;
@@ -816,6 +824,10 @@
                 case 'song:pause':  this.editor.player.pause(); break;
                 case 'song:playback':
                     console.log(e.target);
+                    break;
+
+                default:
+                    console.warn("Unhandled " + e.type + ": ", command);
                     break;
             }
 
