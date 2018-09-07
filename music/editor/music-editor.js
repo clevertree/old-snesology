@@ -22,8 +22,8 @@
         get grid() { return this.querySelector('music-editor-grid'); }
         get menu() { return this.querySelector('music-editor-menu'); }
 
-        get selectedPositions() { return this.status.grids[0].selectedPositions; }
-        get cursorPosition() { return this.status.grids[0].cursorPosition; }
+        // get selectedPositions() { return this.status.grids[0].selectedPositions; }
+        // get cursorPosition() { return this.status.grids[0].cursorPosition; }
 
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
@@ -142,19 +142,19 @@
         }
 
         // Grid Functions
+
         getSelectedInstructions() {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            return this.selectedPositions.map(p => instructionList[p]);
+            return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
         }
 
-
         getCursorInstruction() {
-            return this.player.getInstructions(this.grid.getGroupName())[this.cursorPosition];
+            return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
         }
 
         deleteInstructions(deletePositions) {
             const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            deletePositions = deletePositions || this.selectedPositions;
+            // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
             deletePositions.sort((a, b) => b - a);
             for(let i=0; i<deletePositions.length; i++) {
                 const position = deletePositions[i];
@@ -582,10 +582,11 @@
             return this.editor.player.insertInstruction(instruction, this.getGroupName(), insertPosition);
         }
 
-        render() {
+        render(gridStatus) {
             // TODO: render cursor positions
-            const selectedPositions = this.editor.selectedPositions;
-            const cursorPosition = this.getCursorPosition();
+            gridStatus = gridStatus || this.editor.status.grids[0];
+            const selectedPositions = gridStatus.selectedPositions;
+            const cursorPosition = gridStatus.cursorPosition;
             const editor = this.editor;
             const song = editor.getSong();
             const beatsPerMinute = song.beatsPerMinute;
@@ -723,6 +724,9 @@
         }
     }
 
+    // Form Actions
+
+
     class MusicEditorMenuElement extends HTMLElement {
         constructor() {
             super();
@@ -731,16 +735,103 @@
         get editor() { return this.parentNode.parentNode; }
 
         connectedCallback() {
-            // this.addEventListener('contextmenu', this.onInput);
-            // this.addEventListener('keydown', this.onInput);
-            // // this.addEventListener('keyup', this.onInput.bind(this));
-            // // this.addEventListener('click', this.onInput.bind(this));
             this.addEventListener('mousedown', this.onInput);
-            // this.addEventListener('mouseup', this.onInput);
-            // this.addEventListener('longpress', this.onInput);
+            this.addEventListener('change', this.onSubmit);
+            this.addEventListener('submit', this.onSubmit);
+
             this.render();
         }
 
+        onSubmit(e) {
+            const form = e.target.form || e.target;
+            const command = form.getAttribute('data-command');
+            let cursorInstruction = this.editor.getCursorInstruction();
+            const selectedInstructions = this.editor.getSelectedInstructions();
+            // const selectedPauses = this.editor.getSelectedPauses();
+
+            e.preventDefault();
+            switch(command) {
+                case 'instruction:command':
+                    cursorInstruction.command = form.command.value;
+                    this.editor.grid.render();
+                    break;
+
+                case 'instruction:instrument':
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        let instruction = selectedInstructions[i];
+                        if (form.instrument.value === "") {
+                            delete instruction.instrument;
+                        } else {
+                            let instrumentID = form.instrument.value;
+                            if (instrumentID.indexOf('add:') === 0)
+                                instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
+
+                            instruction.instrument = parseInt(instrumentID);
+                        }
+                    }
+                    this.editor.grid.render();
+                    break;
+
+                case 'instruction:duration':
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        let instruction = selectedInstructions[i];
+                        if(form.duration.value === "") delete instruction.duration;
+                        else instruction.duration = parseFloat(form.duration.value);
+                    }
+                    this.editor.grid.render();
+                    break;
+
+                case 'instruction:velocity':
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        let instruction = selectedInstructions[i];
+                        if(form.velocity.value === "") delete instruction.velocity;
+                        else instruction.velocity = parseInt(form.velocity.value);
+                    }
+                    this.editor.grid.render();
+                    break;
+
+                case 'row:edit':
+                    const instructionList = this.editor.player.getInstructions(this.editor.grid.getGroupName());
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        const instructionPosition = this.editor.player.getInstructionPosition(selectedInstructions[i],
+                            this.editor.grid.getGroupName());
+                        let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
+                        if(!nextPause) {
+                            console.warn("no pauses follow selected instruction");
+                            continue;
+                        }
+                        nextPause.pause = parseFloat(form.duration.value);
+                    }
+                    this.editor.grid.render();
+                    // this.editor.gridSelect([instruction]);
+                    break;
+
+                case 'group:edit':
+                    this.editor.gridNavigate(form.groupName.value);
+                    this.editor.gridSelect(e, 0);
+                    break;
+
+                case 'song:edit':
+                    const song = this.editor.getSong();
+                    // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+                    song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
+                    song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
+                    this.editor.render();
+                    // this.editor.gridSelect(e, 0);
+                    break;
+
+                case 'song:play':  this.editor.player.play(); break;
+                case 'song:pause':  this.editor.player.pause(); break;
+                case 'song:playback':
+                    console.log(e.target);
+                    break;
+
+                default:
+                    console.warn("Unhandled " + e.type + ": ", command);
+                    break;
+            }
+
+        }
 
         onInput(e) {
             if(e.defaultPrevented)
@@ -792,19 +883,7 @@
                         console.warn("Unhandled menu click", e);
                         break;
                     }
-                    this.menu.closeMenu();
-                    break;
-
-                case 'submit':
-                case 'change':
-                    e.preventDefault();
-                    const form = e.target.form || e.target;
-//                 console.log("Form " + e.type + ": ", form.target.form, e);
-                    const formCommandName = form.getAttribute('data-command');
-                    let formCommand = formCommands[formCommandName];
-                    if(!formCommand)
-                        throw new Error("Form command not found: " + formCommandName);
-                    formCommand(e, form, this);
+                    this.closeMenu();
                     break;
 
                 default:
@@ -1055,7 +1134,8 @@
         }
 
         closeMenu() {
-            this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
+            this.querySelectorAll('.menu-item.open,.submenu.open')
+                .forEach(elm => elm.classList.remove('open'));
         }
 
     }
@@ -1278,79 +1358,6 @@
         'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
     };
 
-    // Form Actions
-
-    const formCommands = {
-        'instruction:command': function (e, form, editor) {
-            let instruction = editor.getCursorInstruction();
-            instruction.command = form.command.value;
-            editor.grid.render();
-        },
-        'instruction:instrument': function (e, form, editor) {
-            const instructions = editor.getSelectedInstructions();
-            for(let i=0; i<instructions.length; i++) {
-                let instruction = instructions[i];
-                if (form.instrument.value === "") {
-                    delete instruction.instrument;
-                } else {
-                    let instrumentID = form.instrument.value;
-                    if (instrumentID.indexOf('add:') === 0)
-                        instrumentID = editor.player.addSongInstrument(instrumentID.substr(4));
-
-                    instruction.instrument = parseInt(instrumentID);
-                }
-            }
-            editor.grid.render();
-        },
-        'instruction:duration': function (e, form, editor) {
-            const instructions = editor.getSelectedInstructions();
-            for(let i=0; i<instructions.length; i++) {
-                let instruction = instructions[i];
-                if(form.duration.value === "") delete instruction.duration;
-                else instruction.duration = parseFloat(form.duration.value);
-            }
-            editor.grid.render();
-        },
-        'instruction:velocity': function (e, form, editor) {
-            const instructions = editor.getSelectedInstructions();
-            for(let i=0; i<instructions.length; i++) {
-                let instruction = instructions[i];
-                if(form.velocity.value === "") delete instruction.velocity;
-                else instruction.velocity = parseInt(form.velocity.value);
-            }
-            editor.grid.render();
-        },
-        'row:edit': function(e, form, editor) {
-            let instruction = editor.getCursorInstruction();
-            if(!instruction)
-                throw new Error("no instructions are currently selected");
-            const instructionList = editor.player.getInstructions(editor.grid.getGroupName());
-            const instructionPosition = editor.player.getInstructionPosition(instruction, editor.grid.getGroupName());
-            let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
-            if(!nextPause)
-                throw new Error("no pauses follow selected instruction");
-            nextPause.duration = parseFloat(form.duration.value);
-            editor.grid.render();
-            // editor.gridSelect([instruction]);
-        },
-        'group:edit': function(e, form, editor) {
-            editor.gridNavigate(form.groupName.value);
-            editor.gridSelect(e, 0);
-        },
-        'song:edit': function(e, form, editor) {
-            const song = editor.getSong();
-            // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
-            song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
-            song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
-            editor.render();
-            // editor.gridSelect(e, 0);
-        },
-        'song:play': function (e, form, editor) { editor.player.play(); },
-        'song:pause': function (e, form, editor) { editor.player.pause(); },
-        'song:playback': function (e, form, editor) {
-            console.log(e.target);
-        }
-    };
 
     // Menu Actions
 
