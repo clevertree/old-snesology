@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const routes = require(__dirname + '/routes.js');
+// const routes = require(__dirname + '/routes.js');
 const bodyParser = require('body-parser');
 
 // configure app to use bodyParser()
@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Register Routes
-app.use('/', routes);
+app.use('/', require(__dirname + '/routes.js'));
 
 // Start
 app.listen(8080, () => console.log('Example app listening on port 8080!'));

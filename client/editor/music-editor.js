@@ -42,7 +42,7 @@
             // this.addEventListener('change', this.onInput);
             // this.addEventListener('submit', this.onInput);
 
-            loadScript('music/player/music-player.js', function() {
+            loadScript('client/player/music-player.js', function() {
 
                 const playerElement = document.createElement('music-player');
                 this.player = playerElement;
@@ -59,7 +59,7 @@
                         this.gridSelect(e, 0);
 
                         // Load recent
-                        const recentSongGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
+                        const recentSongGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
                         if(recentSongGUIDs.length > 0)
                             this.loadSongFromMemory(recentSongGUIDs[0]);
                     }.bind(this));
@@ -98,12 +98,12 @@
             const song = this.getSong();
             if(!song.guid)
                 song.guid = generateGUID();
-            const songList = JSON.parse(localStorage.getItem('music-editor-saved-list') || "[]");
+            const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
             if(songList.indexOf(song.guid) === -1)
                 songList.push(song.guid);
             console.log("Saving song: ", song, songList);
             localStorage.setItem('song:' + song.guid, JSON.stringify(song));
-            localStorage.setItem('music-editor-saved-list', JSON.stringify(songList));
+            localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
             this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
             console.info("Song saved to memory: " + song.guid, song);
         }
@@ -1158,7 +1158,7 @@
     }
 
     // Load Javascript dependencies
-    loadStylesheet('music/editor/music-editor.css');
+    loadStylesheet('client/editor/music-editor.css');
 
     function loadScript(scriptPath, onLoaded) {
         let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
@@ -1300,7 +1300,7 @@
     }
 
     function renderEditorMenuLoadFromMemory() {
-        const songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
+        const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
 //         console.log("Loading song list from memory: ", songGUIDs);
 
         let menuItemsHTML = '';

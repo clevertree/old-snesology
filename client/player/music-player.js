@@ -501,7 +501,7 @@
 
 
     // Load Javascript dependencies
-    loadStylesheet('music/player/music-player.css');
+    loadStylesheet('client/player/music-player.css');
 
     function loadScript(scriptPath, onLoaded) {
         let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
