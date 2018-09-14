@@ -18,6 +18,7 @@
             this.status = {
                 grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}]
             }
+            this.webSocket = null;
         }
         get grid() { return this.querySelector('music-editor-grid'); }
         get menu() { return this.querySelector('music-editor-menu'); }
@@ -59,11 +60,46 @@
                         this.gridSelect(e, 0);
 
                         // Load recent
-                        const recentSongGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
-                        if(recentSongGUIDs.length > 0)
-                            this.loadSongFromMemory(recentSongGUIDs[0]);
+                        // const recentSongGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
+                        // if(recentSongGUIDs.length > 0)
+                        //     this.loadSongFromMemory(recentSongGUIDs[0]);
+
+                        this.getWebSocket();
+
                     }.bind(this));
             }.bind(this));
+        }
+
+        getWebSocket() {
+            if(this.webSocket)
+                return this.webSocket;
+
+            if (!"WebSocket" in window)
+                throw new Error("WebSocket is supported by your Browser!");
+
+            // Let us open a web socket
+            var ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port);
+
+            ws.onopen = function() {
+
+                // Web Socket is connected, send data using send()
+                ws.send("Message to send");
+                console.log("Message is sent...");
+            };
+
+            ws.onmessage = function (evt) {
+                var received_msg = evt.data;
+                console.log("Message is received...");
+            };
+
+            ws.onclose = function() {
+
+                // websocket is closed.
+                console.log("Connection is closed...");
+            };
+
+            this.webSocket = ws;
+            return ws;
         }
 
         onInput(e) {

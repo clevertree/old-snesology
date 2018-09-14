@@ -5,19 +5,21 @@ const BASE_URL = path.dirname(__dirname);
 
 
 // API Routes
-module.exports = function(req, res) {
-    const git = require('simple-git')(BASE_URL);
-    git.pull((err, update) => {
-        const response = { message: "Git pull successful", update: update};
-        console.log("Git pull:", update);
-        res.json(response);
+module.exports = {
+    httpRequest: function(req, res) {
+        const git = require('simple-git')(BASE_URL);
+        git.pull((err, update) => {
+            const response = { message: "Git pull successful", update: update};
+            console.log("Git pull:", update);
+            res.json(response);
 
-        if(update && update.summary.changes) {
-            // Restart Server (not working?)
-            console.log("Restarting server...");
-            require('child_process').exec('npm restart');
-        }
-    });
+            if(update && update.summary.changes) {
+                // Restart Server (not working?)
+                console.log("Restarting server...");
+                require('child_process').exec('npm restart');
+            }
+        });
+    }
 };
 
 
