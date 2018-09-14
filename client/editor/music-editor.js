@@ -96,27 +96,23 @@
 
         saveSongToMemory() {
             const song = this.getSong();
-            if(!song.guid)
-                song.guid = generateGUID();
             const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
-            if(songList.indexOf(song.guid) === -1)
-                songList.push(song.guid);
+            if(songList.indexOf(song.source) === -1)
+                songList.push(song.source);
             console.log("Saving song: ", song, songList);
-            localStorage.setItem('song:' + song.guid, JSON.stringify(song));
+            localStorage.setItem('song:' + song.source, JSON.stringify(song));
             localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
             this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
-            console.info("Song saved to memory: " + song.guid, song);
+            console.info("Song saved to memory: " + song.source, song);
         }
 
         saveSongToFile() {
             const song = this.getSong();
-            if(!song.guid)
-                song.guid = generateGUID();
             const jsonString = JSON.stringify(song, null, "\t");
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href",     dataStr);
-            downloadAnchorNode.setAttribute("download", (song.name.replace(' ', '_') || song.guid) + ".json");
+            downloadAnchorNode.setAttribute("download", song.source.split('/').reverse()[0]);
             document.body.appendChild(downloadAnchorNode); // required for firefox
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -858,8 +854,8 @@
                             let menuCommand = menuCommands[dataCommand];
                             if (!menuCommand)
                                 throw new Error("Unknown menu command: " + dataCommand);
-                            menuCommand(e, this);
-                            this.menu.closeMenu();
+                            menuCommand(e, this.editor);
+                            this.closeMenu();
                             return;
                         }
 
@@ -939,7 +935,8 @@
                             
                             <hr/>
                             <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
-                            <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
+                            <li><a class="menu-item" data-command="save:file">Save to file</a></li>
+                            <li><a class="menu-item" data-command="save:server">Save to server</a></li>
                             
                             <hr/>
                             <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
@@ -1333,15 +1330,6 @@
     function formatDuration(duration) { return parseFloat(duration).toFixed(2); }
 
     // Misc Commands
-
-    function generateGUID() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
-        }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-    }
 
 
 

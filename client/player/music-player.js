@@ -92,36 +92,52 @@
 
         loadSongFromURL(songURL, onLoaded) {
 //             console.log('Song loading:', songURL);
-            loadJSON(songURL, function(err, json) {
+            loadJSON(songURL, function(err, songJSON) {
                 if(err)
                     throw new Error("Could not load song: " + err);
-                if(!json)
+                if(!songJSON)
                     throw new Error("Invalid JSON File: " + songURL);
+
+                let loadFiles = [];
+                if(songJSON.instruments.length === 0) {
+                    throw new Error("Song contains no instruments");
+                } else {
+                    for(let i=0; i<songJSON.instruments.length; i++) {
+                        const path = songJSON.instruments[i].path;
+                        let split = path.split(":");
+                        const domain = split[0];
+                        const file = split[1].split('.')[0];
+                        const url = 'https://' + domain + '/instruments/' + file + '.js';
+                        if(loadFiles.indexOf(url) === -1)
+                            loadFiles.push(url);
+                        // snesology.net:oscillator.triangle => https://snesology.net/instruments/oscillator.js
+                    }
+                }
 
                 this.setAttribute('src', songURL);
 
                 // Load Scripts
                 let scriptsLoading = 0;
-                if(json.load) {
-                    for(let i=0; i<json.load.length; i++) {
-                        const scriptPath = json.load[i];
+                if(loadFiles) {
+                    for(let i=0; i<loadFiles.length; i++) {
+                        const scriptPath = loadFiles[i];
                         scriptsLoading++;
                         loadScript.call(this, scriptPath, function() {
                             // console.log("Scripts loading: ", scriptsLoading);
                             scriptsLoading--;
                             if(scriptsLoading === 0) {
                                 loadJSON.call(this);
-                                onLoaded && onLoaded(json); // initInstructions.call(this);
+                                onLoaded && onLoaded(songJSON); // initInstructions.call(this);
                             }
                         }.bind(this));
                     }
                 }
                 if(scriptsLoading === 0) {
                     loadJSON.call(this);
-                    onLoaded && onLoaded(json); // initInstructions.call(this);
+                    onLoaded && onLoaded(songJSON); // initInstructions.call(this);
                 }
                 function loadJSON() {
-                    this.loadSongData(json);
+                    this.loadSongData(songJSON);
                     console.log('Song loaded:', this.song);
                 }
             }.bind(this));
@@ -505,7 +521,7 @@
 
     function loadScript(scriptPath, onLoaded) {
         let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
-        let scriptElm = document.head.querySelector('script[src$=' + scriptPathEsc + ']');
+        let scriptElm = document.head.querySelector('script[src$="' + scriptPathEsc + '"]');
         if (!scriptElm) {
             scriptElm = document.createElement('script');
             scriptElm.src = scriptPath;
