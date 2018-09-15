@@ -64,13 +64,13 @@
                         // if(recentSongGUIDs.length > 0)
                         //     this.loadSongFromMemory(recentSongGUIDs[0]);
 
-                        this.getWebSocket();
+                        this.initWebSocket();
 
                     }.bind(this));
             }.bind(this));
         }
 
-        getWebSocket() {
+        initWebSocket() {
             if(this.webSocket)
                 return this.webSocket;
 
@@ -79,27 +79,24 @@
 
             // Let us open a web socket
             var ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port);
-
-            ws.onopen = function() {
-
-                // Web Socket is connected, send data using send()
-                ws.send("Message to send");
-                console.log("Message is sent...");
-            };
-
-            ws.onmessage = function (evt) {
-                var received_msg = evt.data;
-                console.log("Message is received...");
-            };
-
-            ws.onclose = function() {
-
-                // websocket is closed.
-                console.log("Connection is closed...");
-            };
-
+            ws.addEventListener('open', this.onWebSocketEvent);
+            ws.addEventListener('message', this.onWebSocketEvent);
+            ws.addEventListener('close', this.onWebSocketEvent);
             this.webSocket = ws;
             return ws;
+        }
+
+        onWebSocketEvent(e) {
+            console.info("WS " + e.type, e);
+            switch(e.type) {
+                case 'open':
+                    e.target.send("WELCOME");
+                    break;
+                case 'close':
+                    break;
+                case 'message':
+                    break;
+            }
         }
 
         onInput(e) {
@@ -107,7 +104,7 @@
             if(e.defaultPrevented)
                 return;
 
-            let targetClassList = e.target.classList;
+            // let targetClassList = e.target.classList;
             switch(e.type) {
                 case 'keydown':
                     switch(e.key) {
@@ -206,6 +203,15 @@
             }
             return null;
         }
+
+        // Edit song functions
+
+        spliceInstruction(groupName, insertPosition, deleteCount, instruction) {
+            this.player.spliceInstruction(groupName, insertPosition, deleteCount, instruction);
+
+            // TODO: if websocket enabled, resolve conflicted splices
+        }
+
 
         // Rendering
 
@@ -611,11 +617,14 @@
         }
 
         insertInstruction(instruction, insertPosition) {
-            return this.editor.player.insertInstruction(instruction, this.getGroupName(), insertPosition);
+            return this.editor.spliceInstruction(this.getGroupName(), insertPosition, 0, instruction);
+        }
+
+        deleteInstruction(deletePosition) {
+            return this.editor.spliceInstruction(this.getGroupName(), deletePosition, 1);
         }
 
         render(gridStatus) {
-            // TODO: render cursor positions
             gridStatus = gridStatus || this.editor.status.grids[0];
             const selectedPositions = gridStatus.selectedPositions;
             const cursorPosition = gridStatus.cursorPosition;
@@ -1399,7 +1408,7 @@
                 duration: 1
             }; // new instruction
             // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-            editor.player.insertInstruction(newInstruction, editor.grid.getGroupName(), insertPosition);
+            editor.player.spliceInstruction(editor.grid.getGroupName(), insertPosition, undefined, newInstruction);
         }
     };
 

@@ -216,7 +216,6 @@
         }
 
         getInstructions(groupName) {
-            groupName = groupName || this.song.root;
             let instructionList = this.song.instructions[groupName];
             if(!instructionList)
                 throw new Error("Instruction groupName not found: " + groupName);
@@ -224,7 +223,7 @@
         }
 
         getInstructionPosition(instruction, groupName) {
-            const instructionList = this.getInstructions(groupName);
+            const instructionList = this.song.instructions[groupName];
             const p = instructionList.indexOf(instruction);
             if(p === -1)
                 throw new Error("Instruction not found in instruction list");
@@ -329,35 +328,32 @@
 
         // Edit Song
 
-        insertInstruction(instruction, groupName, beforePosition) {
-            if(typeof instruction !== 'object')
-                throw new Error("Invalid instruction: " + typeof instruction);
+        spliceInstruction(groupName, startPosition, deleteCount, instruction) {
+            // if(typeof instruction !== 'object')
+            //     throw new Error("Invalid instruction: " + typeof instruction);
+            // if(!startPosition && startPosition !== 0)
+            //     startPosition = instructionList.length;
             const instructionList = this.getInstructions(groupName);
-            if(typeof beforePosition === 'number') {
-                if (instructionList.length < beforePosition)
-                    throw new Error("Invalid instruction position: " + beforePosition + (groupName ? " for groupName: " + groupName : ''));
-                instructionList.splice(beforePosition, 0, instruction);
-                return beforePosition;
-            } else {
-                instructionList.push(instruction);
-                return instructionList.length-1;
-            }
-
+            if (instructionList.length < startPosition)
+                throw new Error("Insert position out of index: " + instructionList.length + " < " + startPosition + " for groupName: " + groupName);
+            instructionList.splice(startPosition, deleteCount, instruction);
+            return startPosition;
         }
 
-        setInstruction(position, instruction, groupName) {
-            const instructionList = this.getInstructions(groupName);
-            if(instructionList.length < position)
-                throw new Error("Invalid instruction position: " + position + (groupName ? " for groupName: " + groupName : ''));
-            instructionList[position] = instruction;
-        }
 
-        swapInstructions(instruction1, instruction2, groupName) {
-            const p1 = this.getInstructionPosition(instruction1, groupName);
-            const p2 = this.getInstructionPosition(instruction2, groupName);
-            this.setInstruction(p2, instruction1);
-            this.setInstruction(p1, instruction2);
-        }
+        // setInstruction(position, instruction, groupName) {
+        //     const instructionList = this.getInstructions(groupName);
+        //     if(instructionList.length < position)
+        //         throw new Error("Invalid instruction position: " + position + (groupName ? " for groupName: " + groupName : ''));
+        //     instructionList[position] = instruction;
+        // }
+
+        // swapInstructions(instruction1, instruction2, groupName) {
+        //     const p1 = this.getInstructionPosition(instruction1, groupName);
+        //     const p2 = this.getInstructionPosition(instruction2, groupName);
+        //     this.setInstruction(p2, instruction1);
+        //     this.setInstruction(p1, instruction2);
+        // }
 
         addSongInstrument(instrumentPath, config) {
             const instrumentList = this.getSong().instruments;
