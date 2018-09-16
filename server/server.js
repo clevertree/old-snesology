@@ -1,8 +1,11 @@
 const express = require('express');
 const path = require('path');
+const redis = require("redis");
+let app;
 
 // Init
-module.exports = function(app, router) {
+module.exports = function(appInstance, router) {
+    app = appInstance;
     const BASE_URL = path.dirname(__dirname);
 
     // Serve Website Files
@@ -10,7 +13,14 @@ module.exports = function(app, router) {
 
     // Web Socket
     router.ws('*', handleWebSocketRequest);
+
+    app.addWebSocketEventListener = addWebSocketEventListener;
 };
+
+const webSocketEventListeners = [];
+function addWebSocketEventListener(type, callback) {
+    webSocketEventListeners.push([type, callback]);
+}
 
 function handleWebSocketRequest(ws, req) {
     console.info("WS connection: ", req.headers["user-agent"]);
@@ -22,14 +32,13 @@ function handleWebSocketRequest(ws, req) {
             if(typeof json.type === "undefined") {
                 console.error("JSON Message did not contain a type parameter", json);
             } else {
-                switch(json.type) {
-                    case 'history':
-                        handleHistoryAction(ws, json);
-                        break;
-
-                    default:
+                for(let i=0; i<webSocketEventListeners.length; i++) {
+                    const listener = webSocketEventListeners[i];
+                    if(listener[0] === json.type) {
+                        listener[1](json, ws, req);
+                    } else {
                         console.error("Unhandled JSON message type: " + json.type, json);
-                        break;
+                    }
                 }
             }
         } else {
@@ -38,6 +47,3 @@ function handleWebSocketRequest(ws, req) {
     });
 }
 
-function handleHistoryAction(ws, json) {
-
-}

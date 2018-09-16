@@ -1,12 +1,17 @@
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 
 const BASE_URL = path.dirname(__dirname);
 
 // Init
-module.exports = function(app, router) {
+let app;
+module.exports = function(appInstance, router) {
+    app = appInstance;
     // API Routes
     router.post('/songs/*', httpSongsRequest);
+
+    app.addWebSocketEventListener('history', handleHistoryWebSocketEvent);
 };
 
 // API Routes
@@ -42,4 +47,18 @@ function httpSongsRequest(req, res) {
 
     response = {message: "Song file has been updated", status: true};
     return res.json(response);
-};
+}
+
+function handleHistoryWebSocketEvent(newJSONEntry, ws, req) {
+    const db = app.redisClient;
+    const songPath = url.parse(newJSONEntry.path).pathname;
+    const keyPath = db.DB_PREFIX + songPath + ":history";
+
+    db.lindex(keyPath, -1, function(err, result) {
+        if(err)
+            throw new Error(err);
+        const oldJSONEntry = JSON.parse(result);
+        db.rpush(keyPath, JSON.stringify(newJSONEntry));
+    });
+
+}

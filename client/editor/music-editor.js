@@ -217,7 +217,8 @@
             this.getWebSocket()
                 .send(JSON.stringify({
                     type: 'history',
-                    historyAction: historyAction
+                    historyAction: historyAction,
+                    path: this.getSongURL()
                     // historyStep:
                 }))
             // TODO: submit new entry to websocket. resolve conflicts

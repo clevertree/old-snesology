@@ -25,6 +25,7 @@
   "dependencies": {
     "express": "^4.16.3",
     "express-ws": "^4.0.0",
+    "redis": "^2.8.0",
     "simple-git": "^1.95.1"
   }
 }

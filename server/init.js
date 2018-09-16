@@ -1,25 +1,27 @@
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
 
+const app = express();
+require('express-ws')(app);
 
-// configure app to use bodyParser()
-// this will let us get the data from a POST
+const redis = require("redis");
+app.redisClient = redis.createClient();
+app.redisClient.on("error", function (err) {
+    console.log("Redis Error: " + err);
+});
+app.redisClient.DB_PREFIX = 'snesology.net/';
+
+// Configure app
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var expressWs = require('express-ws')(app);
 
+// Init Routes
+const router = express.Router(null);
 
-
-
-
-const router = express.Router(null);              // get an instance of the express Router
-
-// ROUTES
+require('./server.js')(app, router);                // Include first
 require('./songs.js')(app, router);
 require('./git.js')(app, router);
-require('./server.js')(app, router);
 
 // Register Routes
 app.use('/', router);
