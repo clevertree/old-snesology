@@ -103,14 +103,9 @@
                     throw new Error("Song contains no instruments");
                 } else {
                     for(let i=0; i<songJSON.instruments.length; i++) {
-                        const path = songJSON.instruments[i].path;
-                        let split = path.split(":");
-                        const domain = split[0];
-                        const file = split[1].split('.')[0];
-                        const url = 'https://' + domain + '/instruments/' + file + '.js';
+                        const url = songJSON.instruments[i].url;
                         if(loadFiles.indexOf(url) === -1)
                             loadFiles.push(url);
-                        // snesology.net:oscillator.triangle => https://snesology.net/instruments/oscillator.js
                     }
                 }
 
@@ -144,8 +139,9 @@
         }
 
         playInstrument(instrumentID, noteFrequency, noteStartTime, instruction, stats) {
-            const instrumentPath = this.getInstrumentPath(instrumentID);
-            const instrument = this.getInstrument(instrumentPath);
+            let instrumentConfig = this.song.instruments[instrumentID];
+            // const instrumentPath = this.getInstrumentPath(instrumentID);
+            const instrument = this.getInstrument(instrumentConfig.url);
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
@@ -159,10 +155,10 @@
                 startTime: noteStartTime,
                 startOffset: noteStartTime,
                 duration: noteDuration,
+                instrumentConfig: instrumentConfig,
                 instruction: instruction,
                 groupInstruction: stats.groupInstruction,
                 stats: stats || {},
-                instrumentPath: instrumentPath,
                 calculateVelocity: function() {
                     let calculatedVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
                     if(stats.groupInstruction && stats.groupInstruction.velocity)
@@ -456,35 +452,37 @@
             throw new Error("Song instrument was not found: " + instrumentPath);
         }
 
-        getInstrumentPath(instrumentID) {
-            if(typeof instrumentID !== "number")
-                throw new Error("Invalid instrumentID");
-            let instrumentConfig = this.song.instruments[instrumentID];
-            if(!instrumentConfig)
-                throw new Error("Invalid Instrument ID: " + instrumentID);
-            if(!instrumentConfig.path)
-                throw new Error("Invalid Instrument Config: " + instrumentConfig);
-            return instrumentConfig.path;
-        }
+        // getInstrumentPath(instrumentID) {
+        //     if(typeof instrumentID !== "number")
+        //         throw new Error("Invalid instrumentID");
+        //     let instrumentConfig = this.song.instruments[instrumentID];
+        //     if(!instrumentConfig)
+        //         throw new Error("Invalid Instrument ID: " + instrumentID);
+        //     if(!instrumentConfig.path)
+        //         throw new Error("Invalid Instrument Config: " + instrumentConfig);
+        //     return instrumentConfig.path;
+        // }
 
-        getInstrument(fullPath) {
+        getInstrument(url) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
-            if(!fullPath)
+            if(!url)
                 throw new Error("Invalid instrument path");
 
-            const pathSplit = fullPath.split(':');
-            const pathDomain = pathSplit[0];
-            if(!window.instruments[pathDomain])
-                throw new Error("Instrument domain not found: " + pathDomain);
-            const collection = window.instruments[pathDomain];
+            var l = document.createElement("a");
+            l.href = url;
+            const path = l.pathname;
+            const domain = l.hostname;
 
-            const pathInstrument = pathSplit[1];
-            if(!collection[pathInstrument])
-                throw new Error("Instrument not found: " + pathInstrument);
+            if(!window.instruments[domain])
+                throw new Error("Instrument domain not found: " + domain);
+            const collection = window.instruments[domain];
 
-            return collection[pathInstrument];
+            if(!collection[path])
+                throw new Error("Instrument not found: " + path);
+
+            return collection[path];
         }
 
         getInstructionFrequency (instruction) {

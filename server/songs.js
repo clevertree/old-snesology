@@ -11,7 +11,7 @@ module.exports = function(appInstance, router) {
     // API Routes
     router.post('/songs/*', httpSongsRequest);
 
-    app.addWebSocketEventListener('history', handleHistoryWebSocketEvent);
+    app.addWebSocketEventListener('history:*', handleHistoryWebSocketEvent);
 };
 
 // API Routes
@@ -49,16 +49,30 @@ function httpSongsRequest(req, res) {
     return res.json(response);
 }
 
-function handleHistoryWebSocketEvent(newJSONEntry, ws, req) {
+function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
     const db = app.redisClient;
-    const songPath = url.parse(newJSONEntry.path).pathname;
+    const songPath = url.parse(jsonRequest.path).pathname;
     const keyPath = db.DB_PREFIX + songPath + ":history";
 
-    db.lindex(keyPath, -1, function(err, result) {
-        if(err)
-            throw new Error(err);
-        const oldJSONEntry = JSON.parse(result);
-        db.rpush(keyPath, JSON.stringify(newJSONEntry));
-    });
+    const historyType = jsonRequest.type.split(':')[1];
+    switch(historyType) {
+        case 'entry':
+            db.lindex(keyPath, -1, function(err, result) {
+                if(err)
+                    throw new Error(err);
+                const oldJSONEntry = JSON.parse(result);
+                db.rpush(keyPath, JSON.stringify(jsonRequest));
+            });
+            break;
+
+        case 'register':
+            db.lindex(keyPath, -1, function(err, result) {
+                if(err)
+                    throw new Error(err);
+                const oldJSONEntry = JSON.parse(result);
+            });
+            break;
+    }
+
 
 }

@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const redis = require("redis");
+// const redis = require("redis");
 let app;
 
 // Init
@@ -32,9 +32,11 @@ function handleWebSocketRequest(ws, req) {
             if(typeof json.type === "undefined") {
                 console.error("JSON Message did not contain a type parameter", json);
             } else {
+
                 for(let i=0; i<webSocketEventListeners.length; i++) {
                     const listener = webSocketEventListeners[i];
-                    if(listener[0] === json.type) {
+                    const regex = new RegExp("^" + listener[0].split("*").join(".*") + "$");
+                    if(regex.test(json.type)) {
                         listener[1](json, ws, req);
                     } else {
                         console.error("Unhandled JSON message type: " + json.type, json);

@@ -1,16 +1,17 @@
 {
 	"name": "Demo Song",
 	"source": "https://snesology.net/songs/share/demo.json",
-	"version": 1,
-	"versionString": "v0.0.1",
+	"version": "v0.0.1",
 	"description": "Demonstration song",
 	"instruments": [
 		{
-			"path": "snesology.net:oscillator.square",
+			"url": "https://snesology.net/instruments/oscillator.js",
+			"preset": "square",
 			"name": "square"
 		},
 		{
-			"path": "snesology.net:oscillator.triangle",
+			"url": "https://snesology.net/instruments/oscillator.js",
+			"preset": "triangle",
 			"name": "triangle"
 		}
 	],

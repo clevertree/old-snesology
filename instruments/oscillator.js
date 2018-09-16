@@ -2,14 +2,11 @@
 
 (function() {
     // snesology.net.instruments.oscillator
-    var domain = {};
-    if(!window.instruments)             window.instruments = {};
-    window.instruments['snesology.net'] = domain;
-
-    domain['oscillator.sine'] = OscillatorSimple;
-    domain['oscillator.sawtooth'] = OscillatorSimple;
-    domain['oscillator.triangle'] = OscillatorSimple;
-    domain['oscillator.square'] = OscillatorSimple;
+    if(!window.instruments)
+        window.instruments = {};
+    if(!window.instruments['snesology.net'])
+        window.instruments['snesology.net'] = {};
+    window.instruments['snesology.net']['instruments/oscillator.js'] = OscillatorSimple;
 
     // instrument
 
@@ -21,9 +18,9 @@
      * @constructor
      */
     function OscillatorSimple(context, note) {
-        var oscillatorType = note.instrumentPath.split('.').pop();
+        const oscillatorType = note.instrumentConfig.preset || 'sine';
 
-        var osc = context.createOscillator();   // instantiate an oscillator
+        const osc = context.createOscillator();   // instantiate an oscillator
         osc.type = oscillatorType;  // set Type
         osc.frequency.value = note.frequency;    // set Frequency (hz)
 

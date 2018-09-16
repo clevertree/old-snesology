@@ -68,7 +68,12 @@
                         // if(recentSongGUIDs.length > 0)
                         //     this.loadSongFromMemory(recentSongGUIDs[0]);
 
-                        this.getWebSocket();
+                        this.getWebSocket()
+                            .send(JSON.stringify({
+                                type: 'history:register',
+                                path: this.getSongURL()
+                                // historyStep:
+                            }));
 
                     }.bind(this));
             }.bind(this));
