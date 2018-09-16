@@ -3,24 +3,27 @@ const path = require('path');
 
 const BASE_URL = path.dirname(__dirname);
 
+// Init
+module.exports = function(app, router) {
+    // API Routes
+    router.get('/git', httpGitRequest);
+};
 
 // API Routes
-module.exports = {
-    httpRequest: function(req, res) {
-        const git = require('simple-git')(BASE_URL);
-        git.pull((err, update) => {
-            const response = { message: "Git pull successful", update: update};
-            console.log("Git pull:", update);
-            res.json(response);
+function httpGitRequest(req, res) {
+    const git = require('simple-git')(BASE_URL);
+    git.pull((err, update) => {
+        const response = { message: "Git pull successful", update: update};
+        console.log("Git pull:", update);
+        res.json(response);
 
-            if(update && update.summary.changes) {
-                // Restart Server (not working?)
-                console.log("Restarting server...");
-                require('child_process').exec('npm restart');
-            }
-        });
-    }
-};
+        if(update && update.summary.changes) {
+            // Restart Server (not working?)
+            console.log("Restarting server...");
+            require('child_process').exec('npm restart');
+        }
+    });
+}
 
 
 

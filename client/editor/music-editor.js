@@ -16,7 +16,11 @@
             this.config = DEFAULT_CONFIG;
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
             this.status = {
-                grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}]
+                grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}],
+                history: {
+                    undoList: [],
+                    undoPosition: []
+                },
             }
             this.webSocket = null;
         }
@@ -64,13 +68,13 @@
                         // if(recentSongGUIDs.length > 0)
                         //     this.loadSongFromMemory(recentSongGUIDs[0]);
 
-                        this.initWebSocket();
+                        this.getWebSocket();
 
                     }.bind(this));
             }.bind(this));
         }
 
-        initWebSocket() {
+        getWebSocket() {
             if(this.webSocket)
                 return this.webSocket;
 
@@ -181,18 +185,18 @@
             return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
         }
 
-        deleteInstructions(deletePositions) {
-            const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
-            deletePositions.sort((a, b) => b - a);
-            for(let i=0; i<deletePositions.length; i++) {
-                const position = deletePositions[i];
-                if(instructionList[position])
-                    throw new Error("Instruction not found at position: " + position);
-                instructionList.splice(p, 1);
-            }
-            this.gridSelect(null, [deletePositions[deletePositions.length-1]]);
-        }
+        // deleteInstructions(deletePositions) {
+        //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
+        //     // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
+        //     deletePositions.sort((a, b) => b - a);
+        //     for(let i=0; i<deletePositions.length; i++) {
+        //         const position = deletePositions[i];
+        //         if(instructionList[position])
+        //             throw new Error("Instruction not found at position: " + position);
+        //         instructionList.splice(p, 1);
+        //     }
+        //     this.gridSelect(null, [deletePositions[deletePositions.length-1]]);
+        // }
 
         gridFindInstruction(instruction) {
             let grids = this.querySelectorAll('music-editor-grid');
@@ -206,10 +210,69 @@
 
         // Edit song functions
 
-        spliceInstruction(groupName, insertPosition, deleteCount, instruction) {
-            this.player.spliceInstruction(groupName, insertPosition, deleteCount, instruction);
+        historyQueue(historyAction) {
+            this.status.history.undoList.push(historyAction);
+            this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-            // TODO: if websocket enabled, resolve conflicted splices
+            this.getWebSocket()
+                .send(JSON.stringify({
+                    type: 'history',
+                    historyAction: historyAction
+                    // historyStep:
+                }))
+            // TODO: submit new entry to websocket. resolve conflicts
+        }
+
+        historyUndo() {
+
+        }
+
+        historyRedo() {
+
+        }
+
+        insertInstruction(groupName, insertPosition, instructionToAdd) {
+            this.player.insertInstruction(groupName, insertPosition, instructionToAdd);
+            const undo = ['add', groupName, insertPosition, instructionToAdd];
+
+            this.historyQueue(undo);
+
+            this.grid.render();
+            this.gridSelect(null, [insertPosition]);
+        }
+
+        // insertInstruction(groupName, insertPositions, insertInstructions) {
+        //     this.player.addInstruction(groupName, insertPosition, instructionToAdd);
+        //     const undo = ['add', groupName, insertPosition, instructionToAdd];
+        //
+        //     this.historyQueue(undo);
+        //
+        //     this.grid.render();
+        //     this.gridSelect(null, [insertPosition]);
+        //
+        // }
+
+        deleteInstruction(groupName, deletePosition) {
+            const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
+            const undo = ['delete', groupName, deletePosition, deletedInstruction];
+            this.historyQueue(undo);
+
+            this.grid.render();
+            this.gridSelect(null, [deletePosition]);
+        }
+
+        deleteInstructions(groupName, deletePositions) {
+            const undos = ['group', []];
+            for(var i=0; i<deletePositions.length; i++) {
+                const deletePosition = deletePositions[i];
+                const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
+                const undo = ['delete', groupName, deletePosition, deletedInstruction];
+                undos[1].push(undo);
+            }
+            this.historyQueue(undos);
+
+            this.grid.render();
+            this.gridSelect(null, deletePositions[0]);
         }
 
 
@@ -476,10 +539,10 @@
                         }
                     }
 
-                    let selectedInstruction = this.editor.getCursorInstruction(); // editor.gridDataGetInstruction(selectedData);
+                    let cursorInstruction = this.editor.getCursorInstruction(); // editor.gridDataGetInstruction(selectedData);
                     switch (keyEvent) {
                         case 'Delete':
-                            this.editor.deleteInstructions();
+                            this.editor.deleteInstructions(this.getGroupName(), this.getSelectedPositions());
                             e.preventDefault();
                             // editor.render(true);
                             break;
@@ -491,19 +554,19 @@
                             e.preventDefault();
                             break;
                         case 'Enter':
-                            if (selectedInstruction.command[0] === '@') {
-                                const groupName = selectedInstruction.command.substr(1);
-                                this.editor.gridNavigate(groupName, selectedInstruction);
+                            if (cursorInstruction.command[0] === '@') {
+                                const groupName = cursorInstruction.command.substr(1);
+                                this.editor.gridNavigate(groupName, cursorInstruction);
                                 this.editor.gridSelect(e, 0);
                                 this.editor.grid.focus();
                             } else {
-                                this.editor.playInstruction(selectedInstruction);
+                                this.editor.playInstruction(cursorInstruction);
                             }
                             e.preventDefault();
                             break;
 
                         case 'Play':
-                            this.editor.playInstruction(selectedInstruction);
+                            this.editor.playInstruction(cursorInstruction);
                             e.preventDefault();
                             break;
 
@@ -556,10 +619,10 @@
                             break;
 
                         case 'PlayFrequency':
-                            selectedInstruction.command = this.editor.keyboardLayout[e.key];
+                            cursorInstruction.command = this.editor.keyboardLayout[e.key];
                             this.render();
                             this.focus();
-                            this.editor.playInstruction(selectedInstruction);
+                            this.editor.playInstruction(cursorInstruction);
 
                             // editor.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
@@ -617,11 +680,11 @@
         }
 
         insertInstruction(instruction, insertPosition) {
-            return this.editor.spliceInstruction(this.getGroupName(), insertPosition, 0, instruction);
+            return this.editor.insertInstruction(this.getGroupName(), insertPosition, instruction);
         }
 
         deleteInstruction(deletePosition) {
-            return this.editor.spliceInstruction(this.getGroupName(), deletePosition, 1);
+            return this.editor.deleteInstruction(this.getGroupName(), deletePosition, 1);
         }
 
         render(gridStatus) {
@@ -642,7 +705,7 @@
             let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
-                const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
+                // const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
                 const noteCSS = [];
                 if(selectedPositions.indexOf(position) !== -1) {
                     selectedRow = true;
@@ -712,6 +775,11 @@
             if(cursorCell)
                 return parseInt(cursorCell.getAttribute('data-position'));
             return null;
+        }
+
+        getSelectedPositions() {
+            return this.querySelectorAll('.grid-cell.selected')
+                .map(cell => parseInt(cell.getAttribute('data-position')));
         }
 
         selectCell(e, cursorCell) {

@@ -328,16 +328,33 @@
 
         // Edit Song
 
-        spliceInstruction(groupName, startPosition, deleteCount, instruction) {
-            // if(typeof instruction !== 'object')
-            //     throw new Error("Invalid instruction: " + typeof instruction);
-            // if(!startPosition && startPosition !== 0)
-            //     startPosition = instructionList.length;
-            const instructionList = this.getInstructions(groupName);
+        // spliceInstruction(groupName, startPosition, deleteCount, instruction) {
+        //     // if(typeof instruction !== 'object')
+        //     //     throw new Error("Invalid instruction: " + typeof instruction);
+        //     // if(!startPosition && startPosition !== 0)
+        //     //     startPosition = instructionList.length;
+        //     const instructionList = this.getInstructions(groupName);
+        //     if (instructionList.length < startPosition)
+        //         throw new Error("Insert position out of index: " + instructionList.length + " < " + startPosition + " for groupName: " + groupName);
+        //     let deletedInstructions  = instructionList.splice(startPosition, deleteCount, instruction);
+        //     return startPosition;
+        // }
+
+        deleteInstruction(groupName, deletePosition) {
+            let instructionList = this.getInstructions(groupName);
+            if (instructionList.length < deletePosition)
+                throw new Error("Delete position out of index: " + instructionList.length + " < " + deletePosition + " for groupName: " + groupName);
+
+            let deletedInstructions = instructionList.splice(deletePosition, 1);
+            return deletedInstructions[0];
+        }
+
+        insertInstruction(groupName, startPosition, instructionToAdd) {
+            let instructionList = this.getInstructions(groupName);
             if (instructionList.length < startPosition)
                 throw new Error("Insert position out of index: " + instructionList.length + " < " + startPosition + " for groupName: " + groupName);
-            instructionList.splice(startPosition, deleteCount, instruction);
-            return startPosition;
+
+            instructionList.splice(startPosition, 0, instructionToAdd);
         }
 
 

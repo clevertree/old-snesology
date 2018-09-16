@@ -1,12 +1,7 @@
-const path = require('path');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 
-app.songs = require('./songs.js');
-app.git = require('./git.js');
-app.server = require('./server.js');
-const BASE_URL = path.dirname(__dirname);
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -19,18 +14,12 @@ var expressWs = require('express-ws')(app);
 
 
 
-// ROUTES
 const router = express.Router(null);              // get an instance of the express Router
 
-// Serve Website Files
-router.use('/', express.static(BASE_URL));
-
-// API Routes
-router.get('/git', app.git.httpRequest);
-router.post('/songs/*', app.songs.httpRequest);
-
-// Web Socket
-router.ws('*', app.server.webSocketRequest);
+// ROUTES
+require('./songs.js')(app, router);
+require('./git.js')(app, router);
+require('./server.js')(app, router);
 
 // Register Routes
 app.use('/', router);
@@ -47,3 +36,4 @@ app.use(function (req, res, next) {
     // req.testing = 'testing';
     return next();
 });
+
