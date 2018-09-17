@@ -6,7 +6,8 @@
         window.instruments = {};
     if(!window.instruments['snesology.net'])
         window.instruments['snesology.net'] = {};
-    window.instruments['snesology.net']['instruments/oscillator.js'] = OscillatorSimple;
+    window.instruments['snesology.net']['/instruments/oscillator.js'] = OscillatorSimple;
+    window.instruments['localhost'] = window.instruments['snesology.net']; // For local debugging
 
     // instrument
 

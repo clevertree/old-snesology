@@ -47,36 +47,32 @@
             // this.addEventListener('change', this.onInput);
             // this.addEventListener('submit', this.onInput);
 
+            const editor = this;
             loadScript('client/player/music-player.js', function() {
 
                 const playerElement = document.createElement('music-player');
-                this.player = playerElement;
-                playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
-                playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:start', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
-                playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
+                editor.player = playerElement;
+                const onSongEvent = editor.onSongEvent.bind(editor);
+                playerElement.addEventListener('note:end', onSongEvent);
+                playerElement.addEventListener('note:start', onSongEvent);
+                playerElement.addEventListener('song:start', onSongEvent);
+                playerElement.addEventListener('song:playback', onSongEvent);
+                playerElement.addEventListener('song:end', onSongEvent);
+                playerElement.addEventListener('song:pause', onSongEvent);
 
-                if(this.getSongURL())
-                    playerElement.loadSongFromURL(this.getSongURL(), function(e) {
-                        this.render();
-                        this.gridSelect(e, 0);
+                if(editor.getSongURL())
+                    playerElement.loadSongFromURL(editor.getSongURL(), function(e) {
+                        editor.render();
+                        editor.gridSelect(e, 0);
 
                         // Load recent
                         // const recentSongGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
                         // if(recentSongGUIDs.length > 0)
-                        //     this.loadSongFromMemory(recentSongGUIDs[0]);
+                        //     editor.loadSongFromMemory(recentSongGUIDs[0]);
 
-                        this.getWebSocket()
-                            .send(JSON.stringify({
-                                type: 'history:register',
-                                path: this.getSongURL()
-                                // historyStep:
-                            }));
-
-                    }.bind(this));
-            }.bind(this));
+                        editor.getWebSocket(); // Init websocket
+                    });
+            });
         }
 
         getWebSocket() {
@@ -88,9 +84,10 @@
 
             // Let us open a web socket
             var ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port);
-            ws.addEventListener('open', this.onWebSocketEvent);
-            ws.addEventListener('message', this.onWebSocketEvent);
-            ws.addEventListener('close', this.onWebSocketEvent);
+            const onWebSocketEvent = this.onWebSocketEvent.bind(this);
+            ws.addEventListener('open', onWebSocketEvent);
+            ws.addEventListener('message', onWebSocketEvent);
+            ws.addEventListener('close', onWebSocketEvent);
             this.webSocket = ws;
             return ws;
         }
@@ -99,11 +96,22 @@
             console.info("WS " + e.type, e);
             switch(e.type) {
                 case 'open':
-                    e.target.send("WELCOME");
+                    e.target
+                        .send(JSON.stringify({
+                            type: 'history:register',
+                            path: this.getSongURL()
+                            // historyStep:
+                        }));
+
+                    // e.target.send("WELCOME");
                     break;
                 case 'close':
                     break;
                 case 'message':
+                    if(e.data[0] === '{') {
+                        const json = JSON.parse(e.data);
+                        console.log(json);
+                    }
                     break;
             }
         }
@@ -1330,7 +1338,7 @@
                 const instrumentList = editor.getSong().instruments;
                 for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
                     const instrumentInfo = instrumentList[instrumentID];
-                    const instrument = editor.player.getInstrument(instrumentInfo.path);
+                    const instrument = editor.player.getInstrument(instrumentInfo.url);
                     options.push([instrumentID, formatInstrumentID(instrumentID)
                     + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
                 }

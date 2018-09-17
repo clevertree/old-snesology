@@ -49,10 +49,16 @@ function httpSongsRequest(req, res) {
     return res.json(response);
 }
 
+var historyListeners = {};
 function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
     const db = app.redisClient;
     const songPath = url.parse(jsonRequest.path).pathname;
     const keyPath = db.DB_PREFIX + songPath + ":history";
+
+
+    if(!historyListeners.hasOwnProperty(songPath))
+        historyListeners[songPath] = [];
+    const listeners = historyListeners[songPath];
 
     const historyType = jsonRequest.type.split(':')[1];
     switch(historyType) {
@@ -66,10 +72,26 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             break;
 
         case 'register':
-            db.lindex(keyPath, -1, function(err, result) {
+            if(listeners.indexOf(ws) !== -1)
+                return ws.send(JSON.stringify({
+                    type: 'error',
+                    message: "Websocket is already registered to " + songPath
+                }));
+
+            listeners.push(ws);
+
+            db.lrange(keyPath, 0, -1, function(err, resultList) {
                 if(err)
                     throw new Error(err);
-                const oldJSONEntry = JSON.parse(result);
+                const historyActions = [];
+                for(let i=0; i<resultList.length; i++) {
+                    const jsonEntry = JSON.parse(resultList[i]); // TODO history step
+                    historyActions.push(jsonEntry.historyAction);
+                }
+                ws.send(JSON.stringify({
+                    type: 'history:entry',
+                    historyAction: ['group', historyActions]
+                }));
             });
             break;
     }
