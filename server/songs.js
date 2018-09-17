@@ -90,7 +90,7 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
                 }
                 ws.send(JSON.stringify({
                     type: 'history:entry',
-                    historyAction: ['group', historyActions]
+                    historyActions: historyActions
                 }));
             });
             break;

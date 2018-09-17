@@ -18,6 +18,7 @@
             this.status = {
                 grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}],
                 history: {
+                    currentStep: 0,
                     undoList: [],
                     undoPosition: []
                 },
@@ -110,7 +111,30 @@
                 case 'message':
                     if(e.data[0] === '{') {
                         const json = JSON.parse(e.data);
-                        console.log(json);
+                        switch(json.type) {
+                            case 'history:entry':
+                                const historyActions = json.historyActions;
+                                for(let i=0; i<historyActions.length; i++) {
+                                    const action = historyActions[i];
+                                    switch(action.action) {
+                                        case 'insert':
+                                            this.player.insertInstruction(action.params[0], action.params[1], action.params[2]);
+                                            break;
+                                        case 'delete':
+                                            this.player.deleteInstruction(action.params[0], action.params[1], action.params[2]);
+                                            break;
+                                        default:
+                                            throw new Error("Unrecognized history action: " + action.action);
+                                    }
+                                }
+
+
+                                this.grid.render();
+
+                                break;
+                            default:
+                                console.log("Unrecognized web socket event: " + json.type);
+                        }
                     }
                     break;
             }
@@ -223,16 +247,21 @@
 
         // Edit song functions
 
-        historyQueue(historyAction) {
+        historyQueue(action, params) {
+            this.status.history.currentStep++;
+            const historyAction = {
+                action: action,
+                params: params,
+                step: this.status.history.currentStep
+            };
             this.status.history.undoList.push(historyAction);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
 
             this.getWebSocket()
                 .send(JSON.stringify({
-                    type: 'history',
+                    type: 'history:entry',
                     historyAction: historyAction,
                     path: this.getSongURL()
-                    // historyStep:
                 }))
             // TODO: submit new entry to websocket. resolve conflicts
         }
@@ -247,9 +276,8 @@
 
         insertInstruction(groupName, insertPosition, instructionToAdd) {
             this.player.insertInstruction(groupName, insertPosition, instructionToAdd);
-            const undo = ['add', groupName, insertPosition, instructionToAdd];
 
-            this.historyQueue(undo);
+            this.historyQueue('insert', [groupName, insertPosition, instructionToAdd]);
 
             this.grid.render();
             this.gridSelect(null, [insertPosition]);
@@ -268,22 +296,23 @@
 
         deleteInstruction(groupName, deletePosition) {
             const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
-            const undo = ['delete', groupName, deletePosition, deletedInstruction];
-            this.historyQueue(undo);
+            this.historyQueue('delete', [groupName, deletePosition, deletedInstruction]);
 
             this.grid.render();
             this.gridSelect(null, [deletePosition]);
         }
 
         deleteInstructions(groupName, deletePositions) {
-            const undos = ['group', []];
-            for(var i=0; i<deletePositions.length; i++) {
+            const actions = [];
+            for(let i=0; i<deletePositions.length; i++) {
                 const deletePosition = deletePositions[i];
                 const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
-                const undo = ['delete', groupName, deletePosition, deletedInstruction];
-                undos[1].push(undo);
+                actions.push({
+                    action: 'delete',
+                    params: [groupName, deletePosition, deletedInstruction]
+                });
             }
-            this.historyQueue(undos);
+            this.historyQueue('group', actions);
 
             this.grid.render();
             this.gridSelect(null, deletePositions[0]);
