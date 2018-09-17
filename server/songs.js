@@ -66,8 +66,19 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             db.lindex(keyPath, -1, function(err, result) {
                 if(err)
                     throw new Error(err);
+
+                // Check for step increment
                 const oldJSONEntry = JSON.parse(result);
-                db.rpush(keyPath, JSON.stringify(jsonRequest));
+                if(!oldJSONEntry || jsonRequest.historyAction.step === oldJSONEntry.step + 1) {
+                    // Step is incremented as expected
+                    db.rpush(keyPath, JSON.stringify(jsonRequest.historyAction));
+                } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
+                    // Step is out of date
+                    throw new Error("Step is out of date");
+                } else {
+                    // Step is in the future
+                    throw new Error("Step is in the future");
+                }
             });
             break;
 
@@ -86,7 +97,7 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
                 const historyActions = [];
                 for(let i=0; i<resultList.length; i++) {
                     const jsonEntry = JSON.parse(resultList[i]); // TODO history step
-                    historyActions.push(jsonEntry.historyAction);
+                    historyActions.push(jsonEntry);
                 }
                 ws.send(JSON.stringify({
                     type: 'history:entry',

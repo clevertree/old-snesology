@@ -95,6 +95,7 @@
 
         onWebSocketEvent(e) {
             console.info("WS " + e.type, e);
+            const editor = this;
             switch(e.type) {
                 case 'open':
                     e.target
@@ -113,30 +114,42 @@
                         const json = JSON.parse(e.data);
                         switch(json.type) {
                             case 'history:entry':
-                                const historyActions = json.historyActions;
-                                for(let i=0; i<historyActions.length; i++) {
-                                    const action = historyActions[i];
-                                    switch(action.action) {
-                                        case 'insert':
-                                            this.player.insertInstruction(action.params[0], action.params[1], action.params[2]);
-                                            break;
-                                        case 'delete':
-                                            this.player.deleteInstruction(action.params[0], action.params[1], action.params[2]);
-                                            break;
-                                        default:
-                                            throw new Error("Unrecognized history action: " + action.action);
-                                    }
+                                for (let i = 0; i < json.historyActions.length; i++) {
+                                    const historyAction = json.historyActions[i];
+                                    applyHistoryAction(historyAction);
+                                    this.status.history.undoList.push(historyAction);
+                                    this.status.history.undoPosition = this.status.history.undoList.length-1;
+                                    if(typeof historyAction.step !== "undefined")
+                                        this.status.history.currentStep = historyAction.step;
                                 }
-
-
                                 this.grid.render();
-
                                 break;
+
                             default:
                                 console.log("Unrecognized web socket event: " + json.type);
                         }
+                    } else {
+                        console.log("Unrecognized web socket message: " + e.data);
                     }
                     break;
+            }
+
+            function applyHistoryAction(action) {
+                switch (action.action) {
+                    case 'insert':
+                        editor.player.insertInstruction(action.params[0], action.params[1], action.params[2]);
+                        break;
+                    case 'delete':
+                        editor.player.deleteInstruction(action.params[0], action.params[1], action.params[2]);
+                        break;
+                    case 'group':
+                        for (let i = 0; i < action.params.length; i++) {
+                            applyHistoryAction(action.params[i]);
+                        }
+                        break;
+                    default:
+                        throw new Error("Unrecognized history action: " + action.action);
+                }
             }
         }
 
@@ -247,13 +260,10 @@
 
         // Edit song functions
 
-        historyQueue(action, params) {
+        historyQueue(historyAction) {
             this.status.history.currentStep++;
-            const historyAction = {
-                action: action,
-                params: params,
-                step: this.status.history.currentStep
-            };
+            historyAction.step = this.status.history.currentStep;
+
             this.status.history.undoList.push(historyAction);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
 
@@ -263,7 +273,6 @@
                     historyAction: historyAction,
                     path: this.getSongURL()
                 }))
-            // TODO: submit new entry to websocket. resolve conflicts
         }
 
         historyUndo() {
@@ -277,7 +286,10 @@
         insertInstruction(groupName, insertPosition, instructionToAdd) {
             this.player.insertInstruction(groupName, insertPosition, instructionToAdd);
 
-            this.historyQueue('insert', [groupName, insertPosition, instructionToAdd]);
+            this.historyQueue({
+                action: 'insert',
+                params: [groupName, insertPosition, instructionToAdd]
+            });
 
             this.grid.render();
             this.gridSelect(null, [insertPosition]);
@@ -296,7 +308,10 @@
 
         deleteInstruction(groupName, deletePosition) {
             const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
-            this.historyQueue('delete', [groupName, deletePosition, deletedInstruction]);
+            this.historyQueue({
+                action: 'delete',
+                params: [groupName, deletePosition, deletedInstruction]
+            });
 
             this.grid.render();
             this.gridSelect(null, [deletePosition]);
@@ -312,7 +327,10 @@
                     params: [groupName, deletePosition, deletedInstruction]
                 });
             }
-            this.historyQueue('group', actions);
+            this.historyQueue({
+                action: 'group',
+                params: actions
+            });
 
             this.grid.render();
             this.gridSelect(null, deletePositions[0]);
@@ -566,7 +584,8 @@
                             case 'PlayFrequency':
                                 let newInstruction = {
                                     // instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
-                                    command: this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
+                                    command: this.editor.keyboardLayout[e.key]
+                                        || this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
                                     // duration: duration
                                 }; // new instruction
                                 if(this.editor.querySelector('form.form-instruction-instrument').instrument.value)
