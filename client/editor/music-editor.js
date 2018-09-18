@@ -116,7 +116,7 @@
                             case 'history:entry':
                                 for (let i = 0; i < json.historyActions.length; i++) {
                                     const historyAction = json.historyActions[i];
-                                    applyHistoryAction(historyAction);
+                                    this.applyHistoryAction(historyAction);
                                     this.status.history.undoList.push(historyAction);
                                     this.status.history.undoPosition = this.status.history.undoList.length-1;
                                     if(typeof historyAction.step !== "undefined")
@@ -134,22 +134,47 @@
                     break;
             }
 
-            function applyHistoryAction(action) {
-                switch (action.action) {
-                    case 'insert':
-                        editor.player.insertInstruction(action.params[0], action.params[1], action.params[2]);
-                        break;
-                    case 'delete':
-                        editor.player.deleteInstruction(action.params[0], action.params[1], action.params[2]);
-                        break;
-                    case 'group':
-                        for (let i = 0; i < action.params.length; i++) {
-                            applyHistoryAction(action.params[i]);
-                        }
-                        break;
-                    default:
-                        throw new Error("Unrecognized history action: " + action.action);
-                }
+        }
+
+        applyHistoryAction(action) {
+            switch (action.action) {
+                case 'insert':
+                    this.player.insertInstruction(action.params[0], action.params[1], action.params[2]);
+                    break;
+                case 'delete':
+                    this.player.deleteInstruction(action.params[0], action.params[1], action.params[2]);
+                    break;
+                case 'replace':
+                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
+                    break;
+                case 'group':
+                    for (let i = 0; i < action.params.length; i++) {
+                        this.applyHistoryAction(action.params[i]);
+                    }
+                    break;
+                default:
+                    throw new Error("Unrecognized history action: " + action.action);
+            }
+        }
+
+        undoHistoryAction(action) {
+            switch (action.action) {
+                case 'insert':
+                    this.player.deleteInstruction(action.params[0], action.params[1], 1);
+                    break;
+                case 'delete':
+                    this.player.insertInstruction(action.params[0], action.params[1], action.return);
+                    break;
+                case 'replace':
+                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.return);
+                    break;
+                case 'group':
+                    for (let i = 0; i < action.params.length; i++) {
+                        this.undoHistoryAction(action.params[i]);
+                    }
+                    break;
+                default:
+                    throw new Error("Unrecognized history action: " + action.action);
             }
         }
 
@@ -283,38 +308,39 @@
 
         }
 
-        insertInstruction(groupName, insertPosition, instructionToAdd) {
-            this.player.insertInstruction(groupName, insertPosition, instructionToAdd);
-
-            this.historyQueue({
+        insertInstruction(groupName, insertPosition, instructionsToAdd) {
+            this.player.replaceInstruction(groupName, insertPosition, 0, instructionsToAdd);
+            const historyAction = {
                 action: 'insert',
-                params: [groupName, insertPosition, instructionToAdd]
-            });
-
+                params: [groupName, insertPosition, instructionsToAdd]
+            };
+            this.historyQueue(historyAction);
             this.grid.render();
             this.gridSelect(null, [insertPosition]);
         }
 
-        // insertInstruction(groupName, insertPositions, insertInstructions) {
-        //     this.player.addInstruction(groupName, insertPosition, instructionToAdd);
-        //     const undo = ['add', groupName, insertPosition, instructionToAdd];
-        //
-        //     this.historyQueue(undo);
-        //
-        //     this.grid.render();
-        //     this.gridSelect(null, [insertPosition]);
-        //
-        // }
-
-        deleteInstruction(groupName, deletePosition) {
-            const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
-            this.historyQueue({
+        deleteInstruction(groupName, deletePosition, deleteCount) {
+            const deletedInstructions = this.player.replaceInstruction(groupName, deletePosition, deleteCount);
+            const historyAction = {
                 action: 'delete',
-                params: [groupName, deletePosition, deletedInstruction]
-            });
-
+                params: [groupName, deletePosition, deleteCount],
+                return: deletedInstructions
+            };
+            this.historyQueue(historyAction);
             this.grid.render();
             this.gridSelect(null, [deletePosition]);
+        }
+
+        replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd) {
+            const deletedInstructions = this.player.replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd);
+            const historyAction = {
+                action: 'replace',
+                params: [groupName, replacePosition, replaceCount, instructionsToAdd],
+                return: deletedInstructions
+            };
+            this.historyQueue(historyAction);
+            this.grid.render();
+            this.gridSelect(null, [replacePosition]);
         }
 
         deleteInstructions(groupName, deletePositions) {
@@ -324,7 +350,8 @@
                 const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
                 actions.push({
                     action: 'delete',
-                    params: [groupName, deletePosition, deletedInstruction]
+                    params: [groupName, deletePosition],
+                    return: deletedInstruction
                 });
             }
             this.historyQueue({
@@ -916,14 +943,20 @@
         onSubmit(e) {
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
+            let cursorPosition = this.editor.getCursorPosition();
             let cursorInstruction = this.editor.getCursorInstruction();
+            let selectedPositions = this.editor.getSelectedPositions();
             const selectedInstructions = this.editor.getSelectedInstructions();
+            const currentGroup = this.editor.grid.getGroupName();
+            const instructionList = this.editor.player.getInstructions(currentGroup);
             // const selectedPauses = this.editor.getSelectedPauses();
 
             e.preventDefault();
             switch(command) {
                 case 'instruction:command':
-                    cursorInstruction.command = form.command.value;
+                    this.editor.replaceInstruction(currentGroup, cursorPosition, 1, Object.assign({
+                        command: form.command.value
+                    }, cursorInstruction));
                     this.editor.grid.render();
                     break;
 
@@ -962,7 +995,6 @@
                     break;
 
                 case 'row:edit':
-                    const instructionList = this.editor.player.getInstructions(this.editor.grid.getGroupName());
                     for(let i=0; i<selectedInstructions.length; i++) {
                         const instructionPosition = this.editor.player.getInstructionPosition(selectedInstructions[i],
                             this.editor.grid.getGroupName());

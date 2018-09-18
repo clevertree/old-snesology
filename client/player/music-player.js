@@ -337,21 +337,12 @@
         //     return startPosition;
         // }
 
-        deleteInstruction(groupName, deletePosition) {
+        replaceInstruction(groupName, replacePosition, replaceCount, replaceInstruction) {
             let instructionList = this.getInstructions(groupName);
-            if (instructionList.length < deletePosition)
-                throw new Error("Delete position out of index: " + instructionList.length + " < " + deletePosition + " for groupName: " + groupName);
+            if (instructionList.length < replacePosition)
+                throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
 
-            let deletedInstructions = instructionList.splice(deletePosition, 1);
-            return deletedInstructions[0];
-        }
-
-        insertInstruction(groupName, startPosition, instructionToAdd) {
-            let instructionList = this.getInstructions(groupName);
-            if (instructionList.length < startPosition)
-                throw new Error("Insert position out of index: " + instructionList.length + " < " + startPosition + " for groupName: " + groupName);
-
-            instructionList.splice(startPosition, 0, instructionToAdd);
+            instructionList.splice(replacePosition, replaceCount, replaceInstruction);
         }
 
 
