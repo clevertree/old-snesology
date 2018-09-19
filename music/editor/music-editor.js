@@ -16,14 +16,8 @@
             this.config = DEFAULT_CONFIG;
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
             this.status = {
-                grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}],
-                history: {
-                    currentStep: 0,
-                    undoList: [],
-                    undoPosition: []
-                },
+                grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}]
             }
-            this.webSocket = null;
         }
         get grid() { return this.querySelector('music-editor-grid'); }
         get menu() { return this.querySelector('music-editor-menu'); }
@@ -48,94 +42,28 @@
             // this.addEventListener('change', this.onInput);
             // this.addEventListener('submit', this.onInput);
 
-            const editor = this;
-            loadScript('client/player/music-player.js', function() {
+            loadScript('music/player/music-player.js', function() {
 
                 const playerElement = document.createElement('music-player');
-                editor.player = playerElement;
-                const onSongEvent = editor.onSongEvent.bind(editor);
-                playerElement.addEventListener('note:end', onSongEvent);
-                playerElement.addEventListener('note:start', onSongEvent);
-                playerElement.addEventListener('song:start', onSongEvent);
-                playerElement.addEventListener('song:playback', onSongEvent);
-                playerElement.addEventListener('song:end', onSongEvent);
-                playerElement.addEventListener('song:pause', onSongEvent);
+                this.player = playerElement;
+                playerElement.addEventListener('note:end', this.onSongEvent.bind(this));
+                playerElement.addEventListener('note:start', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:start', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:playback', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:end', this.onSongEvent.bind(this));
+                playerElement.addEventListener('song:pause', this.onSongEvent.bind(this));
 
-                if(editor.getSongURL())
-                    playerElement.loadSongFromURL(editor.getSongURL(), function(e) {
-                        editor.render();
-                        editor.gridSelect(e, 0);
+                if(this.getSongURL())
+                    playerElement.loadSongFromURL(this.getSongURL(), function(e) {
+                        this.render();
+                        this.gridSelect(e, 0);
 
                         // Load recent
-                        // const recentSongGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
-                        // if(recentSongGUIDs.length > 0)
-                        //     editor.loadSongFromMemory(recentSongGUIDs[0]);
-
-                        editor.getWebSocket(); // Init websocket
-                    });
-            });
-        }
-
-        getWebSocket() {
-            if(this.webSocket)
-                return this.webSocket;
-
-            if (!"WebSocket" in window)
-                throw new Error("WebSocket is supported by your Browser!");
-
-            // Let us open a web socket
-            var ws = new WebSocket(
-                (location.protocol === 'https:' ? "wss://" : "ws://")
-                + document.location.hostname + ":" + document.location.port);
-            const onWebSocketEvent = this.onWebSocketEvent.bind(this);
-            ws.addEventListener('open', onWebSocketEvent);
-            ws.addEventListener('message', onWebSocketEvent);
-            ws.addEventListener('close', onWebSocketEvent);
-            this.webSocket = ws;
-            return ws;
-        }
-
-        onWebSocketEvent(e) {
-            console.info("WS " + e.type, e);
-            const editor = this;
-            switch(e.type) {
-                case 'open':
-                    e.target
-                        .send(JSON.stringify({
-                            type: 'history:register',
-                            path: this.getSongURL()
-                            // historyStep:
-                        }));
-
-                    // e.target.send("WELCOME");
-                    break;
-                case 'close':
-                    break;
-                case 'message':
-                    if(e.data[0] === '{') {
-                        const json = JSON.parse(e.data);
-                        switch(json.type) {
-                            case 'history:entry':
-                                for (let i = 0; i < json.historyActions.length; i++) {
-                                    const historyAction = json.historyActions[i];
-                                    this.applyHistoryAction(historyAction);
-                                    this.status.history.undoList.push(historyAction);
-                                    this.status.history.undoPosition = this.status.history.undoList.length-1;
-                                    if(typeof historyAction.step !== "undefined")
-                                        this.status.history.currentStep = historyAction.step;
-                                }
-                                this.grid.render();
-                                break;
-
-                            default:
-                                console.log("Unrecognized web socket event: " + json.type);
-                        }
-                    } else {
-                        console.log("Unrecognized web socket message: " + e.data);
-                    }
-                    break;
-            }
-
+                        const recentSongGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
+                        if(recentSongGUIDs.length > 0)
+                            this.loadSongFromMemory(recentSongGUIDs[0]);
+                    }.bind(this));
+            }.bind(this));
         }
 
         onInput(e) {
@@ -143,7 +71,7 @@
             if(e.defaultPrevented)
                 return;
 
-            // let targetClassList = e.target.classList;
+            let targetClassList = e.target.classList;
             switch(e.type) {
                 case 'keydown':
                     switch(e.key) {
@@ -168,23 +96,27 @@
 
         saveSongToMemory() {
             const song = this.getSong();
-            const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
-            if(songList.indexOf(song.source) === -1)
-                songList.push(song.source);
+            if(!song.guid)
+                song.guid = generateGUID();
+            const songList = JSON.parse(localStorage.getItem('music-editor-saved-list') || "[]");
+            if(songList.indexOf(song.guid) === -1)
+                songList.push(song.guid);
             console.log("Saving song: ", song, songList);
-            localStorage.setItem('song:' + song.source, JSON.stringify(song));
-            localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
+            localStorage.setItem('song:' + song.guid, JSON.stringify(song));
+            localStorage.setItem('music-editor-saved-list', JSON.stringify(songList));
             this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
-            console.info("Song saved to memory: " + song.source, song);
+            console.info("Song saved to memory: " + song.guid, song);
         }
 
         saveSongToFile() {
             const song = this.getSong();
+            if(!song.guid)
+                song.guid = generateGUID();
             const jsonString = JSON.stringify(song, null, "\t");
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href",     dataStr);
-            downloadAnchorNode.setAttribute("download", song.source.split('/').reverse()[0]);
+            downloadAnchorNode.setAttribute("download", (song.name.replace(' ', '_') || song.guid) + ".json");
             document.body.appendChild(downloadAnchorNode); // required for firefox
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -211,27 +143,27 @@
 
         // Grid Functions
 
-        // getSelectedInstructions() {
-        //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
-        //     return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
-        // }
+        getSelectedInstructions() {
+            const instructionList = this.player.getInstructions(this.grid.getGroupName());
+            return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
+        }
 
-        // getCursorInstruction() {
-        //     return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
-        // }
+        getCursorInstruction() {
+            return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
+        }
 
-        // deleteInstructions(deletePositions) {
-        //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
-        //     // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
-        //     deletePositions.sort((a, b) => b - a);
-        //     for(let i=0; i<deletePositions.length; i++) {
-        //         const position = deletePositions[i];
-        //         if(instructionList[position])
-        //             throw new Error("Instruction not found at position: " + position);
-        //         instructionList.splice(p, 1);
-        //     }
-        //     this.gridSelect(null, [deletePositions[deletePositions.length-1]]);
-        // }
+        deleteInstructions(deletePositions) {
+            const instructionList = this.player.getInstructions(this.grid.getGroupName());
+            // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
+            deletePositions.sort((a, b) => b - a);
+            for(let i=0; i<deletePositions.length; i++) {
+                const position = deletePositions[i];
+                if(instructionList[position])
+                    throw new Error("Instruction not found at position: " + position);
+                instructionList.splice(p, 1);
+            }
+            this.gridSelect(null, [deletePositions[deletePositions.length-1]]);
+        }
 
         gridFindInstruction(instruction) {
             let grids = this.querySelectorAll('music-editor-grid');
@@ -242,157 +174,6 @@
             }
             return null;
         }
-
-        // Edit song functions
-
-        historyQueue(historyAction) {
-            this.status.history.currentStep++;
-            historyAction.step = this.status.history.currentStep;
-
-            this.status.history.undoList.push(historyAction);
-            this.status.history.undoPosition = this.status.history.undoList.length-1;
-
-            this.getWebSocket()
-                .send(JSON.stringify({
-                    type: 'history:entry',
-                    historyAction: historyAction,
-                    path: this.getSongURL()
-                }))
-        }
-
-        historyUndo() {
-
-        }
-
-        historyRedo() {
-
-        }
-
-        insertInstruction(groupName, insertPosition, instructionsToAdd) {
-            this.player.replaceInstruction(groupName, insertPosition, 0, instructionsToAdd);
-            const historyAction = {
-                action: 'insert',
-                params: [groupName, insertPosition, instructionsToAdd]
-            };
-            this.historyQueue(historyAction);
-            this.grid.render();
-            this.gridSelect(null, [insertPosition]);
-        }
-
-        deleteInstructions(groupName, deletePositions) {
-            const actions = [];
-            for(let i=deletePositions.length-1; i>=0; i--) {
-                const deletePosition = deletePositions[i];
-                const deletedInstruction = this.player.replaceInstruction(groupName, deletePosition, 1);
-                actions.push({
-                    action: 'delete',
-                    params: [groupName, deletePosition],
-                    return: deletedInstruction
-                });
-            }
-            this.historyQueue({
-                action: 'group',
-                params: actions
-            });
-
-            this.grid.render();
-        }
-
-        replaceInstructionParams(groupName, replacePositions, replaceParams) {
-            if(!Array.isArray(replacePositions))
-                replacePositions = [replacePositions];
-            const historyActions = {action: 'group', params: []};
-            for(let i=0; i<replacePositions.length; i++) {
-                const replacePosition = replacePositions[i];
-                const oldParams = this.player.replaceInstructionParams(groupName, replacePosition, replaceParams);
-                const historyAction = {
-                    action: 'params',
-                    params: [groupName, replacePositions, replaceParams],
-                    return: oldParams
-                };
-                historyActions.params.push(historyAction);
-            }
-            if(historyActions.params.length <= 1)
-                this.historyQueue(historyActions.params[0]);
-            else
-                this.historyQueue(historyActions);
-
-            this.grid.render();
-        }
-
-        applyHistoryAction(action) {
-            switch (action.action) {
-                case 'insert':
-                    this.player.replaceInstruction(action.params[0], action.params[1], 0, action.params[2]);
-                    break;
-                case 'delete':
-                    this.player.replaceInstruction(action.params[0], action.params[1], 1);
-                    break;
-                case 'replace':
-                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
-                    break;
-                case 'params':
-                    this.player.replaceInstructionParams(action.params[0], action.params[1], action.params[2]);
-                    break;
-                case 'group':
-                    for (let i = 0; i < action.params.length; i++) {
-                        this.applyHistoryAction(action.params[i]);
-                    }
-                    break;
-                default:
-                    throw new Error("Unrecognized history action: " + action.action);
-            }
-            this.grid.render();
-        }
-
-        undoHistoryAction(action) {
-            switch (action.action) {
-                case 'insert':
-                    this.player.deleteInstruction(action.params[0], action.params[1], 1);
-                    break;
-                case 'delete':
-                    this.player.insertInstruction(action.params[0], action.params[1], action.return);
-                    break;
-                case 'replace':
-                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.return);
-                    break;
-                case 'group':
-                    for (let i = 0; i < action.params.length; i++) {
-                        this.undoHistoryAction(action.params[i]);
-                    }
-                    break;
-                default:
-                    throw new Error("Unrecognized history action: " + action.action);
-            }
-        }
-
-
-        // deleteInstruction(groupName, deletePosition, deleteCount) {
-        //     const deletedInstructions = this.player.replaceInstruction(groupName, deletePosition, deleteCount);
-        //     const historyAction = {
-        //         action: 'delete',
-        //         params: [groupName, deletePosition, deleteCount],
-        //         return: deletedInstructions
-        //     };
-        //     this.historyQueue(historyAction);
-        //     this.grid.render();
-        //     this.gridSelect(null, [deletePosition]);
-        // }
-
-        // replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd) {
-        //     const deletedInstructions = this.player.replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd);
-        //     const historyAction = {
-        //         action: 'replace',
-        //         params: [groupName, replacePosition, replaceCount, instructionsToAdd],
-        //         return: deletedInstructions
-        //     };
-        //     this.historyQueue(historyAction);
-        //     this.grid.render();
-        //     this.gridSelect(null, [replacePosition]);
-        // }
-
-
-
 
         // Rendering
 
@@ -641,8 +422,7 @@
                             case 'PlayFrequency':
                                 let newInstruction = {
                                     // instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
-                                    command: this.editor.keyboardLayout[e.key]
-                                        || this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
+                                    command: this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
                                     // duration: duration
                                 }; // new instruction
                                 if(this.editor.querySelector('form.form-instruction-instrument').instrument.value)
@@ -658,13 +438,10 @@
                         }
                     }
 
-                    let cursorPosition = this.editor.grid.getCursorPosition();
-                    const currentGroup = this.editor.grid.getGroupName();
-                    const instructionList = this.editor.player.getInstructions(currentGroup);
-                    let cursorInstruction = instructionList[cursorPosition];
+                    let selectedInstruction = this.editor.getCursorInstruction(); // editor.gridDataGetInstruction(selectedData);
                     switch (keyEvent) {
                         case 'Delete':
-                            this.editor.deleteInstructions(this.getGroupName(), this.getSelectedPositions());
+                            this.editor.deleteInstructions();
                             e.preventDefault();
                             // editor.render(true);
                             break;
@@ -676,19 +453,19 @@
                             e.preventDefault();
                             break;
                         case 'Enter':
-                            if (cursorInstruction.command[0] === '@') {
-                                const groupName = cursorInstruction.command.substr(1);
-                                this.editor.gridNavigate(groupName, cursorInstruction);
+                            if (selectedInstruction.command[0] === '@') {
+                                const groupName = selectedInstruction.command.substr(1);
+                                this.editor.gridNavigate(groupName, selectedInstruction);
                                 this.editor.gridSelect(e, 0);
                                 this.editor.grid.focus();
                             } else {
-                                this.editor.playInstruction(cursorInstruction);
+                                this.editor.playInstruction(selectedInstruction);
                             }
                             e.preventDefault();
                             break;
 
                         case 'Play':
-                            this.editor.playInstruction(cursorInstruction);
+                            this.editor.playInstruction(selectedInstruction);
                             e.preventDefault();
                             break;
 
@@ -741,10 +518,10 @@
                             break;
 
                         case 'PlayFrequency':
-                            cursorInstruction.command = this.editor.keyboardLayout[e.key];
+                            selectedInstruction.command = this.editor.keyboardLayout[e.key];
                             this.render();
                             this.focus();
-                            this.editor.playInstruction(cursorInstruction);
+                            this.editor.playInstruction(selectedInstruction);
 
                             // editor.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
@@ -802,14 +579,11 @@
         }
 
         insertInstruction(instruction, insertPosition) {
-            return this.editor.insertInstruction(this.getGroupName(), insertPosition, instruction);
-        }
-
-        deleteInstruction(deletePosition) {
-            return this.editor.deleteInstruction(this.getGroupName(), deletePosition, 1);
+            return this.editor.player.insertInstruction(instruction, this.getGroupName(), insertPosition);
         }
 
         render(gridStatus) {
+            // TODO: render cursor positions
             gridStatus = gridStatus || this.editor.status.grids[0];
             const selectedPositions = gridStatus.selectedPositions;
             const cursorPosition = gridStatus.cursorPosition;
@@ -827,7 +601,7 @@
             let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
-                // const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
+                const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
                 const noteCSS = [];
                 if(selectedPositions.indexOf(position) !== -1) {
                     selectedRow = true;
@@ -897,11 +671,6 @@
             if(cursorCell)
                 return parseInt(cursorCell.getAttribute('data-position'));
             return null;
-        }
-
-        getSelectedPositions() {
-            return Array.prototype.slice.call(this.querySelectorAll('.grid-cell.selected'))
-                .map(cell => parseInt(cell.getAttribute('data-position')));
         }
 
         selectCell(e, cursorCell) {
@@ -974,66 +743,66 @@
         }
 
         onSubmit(e) {
-            e.preventDefault();
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
-            let cursorPosition = this.editor.grid.getCursorPosition();
-            // let cursorInstruction = this.editor.getCursorInstruction();
-            let selectedPositions = this.editor.grid.getSelectedPositions();
-            // const selectedInstructions = this.editor.getSelectedInstructions();
-            const currentGroup = this.editor.grid.getGroupName();
-            const instructionList = this.editor.player.getInstructions(currentGroup);
+            let cursorInstruction = this.editor.getCursorInstruction();
+            const selectedInstructions = this.editor.getSelectedInstructions();
             // const selectedPauses = this.editor.getSelectedPauses();
 
+            e.preventDefault();
             switch(command) {
                 case 'instruction:command':
-                    this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
-                        command: form.command.value
-                    });
+                    cursorInstruction.command = form.command.value;
+                    this.editor.grid.render();
                     break;
 
                 case 'instruction:instrument':
-                    let instrumentID = form.instrument.value;
-                    if (instrumentID.indexOf('add:') === 0)
-                        instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        instrument: parseInt(instrumentID)
-                    });
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        let instruction = selectedInstructions[i];
+                        if (form.instrument.value === "") {
+                            delete instruction.instrument;
+                        } else {
+                            let instrumentID = form.instrument.value;
+                            if (instrumentID.indexOf('add:') === 0)
+                                instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
+
+                            instruction.instrument = parseInt(instrumentID);
+                        }
+                    }
+                    this.editor.grid.render();
                     break;
 
                 case 'instruction:duration':
-                    const duration = form.duration.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        duration: parseFloat(duration)
-                    });
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        let instruction = selectedInstructions[i];
+                        if(form.duration.value === "") delete instruction.duration;
+                        else instruction.duration = parseFloat(form.duration.value);
+                    }
+                    this.editor.grid.render();
                     break;
 
                 case 'instruction:velocity':
-                    const velocity = form.velocity.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        velocity: parseInt(velocity)
-                    });
-                    break;
-
-                case 'instruction:remove':
-                    this.editor.deleteInstructions(currentGroup, selectedPositions);
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        let instruction = selectedInstructions[i];
+                        if(form.velocity.value === "") delete instruction.velocity;
+                        else instruction.velocity = parseInt(form.velocity.value);
+                    }
+                    this.editor.grid.render();
                     break;
 
                 case 'row:edit':
-                    const selectedPauseInstructions = [];
-                    for(let i=0; i<selectedPositions.length; i++) {
-                        const selectedPosition = selectedPositions[i];
-                        let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
-                        if(nextPausePosition === -1) {
+                    const instructionList = this.editor.player.getInstructions(this.editor.grid.getGroupName());
+                    for(let i=0; i<selectedInstructions.length; i++) {
+                        const instructionPosition = this.editor.player.getInstructionPosition(selectedInstructions[i],
+                            this.editor.grid.getGroupName());
+                        let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
+                        if(!nextPause) {
                             console.warn("no pauses follow selected instruction");
                             continue;
                         }
-                        selectedPauseInstructions.push(nextPausePosition);
+                        nextPause.pause = parseFloat(form.duration.value);
                     }
-
-                    this.editor.replaceInstructionParams(currentGroup, selectedPauseInstructions, {
-                        pause: parseFloat(form.duration.value)
-                    });
+                    this.editor.grid.render();
                     // this.editor.gridSelect([instruction]);
                     break;
 
@@ -1089,8 +858,8 @@
                             let menuCommand = menuCommands[dataCommand];
                             if (!menuCommand)
                                 throw new Error("Unknown menu command: " + dataCommand);
-                            menuCommand(e, this.editor);
-                            this.closeMenu();
+                            menuCommand(e, this);
+                            this.menu.closeMenu();
                             return;
                         }
 
@@ -1170,8 +939,7 @@
                             
                             <hr/>
                             <li><a class="menu-item" data-command="save:memory">Save to memory</a></li>
-                            <li><a class="menu-item" data-command="save:file">Save to file</a></li>
-                            <li><a class="menu-item" data-command="save:server">Save to server</a></li>
+                            <li><a class="menu-item disabled" data-command="save:file">Save to file</a></li>
                             
                             <hr/>
                             <li><a class="menu-item disabled" data-command="export:file">Export to audio file</a></li>
@@ -1390,7 +1158,7 @@
     }
 
     // Load Javascript dependencies
-    loadStylesheet('client/editor/music-editor.css');
+    loadStylesheet('music/editor/music-editor.css');
 
     function loadScript(scriptPath, onLoaded) {
         let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
@@ -1446,7 +1214,7 @@
                 const instrumentList = editor.getSong().instruments;
                 for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
                     const instrumentInfo = instrumentList[instrumentID];
-                    const instrument = editor.player.getInstrument(instrumentInfo.url);
+                    const instrument = editor.player.getInstrument(instrumentInfo.path);
                     options.push([instrumentID, formatInstrumentID(instrumentID)
                     + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
                 }
@@ -1532,7 +1300,7 @@
     }
 
     function renderEditorMenuLoadFromMemory() {
-        const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
+        const songGUIDs = JSON.parse(localStorage.getItem('music-editor-saved-list') || '[]');
 //         console.log("Loading song list from memory: ", songGUIDs);
 
         let menuItemsHTML = '';
@@ -1566,6 +1334,15 @@
 
     // Misc Commands
 
+    function generateGUID() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
 
 
 
@@ -1598,7 +1375,7 @@
                 duration: 1
             }; // new instruction
             // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-            editor.player.spliceInstruction(editor.grid.getGroupName(), insertPosition, undefined, newInstruction);
+            editor.player.insertInstruction(newInstruction, editor.grid.getGroupName(), insertPosition);
         }
     };
 
