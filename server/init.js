@@ -19,6 +19,10 @@ app.use(bodyParser.json());
 // Init Routes
 const router = express.Router(null);
 
+let config = {};
+try { config = require('../config.js'); } catch (e) {}
+config = Object.assign({port: 8080}, config);
+
 require('./server.js')(app, router);                // Include first
 require('./songs.js')(app, router);
 require('./git.js')(app, router);
@@ -27,9 +31,7 @@ require('./git.js')(app, router);
 app.use('/', router);
 
 // Start
-app.listen(8080, () => console.log('Snesology listening on port 8080!'));
-app.listen(80, () => console.log('Snesology listening on port 80!'));
-
+app.listen(config.port, () => console.log('Snesology listening on port ' + config.port));
 
 
 
