@@ -342,7 +342,28 @@
             if (instructionList.length < replacePosition)
                 throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
 
-            instructionList.splice(replacePosition, replaceCount, replaceInstruction);
+            if(replaceInstruction)
+                return instructionList.splice(replacePosition, replaceCount, replaceInstruction);
+            return instructionList.splice(replacePosition, replaceCount);
+        }
+
+        replaceInstructionParams(groupName, replacePosition, replaceParams) {
+            let instructionList = this.getInstructions(groupName);
+            if (instructionList.length < replacePosition)
+                throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
+
+            const instruction = instructionList[replacePosition];
+            const oldParams = {};
+            for(const paramName in replaceParams) {
+                if(replaceParams.hasOwnProperty(paramName)) {
+                    oldParams[paramName] = instruction[paramName];
+                    if(replaceParams[paramName] === null)
+                        delete instruction[paramName];
+                    else
+                        instruction[paramName] = replaceParams[paramName];
+                }
+            }
+            return oldParams;
         }
 
 

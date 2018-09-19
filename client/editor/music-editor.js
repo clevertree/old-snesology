@@ -136,48 +136,6 @@
 
         }
 
-        applyHistoryAction(action) {
-            switch (action.action) {
-                case 'insert':
-                    this.player.insertInstruction(action.params[0], action.params[1], action.params[2]);
-                    break;
-                case 'delete':
-                    this.player.deleteInstruction(action.params[0], action.params[1], action.params[2]);
-                    break;
-                case 'replace':
-                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
-                    break;
-                case 'group':
-                    for (let i = 0; i < action.params.length; i++) {
-                        this.applyHistoryAction(action.params[i]);
-                    }
-                    break;
-                default:
-                    throw new Error("Unrecognized history action: " + action.action);
-            }
-        }
-
-        undoHistoryAction(action) {
-            switch (action.action) {
-                case 'insert':
-                    this.player.deleteInstruction(action.params[0], action.params[1], 1);
-                    break;
-                case 'delete':
-                    this.player.insertInstruction(action.params[0], action.params[1], action.return);
-                    break;
-                case 'replace':
-                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.return);
-                    break;
-                case 'group':
-                    for (let i = 0; i < action.params.length; i++) {
-                        this.undoHistoryAction(action.params[i]);
-                    }
-                    break;
-                default:
-                    throw new Error("Unrecognized history action: " + action.action);
-            }
-        }
-
         onInput(e) {
             // console.info(e.type, e);
             if(e.defaultPrevented)
@@ -251,14 +209,14 @@
 
         // Grid Functions
 
-        getSelectedInstructions() {
-            const instructionList = this.player.getInstructions(this.grid.getGroupName());
-            return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
-        }
+        // getSelectedInstructions() {
+        //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
+        //     return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
+        // }
 
-        getCursorInstruction() {
-            return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
-        }
+        // getCursorInstruction() {
+        //     return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
+        // }
 
         // deleteInstructions(deletePositions) {
         //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
@@ -319,35 +277,11 @@
             this.gridSelect(null, [insertPosition]);
         }
 
-        deleteInstruction(groupName, deletePosition, deleteCount) {
-            const deletedInstructions = this.player.replaceInstruction(groupName, deletePosition, deleteCount);
-            const historyAction = {
-                action: 'delete',
-                params: [groupName, deletePosition, deleteCount],
-                return: deletedInstructions
-            };
-            this.historyQueue(historyAction);
-            this.grid.render();
-            this.gridSelect(null, [deletePosition]);
-        }
-
-        replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd) {
-            const deletedInstructions = this.player.replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd);
-            const historyAction = {
-                action: 'replace',
-                params: [groupName, replacePosition, replaceCount, instructionsToAdd],
-                return: deletedInstructions
-            };
-            this.historyQueue(historyAction);
-            this.grid.render();
-            this.gridSelect(null, [replacePosition]);
-        }
-
         deleteInstructions(groupName, deletePositions) {
             const actions = [];
-            for(let i=0; i<deletePositions.length; i++) {
+            for(let i=deletePositions.length-1; i>=0; i--) {
                 const deletePosition = deletePositions[i];
-                const deletedInstruction = this.player.deleteInstruction(groupName, deletePosition);
+                const deletedInstruction = this.player.replaceInstruction(groupName, deletePosition, 1);
                 actions.push({
                     action: 'delete',
                     params: [groupName, deletePosition],
@@ -360,8 +294,102 @@
             });
 
             this.grid.render();
-            this.gridSelect(null, deletePositions[0]);
         }
+
+        replaceInstructionParams(groupName, replacePositions, replaceParams) {
+            if(!Array.isArray(replacePositions))
+                replacePositions = [replacePositions];
+            const historyActions = {action: 'group', params: []};
+            for(let i=0; i<replacePositions.length; i++) {
+                const replacePosition = replacePositions[i];
+                const oldParams = this.player.replaceInstructionParams(groupName, replacePosition, replaceParams);
+                const historyAction = {
+                    action: 'params',
+                    params: [groupName, replacePositions, replaceParams],
+                    return: oldParams
+                };
+                historyActions.params.push(historyAction);
+            }
+            if(historyActions.params.length <= 1)
+                this.historyQueue(historyActions.params[0]);
+            else
+                this.historyQueue(historyActions);
+
+            this.grid.render();
+        }
+
+        applyHistoryAction(action) {
+            switch (action.action) {
+                case 'insert':
+                    this.player.replaceInstruction(action.params[0], action.params[1], 0, action.params[2]);
+                    break;
+                case 'delete':
+                    this.player.replaceInstruction(action.params[0], action.params[1], 1);
+                    break;
+                case 'replace':
+                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
+                    break;
+                case 'params':
+                    this.player.replaceInstructionParams(action.params[0], action.params[1], action.params[2]);
+                    break;
+                case 'group':
+                    for (let i = 0; i < action.params.length; i++) {
+                        this.applyHistoryAction(action.params[i]);
+                    }
+                    break;
+                default:
+                    throw new Error("Unrecognized history action: " + action.action);
+            }
+            this.grid.render();
+        }
+
+        undoHistoryAction(action) {
+            switch (action.action) {
+                case 'insert':
+                    this.player.deleteInstruction(action.params[0], action.params[1], 1);
+                    break;
+                case 'delete':
+                    this.player.insertInstruction(action.params[0], action.params[1], action.return);
+                    break;
+                case 'replace':
+                    this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.return);
+                    break;
+                case 'group':
+                    for (let i = 0; i < action.params.length; i++) {
+                        this.undoHistoryAction(action.params[i]);
+                    }
+                    break;
+                default:
+                    throw new Error("Unrecognized history action: " + action.action);
+            }
+        }
+
+
+        // deleteInstruction(groupName, deletePosition, deleteCount) {
+        //     const deletedInstructions = this.player.replaceInstruction(groupName, deletePosition, deleteCount);
+        //     const historyAction = {
+        //         action: 'delete',
+        //         params: [groupName, deletePosition, deleteCount],
+        //         return: deletedInstructions
+        //     };
+        //     this.historyQueue(historyAction);
+        //     this.grid.render();
+        //     this.gridSelect(null, [deletePosition]);
+        // }
+
+        // replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd) {
+        //     const deletedInstructions = this.player.replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd);
+        //     const historyAction = {
+        //         action: 'replace',
+        //         params: [groupName, replacePosition, replaceCount, instructionsToAdd],
+        //         return: deletedInstructions
+        //     };
+        //     this.historyQueue(historyAction);
+        //     this.grid.render();
+        //     this.gridSelect(null, [replacePosition]);
+        // }
+
+
 
 
         // Rendering
@@ -628,7 +656,10 @@
                         }
                     }
 
-                    let cursorInstruction = this.editor.getCursorInstruction(); // editor.gridDataGetInstruction(selectedData);
+                    let cursorPosition = this.editor.grid.getCursorPosition();
+                    const currentGroup = this.editor.grid.getGroupName();
+                    const instructionList = this.editor.player.getInstructions(currentGroup);
+                    let cursorInstruction = instructionList[cursorPosition];
                     switch (keyEvent) {
                         case 'Delete':
                             this.editor.deleteInstructions(this.getGroupName(), this.getSelectedPositions());
@@ -867,7 +898,7 @@
         }
 
         getSelectedPositions() {
-            return this.querySelectorAll('.grid-cell.selected')
+            return Array.prototype.slice.call(this.querySelectorAll('.grid-cell.selected'))
                 .map(cell => parseInt(cell.getAttribute('data-position')));
         }
 
@@ -941,71 +972,66 @@
         }
 
         onSubmit(e) {
+            e.preventDefault();
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
-            let cursorPosition = this.editor.getCursorPosition();
-            let cursorInstruction = this.editor.getCursorInstruction();
-            let selectedPositions = this.editor.getSelectedPositions();
-            const selectedInstructions = this.editor.getSelectedInstructions();
+            let cursorPosition = this.editor.grid.getCursorPosition();
+            // let cursorInstruction = this.editor.getCursorInstruction();
+            let selectedPositions = this.editor.grid.getSelectedPositions();
+            // const selectedInstructions = this.editor.getSelectedInstructions();
             const currentGroup = this.editor.grid.getGroupName();
             const instructionList = this.editor.player.getInstructions(currentGroup);
             // const selectedPauses = this.editor.getSelectedPauses();
 
-            e.preventDefault();
             switch(command) {
                 case 'instruction:command':
-                    this.editor.replaceInstruction(currentGroup, cursorPosition, 1, Object.assign({
+                    this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
                         command: form.command.value
-                    }, cursorInstruction));
-                    this.editor.grid.render();
+                    });
                     break;
 
                 case 'instruction:instrument':
-                    for(let i=0; i<selectedInstructions.length; i++) {
-                        let instruction = selectedInstructions[i];
-                        if (form.instrument.value === "") {
-                            delete instruction.instrument;
-                        } else {
-                            let instrumentID = form.instrument.value;
-                            if (instrumentID.indexOf('add:') === 0)
-                                instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
-
-                            instruction.instrument = parseInt(instrumentID);
-                        }
-                    }
-                    this.editor.grid.render();
+                    let instrumentID = form.instrument.value;
+                    if (instrumentID.indexOf('add:') === 0)
+                        instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
+                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                        instrument: parseInt(instrumentID)
+                    });
                     break;
 
                 case 'instruction:duration':
-                    for(let i=0; i<selectedInstructions.length; i++) {
-                        let instruction = selectedInstructions[i];
-                        if(form.duration.value === "") delete instruction.duration;
-                        else instruction.duration = parseFloat(form.duration.value);
-                    }
-                    this.editor.grid.render();
+                    const duration = form.duration.value || null;
+                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                        duration: parseFloat(duration)
+                    });
                     break;
 
                 case 'instruction:velocity':
-                    for(let i=0; i<selectedInstructions.length; i++) {
-                        let instruction = selectedInstructions[i];
-                        if(form.velocity.value === "") delete instruction.velocity;
-                        else instruction.velocity = parseInt(form.velocity.value);
-                    }
-                    this.editor.grid.render();
+                    const velocity = form.velocity.value || null;
+                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                        velocity: parseInt(velocity)
+                    });
+                    break;
+
+                case 'instruction:remove':
+                    this.editor.deleteInstructions(currentGroup, selectedPositions);
                     break;
 
                 case 'row:edit':
-                    for(let i=0; i<selectedInstructions.length; i++) {
-                        const instructionPosition = this.editor.player.getInstructionPosition(selectedInstructions[i],
-                            this.editor.grid.getGroupName());
-                        let nextPause = instructionList.find((i, p) => i.pause > 0 && p > instructionPosition);
-                        if(!nextPause) {
+                    const selectedPauseInstructions = [];
+                    for(let i=0; i<selectedPositions.length; i++) {
+                        const selectedPosition = selectedPositions[i];
+                        let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
+                        if(nextPausePosition === -1) {
                             console.warn("no pauses follow selected instruction");
                             continue;
                         }
-                        nextPause.pause = parseFloat(form.duration.value);
+                        selectedPauseInstructions.push(nextPausePosition);
                     }
-                    this.editor.grid.render();
+
+                    this.editor.replaceInstructionParams(currentGroup, selectedPauseInstructions, {
+                        pause: parseFloat(form.duration.value)
+                    });
                     // this.editor.gridSelect([instruction]);
                     break;
 
