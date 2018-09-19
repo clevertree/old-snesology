@@ -5,12 +5,12 @@
 	"description": "Demonstration song",
 	"instruments": [
 		{
-			"url": "http://snesology.net/instruments/oscillator.js",
+			"url": "https://snesology.net/instruments/oscillator.js",
 			"preset": "square",
 			"name": "square"
 		},
 		{
-			"url": "http://snesology.net/instruments/oscillator.js",
+			"url": "https://snesology.net/instruments/oscillator.js",
 			"preset": "triangle",
 			"name": "triangle"
 		}
