@@ -1,16 +1,51 @@
 const express = require('express');
-const app = express();
-const routes = require(__dirname + '/routes.js');
-const bodyParser = require('body-parser');
+const path = require('path');
+// const redis = require("redis");
+let app;
 
-// configure app to use bodyParser()
-// this will let us get the data from a POST
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// Init
+module.exports = function(appInstance, router) {
+    app = appInstance;
+    const BASE_URL = path.dirname(__dirname);
 
-// Register Routes
-app.use('/', routes);
+    // Serve Website Files
+    router.use('/', express.static(BASE_URL));
 
-// Start
-app.listen(8080, () => console.log('Example app listening on port 8080!'));
-app.listen(80, () => console.log('Example app listening on port 80!'));
+    // Web Socket
+    router.ws('*', handleWebSocketRequest);
+
+    app.addWebSocketEventListener = addWebSocketEventListener;
+};
+
+const webSocketEventListeners = [];
+function addWebSocketEventListener(type, callback) {
+    webSocketEventListeners.push([type, callback]);
+}
+
+function handleWebSocketRequest(ws, req) {
+    console.info("WS connection: ", req.headers["user-agent"]);
+    ws.on('message', function(msg) {
+        ws.send("ECHO " + msg);
+
+        if(msg[0] === '{') {
+            const json = JSON.parse(msg);
+            if(typeof json.type === "undefined") {
+                console.error("JSON Message did not contain a type parameter", json);
+            } else {
+
+                for(let i=0; i<webSocketEventListeners.length; i++) {
+                    const listener = webSocketEventListeners[i];
+                    const regex = new RegExp("^" + listener[0].split("*").join(".*") + "$");
+                    if(regex.test(json.type)) {
+                        listener[1](json, ws, req);
+                    } else {
+                        console.error("Unhandled JSON message type: " + json.type, json);
+                    }
+                }
+            }
+        } else {
+            console.error("Unhandled message: ", msg);
+        }
+    });
+}
+
