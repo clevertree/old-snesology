@@ -84,7 +84,9 @@
                 throw new Error("WebSocket is supported by your Browser!");
 
             // Let us open a web socket
-            var ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port);
+            var ws = new WebSocket(
+                (location.protocol === 'https:' ? "wss://" : "ws://")
+                + document.location.hostname + ":" + document.location.port);
             const onWebSocketEvent = this.onWebSocketEvent.bind(this);
             ws.addEventListener('open', onWebSocketEvent);
             ws.addEventListener('message', onWebSocketEvent);
