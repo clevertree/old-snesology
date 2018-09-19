@@ -25,7 +25,7 @@ function addWebSocketEventListener(type, callback) {
 function handleWebSocketRequest(ws, req) {
     console.info("WS connection: ", req.headers["user-agent"]);
     ws.on('message', function(msg) {
-        ws.send("ECHO " + msg);
+        // ws.send("ECHO " + msg);
 
         if(msg[0] === '{') {
             const json = JSON.parse(msg);
