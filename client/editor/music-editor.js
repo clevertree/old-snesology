@@ -510,6 +510,7 @@
                         // groupElm.setAttribute('data-play-active', groupPlayActive-1);
                     }
                     break;
+                    break;
                 case 'song:start':
                     this.querySelector('.music-editor').classList.add('playing');
                     break;
@@ -1057,6 +1058,10 @@
                     console.log(e.target);
                     break;
 
+                case 'song:volume':
+                    this.editor.player.setVolume(parseInt(form['volume'].value));
+                    break;
+
                 default:
                     console.warn("Unhandled " + e.type + ": ", command);
                     break;
@@ -1230,14 +1235,20 @@
                     <form class="form-song-resume" data-command="song:resume">
                         <button name="resume">Resume</button>
                     </form>
+                    <form class="form-song-volume" data-command="song:volume">
+                        <div class="volume-container">
+                            <input name="volume" type="range" min="1" max="100" value="${this.editor.player.getVolumeGain().gain.value*100}">
+                        </div>
+                    </form>
+
                     <form class="form-song-bpm" data-command="song:edit">
-                        <select name="beats-per-minute" title="Beats per minute">
+                        <select name="beats-per-minute" title="Beats per minute" disabled>
                             <optgroup label="Beats per minute">
                             ${getEditorFormOptions(this.editor, 'beats-per-minute', (value, label, selected) =>
                     `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
                             </optgroup>
                         </select>
-                        <select name="beats-per-measure" title="Beats per measure">
+                        <select name="beats-per-measure" title="Beats per measure" disabled>
                             <optgroup label="Beats per measure">
                             ${getEditorFormOptions(this.editor, 'beats-per-measure', (value, label, selected) =>
                     `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
@@ -1270,7 +1281,7 @@
                         <button name="split">Split</button>
                     </form>
                     <form class="form-pause-duplicate" data-command="row:duplicate">
-                        <button name="duplicate">Duplicate</button>
+                        <button name="duplicate" disabled>Duplicate</button>
                     </form>
                     <form class="form-pause-insert" data-command="row:insert">
                         <button name="insert">+</button>

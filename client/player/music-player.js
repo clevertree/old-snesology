@@ -4,10 +4,11 @@
  */
 
 (function() {
-    const DEFAULT_BEATS_PER_MINUTE = 120;
+    const DEFAULT_BEATS_PER_MINUTE = 160;
     // const DEFAULT_PAUSES_PER_BEAT = 4;
     const DEFAULT_BEATS_PER_MEASURE = 4;
     const DEFAULT_GROUP = 'root';
+    const DEFAULT_VOLUME = 30;
     // if (!window.MusicPlayer)
     //     window.MusicPlayer = MusicPlayer;
 
@@ -18,6 +19,7 @@
             this.song = null;
             this.seekLength = 4;
             this.seekPosition = 0;
+            this.volumeGain = null;
             this.playing = false;
             this.config = DEFAULT_CONFIG;
             this.loadSongData({});
@@ -26,6 +28,16 @@
         getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
         getSong() { return this.song; }
         getStartingBeatsPerMinute() { return this.song.beatsPerMinute; }
+        getVolumeGain() {
+            if(!this.volumeGain) {
+                const context = this.getAudioContext();
+                let gain = context.createGain();
+                gain.gain.value = DEFAULT_VOLUME / 100;
+                gain.connect(context.destination);
+                this.volumeGain = gain;
+            }
+            return this.volumeGain;
+        }
 
         connectedCallback() {
             this.addEventListener('keydown', this.onInput.bind(this));
@@ -147,7 +159,10 @@
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
             const currentTime = this.getAudioContext().currentTime;
+
             const context = this.getAudioContext();
+            const destination = this.getVolumeGain();
+
             const bpm = stats.currentBPM || 60;
             const noteDuration = (instruction.duration || 1) * (60 / bpm);
             const noteEventData = {
@@ -166,16 +181,16 @@
                         calculatedVelocity *= stats.groupInstruction.velocity/100;
                     return calculatedVelocity;
                 },
-                connectGain: function(source, destination) {
+                connectGain: function(source) {
                     // Velocity
                     let gain = context.createGain();
                     gain.gain.value = this.calculateVelocity() / 100;
                     source.connect(gain);
-                    gain.connect(destination || context.destination);
+                    gain.connect(destination);
                     return gain;
                 },
-                connect: function(source, destination) {
-                    this.connectGain(source, destination);
+                connect: function(source) {
+                    this.connectGain(source);
                 }
             };
 
@@ -396,6 +411,14 @@
         }
 
         // Playback
+
+        setVolume (volume) {
+            const gain = this.getVolumeGain();
+            if(gain.gain.value !== volume) {
+                gain.gain.value = volume / 100;
+                console.info("Setting volume: ", volume);
+            }
+        }
 
         play (seekPosition) {
             this.seekPosition = seekPosition || 0;
