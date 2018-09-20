@@ -452,7 +452,16 @@
                 if(this.status.grids.length === 0)
                     this.status.grids = [{groupName: DEFAULT_GROUP}]
             } else {
-                this.status.grids.unshift({groupName: groupName, parentInstruction: parentInstruction});
+                const existingGrid = this.status.grids.find(obj => obj.groupName === groupName);
+                if(existingGrid)
+                    this.status.grids.unshift(existingGrid);
+                else
+                    this.status.grids.unshift({
+                        groupName: groupName,
+                        parentInstruction: parentInstruction,
+                        selectedPositions: [],
+                        cursorPosition: 0
+                    });
             }
             this.render();
         }
@@ -1043,7 +1052,7 @@
 
                 case 'group:edit':
                     this.editor.gridNavigate(form.groupName.value);
-                    this.editor.gridSelect(e, 0);
+//                     this.editor.gridSelect(e, 0);
                     break;
 
                 case 'song:edit':
