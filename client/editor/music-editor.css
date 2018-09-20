@@ -329,12 +329,12 @@ margin: 0 0;
     border-radius: 5px;
     border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
-    max-width: 100px;
+    max-width: 87px;
     cursor: pointer;
 }
 
 .music-editor .editor-forms select[name=instrument] {
-    max-width: 100px;
+    max-width: 88px;
 }
 .music-editor .editor-forms select[name=frequency] {
     max-width: 42px;

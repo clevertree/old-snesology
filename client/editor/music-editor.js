@@ -174,7 +174,8 @@
             console.log("Saving song: ", song, songList);
             localStorage.setItem('song:' + song.source, JSON.stringify(song));
             localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
-            this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
+            this.menu.render();
+            // this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
             console.info("Song saved to memory: " + song.source, song);
         }
 
@@ -483,9 +484,9 @@
 
         // Forms
 
-        formUpdate() {
-            this.menu.setEditableInstruction();
-        }
+        // formUpdate() {
+        //     this.menu.setEditableInstruction();
+        // }
 
         // Playback
 
@@ -522,7 +523,7 @@
                         // groupElm.setAttribute('data-play-active', groupPlayActive-1);
                     }
                     break;
-                    break;
+
                 case 'song:start':
                     this.querySelector('.music-editor').classList.add('playing');
                     break;
@@ -1162,13 +1163,39 @@
                 combinedInstruction = {command: 'C4'};
 
             // Note Instruction
-            this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command;
-            this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument;
-            this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity;
-            this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration;
+            this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command || '';
+            this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument || '';
+            this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity || '';
+            this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
 
             // Row/Pause
             this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.pause;
+        }
+
+        renderEditorMenuLoadFromMemory() {
+            const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
+//         console.log("Loading song list from memory: ", songGUIDs);
+
+            let menuItemsHTML = '';
+            for(let i=0; i<songGUIDs.length; i++) {
+                const songGUID = songGUIDs[i];
+                let songDataString = localStorage.getItem('song:' + songGUID);
+                const song = JSON.parse(songDataString);
+                if(song) {
+                    menuItemsHTML +=
+                        `<li>
+                        <a class="menu-item" data-command="load:memory" data-guid="${songGUID}">${song.name || "unnamed"}</a>
+                    </li>`;
+                } else {
+                    console.error("Song GUID not found: " + songGUID);
+                }
+            }
+
+            return `
+            <ul class="submenu">
+                ${menuItemsHTML}
+            </ul>
+        `;
         }
 
         render(gridStatus) {
@@ -1180,7 +1207,7 @@
                         <ul class="submenu">
                             <li>
                                 <a class="menu-item">Open from memory &#9658;</a>
-                                ${renderEditorMenuLoadFromMemory()}
+                                ${this.renderEditorMenuLoadFromMemory()}
                             </li>
                             <li><a class="menu-item" data-command="load:file">Open from file</a></li>
                             <li><a class="menu-item disabled" data-command="load:url">Open from url</a></li>
@@ -1256,13 +1283,13 @@
                     <form class="form-song-bpm" data-command="song:edit">
                         <select name="beats-per-minute" title="Beats per minute" disabled>
                             <optgroup label="Beats per minute">
-                            ${getEditorFormOptions(this.editor, 'beats-per-minute', (value, label, selected) =>
+                            ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>
                     `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
                             </optgroup>
                         </select>
                         <select name="beats-per-measure" title="Beats per measure" disabled>
                             <optgroup label="Beats per measure">
-                            ${getEditorFormOptions(this.editor, 'beats-per-measure', (value, label, selected) =>
+                            ${this.getEditorFormOptions('beats-per-measure', (value, label, selected) =>
                     `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
                             </optgroup>
                         </select>
@@ -1274,7 +1301,7 @@
                     <br/>
         
                     <label class="row-label">Group:</label>
-                    ${getEditorFormOptions(this.editor, 'groups', (value, label, selected) =>
+                    ${this.getEditorFormOptions('groups', (value, label, selected) =>
                     `<form class="form-group" data-command="group:edit">`
                     + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
                     + `</form>&nbsp;`, (value) => value === gridStatus.groupName)}
@@ -1285,7 +1312,7 @@
                         <label class="row-label">Row:</label>
                         <select name="duration" title="Row Duration">
                             <optgroup label="Row Duration">
-                                ${renderEditorFormOptions(this.editor, 'durations')}
+                                ${this.renderEditorFormOptions('durations')}
                             </optgroup>
                         </select>
                     </form>
@@ -1307,19 +1334,20 @@
                     <label class="row-label">Command:</label>
                     <form class="form-instruction-command" data-command="instruction:command">
                         <select name="command" title="Command">
+                            <option value="">Command (Choose)</option>
                             <optgroup label="Frequencies">
-                                <option value="">Frequency (Default)</option>
-                                ${renderEditorFormOptions(this.editor, 'frequencies')}
+                                ${this.renderEditorFormOptions('frequencies')}
                             </optgroup>
                         </select>
                     </form>
                     <form class="form-instruction-instrument" data-command="instruction:instrument">
                         <select name="instrument" title="Note Instrument">
+                            <option value="">Instrument (Default)</option>
                             <optgroup label="Song Instruments">
-                                ${renderEditorFormOptions(this.editor, 'song-instruments')}
+                                ${this.renderEditorFormOptions('song-instruments')}
                             </optgroup>
                             <optgroup label="Available Instruments">
-                                ${renderEditorFormOptions(this.editor, 'instruments-available')}
+                                ${this.renderEditorFormOptions('instruments-available')}
                             </optgroup>
                         </select>
                     </form>
@@ -1327,7 +1355,7 @@
                         <select name="duration" title="Note Duration">
                             <optgroup label="Note Duration">
                                 <option value="">Duration (Default)</option>
-                                ${renderEditorFormOptions(this.editor, 'durations')}
+                                ${this.renderEditorFormOptions('durations')}
                             </optgroup>
                         </select>
                     </form>
@@ -1335,7 +1363,7 @@
                         <select name="velocity" title="Note Velocity">
                             <optgroup label="Velocity">
                                 <option value="">Velocity (Default)</option>
-                                ${renderEditorFormOptions(this.editor, 'velocities')}
+                                ${this.renderEditorFormOptions('velocities')}
                             </optgroup>
                         </select>
                     </form>
@@ -1348,6 +1376,102 @@
                 </div>
             `;
             this.update(gridStatus);
+        }
+
+        renderEditorFormOptions(optionType, selectCallback) {
+            let optionHTML = '';
+            this.getEditorFormOptions(optionType, function (value, label, selected) {
+                optionHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`;
+            }, selectCallback);
+            return optionHTML;
+        }
+
+
+        getEditorFormOptions(optionType, callback, selectCallback) {
+            let html = '';
+            let options = [];
+            // let song = editor ? editor.getSong() : null;
+            if(!selectCallback) selectCallback = function() { return null; };
+            switch(optionType) {
+                case 'song-instruments':
+                    const instrumentList = this.editor.getSong().instruments;
+                    for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
+                        const instrumentInfo = instrumentList[instrumentID];
+                        const instrument = this.editor.player.getInstrument(instrumentInfo.url);
+                        options.push([instrumentID, formatInstrumentID(instrumentID)
+                        + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
+                    }
+                    break;
+
+                case 'instruments-available':
+                    if(window.instruments) {
+                        findInstruments(function (instrument, path, domain) {
+                            options.push(["add:" + domain + ":" + path, instrument.name + " (" + path + ")"]);
+                        });
+                    }
+                    break;
+
+                case 'frequencies':
+                    const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+                    for(let i=1; i<=6; i++) {
+                        for(let j=0; j<instructions.length; j++) {
+                            const instruction = instructions[j] + i;
+                            options.push([instruction, instruction]);
+                        }
+                    }
+                    break;
+
+                case 'velocities':
+                    // options.push([null, 'Velocity (Default)']);
+                    for(let vi=100; vi>=0; vi-=10) {
+                        options.push([vi, vi]);
+                    }
+                    break;
+
+                case 'durations':
+                    options = [
+                        // [null, 'Duration (Default)'],
+                        [1/64, '1/64'],
+                        [1/32, '1/32'],
+                        [1/16,  '1/16'],
+                        [1/8,   '1/8'],
+                        [1/4,   '1/4'],
+                        [1/2,   '1/2'],
+                        [1.0,   '1.0'],
+                        [2.0,   '2.0'],
+                        [4.0,  '4.0'],
+                        [8.0,  '8.0'],
+                    ];
+
+                    break;
+
+                case 'beats-per-measure':
+                    for(let vi=1; vi<=12; vi++) {
+                        options.push([vi, vi + ` beat${vi>1?'s':''} per measure`]);
+                    }
+                    break;
+
+                case 'beats-per-minute':
+                    for(let vi=40; vi<=300; vi+=10) {
+                        options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`]);
+                    }
+                    break;
+
+                case 'groups':
+                    options = [];
+                    Object.keys(this.editor.getSong().instructions).map(function(key, i) {
+                        options.push([key, key]);
+                    });
+                    break;
+            }
+
+            for (let oi=0; oi<options.length; oi++) {
+                const value = options[oi][0];
+                const label = options[oi][1] || value;
+                const selected = selectCallback(value, oi, label);
+                html += callback.call(this, value, label, selected);
+            }
+            return html;
         }
 
         // Menu
@@ -1459,126 +1583,6 @@
 
 
 
-    function getEditorFormOptions(editor, optionType, callback, selectCallback) {
-        let html = '';
-        let options = [];
-        // let song = editor ? editor.getSong() : null;
-        if(!selectCallback) selectCallback = function() { return null; };
-        switch(optionType) {
-            case 'song-instruments':
-                const instrumentList = editor.getSong().instruments;
-                for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
-                    const instrumentInfo = instrumentList[instrumentID];
-                    const instrument = editor.player.getInstrument(instrumentInfo.url);
-                    options.push([instrumentID, formatInstrumentID(instrumentID)
-                    + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
-                }
-                break;
-
-            case 'instruments-available':
-                if(window.instruments) {
-                    findInstruments(function (instrument, path, domain) {
-                        options.push(["add:" + domain + ":" + path, instrument.name + " (" + path + ")"]);
-                    });
-                }
-                break;
-
-            case 'frequencies':
-                const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
-                for(let i=1; i<=6; i++) {
-                    for(let j=0; j<instructions.length; j++) {
-                        const instruction = instructions[j] + i;
-                        options.push([instruction, instruction]);
-                    }
-                }
-                break;
-
-            case 'velocities':
-                // options.push([null, 'Velocity (Default)']);
-                for(let vi=100; vi>=0; vi-=10) {
-                    options.push([vi, vi]);
-                }
-                break;
-
-            case 'durations':
-                options = [
-                    // [null, 'Duration (Default)'],
-                    [1/64, '1/64'],
-                    [1/32, '1/32'],
-                    [1/16,  '1/16'],
-                    [1/8,   '1/8'],
-                    [1/4,   '1/4'],
-                    [1/2,   '1/2'],
-                    [1.0,   '1.0'],
-                    [2.0,   '2.0'],
-                    [4.0,  '4.0'],
-                    [8.0,  '8.0'],
-                ];
-
-                break;
-
-            case 'beats-per-measure':
-                for(let vi=1; vi<=12; vi++) {
-                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`]);
-                }
-                break;
-
-            case 'beats-per-minute':
-                for(let vi=40; vi<=300; vi+=10) {
-                    options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`]);
-                }
-                break;
-
-            case 'groups':
-                options = [];
-                Object.keys(editor.getSong().instructions).map(function(key, i) {
-                    options.push([key, key]);
-                });
-                break;
-        }
-
-        for (let oi=0; oi<options.length; oi++) {
-            const value = options[oi][0];
-            const label = options[oi][1] || value;
-            const selected = selectCallback(value, oi, label);
-            html += callback.call(this, value, label, selected);
-        }
-        return html;
-    }
-
-    function renderEditorFormOptions(editor, optionType, selectCallback) {
-        let optionHTML = '';
-        getEditorFormOptions(editor, optionType, function (value, label, selected) {
-            optionHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`;
-        }, selectCallback);
-        return optionHTML;
-    }
-
-    function renderEditorMenuLoadFromMemory() {
-        const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
-//         console.log("Loading song list from memory: ", songGUIDs);
-
-        let menuItemsHTML = '';
-        for(let i=0; i<songGUIDs.length; i++) {
-            const songGUID = songGUIDs[i];
-            let songDataString = localStorage.getItem('song:' + songGUID);
-            const song = JSON.parse(songDataString);
-            if(song) {
-                menuItemsHTML +=
-                    `<li>
-                        <a class="menu-item" data-command="load:memory" data-guid="${songGUID}">${song.name || "unnamed"}</a>
-                    </li>`;
-            } else {
-                console.error("Song GUID not found: " + songGUID);
-            }
-        }
-
-        return `
-            <ul class="submenu">
-                ${menuItemsHTML}
-            </ul>
-        `;
-    }
 
     // Format Functions
 
