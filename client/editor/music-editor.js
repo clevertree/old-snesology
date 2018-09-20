@@ -4,8 +4,6 @@
  */
 
 (function() {
-    // if (!window.MusicEditor)
-    //     window.MusicEditor = MusicEditor;
     const DEFAULT_GROUP = 'root';
     const DEFAULT_LONG_PRESS_TIMEOUT = 500;
 
@@ -22,7 +20,7 @@
                     undoList: [],
                     undoPosition: []
                 },
-            }
+            };
             this.webSocket = null;
         }
         get grid() { return this.querySelector('music-editor-grid'); }
@@ -1279,34 +1277,13 @@
                             <input name="volume" type="range" min="1" max="100" value="${this.editor.player.getVolumeGain().gain.value*100}">
                         </div>
                     </form>
-
-                    <form class="form-song-bpm" data-command="song:edit">
-                        <select name="beats-per-minute" title="Beats per minute" disabled>
-                            <optgroup label="Beats per minute">
-                            ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>
-                    `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
-                            </optgroup>
-                        </select>
-                        <select name="beats-per-measure" title="Beats per measure" disabled>
-                            <optgroup label="Beats per measure">
-                            ${this.getEditorFormOptions('beats-per-measure', (value, label, selected) =>
-                    `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
-                            </optgroup>
-                        </select>
-                    </form>
                     <form class="form-song-info" data-command="song:info">
                         <button name="info" disabled>Info</button>
                     </form>
                     
                     <br/>
         
-                    <label class="row-label">Group:</label>
-                    ${this.getEditorFormOptions('groups', (value, label, selected) =>
-                    `<form class="form-group" data-command="group:edit">`
-                    + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                    + `</form>&nbsp;`, (value) => value === gridStatus.groupName)}
-    
-                    <br/>
+        
          
                     <form class="form-pause-duration" data-command="row:edit">
                         <label class="row-label">Row:</label>
@@ -1330,13 +1307,32 @@
                     </form>
                     
                     <br/>
-        
+                    <label class="row-label">Group:</label>
+                    <form class="form-song-bpm" data-command="song:edit">
+                        <select name="beats-per-minute" title="Beats per minute" disabled>
+                            <optgroup label="Beats per minute">
+                            ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>
+                    `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
+                            </optgroup>
+                        </select>
+                        <select name="beats-per-measure" title="Beats per measure" disabled>
+                            <optgroup label="Beats per measure">
+                            ${this.getEditorFormOptions('beats-per-measure', (value, label, selected) =>
+                    `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
+                            </optgroup>
+                        </select>
+                    </form>
+
+                    <br/>
                     <label class="row-label">Command:</label>
                     <form class="form-instruction-command" data-command="instruction:command">
                         <select name="command" title="Command">
                             <option value="">Command (Choose)</option>
+                            <optgroup label="Group Execute">
+                                ${this.renderEditorFormOptions('command-group-execute')}
+                            </optgroup>
                             <optgroup label="Frequencies">
-                                ${this.renderEditorFormOptions('frequencies')}
+                                ${this.renderEditorFormOptions('command-frequencies')}
                             </optgroup>
                         </select>
                     </form>
@@ -1373,6 +1369,14 @@
                     <form class="form-instruction-remove" data-command="instruction:remove">
                         <button name="remove">-</button>
                     </form>
+                    
+                    <fieldset>
+                        <legend>Edit Group</legend>
+                        ${this.getEditorFormOptions('groups', (value, label, selected) =>
+                        `<form class="form-group" data-command="group:edit">`
+                        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
+                        + `</form>&nbsp;`, (value) => value === gridStatus.groupName)}
+                    </fieldset>
                 </div>
             `;
             this.update(gridStatus);
@@ -1411,6 +1415,7 @@
                     }
                     break;
 
+                case 'command-frequencies':
                 case 'frequencies':
                     const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
                     for(let i=1; i<=6; i++) {
@@ -1460,7 +1465,14 @@
                 case 'groups':
                     options = [];
                     Object.keys(this.editor.getSong().instructions).map(function(key, i) {
-                        options.push([key, key]);
+                        options.push([key, '@' + key]);
+                    });
+                    break;
+
+                case 'command-group-execute':
+                    options = [];
+                    Object.keys(this.editor.getSong().instructions).map(function(key, i) {
+                        options.push(['@' + key, '@' + key]);
                     });
                     break;
             }

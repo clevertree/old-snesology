@@ -312,6 +312,10 @@
                             let instructionGroupList = this.song.instructions[groupName];
                             if (!instructionGroupList)
                                 throw new Error("Instruction groupName not found: " + groupName);
+                            if(groupName === stats.currentGroup) { // TODO group stack
+                                console.error("Recursive group call. Skipping group '" + groupName + "'");
+                                continue;
+                            }
                             // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
                             stats.parentBPM = stats.currentBPM;
                             stats.parentPosition = stats.groupPosition + stats.parentPosition;

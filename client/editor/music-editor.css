@@ -303,13 +303,17 @@
     padding: 2px 0px;
     display: inline-block;
 }
-.music-editor .editor-forms form fieldset {
-    
-border: 0;
-    
-padding: 0 0;
-    
-margin: 0 0;
+.music-editor .editor-forms fieldset {
+    border: 1px solid #AAA;
+    padding: 0px 2px;
+    margin: 0px 2px;
+    display: block;
+}
+
+.music-editor .editor-forms fieldset legend{
+    text-align: center;
+    font-size: xx-small;
+    font-weight: bold;
 }
 
 .music-editor .editor-forms label.row-label {
@@ -364,9 +368,12 @@ margin: 0 0;
 }
 
 .music-editor .editor-forms div.volume-container {
-border: 1px solid #AAA;
-border-radius: 6px;
-max-height: 15px;
+
+border: 1px solid #AAA;
+
+border-radius: 6px;
+
+max-height: 15px;
 }
 
 .music-editor:not(.playing) form.form-song-pause { display: none; }
@@ -382,4 +389,9 @@ margin: 0 0;
 .music-editor .editor-forms button.selected {
     border: 1px inset;
     font-weight: bold;
+}
+
+.music-editor .editor-forms .form-separator {
+    height: 0px;
+    margin: 0;
 }
