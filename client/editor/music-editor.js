@@ -269,6 +269,8 @@
         }
 
         insertInstruction(groupName, insertPosition, instructionsToAdd) {
+            if(typeof insertPosition === 'undefined')
+                insertPosition = this.player.getInstructions(groupName).length;
             this.player.replaceInstruction(groupName, insertPosition, 0, instructionsToAdd);
             const historyAction = {
                 action: 'insert',
@@ -277,6 +279,7 @@
             this.historyQueue(historyAction);
             this.grid.render();
             this.gridSelect(null, [insertPosition]);
+            return insertPosition;
         }
 
         deleteInstructions(groupName, deletePositions) {
