@@ -6,6 +6,7 @@
 (function() {
     const DEFAULT_GROUP = 'root';
     const DEFAULT_LONG_PRESS_TIMEOUT = 500;
+    const DEFAULT_WEBSOCKET_RECONNECT = 3000;
 
     class MusicEditorElement extends HTMLElement {
         constructor() {
@@ -95,7 +96,6 @@
 
         onWebSocketEvent(e) {
             console.info("WS " + e.type, e);
-            const editor = this;
             switch(e.type) {
                 case 'open':
                     e.target
@@ -108,6 +108,12 @@
                     // e.target.send("WELCOME");
                     break;
                 case 'close':
+                    console.info("Reopening websocket in " + (DEFAULT_WEBSOCKET_RECONNECT/1000) + ' seconds');
+                    setTimeout(function() {
+                        this.webSocket = null;
+                        this.getWebSocket();
+                    }.bind(this), DEFAULT_WEBSOCKET_RECONNECT);
+
                     break;
                 case 'message':
                     if(e.data[0] === '{') {
@@ -324,6 +330,9 @@
 
         applyHistoryAction(action) {
             switch (action.action) {
+                case 'reset':
+                    this.player.resetInstructions();
+                    break;
                 case 'insert':
                     this.player.replaceInstruction(action.params[0], action.params[1], 0, action.params[2]);
                     break;
@@ -1370,8 +1379,8 @@
                         <button name="remove">-</button>
                     </form>
                     
-                    <fieldset>
-                        <legend>Edit Group</legend>
+                    <fieldset class="form-group-selection">
+                        <legend>Select Group</legend>
                         ${this.getEditorFormOptions('groups', (value, label, selected) =>
                         `<form class="form-group" data-command="group:edit">`
                         + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`

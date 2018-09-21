@@ -29,7 +29,7 @@
 .music-editor .editor-grid .grid-row {
     cursor: pointer;
     background-color: #999;
-    height: 18px;
+    height: 19px;
     position: relative;
     transition: background-color 0.1s ease-out;
 }
@@ -90,7 +90,7 @@
 .music-editor .editor-grid .grid-cell.selected {
     font-weight: bold;
     max-width: 1000px;
-    box-shadow: #441200 0 0 10px;
+    box-shadow: #6b6b6b 0 0px 3px;
     z-index: 2;
     /* position: relative; */
 }
@@ -110,28 +110,41 @@
 }
 
 .music-editor .editor-grid .grid-parameter:not(:first-child) {
-    margin-left: 3px;
-    padding-left: 3px;
-    border-left: 1px solid #888;
     max-width: 40px;
     opacity: 1;
     transition: all 0.25s ease-out;
 }
 
+.music-editor .editor-grid .grid-parameter.command {
+    color: darkred;
+}
 .music-editor .editor-grid .grid-parameter.instrument {
     color: darkblue;
-}
-.music-editor .editor-grid .grid-parameter.groupExecute {
-    color: green;
-}
-.music-editor .editor-grid .grid-parameter.frequency {
-    color: darkred;
+    max-width: 0px;
 }
 .music-editor .editor-grid .grid-parameter.duration {
     color: purple;
+    max-width: 0px;
 }
 .music-editor .editor-grid .grid-parameter.velocity {
     color: green;
+    max-width: 0px;
+}
+.music-editor.show-parameter-instrument .grid-parameter.instrument,
+.music-editor .editor-grid .grid-cell.selected .grid-parameter.instrument,
+.music-editor .editor-grid .grid-cell.cursor .grid-parameter.instrument,
+
+.music-editor.show-parameter-duration .grid-parameter.duration,
+.music-editor .editor-grid .grid-cell.selected .grid-parameter.duration,
+.music-editor .editor-grid .grid-cell.cursor .grid-parameter.duration,
+
+.music-editor.show-parameter-velocity .grid-parameter.velocity,
+.music-editor .editor-grid .grid-cell.selected .grid-parameter.velocity,
+.music-editor .editor-grid .grid-cell.cursor .grid-parameter.velocity{
+    border-left: 1px solid #888;
+    max-width: 40px;
+    margin-left: 3px;
+    padding-left: 3px;
 }
 
 
@@ -304,10 +317,6 @@
     display: inline-block;
 }
 .music-editor .editor-forms fieldset {
-    border: 1px solid #AAA;
-    padding: 0px 2px;
-    margin: 0px 2px;
-    display: block;
 }
 
 .music-editor .editor-forms fieldset legend{
@@ -391,6 +400,15 @@ max-height: 15px;
     font-weight: bold;
 }
 
+.music-editor .editor-forms .form-group-selection {
+    border: 0px;
+    border-top: 1px solid #AAA;
+    padding: 0px 2px 0px 2px;
+    margin: -2px 0px -3px 4px;
+}
+.music-editor .editor-forms .form-group-selection > legend {
+    margin: 0px 0 -4px 0;
+}
 .music-editor .editor-forms .form-separator {
     height: 0px;
     margin: 0;

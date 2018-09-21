@@ -107,7 +107,9 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             db.lrange(keyPath, 0, -1, function(err, resultList) {
                 if(err)
                     throw new Error(err);
-                const historyActions = [];
+                const historyActions = [{
+                    action: 'reset'
+                }];
                 for(let i=0; i<resultList.length; i++)
                     historyActions.push(JSON.parse(resultList[i]));
 

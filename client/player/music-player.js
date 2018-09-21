@@ -344,17 +344,11 @@
 
         // Edit Song
 
-        // spliceInstruction(groupName, startPosition, deleteCount, instruction) {
-        //     // if(typeof instruction !== 'object')
-        //     //     throw new Error("Invalid instruction: " + typeof instruction);
-        //     // if(!startPosition && startPosition !== 0)
-        //     //     startPosition = instructionList.length;
-        //     const instructionList = this.getInstructions(groupName);
-        //     if (instructionList.length < startPosition)
-        //         throw new Error("Insert position out of index: " + instructionList.length + " < " + startPosition + " for groupName: " + groupName);
-        //     let deletedInstructions  = instructionList.splice(startPosition, deleteCount, instruction);
-        //     return startPosition;
-        // }
+        resetInstructions() {
+            // TODO: unfinished
+            if(this.getSongURL())
+                this.loadSongFromURL(this.getSongURL());
+        }
 
         replaceInstruction(groupName, replacePosition, replaceCount, replaceInstruction) {
             let instructionList = this.getInstructions(groupName);
