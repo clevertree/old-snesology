@@ -107,8 +107,13 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             db.lrange(keyPath, 0, -1, function(err, resultList) {
                 if(err)
                     throw new Error(err);
+
+                const songContent = fs.existsSync(songPath)
+                    ? JSON.parse(fs.readFileSync(songPath, 'utf8'))
+                    : generateDefaultSong();
                 const historyActions = [{
-                    action: 'reset'
+                    action: 'reset',
+                    songContent: songContent
                 }];
                 for(let i=0; i<resultList.length; i++)
                     historyActions.push(JSON.parse(resultList[i]));
@@ -120,6 +125,21 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             });
             break;
     }
+}
+
+function generateDefaultSong() {
+    const uuidv4 = require('uuid/v4');
+    const UUID = uuidv4(); // -> '110ec58a-a0f2-4ac4-8393-c866d813b8d1'
+    return {
+        "name": "New Song",
+        "source": "https://snesology.net/songs/share/" + UUID + ".json",
+        "version": "v0.0.1",
+        "description": "New Song",
+        "instruments": [],
+        "instructions": {
+            "root": []
+        }
+    };
 }
 
 function isActive(listener) {

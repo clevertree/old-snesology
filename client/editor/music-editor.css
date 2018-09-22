@@ -313,7 +313,7 @@
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
     /* margin: 0px 0; */
-    padding: 2px 0px;
+    padding: 1px 2px 1px 0px;
     display: inline-block;
 }
 .music-editor .editor-forms fieldset {
@@ -327,7 +327,7 @@
 
 .music-editor .editor-forms label.row-label {
     display: inline-block;
-    min-width: 50px;
+    min-width: 57px;
     text-align: right;
     font-size: smaller;
     font-weight: bold;
@@ -402,12 +402,18 @@ max-height: 15px;
 
 .music-editor .editor-forms .form-group-selection {
     border: 0px;
-    border-top: 1px solid #AAA;
-    padding: 0px 2px 0px 2px;
-    margin: -2px 0px -3px 4px;
+    border-top: 2px solid #AAA;
+    padding: 1px 2px 0px 2px;
+    margin: 0px 1px -2px 1px;
 }
 .music-editor .editor-forms .form-group-selection > legend {
     margin: 0px 0 -4px 0;
+}
+.music-editor .editor-forms .form-group-selection form.form-group > button {
+    font-size: smaller;
+}
+.music-editor .editor-forms .form-group-selection form.form-group > button.new {
+    color: #444;
 }
 .music-editor .editor-forms .form-separator {
     height: 0px;

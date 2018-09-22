@@ -77,7 +77,7 @@
             for (let i = 0; i < instructionList.length; i++) {
                 let instruction = instructionList[i];
                 if (typeof instruction === 'number')
-                    instruction = {pause: instruction};
+                    instruction = {command: '!pause', pause: instruction};
                 if (typeof instruction === 'string')
                     instruction = instruction.split(':');
                 if (Array.isArray(instruction))
@@ -103,7 +103,7 @@
         }
 
         loadSongFromURL(songURL, onLoaded) {
-            const editor = this;
+            const playerElm = this;
 //             console.log('Song loading:', songURL);
             loadJSON(songURL, function(err, songJSON) {
                 if(err)
@@ -122,7 +122,7 @@
                     }
                 }
 
-                editor.setAttribute('src', songURL);
+                playerElm.setAttribute('src', songURL);
 
                 // Load Scripts
                 let scriptsLoading = 0;
@@ -130,7 +130,7 @@
                     for(let i=0; i<loadFiles.length; i++) {
                         const scriptPath = loadFiles[i];
                         scriptsLoading++;
-                        loadScript.call(editor, scriptPath, function() {
+                        loadScript.call(playerElm, scriptPath, function() {
                             // console.log("Scripts loading: ", scriptsLoading);
                             scriptsLoading--;
                             if(scriptsLoading === 0) {
@@ -145,8 +145,8 @@
                     onLoaded && onLoaded(songJSON); // initInstructions.call(THIS);
                 }
                 function loadJSON() {
-                    editor.loadSongData(songJSON);
-                    console.log('Song loaded:', editor.song);
+                    playerElm.loadSongData(songJSON);
+                    console.log('Song loaded:', playerElm.song);
                 }
             });
         }
@@ -297,15 +297,23 @@
                 for(let i=0; i<instructionList.length; i++) {
                     const instruction = instructionList[i];
 
-                    if(instruction.pause) {
-                        stats.groupPosition += instruction.pause;
-                        stats.groupPlaytime += instruction.pause * (60 / stats.currentBPM);
-                        if(stats.groupPlaytime > stats.maxPlaytime)
-                            stats.maxPlaytime = stats.groupPlaytime;
-                    }
-
                     if(typeof instruction.command !== "undefined") {
-                        if (instruction.command[0] === '@') {
+                        if (instruction.command[0] === '!') {
+                            const functionName = instruction.command.substr(1);
+                            switch(functionName) {
+                                case 'pause':
+                                    stats.groupPosition += instruction.pause;
+                                    stats.groupPlaytime += instruction.pause * (60 / stats.currentBPM);
+                                    if(stats.groupPlaytime > stats.maxPlaytime)
+                                        stats.maxPlaytime = stats.groupPlaytime;
+                                    break;
+
+                                default:
+                                    console.error("Unknown function: " + instruction.command);
+                                    break;
+                            }
+
+                        } else if (instruction.command[0] === '@') {
                             // if(groupPosition < startPosition) // Execute all groups each time
                             //     continue;
                             let groupName = instruction.command.substr(1);
@@ -344,11 +352,7 @@
 
         // Edit Song
 
-        resetInstructions() {
-            // TODO: unfinished
-            if(this.getSongURL())
-                this.loadSongFromURL(this.getSongURL());
-        }
+
 
         replaceInstruction(groupName, replacePosition, replaceCount, replaceInstruction) {
             let instructionList = this.getInstructions(groupName);
@@ -379,6 +383,13 @@
             return oldParams;
         }
 
+        addNewGroup(newGroupName) {
+            const songData = this.getSong();
+            if(songData.instructions.hasOwnProperty(newGroupName))
+                throw new Error("New group already exists: " + newGroupName);
+            songData.instructions[newGroupName] = [];
+
+        }
 
         // setInstruction(position, instruction, groupName) {
         //     const instructionList = this.getInstructions(groupName);
