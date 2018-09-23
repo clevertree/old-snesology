@@ -383,12 +383,32 @@
             return oldParams;
         }
 
-        addNewGroup(newGroupName) {
+        addInstructionGroup(newGroupName) {
             const songData = this.getSong();
             if(songData.instructions.hasOwnProperty(newGroupName))
                 throw new Error("New group already exists: " + newGroupName);
             songData.instructions[newGroupName] = [];
+        }
 
+        removeInstructionGroup(removedGroupName) {
+            const songData = this.getSong();
+            if(!songData.instructions.hasOwnProperty(removedGroupName))
+                throw new Error("Existing group not found: " + removedGroupName);
+
+            const removedGroupData = songData.instructions[removedGroupName];
+            delete songData.instructions[removedGroupName];
+            return removedGroupData;
+        }
+
+        renameInstructionGroup(oldGroupName, newGroupName) {
+            const songData = this.getSong();
+            if(!songData.instructions.hasOwnProperty(oldGroupName))
+                throw new Error("Existing group not found: " + oldGroupName);
+            if(songData.instructions.hasOwnProperty(newGroupName))
+                throw new Error("New group already exists: " + newGroupName);
+            const groupData = songData.instructions[oldGroupName];
+            delete songData.instructions[oldGroupName];
+            songData.instructions[oldGroupName] = newGroupName;
         }
 
         // setInstruction(position, instruction, groupName) {

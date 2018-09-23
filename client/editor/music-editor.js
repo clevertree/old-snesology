@@ -1,3 +1,4 @@
+
 /**
  * Editor requires a modern browser
  * One groups displays at a time. Columns imply simultaneous instructions.
@@ -137,7 +138,7 @@
                                     if(typeof historyAction.step !== "undefined")
                                         this.status.history.currentStep = historyAction.step;
                                 }
-                                this.grid.render();
+                                this.render();
                                 break;
 
                             default:
@@ -337,9 +338,36 @@
             this.grid.render();
         }
 
-        addNewGroup(newGroupName) {
-            this.player.addNewGroup(newGroupName);
-            }
+        addInstructionGroup(newGroupName) {
+            this.player.addInstructionGroup(newGroupName);
+            const historyAction = {
+                action: 'group-add',
+                params: [newGroupName]
+            };
+            this.historyQueue(historyAction);
+            this.gridNavigate(newGroupName);
+        }
+
+        removeInstructionGroup(removedGroupName) {
+            const removedGroupData = this.player.removeInstructionGroup(removedGroupName);
+            const historyAction = {
+                action: 'group-remove',
+                params: [removedGroupName],
+                return: removedGroupData
+            };
+            this.historyQueue(historyAction);
+            this.gridNavigate();
+        }
+
+        renameInstructionGroup(oldGroupName, newGroupName) {
+            this.player.renameInstructionGroup(oldGroupName, newGroupName);
+            const historyAction = {
+                action: 'group-rename',
+                params: [oldGroupName, newGroupName]
+            };
+            this.historyQueue(historyAction);
+            this.gridNavigate(newGroupName);
+        }
 
         applyHistoryAction(action) {
             switch (action.action) {
@@ -359,6 +387,15 @@
                     break;
                 case 'params':
                     this.player.replaceInstructionParams(action.params[0], action.params[1], action.params[2]);
+                    break;
+                case 'group-add':
+                    this.player.addInstructionGroup(action.params[0]);
+                    break;
+                case 'group-remove':
+                    this.player.removeInstructionGroup(action.params[0]);
+                    break;
+                case 'group-rename':
+                    this.player.renameInstructionGroup(action.params[0], action.params[1]);
                     break;
                 case 'group':
                     for (let i = 0; i < action.params.length; i++) {
@@ -876,42 +913,41 @@
                     noteCSS.push('cursor');
                 }
 
-                if(typeof instruction.command !== "undefined") {
 
-                    if (instruction.command[0] === '!') {
-                        const functionName = instruction.command.substr(1);
-                        switch (functionName) {
-                            case 'pause':
-                                var pauseCSS = (odd = !odd) ? ['odd'] : [];
-                                if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.pause) / beatsPerMeasure))
-                                    pauseCSS.push('measure-end');
+                if (instruction.command[0] === '!') {
+                    const functionName = instruction.command.substr(1);
+                    switch (functionName) {
+                        case 'pause':
+                            var pauseCSS = (odd = !odd) ? ['odd'] : [];
+                            if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.pause) / beatsPerMeasure))
+                                pauseCSS.push('measure-end');
+                            if(!instruction.pause)
+                                console.warn("Invalid Pause command: ", position, instruction);
+                            // lastPause = instruction.pause;
+                            songPosition += instruction.pause;
 
-                                // lastPause = instruction.pause;
-                                songPosition += instruction.pause;
+                            if (selectedRow)
+                                pauseCSS.push('selected');
 
-                                if (selectedRow)
-                                    pauseCSS.push('selected');
+                            addRowHTML(cellHTML, position, instruction.pause);
+                            cellHTML = '';
+                            selectedRow = false;
+                            break;
 
-                                addRowHTML(cellHTML, position, instruction.pause);
-                                cellHTML = '';
-                                selectedRow = false;
-                                break;
-
-                            default:
-                                console.error("Unknown function: " + instruction.command);
-                                break;
-                        }
-                    } else {
-                        cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
-                        cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
-                        if (typeof instruction.instrument !== 'undefined')
-                            cellHTML += `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
-                        if (typeof instruction.velocity !== 'undefined')
-                            cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                        if (typeof instruction.duration !== 'undefined')
-                            cellHTML += `<div class="grid-parameter duration">${formatDuration(instruction.duration)}</div>`;
-                        cellHTML += `</div>`;
+                        default:
+                            console.error("Unknown function: " + instruction.command);
+                            break;
                     }
+                } else {
+                    cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
+                    cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
+                    if (typeof instruction.instrument !== 'undefined')
+                        cellHTML += `<div class="grid-parameter instrument">${formatInstrumentID(instruction.instrument)}</div>`;
+                    if (typeof instruction.velocity !== 'undefined')
+                        cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                    if (typeof instruction.duration !== 'undefined')
+                        cellHTML += `<div class="grid-parameter duration">${formatDuration(instruction.duration)}</div>`;
+                    cellHTML += `</div>`;
                 }
 
 
@@ -1090,14 +1126,10 @@
                 case 'group:edit':
                     if(form.groupName.value === ':new') {
                         const songData = this.editor.player.getSong();
-                        let newGroupName;
-                        for(var i=99; i>=0; i--) {
-                            newGroupName = currentGroup + '.' + i;
-                            if(songData.instructions.hasOwnProperty(newGroupName))
-                                continue;
-                            break;
-                        }
-                        this.editor.addNewGroup(newGroupName)
+                        let newGroupName = generateNewGroupName(songData, currentGroup);
+                        newGroupName = prompt("Create new instruction group?", newGroupName);
+                        if(newGroupName)    this.editor.addInstructionGroup(newGroupName);
+                        else                console.info("Create instruction group canceled");
                     } else {
                         this.editor.gridNavigate(form.groupName.value);
                     }
@@ -1151,10 +1183,43 @@
                         console.log("Menu " + e.type, menuItem);
                         const dataCommand = menuItem.getAttribute('data-command');
                         if(dataCommand) {
-                            let menuCommand = menuCommands[dataCommand];
-                            if (!menuCommand)
-                                throw new Error("Unknown menu command: " + dataCommand);
-                            menuCommand(e, this.editor);
+                            switch(dataCommand) {
+
+                                case 'save:memory':
+                                    this.editor.saveSongToMemory();
+                                    break;
+                                case 'save:file':
+                                    this.editor.saveSongToFile();
+                                    break;
+                                case 'load:memory':
+                                    this.editor.loadSongFromMemory(e.target.getAttribute('data-guid'));
+                                    break;
+
+                                case 'group:add':
+                                    let newGroupName = generateNewGroupName(
+                                        this.editor.player.getSong(),
+                                        this.editor.grid.getGroupName()
+                                    );
+
+                                    newGroupName = prompt("Create new instruction group?", newGroupName);
+                                    if(newGroupName)    this.editor.addInstructionGroup(newGroupName);
+                                    else                console.info("Create instruction group canceled");
+                                    break;
+
+                                case 'note:command':
+                                    let insertPosition = parseInt(this.editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
+                                    const newInstruction = {
+                                        // type: 'note',
+                                        instrument: 0,
+                                        command: 'C4',
+                                        duration: 1
+                                    }; // new instruction
+                                    // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
+                                    this.editor.insertInstruction(this.editor.grid.getGroupName(), insertPosition, newInstruction);
+                                    break;
+                                default:
+                                    throw new Error("Unknown menu command: " + dataCommand);
+                            }
                             this.closeMenu();
                             return;
                         }
@@ -1289,8 +1354,9 @@
                     <li>
                         <a class="menu-item"><span class="key">G</span>roup</a>
                         <ul class="submenu submenu:group">
-                            <li><a class="menu-item" data-command=""><span class="key">I</span>nsert Group</a></li>
-                            <li><a class="menu-item" data-command=""><span class="key">D</span>elete Group</a></li>
+                            <li><a class="menu-item" data-command="group:add"><span class="key">I</span>nsert Group</a></li>
+                            <li><a class="menu-item" data-command="group:remove"><span class="key">R</span>emove Group</a></li>
+                            <li><a class="menu-item" data-command="group:rename"><span class="key">R</span>ename Group</a></li>
                         </ul>
                     </li>
                     <li><a class="menu-item disabled">Collaborate</a></li>
@@ -1409,10 +1475,6 @@
                         `&nbsp;<form class="form-group" data-command="group:edit">`
                         + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
                         + `</form>`, (value) => value === gridStatus.groupName)}
-
-                        <form class="form-group" data-command="group:edit">
-                            <button name="groupName" value=":new" class="new" >Create Group</button>
-                        </form>
 
                     </fieldset>
 
@@ -1678,25 +1740,18 @@
     };
 
 
-    // Menu Actions
-
-    const menuCommands = {
-        'save:memory': function(e, editor) { editor.saveSongToMemory(); },
-        'save:file': function(e, editor) { editor.saveSongToFile(); },
-        'load:memory': function(e, editor) { editor.loadSongFromMemory(e.target.getAttribute('data-guid')); },
-
-        'note:command': function (e, editor) {
-            let insertPosition = parseInt(editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
-            const newInstruction = {
-                // type: 'note',
-                instrument: 0,
-                command: 'C4',
-                duration: 1
-            }; // new instruction
-            // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-            editor.player.spliceInstruction(editor.grid.getGroupName(), insertPosition, undefined, newInstruction);
+    function generateNewGroupName(songData, currentGroup) {
+        let newGroupName;
+        for(let i=99; i>=0; i--) {
+            newGroupName = currentGroup + '.' + i;
+            if(songData.instructions.hasOwnProperty(newGroupName))
+                continue;
+            break;
         }
-    };
+        if(!newGroupName)
+            throw new Error("Failed to generate group name");
+        return newGroupName;
+    }
 
     // Rendering templates
 
