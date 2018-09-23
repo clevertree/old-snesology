@@ -338,11 +338,11 @@
             this.grid.render();
         }
 
-        addInstructionGroup(newGroupName) {
-            this.player.addInstructionGroup(newGroupName);
+        addInstructionGroup(newGroupName, instructionList) {
+            this.player.addInstructionGroup(newGroupName, instructionList);
             const historyAction = {
                 action: 'group-add',
-                params: [newGroupName]
+                params: [newGroupName, instructionList]
             };
             this.historyQueue(historyAction);
             this.gridNavigate(newGroupName);
@@ -389,7 +389,7 @@
                     this.player.replaceInstructionParams(action.params[0], action.params[1], action.params[2]);
                     break;
                 case 'group-add':
-                    this.player.addInstructionGroup(action.params[0]);
+                    this.player.addInstructionGroup(action.params[0], action.params[1]);
                     break;
                 case 'group-remove':
                     this.player.removeInstructionGroup(action.params[0]);
@@ -1128,7 +1128,7 @@
                         const songData = this.editor.player.getSong();
                         let newGroupName = generateNewGroupName(songData, currentGroup);
                         newGroupName = prompt("Create new instruction group?", newGroupName);
-                        if(newGroupName)    this.editor.addInstructionGroup(newGroupName);
+                        if(newGroupName)    this.editor.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
                         else                console.info("Create instruction group canceled");
                     } else {
                         this.editor.gridNavigate(form.groupName.value);
@@ -1204,6 +1204,17 @@
                                     newGroupName = prompt("Create new instruction group?", newGroupName);
                                     if(newGroupName)    this.editor.addInstructionGroup(newGroupName);
                                     else                console.info("Create instruction group canceled");
+                                    break;
+
+                                case 'group:remove':
+                                    this.editor.removeInstructionGroup(this.editor.grid.getGroupName());
+                                    break;
+
+                                case 'group:rename':
+                                    let renameGroupName = prompt("Rename instruction group?", this.editor.grid.getGroupName());
+
+                                    if(renameGroupName)     this.editor.renameInstructionGroup(this.editor.grid.getGroupName(), renameGroupName);
+                                    else                    console.info("Rename instruction group canceled");
                                     break;
 
                                 case 'note:command':
@@ -1476,6 +1487,10 @@
                         + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
                         + `</form>`, (value) => value === gridStatus.groupName)}
 
+                        <form class="form-group" data-command="group:edit">
+                            <button name="groupName" value=":new" class="new" title="Create new group">+</button>
+                        </form>
+
                     </fieldset>
 
                 </div>
@@ -1584,7 +1599,7 @@
                 case 'groups':
                     options = [];
                     Object.keys(this.editor.getSong().instructions).map(function(key, i) {
-                        options.push([key, '@' + key]);
+                        options.push([key, key]);
                     });
                     break;
 
@@ -1743,10 +1758,9 @@
     function generateNewGroupName(songData, currentGroup) {
         let newGroupName;
         for(let i=99; i>=0; i--) {
-            newGroupName = currentGroup + '.' + i;
-            if(songData.instructions.hasOwnProperty(newGroupName))
-                continue;
-            break;
+            const currentGroupName = currentGroup + '.' + i;
+            if(!songData.instructions.hasOwnProperty(currentGroupName))
+                newGroupName = currentGroupName;
         }
         if(!newGroupName)
             throw new Error("Failed to generate group name");
