@@ -401,8 +401,9 @@ max-height: 15px;
 }
 
 .music-editor .editor-forms button.selected {
-    border: 1px inset;
+    /* border: 1px inset; */
     font-weight: bold;
+    box-shadow: #333 1px 1px 4px;
 }
 
 .music-editor .editor-forms .form-group-selection {

@@ -359,6 +359,8 @@
 
         replaceInstructionParams(groupName, replacePosition, replaceParams) {
             let instructionList = this.getInstructions(groupName);
+            if (replacePosition === null || typeof replacePosition === "undefined")
+                throw new Error("Invalid replacePosition for groupName: " + groupName);
             if (instructionList.length < replacePosition)
                 throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
 

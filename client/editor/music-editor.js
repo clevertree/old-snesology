@@ -731,8 +731,8 @@
                         }
                     }
 
-                    let cursorPosition = this.editor.grid.getCursorPosition();
-                    const currentGroup = this.editor.grid.getGroupName();
+                    let cursorPosition = this.getCursorPosition();
+                    const currentGroup = this.getGroupName();
                     const instructionList = this.editor.player.getInstructions(currentGroup);
                     let cursorInstruction = instructionList[cursorPosition];
                     switch (keyEvent) {
@@ -752,8 +752,8 @@
                             if (cursorInstruction.command[0] === '@') {
                                 const groupName = cursorInstruction.command.substr(1);
                                 this.editor.gridNavigate(groupName, cursorInstruction);
-                                this.editor.gridSelect(e, 0);
-                                this.editor.grid.focus();
+                                //this.editor.gridSelect(e, 0);
+                                //this.editor.grid.focus();
                             } else {
                                 this.editor.playInstruction(cursorInstruction);
                             }
@@ -989,6 +989,23 @@
                 .map(cell => parseInt(cell.getAttribute('data-position')));
         }
 
+        getSelectedPausePositions() {
+            const currentGroup = this.getGroupName();
+            const instructionList = this.editor.player.getInstructions(currentGroup);
+            const selectedPositions = this.getSelectedPositions();
+            const selectedPausePositions = [];
+            for(let i=0; i<selectedPositions.length; i++) {
+                const selectedPosition = selectedPositions[i];
+                let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
+                if(nextPausePosition === -1) {
+                    console.warn("no pauses follow selected instruction");
+                    continue;
+                }
+                selectedPausePositions.push(nextPausePosition);
+            }
+            return selectedPausePositions;
+        }
+
         selectCell(e, cursorCell) {
             // Manage cursor cell
             if(typeof cursorCell === 'number')
@@ -1062,12 +1079,12 @@
             e.preventDefault();
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
-            let cursorPosition = this.editor.grid.getCursorPosition();
-            // let cursorInstruction = this.editor.getCursorInstruction();
+            let cursorPosition = this.editor.grid.getCursorPosition(); // TODO: get position from status, not grid
+            let selectedPausePositions = this.editor.grid.getSelectedPausePositions();
             let selectedPositions = this.editor.grid.getSelectedPositions();
-            // const selectedInstructions = this.editor.getSelectedInstructions();
             const currentGroup = this.editor.grid.getGroupName();
-            const instructionList = this.editor.player.getInstructions(currentGroup);
+
+            // const instructionList = this.editor.player.getInstructions(currentGroup);
             // const selectedPauses = this.editor.getSelectedPauses();
 
             switch(command) {
@@ -1105,18 +1122,7 @@
                     break;
 
                 case 'row:edit':
-                    const selectedPauseInstructions = [];
-                    for(let i=0; i<selectedPositions.length; i++) {
-                        const selectedPosition = selectedPositions[i];
-                        let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
-                        if(nextPausePosition === -1) {
-                            console.warn("no pauses follow selected instruction");
-                            continue;
-                        }
-                        selectedPauseInstructions.push(nextPausePosition);
-                    }
-
-                    this.editor.replaceInstructionParams(currentGroup, selectedPauseInstructions, {
+                    this.editor.replaceInstructionParams(currentGroup, selectedPausePositions, {
                         command: '!pause',
                         pause: parseFloat(form.duration.value)
                     });
@@ -1285,6 +1291,16 @@
             if(!combinedInstruction)
                 combinedInstruction = {command: 'C4'};
 
+// TODO: get position from status, not grid
+            let cursorDisabled = this.editor.grid.getCursorPosition() === null ? ' disabled' : '';
+            let selectedDisabled = this.editor.grid.getSelectedPositions().length === 0  ? ' disabled' : '';
+            let selectedPauseDisabled = this.editor.grid.getSelectedPausePositions().length === 0;
+
+            // Row Instructions
+            Array.prototype.slice.call(this.querySelectorAll('.fieldset-pause'))
+                .each(fieldset => selectedPauseDisabled ? fieldset.setAttribute('disabled') : fieldset.removeAttribute('disabled'));
+
+
             // Note Instruction
             this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command || '';
             this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument || '';
@@ -1323,6 +1339,7 @@
 
         render(gridStatus) {
             gridStatus = gridStatus || this.editor.status.grids[0];
+
             this.innerHTML =
                 `<div class="editor-menu">
                     <li>
@@ -1412,12 +1429,14 @@
         
          
                     <form class="form-pause-duration" data-command="row:edit">
-                        <label class="row-label">Row:</label>
-                        <select name="duration" title="Row Duration">
-                            <optgroup label="Row Duration">
-                                ${this.renderEditorFormOptions('durations')}
-                            </optgroup>
-                        </select>
+                        <fieldset class="fieldset-pause">
+                            <label class="row-label">Row:</label>
+                            <select name="duration" title="Row Duration">
+                                <optgroup label="Row Duration">
+                                    ${this.renderEditorFormOptions('durations')}
+                                </optgroup>
+                            </select>
+                        </fieldset>
                     </form>
                     <form class="form-pause-split" data-command="row:split">
                         <button name="split">Split</button>
