@@ -14,38 +14,19 @@ module.exports = function(appInstance, router) {
     // Web Socket
     router.ws('*', handleWebSocketRequest);
 
-    app.addWebSocketEventListener = addWebSocketEventListener;
+    app.addWebSocketListener = addWebSocketListener;
 };
 
-const webSocketEventListeners = [];
-function addWebSocketEventListener(type, callback) {
-    webSocketEventListeners.push([type, callback]);
+const webSocketListeners = [];
+function addWebSocketListener(callback) {
+    webSocketListeners.push(callback);
 }
 
 function handleWebSocketRequest(ws, req) {
     console.info("WS connection: ", req.headers["user-agent"]);
-    ws.on('message', function(msg) {
-        ws.send("ECHO " + msg);
-
-        if(msg[0] === '{') {
-            const json = JSON.parse(msg);
-            if(typeof json.type === "undefined") {
-                console.error("JSON Message did not contain a type parameter", json);
-            } else {
-
-                for(let i=0; i<webSocketEventListeners.length; i++) {
-                    const listener = webSocketEventListeners[i];
-                    const regex = new RegExp("^" + listener[0].split("*").join(".*") + "$");
-                    if(regex.test(json.type)) {
-                        listener[1](json, ws, req);
-                    } else {
-                        console.error("Unhandled JSON message type: " + json.type, json);
-                    }
-                }
-            }
-        } else {
-            console.error("Unhandled message: ", msg);
-        }
-    });
+    for(let i=0; i<webSocketListeners.length; i++) {
+        const listener = webSocketListeners[i];
+        listener(ws, req);
+    }
 }
 

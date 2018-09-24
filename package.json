@@ -14,7 +14,9 @@
   "keywords": [
     "video",
     "game",
-    "music"
+    "music",
+    "editor",
+    "player"
   ],
   "author": "Ari Asulin",
   "license": "GNU GPLv3",
@@ -26,6 +28,7 @@
     "express": "^4.16.3",
     "express-ws": "^4.0.0",
     "redis": "^2.8.0",
-    "simple-git": "^1.95.1"
+    "simple-git": "^1.95.1",
+    "uuid": "^3.3.2"
   }
 }

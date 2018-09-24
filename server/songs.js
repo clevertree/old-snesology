@@ -11,7 +11,7 @@ module.exports = function(appInstance, router) {
     // API Routes
     router.post('/songs/*', httpSongsRequest);
 
-    app.addWebSocketEventListener('history:*', handleHistoryWebSocketEvent);
+    app.addWebSocketListener(handleWebSocketRequest);
 };
 
 // API Routes
@@ -49,7 +49,8 @@ function httpSongsRequest(req, res) {
     return res.json(response);
 }
 
-var historyListeners = {};
+const historyListeners = {};
+
 function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
     const db = app.redisClient;
     const songPath = url.parse(jsonRequest.path).pathname;
@@ -72,6 +73,18 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
                 if(!oldJSONEntry || jsonRequest.historyAction.step === oldJSONEntry.step + 1) {
                     // Step is incremented as expected
                     db.rpush(keyPath, JSON.stringify(jsonRequest.historyAction));
+
+                    for(let i=0; i<listeners.length; i++) {
+                        const listener = listeners[i];
+                        if(listener === ws)
+                            continue;
+                        if(!isActive(listener))
+                            continue;
+                        listener.send(JSON.stringify({
+                            type: 'history:entry',
+                            historyActions: [jsonRequest.historyAction]
+                        }));
+                    }
                 } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
                     // Step is out of date
                     throw new Error("Step is out of date");
@@ -94,11 +107,17 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             db.lrange(keyPath, 0, -1, function(err, resultList) {
                 if(err)
                     throw new Error(err);
-                const historyActions = [];
-                for(let i=0; i<resultList.length; i++) {
-                    const jsonEntry = JSON.parse(resultList[i]); // TODO history step
-                    historyActions.push(jsonEntry);
-                }
+
+                const songContent = fs.existsSync(songPath)
+                    ? JSON.parse(fs.readFileSync(songPath, 'utf8'))
+                    : generateDefaultSong();
+                const historyActions = [{
+                    action: 'reset',
+                    songContent: songContent
+                }];
+                for(let i=0; i<resultList.length; i++)
+                    historyActions.push(JSON.parse(resultList[i]));
+
                 ws.send(JSON.stringify({
                     type: 'history:entry',
                     historyActions: historyActions
@@ -106,6 +125,51 @@ function handleHistoryWebSocketEvent(jsonRequest, ws, req) {
             });
             break;
     }
-
-
 }
+
+function generateDefaultSong() {
+    const uuidv4 = require('uuid/v4');
+    const UUID = uuidv4(); // -> '110ec58a-a0f2-4ac4-8393-c866d813b8d1'
+    return {
+        "name": "New Song",
+        "source": "https://snesology.net/songs/share/" + UUID + ".json",
+        "version": "v0.0.1",
+        "description": "New Song",
+        "instruments": [],
+        "instructions": {
+            "root": []
+        }
+    };
+}
+
+function isActive(listener) {
+    if (listener.readyState === listener.OPEN)
+        return true;
+
+    // TODO: inefficient
+    for(const historyKey in historyListeners) {
+        if(historyListeners.hasOwnProperty(historyKey)) {
+            const listeners = historyListeners[historyKey];
+            const pos = listeners.indexOf(listener);
+            if(pos !== -1) {
+                listeners.splice(pos, 1);
+                console.info("Removed closed listener from history key: " + historyKey);
+            }
+        }
+    }
+    return false;
+}
+
+function handleWebSocketRequest(ws, req) {
+    ws.on('message', function(msg) {
+        if (msg[0] === '{') {
+            const json = JSON.parse(msg);
+            if (typeof json.type !== "undefined") {
+                if (json.type.indexOf('history:') === 0) {
+                    handleHistoryWebSocketEvent(json, ws, req);
+                }
+            }
+        }
+    });
+}
+

@@ -29,7 +29,7 @@
 .music-editor .editor-grid .grid-row {
     cursor: pointer;
     background-color: #999;
-    height: 18px;
+    height: 19px;
     position: relative;
     transition: background-color 0.1s ease-out;
 }
@@ -90,7 +90,7 @@
 .music-editor .editor-grid .grid-cell.selected {
     font-weight: bold;
     max-width: 1000px;
-    box-shadow: #441200 0 0 10px;
+    box-shadow: #6b6b6b 0 0px 3px;
     z-index: 2;
     /* position: relative; */
 }
@@ -110,28 +110,44 @@
 }
 
 .music-editor .editor-grid .grid-parameter:not(:first-child) {
-    margin-left: 3px;
-    padding-left: 3px;
-    border-left: 1px solid #888;
     max-width: 40px;
     opacity: 1;
     transition: all 0.25s ease-out;
 }
 
+.music-editor .editor-grid .grid-parameter.command {
+    color: darkred;
+}
 .music-editor .editor-grid .grid-parameter.instrument {
     color: darkblue;
-}
-.music-editor .editor-grid .grid-parameter.groupExecute {
-    color: green;
-}
-.music-editor .editor-grid .grid-parameter.frequency {
-    color: darkred;
+    max-width: 0px;
 }
 .music-editor .editor-grid .grid-parameter.duration {
     color: purple;
+    max-width: 0px;
 }
 .music-editor .editor-grid .grid-parameter.velocity {
     color: green;
+    max-width: 0px;
+}
+.music-editor.show-parameter-instrument .grid-parameter.instrument,
+.music-editor .editor-grid .grid-cell.selected .grid-parameter.instrument,
+.music-editor .editor-grid .grid-cell.cursor .grid-parameter.instrument,
+.music-editor .editor-grid .grid-cell.playing .grid-parameter.instrument,
+
+.music-editor.show-parameter-duration .grid-parameter.duration,
+.music-editor .editor-grid .grid-cell.selected .grid-parameter.duration,
+.music-editor .editor-grid .grid-cell.cursor .grid-parameter.duration,
+.music-editor .editor-grid .grid-cell.playing .grid-parameter.duration,
+
+.music-editor.show-parameter-velocity .grid-parameter.velocity,
+.music-editor .editor-grid .grid-cell.selected .grid-parameter.velocity,
+.music-editor .editor-grid .grid-cell.cursor .grid-parameter.velocity,
+.music-editor .editor-grid .grid-cell.playing .grid-parameter.velocity{
+    border-left: 1px solid #888;
+    max-width: 40px;
+    margin-left: 3px;
+    padding-left: 3px;
 }
 
 
@@ -300,21 +316,29 @@
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
     /* margin: 0px 0; */
-    padding: 2px 0px;
+    padding: 1px 2px 1px 0px;
     display: inline-block;
 }
-.music-editor .editor-forms form fieldset {
-    
-border: 0;
-    
-padding: 0 0;
-    
-margin: 0 0;
+.music-editor .editor-forms .form-group-selection > form {
+    float: left;
+    padding: 0px 2px 3px 0px;
+}
+
+.music-editor .editor-forms fieldset{
+    border: 0px;
+    padding: 0 0;
+    margin: 0 0;
+}
+
+.music-editor .editor-forms fieldset legend{
+    text-align: center;
+    font-size: xx-small;
+    font-weight: bold;
 }
 
 .music-editor .editor-forms label.row-label {
     display: inline-block;
-    min-width: 50px;
+    min-width: 57px;
     text-align: right;
     font-size: smaller;
     font-weight: bold;
@@ -329,12 +353,12 @@ margin: 0 0;
     border-radius: 5px;
     border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
-    max-width: 100px;
+    max-width: 87px;
     cursor: pointer;
 }
 
 .music-editor .editor-forms select[name=instrument] {
-    max-width: 100px;
+    max-width: 88px;
 }
 .music-editor .editor-forms select[name=frequency] {
     max-width: 42px;
@@ -355,6 +379,23 @@ margin: 0 0;
     max-width: 133px;
 }
 
+.music-editor .editor-forms input[name=volume] {
+    max-width: 71px;
+    max-height: 10px;
+    padding: 0;
+    margin: 0;
+    background-color: grey;
+}
+
+.music-editor .editor-forms div.volume-container {
+
+border: 1px solid #AAA;
+
+border-radius: 6px;
+
+max-height: 15px;
+}
+
 .music-editor:not(.playing) form.form-song-pause { display: none; }
 .music-editor.playing form.form-song-play { display: none; }
 .music-editor:not(.paused) form.form-song-resume { display: none; }
@@ -366,6 +407,29 @@ margin: 0 0;
 }
 
 .music-editor .editor-forms button.selected {
-    border: 1px inset;
+    /* border: 1px inset; */
     font-weight: bold;
+    box-shadow: #333 1px 1px 4px;
+}
+
+.music-editor .editor-forms .form-group-selection {
+    border: 0px;
+    border: 1px outset #FFF;
+    padding: 1px 2px 0px 2px;
+    margin: 0px 1px 0px 1px;
+}
+.music-editor .editor-forms .form-group-selection > legend {
+    margin: 0px 0 -3px 0;
+}
+.music-editor .editor-forms .form-group-selection form.form-group > button {
+    font-size: smaller;
+    padding: 0px 3px 2px 2px;
+    min-width: 18px;
+}
+.music-editor .editor-forms .form-group-selection form.form-group > button.new {
+    color: #444;
+}
+.music-editor .editor-forms .form-separator {
+    height: 0px;
+    margin: 0;
 }
