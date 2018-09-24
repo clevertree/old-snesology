@@ -17,7 +17,7 @@
             this.config = DEFAULT_CONFIG;
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
             this.status = {
-                grids: [{groupName: DEFAULT_GROUP, selectedPositions: []}],
+                grids: [{groupName: DEFAULT_GROUP, cursorPosition: 0, selectedPositions: []}],
                 history: {
                     currentStep: 0,
                     undoList: [],
@@ -29,10 +29,8 @@
             this.initialSongJSON = null; // TODO: refactor
         }
         get grid() { return this.querySelector('music-editor-grid'); }
+        get gridStatus() { return this.status.grids[0]; }
         get menu() { return this.querySelector('music-editor-menu'); }
-
-        // get selectedPositions() { return this.status.grids[0].selectedPositions; }
-        // get cursorPosition() { return this.status.grids[0].cursorPosition; }
 
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player.getSong(); }
@@ -174,7 +172,7 @@
                     }
                     break;
 
-    
+
                 default:
                     console.error("Unhandled " + e.type, e);
             }
@@ -228,16 +226,16 @@
 
         // getSelectedInstructions() {
         //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
-        //     return this.status.grids[0].selectedPositions.map(p => instructionList[p]);
+        //     return this.gridStatus.selectedPositions.map(p => instructionList[p]);
         // }
 
         // getCursorInstruction() {
-        //     return this.player.getInstructions(this.grid.getGroupName())[this.status.grids[0].cursorPosition];
+        //     return this.player.getInstructions(this.grid.getGroupName())[this.gridStatus.cursorPosition];
         // }
 
         // deleteInstructions(deletePositions) {
         //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
-        //     // deletePositions = deletePositions || this.status.grids[0].selectedPositions;
+        //     // deletePositions = deletePositions || this.gridStatus.selectedPositions;
         //     deletePositions.sort((a, b) => b - a);
         //     for(let i=0; i<deletePositions.length; i++) {
         //         const position = deletePositions[i];
@@ -356,7 +354,7 @@
                 return: removedGroupData
             };
             this.historyQueue(historyAction);
-            this.gridNavigate();
+            this.gridNavigatePop();
         }
 
         renameInstructionGroup(oldGroupName, newGroupName) {
@@ -463,7 +461,7 @@
             this.innerHTML = `
                 <div class="music-editor">
                     <music-editor-menu></music-editor-menu>
-                    <music-editor-grid data-group="${this.status.grids[0].groupName}" tabindex="1">
+                    <music-editor-grid tabindex="1">
                     </music-editor-grid>
                 </div>
             `;
@@ -473,7 +471,7 @@
 
         gridSelect(e, cursorPosition) {
             const inputProfile = profileInput(e);
-            const gridStatus = this.status.grids[0];
+            const gridStatus = this.gridStatus;
             cursorPosition = parseInt(cursorPosition);
             const lastCursorPosition = gridStatus.cursorPosition || 0;
             gridStatus.cursorPosition = cursorPosition;
@@ -507,22 +505,23 @@
 
         gridNavigate(groupName, parentInstruction) {
             console.log("Navigate: ", groupName);
-            if(groupName === null) {
+            const existingGrid = this.status.grids.find(obj => obj.groupName === groupName);
+            if(existingGrid)
+                this.status.grids.unshift(existingGrid);
+            else
+                this.status.grids.unshift({
+                    groupName: groupName,
+                    parentInstruction: parentInstruction,
+                    selectedPositions: [],
+                    cursorPosition: 0
+                });
+            this.render();
+        }
+
+        gridNavigatePop() {
+            console.log("Navigate Back: ", this.status.grids[0].groupName);
+            if(this.status.grids.length > 0)
                 this.status.grids.shift();
-                if(this.status.grids.length === 0)
-                    this.status.grids = [{groupName: DEFAULT_GROUP}]
-            } else {
-                const existingGrid = this.status.grids.find(obj => obj.groupName === groupName);
-                if(existingGrid)
-                    this.status.grids.unshift(existingGrid);
-                else
-                    this.status.grids.unshift({
-                        groupName: groupName,
-                        parentInstruction: parentInstruction,
-                        selectedPositions: [],
-                        cursorPosition: 0
-                    });
-            }
             this.render();
         }
 
@@ -593,7 +592,7 @@
             }
         }
 
-        
+
         // Input
 
     }
@@ -606,9 +605,9 @@
 
         get editor() { return this.parentNode.parentNode; }
 
-        get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
+        // get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
         get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected'); }
-        get currentCellPosition() { return parseInt(this.currentCell.getAttribute('data-position')); }
+        // get currentCellPosition() { return parseInt(this.currentCell.getAttribute('data-position')); }
 
         get nextCell() {
             let target = this.currentCell;
@@ -731,19 +730,19 @@
                         }
                     }
 
-                    let cursorPosition = this.getCursorPosition();
+                    let cursorPosition = this.editor.gridStatus.cursorPosition;
                     const currentGroup = this.getGroupName();
                     const instructionList = this.editor.player.getInstructions(currentGroup);
                     let cursorInstruction = instructionList[cursorPosition];
                     switch (keyEvent) {
                         case 'Delete':
-                            this.editor.deleteInstructions(this.getGroupName(), this.getSelectedPositions());
+                            this.editor.deleteInstructions(this.getGroupName(), this.editor.gridStatus.selectedPositions);
                             e.preventDefault();
                             // editor.render(true);
                             break;
                         case 'Escape':
                         case 'Backspace':
-                            this.editor.gridNavigate(null);
+                            this.editor.gridNavigatePop();
                             this.editor.gridSelect(e, 0);
                             this.editor.grid.focus();
                             e.preventDefault();
@@ -884,8 +883,9 @@
             return this.editor.deleteInstruction(this.getGroupName(), deletePosition, 1);
         }
 
-        render(gridStatus) {
-            gridStatus = gridStatus || this.editor.status.grids[0];
+        render() {
+            const gridStatus = this.editor.gridStatus;
+            const groupName = gridStatus.groupName;
             const selectedPositions = gridStatus.selectedPositions;
             const cursorPosition = gridStatus.cursorPosition;
             const editor = this.editor;
@@ -893,9 +893,9 @@
             const beatsPerMinute = song.beatsPerMinute;
             const beatsPerMeasure = song.beatsPerMeasure;
             // var pausesPerBeat = song.pausesPerBeat;
-            const instructionList = song.instructions[this.getGroupName()];
+            const instructionList = song.instructions[groupName];
             if(!instructionList)
-                throw new Error("Could not find instruction groupName: " + this.getGroupName());
+                throw new Error("Could not find instruction groupName: " + groupName);
 
             let odd = false, selectedRow = false;
 
@@ -975,36 +975,7 @@
             }
         }
 
-        getGroupName() { return this.getAttribute('data-group');}
-
-        getCursorPosition() {
-            const cursorCell = this.querySelector('.grid-cell.cursor');
-            if(cursorCell)
-                return parseInt(cursorCell.getAttribute('data-position'));
-            return null;
-        }
-
-        getSelectedPositions() {
-            return Array.prototype.slice.call(this.querySelectorAll('.grid-cell.selected'))
-                .map(cell => parseInt(cell.getAttribute('data-position')));
-        }
-
-        getSelectedPausePositions() {
-            const currentGroup = this.getGroupName();
-            const instructionList = this.editor.player.getInstructions(currentGroup);
-            const selectedPositions = this.getSelectedPositions();
-            const selectedPausePositions = [];
-            for(let i=0; i<selectedPositions.length; i++) {
-                const selectedPosition = selectedPositions[i];
-                let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
-                if(nextPausePosition === -1) {
-                    console.warn("no pauses follow selected instruction");
-                    continue;
-                }
-                selectedPausePositions.push(nextPausePosition);
-            }
-            return selectedPausePositions;
-        }
+        getGroupName() { return this.editor.gridStatus.groupName;}
 
         selectCell(e, cursorCell) {
             // Manage cursor cell
@@ -1066,6 +1037,7 @@
         }
 
         get editor() { return this.parentNode.parentNode; }
+        get grid() { return this.editor.grid; } // Grid associated with menu
 
         connectedCallback() {
             this.addEventListener('mousedown', this.onInput);
@@ -1079,13 +1051,12 @@
             e.preventDefault();
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
-            let cursorPosition = this.editor.grid.getCursorPosition(); // TODO: get position from status, not grid
-            let selectedPausePositions = this.editor.grid.getSelectedPausePositions();
-            let selectedPositions = this.editor.grid.getSelectedPositions();
-            const currentGroup = this.editor.grid.getGroupName();
+            let cursorPosition = this.editor.gridStatus.cursorPosition;
 
-            // const instructionList = this.editor.player.getInstructions(currentGroup);
-            // const selectedPauses = this.editor.getSelectedPauses();
+            const currentGroup = this.editor.gridStatus.groupName;
+            const instructionList = this.editor.player.getInstructions(currentGroup);
+            const selectedPositions = this.editor.gridStatus.selectedPositions;
+            const selectedPausePositions = searchSelectedPausePositions(instructionList, selectedPositions);
 
             switch(command) {
                 case 'instruction:command':
@@ -1270,12 +1241,12 @@
         }
 
         update(gridStatus) {
-            const groupInstructions = this.editor.player.getInstructions(gridStatus.groupName);
+            const instructionList = this.editor.player.getInstructions(gridStatus.groupName);
             let combinedInstruction = null;
             for(let i=0; i<gridStatus.selectedPositions.length; i++) {
                 const selectedPosition = gridStatus.selectedPositions[i];
-                const selectedInstruction = groupInstructions[selectedPosition];
-                const nextPause = groupInstructions.find((i, p) => i.pause > 0 && p > selectedPosition);
+                const selectedInstruction = instructionList[selectedPosition];
+                const nextPause = instructionList.find((i, p) => i.pause > 0 && p > selectedPosition);
                 if(combinedInstruction === null) {
                     combinedInstruction = Object.assign({}, selectedInstruction);
                     if(nextPause) combinedInstruction.pause = nextPause.pause;
@@ -1292,13 +1263,14 @@
                 combinedInstruction = {command: 'C4'};
 
 // TODO: get position from status, not grid
-            let cursorDisabled = this.editor.grid.getCursorPosition() === null ? ' disabled' : '';
-            let selectedDisabled = this.editor.grid.getSelectedPositions().length === 0  ? ' disabled' : '';
-            let selectedPauseDisabled = this.editor.grid.getSelectedPausePositions().length === 0;
+            let selectedPausePositions = searchSelectedPausePositions(instructionList, this.editor.gridStatus.selectedPositions);
+            // let selectedPauseDisabled = this.editor.grid.gridSelectedPausePositions().length === 0;
 
             // Row Instructions
             Array.prototype.slice.call(this.querySelectorAll('.fieldset-pause'))
-                .each(fieldset => selectedPauseDisabled ? fieldset.setAttribute('disabled') : fieldset.removeAttribute('disabled'));
+                .forEach(fieldset => selectedPausePositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
+            Array.prototype.slice.call(this.querySelectorAll('.fieldset-instruction'))
+                .forEach(fieldset => this.editor.gridStatus.selectedPositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
 
 
             // Note Instruction
@@ -1338,7 +1310,7 @@
         }
 
         render(gridStatus) {
-            gridStatus = gridStatus || this.editor.status.grids[0];
+            gridStatus = gridStatus || this.editor.gridStatus;
 
             this.innerHTML =
                 `<div class="editor-menu">
@@ -1439,64 +1411,84 @@
                         </fieldset>
                     </form>
                     <form class="form-pause-split" data-command="row:split">
-                        <button name="split">Split</button>
+                        <fieldset class="fieldset-pause">
+                            <button name="split">Split</button>
+                        </fieldset>
                     </form>
                     <form class="form-pause-duplicate" data-command="row:duplicate">
-                        <button name="duplicate" disabled>Duplicate</button>
+                        <fieldset class="fieldset-pause">
+                            <button name="duplicate" disabled>Duplicate</button>
+                        </fieldset>
                     </form>
                     <form class="form-pause-insert" data-command="row:insert">
-                        <button name="insert">+</button>
+                        <fieldset class="fieldset-pause">
+                            <button name="insert">+</button>
+                        </fieldset>
                     </form>
                     <form class="form-pause-remove" data-command="row:remove">
-                        <button name="remove">-</button>
+                        <fieldset class="fieldset-pause">
+                            <button name="remove">-</button>
+                        </fieldset>
                     </form>
                     
 
                     <br/>
                     <label class="row-label">Command:</label>
                     <form class="form-instruction-command" data-command="instruction:command">
-                        <select name="command" title="Command">
-                            <option value="">Command (Choose)</option>
-                            <optgroup label="Group Execute">
-                                ${this.renderEditorFormOptions('command-group-execute')}
-                            </optgroup>
-                            <optgroup label="Frequencies">
-                                ${this.renderEditorFormOptions('command-frequencies')}
-                            </optgroup>
-                        </select>
+                        <fieldset class="fieldset-instruction">
+                            <select name="command" title="Command">
+                                <option value="">Command (Choose)</option>
+                                <optgroup label="Group Execute">
+                                    ${this.renderEditorFormOptions('command-group-execute')}
+                                </optgroup>
+                                <optgroup label="Frequencies">
+                                    ${this.renderEditorFormOptions('command-frequencies')}
+                                </optgroup>
+                            </select>
+                        </fieldset>
                     </form>
                     <form class="form-instruction-instrument" data-command="instruction:instrument">
-                        <select name="instrument" title="Note Instrument">
-                            <option value="">Instrument (Default)</option>
-                            <optgroup label="Song Instruments">
-                                ${this.renderEditorFormOptions('song-instruments')}
-                            </optgroup>
-                            <optgroup label="Available Instruments">
-                                ${this.renderEditorFormOptions('instruments-available')}
-                            </optgroup>
-                        </select>
+                        <fieldset class="fieldset-instruction">
+                            <select name="instrument" title="Note Instrument">
+                                <option value="">Instrument (Default)</option>
+                                <optgroup label="Song Instruments">
+                                    ${this.renderEditorFormOptions('song-instruments')}
+                                </optgroup>
+                                <optgroup label="Available Instruments">
+                                    ${this.renderEditorFormOptions('instruments-available')}
+                                </optgroup>
+                            </select>
+                        </fieldset>
                     </form>
                     <form class="form-instruction-duration" data-command="instruction:duration">
-                        <select name="duration" title="Note Duration">
-                            <optgroup label="Note Duration">
-                                <option value="">Duration (Default)</option>
-                                ${this.renderEditorFormOptions('durations')}
-                            </optgroup>
-                        </select>
+                        <fieldset class="fieldset-instruction">
+                            <select name="duration" title="Note Duration">
+                                <optgroup label="Note Duration">
+                                    <option value="">Duration (Default)</option>
+                                    ${this.renderEditorFormOptions('durations')}
+                                </optgroup>
+                            </select>
+                        </fieldset>
                     </form>
                     <form class="form-instruction-velocity" data-command="instruction:velocity">
-                        <select name="velocity" title="Note Velocity">
-                            <optgroup label="Velocity">
-                                <option value="">Velocity (Default)</option>
-                                ${this.renderEditorFormOptions('velocities')}
-                            </optgroup>
-                        </select>
+                        <fieldset class="fieldset-instruction">
+                            <select name="velocity" title="Note Velocity">
+                                <optgroup label="Velocity">
+                                    <option value="">Velocity (Default)</option>
+                                    ${this.renderEditorFormOptions('velocities')}
+                                </optgroup>
+                            </select>
+                        </fieldset>
                     </form>
                     <form class="form-instruction-duplicate" data-command="instruction:duplicate">
-                        <button name="duplicate">+</button>
+                        <fieldset class="fieldset-instruction">
+                            <button name="duplicate">+</button>
+                        </fieldset>
                     </form>
                     <form class="form-instruction-remove" data-command="instruction:remove">
-                        <button name="remove">-</button>
+                        <fieldset class="fieldset-instruction">
+                            <button name="remove">-</button>
+                        </fieldset>
                     </form>
                     
                     <fieldset class="form-group-selection">
@@ -1773,6 +1765,21 @@
         'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
     };
 
+
+    function searchSelectedPausePositions(instructionList, selectedPositions) {
+        const selectedPausePositions = [];
+        for(let i=0; i<selectedPositions.length; i++) {
+            const selectedPosition = selectedPositions[i];
+            let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
+            if(nextPausePosition === -1) {
+                console.warn("no pauses follow selected instruction");
+                continue;
+            }
+            selectedPausePositions.push(nextPausePosition);
+        }
+        return selectedPausePositions;
+
+    }
 
     function generateNewGroupName(songData, currentGroup) {
         let newGroupName;

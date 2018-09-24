@@ -387,6 +387,8 @@
         }
 
         removeInstructionGroup(removedGroupName) {
+            if(removedGroupName === 'root')
+                throw new Error("Cannot remove root instruction group, n00b");
             const songData = this.getSong();
             if(!songData.instructions.hasOwnProperty(removedGroupName))
                 throw new Error("Existing group not found: " + removedGroupName);
