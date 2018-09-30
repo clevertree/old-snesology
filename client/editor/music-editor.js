@@ -1035,6 +1035,10 @@
             if (!cursorCell)
                 throw new Error("Invalid cursor cell");
 
+            const oldCursorScrollPosition = this.currentCell ? this.currentCell.parentNode.offsetTop: 0;
+            const cursorScrollDiff = oldCursorScrollPosition - cursorCell.parentNode.offsetTop;
+            this.querySelector('.editor-grid').scrollTop -= cursorScrollDiff; // TODO: tweak
+
             this.querySelectorAll('.grid-cell.cursor')
                 .forEach(elm => elm.classList.remove('cursor'));
             cursorCell.classList.add('cursor');
