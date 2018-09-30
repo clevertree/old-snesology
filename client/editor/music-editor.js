@@ -1030,21 +1030,7 @@
             return this.editor.gridSelect(e, cursorCell.getAttribute('data-position'));
         }
 
-        scrollToCursor() {
-            if(!this.currentCell)
-                return;
-            const currentCellParent = this.currentCell.parentNode;
-            const gridElm = this.querySelector('.editor-grid');
-            console.log("TODO: ", currentCellParent.offsetTop, gridElm.scrollTop, gridElm.offsetHeight);
-            if(currentCellParent.offsetTop < gridElm.scrollTop)
-                gridElm.scrollTop = currentCellParent.offsetTop;
-            if(currentCellParent.offsetTop > gridElm.scrollTop + gridElm.offsetHeight)
-                gridElm.scrollTop = currentCellParent.offsetTop - gridElm.offsetHeight + this.currentCell.offsetHeight;
-            // const cursorScrollDiff = oldCursorScrollPosition - cursorCell.parentNode.offsetTop;
-            // this.querySelector('.editor-grid').scrollTop -= cursorScrollDiff; // TODO: tweak
-        }
-
-        updateCellSelection(gridStatus, adjustScroll) {
+        updateCellSelection(gridStatus) {
             const cursorCell = this.querySelector(`.grid-cell[data-position='${gridStatus.cursorPosition}']`);
             if (!cursorCell)
                 throw new Error("Invalid cursor cell");
@@ -1068,6 +1054,18 @@
             }
 
             this.scrollToCursor();
+        }
+
+        scrollToCursor() {
+            if(!this.currentCell)
+                return;
+            const currentCellParent = this.currentCell.parentNode;
+            const gridElm = this.querySelector('.editor-grid');
+            console.log("TODO: ", currentCellParent.offsetTop, gridElm.scrollTop, gridElm.offsetHeight);
+            if(currentCellParent.offsetTop < gridElm.scrollTop)
+                gridElm.scrollTop = currentCellParent.offsetTop;
+            if(currentCellParent.offsetTop > gridElm.scrollTop + gridElm.offsetHeight)
+                gridElm.scrollTop = currentCellParent.offsetTop - gridElm.offsetHeight + this.currentCell.offsetHeight;
         }
 
         findInstruction(instruction) {
@@ -1206,6 +1204,13 @@
             if(e.defaultPrevented)
                 return;
 
+            const currentGroup = this.editor.grid.getGroupName();
+            const instructionList = this.editor.player.getInstructions(currentGroup);
+            const cursorPosition = this.editor.gridStatus.cursorPosition;
+            const cursorInstruction = instructionList[cursorPosition];
+            const selectedPositions = this.editor.gridStatus.selectedPositions;
+            const selectedPausePositions = searchSelectedPausePositions(instructionList, selectedPositions);
+
             let targetClassList = e.target.classList;
             switch(e.type) {
                 case 'keydown':
@@ -1239,7 +1244,7 @@
                                 case 'group:add':
                                     let newGroupName = generateNewGroupName(
                                         this.editor.player.getSong(),
-                                        this.editor.grid.getGroupName()
+                                        currentGroup
                                     );
 
                                     newGroupName = prompt("Create new instruction group?", newGroupName);
@@ -1248,18 +1253,16 @@
                                     break;
 
                                 case 'group:remove':
-                                    this.editor.removeInstructionGroup(this.editor.grid.getGroupName());
+                                    this.editor.removeInstructionGroup(currentGroup);
                                     break;
 
                                 case 'group:rename':
-                                    let renameGroupName = prompt("Rename instruction group?", this.editor.grid.getGroupName());
-
-                                    if(renameGroupName)     this.editor.renameInstructionGroup(this.editor.grid.getGroupName(), renameGroupName);
+                                    let renameGroupName = prompt("Rename instruction group?", currentGroup);
+                                    if(renameGroupName)     this.editor.renameInstructionGroup(currentGroup, renameGroupName);
                                     else                    console.error("Rename instruction group canceled");
                                     break;
 
-                                case 'note:command':
-                                    let insertPosition = parseInt(this.editor.querySelector('.grid-cell.selected').getAttribute('data-position'));
+                                case 'instruction:insert':
                                     const newInstruction = {
                                         // type: 'note',
                                         instrument: 0,
@@ -1267,8 +1270,40 @@
                                         duration: 1
                                     }; // new instruction
                                     // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                                    this.editor.insertInstruction(this.editor.grid.getGroupName(), insertPosition, newInstruction);
+                                    this.editor.insertInstruction(currentGroup, cursorPosition, newInstruction);
                                     break;
+
+                                case 'instruction:command':
+                                    const newCommand = prompt("Set Command:", cursorInstruction.command);
+                                    if(newCommand !== null)     this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
+                                        command: newCommand
+                                    });
+                                    else                    console.error("Set instruction command canceled");
+                                    break;
+
+                                case 'instruction:duration':
+                                    const newDuration = prompt("Set Duration:", typeof cursorInstruction.duration === 'undefined' ? 1 : cursorInstruction.duration);
+                                    if(newDuration < 0) throw new Error("Invalid duration value");
+                                    if(newDuration !== null)     this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
+                                        duration: newDuration
+                                    });
+                                    else                    console.error("Set instruction duration canceled");
+                                    break;
+
+                                case 'instruction:velocity':
+                                    const newVelocity = prompt("Set Velocity:", typeof cursorInstruction.velocity === 'undefined' ? 100 : cursorInstruction.velocity);
+                                    if(newVelocity < 0 || newVelocity > 100) throw new Error("Invalid velocity value");
+                                    if(newVelocity !== null)     this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
+                                        velocity: newVelocity
+                                    });
+                                    else                    console.error("Set instruction velocity canceled");
+                                    break;
+
+                                case 'row:split':
+                                    const splitPercentage = prompt("Split row at what percentage? ", 50);
+                                    this.editor.splitPauseInstructions(currentGroup, selectedPausePositions, splitPercentage);
+                                    break;
+
                                 default:
                                     throw new Error("Unknown menu command: " + dataCommand);
                             }
@@ -1380,7 +1415,7 @@
             this.innerHTML =
                 `<div class="editor-menu">
                     <li>
-                        <a class="menu-item">File</a>
+                        <a class="menu-item"><span class="key">F</span>ile</a>
                         <ul class="submenu">
                             <li>
                                 <a class="menu-item">Open from memory &#9658;</a>
@@ -1399,21 +1434,22 @@
                         </ul>
                     </li>
                     <li>
-                        <a class="menu-item">Note</a>
+                        <a class="menu-item"><span class="key">N</span>ote</a>
                         <ul class="submenu submenu:note">
-                            <li><a class="menu-item" data-command="note:insert">Insert <span class="key">N</span>ew Note</a></li>
-                            <li><a class="menu-item" data-command="note:instrument">Set <span class="key">I</span>nstrument</a></li>
-                            <li><a class="menu-item" data-command="note:frequency">Set <span class="key">F</span>requency</a></li>
-                            <li><a class="menu-item" data-command="note:velocity">Set <span class="key">V</span>elocity</a></li>
-                            <li><a class="menu-item" data-command="note:panning">Set <span class="key">P</span>anning</a></li>
-                            <li><a class="menu-item" data-command="note:delete"><span class="key">D</span>elete Note</a></li>
+                            <li><a class="menu-item" data-command="instruction:insert">Insert <span class="key">N</span>ew Note</a></li>
+                            <li><a class="menu-item" data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
+                            <li><a class="menu-item" data-command="instruction:instrument">Set <span class="key">I</span>nstrument</a></li>
+                            <li><a class="menu-item" data-command="instruction:duration">Set <span class="key">D</span>uration</a></li>
+                            <li><a class="menu-item" data-command="instruction:velocity">Set <span class="key">V</span>elocity</a></li>
+                            <li><a class="menu-item" data-command="instruction:panning">Set <span class="key">P</span>anning</a></li>
+                            <li><a class="menu-item" data-command="instruction:remove"><span class="key">D</span>elete Note</a></li>
                         </ul>
                     </li>
                     <li>
-                        <a class="menu-item"<span class="key">R</span>ow</a>
+                        <a class="menu-item"><span class="key">R</span>ow</a>
                         <ul class="submenu submenu:pause">
-                            <li><a class="menu-item disabled" data-command=""><span class="key">S</span>plit Pause</a></li>
-                            <li><a class="menu-item" data-command=""><span class="key">D</span>elete Row</a></li>
+                            <li><a class="menu-item" data-command="row:split"><span class="key">S</span>plit Pause</a></li>
+                            <li><a class="menu-item" data-command="row:remove"><span class="key">R</span>emove Row</a></li>
                         </ul>
                     </li>
                     <li>
@@ -1424,7 +1460,7 @@
                             <li><a class="menu-item" data-command="group:rename"><span class="key">R</span>ename Group</a></li>
                         </ul>
                     </li>
-                    <li><a class="menu-item disabled">Collaborate</a></li>
+                    <li><a class="menu-item disabled"><span class="key">C</span>ollaborate</a></li>
                 </div>
                 <ul class="editor-context-menu submenu">
                     <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
