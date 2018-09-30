@@ -345,7 +345,7 @@
             const split = [(splitPercentage / 100), ((100 - splitPercentage) / 100)];
             const instructionList = this.player.getInstructions(groupName);
             const historyActions = {action: 'group', params: []};
-            for(let i=0; i<splitPausePositions.length; i++) {
+            for(let i=splitPausePositions.length-1; i>=0; i--) {
                 const splitPausePosition = splitPausePositions[i];
                 const splitPauseDuration = instructionList[splitPausePosition].duration;
                 const splitParams = {
@@ -993,11 +993,13 @@
 
             // addRowHTML(cellHTML, instructionList.length);
 
+            const currentScrollPosition = (this.querySelector('.editor-grid') || {}).scrollTop || 0;
             this.innerHTML =
                 `<div class="editor-grid">`
                 +   editorHTML
                 + `</div>`;
 
+            this.querySelector('.editor-grid').scrollTop = currentScrollPosition;
 
             function addRowHTML(cellHTML, position, pauseLength, pauseCSS) {
                 editorHTML +=
@@ -1013,7 +1015,7 @@
             }
         }
 
-        getGroupName() { return this.editor.gridStatus.groupName;}
+        getGroupName() { return this.editor.gridStatus.groupName; }
 
         selectCell(e, cursorCell) {
             // Manage cursor cell
@@ -1813,12 +1815,13 @@
         const selectedPausePositions = [];
         for(let i=0; i<selectedPositions.length; i++) {
             const selectedPosition = selectedPositions[i];
-            let nextPausePosition = instructionList.findIndex((i, p) => i.duration > 0 && p >= selectedPosition);
+            let nextPausePosition = instructionList.findIndex((i, p) => i.command === '!pause' && p >= selectedPosition);
             if(nextPausePosition === -1) {
                 console.warn("no pauses follow selected instruction");
                 continue;
             }
-            selectedPausePositions.push(nextPausePosition);
+            if(selectedPausePositions.indexOf(nextPausePosition) === -1)
+                selectedPausePositions.push(nextPausePosition);
         }
         return selectedPausePositions;
 
