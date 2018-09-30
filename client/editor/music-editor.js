@@ -336,7 +336,7 @@
             this.grid.render();
         }
 
-        splitPauseInstructions(groupName, splitPausePositions, splitPercentage) {
+        splitInstructionRows(groupName, splitPausePositions, splitPercentage) {
             if(splitPercentage < 1 || splitPercentage > 100)
                 throw new Error("Invalid split percentage: " + splitPercentage);
             if(!Array.isArray(splitPausePositions))
@@ -373,6 +373,41 @@
                 this.historyQueue(historyActions);
             this.grid.render();
         }
+
+        // duplicateInstructionRows(groupName, splitPausePositions) {
+        //     if(!Array.isArray(splitPausePositions))
+        //         splitPausePositions = [splitPausePositions];
+        //
+        //     const instructionList = this.player.getInstructions(groupName);
+        //     const historyActions = {action: 'group', params: []};
+        //     for(let i=splitPausePositions.length-1; i>=0; i--) {
+        //         const splitPausePosition = splitPausePositions[i];
+        //         const splitPauseDuration = instructionList[splitPausePosition].duration;
+        //         const splitParams = {
+        //             duration: split[0] * splitPauseDuration
+        //         };
+        //         const oldParams = this.player.replaceInstructionParams(groupName, splitPausePosition, splitParams);
+        //         historyActions.params.push({
+        //             action: 'params',
+        //             params: [groupName, splitPausePosition, splitParams],
+        //             return: oldParams
+        //         });
+        //         const newPauseInstruction = {
+        //             command: '!pause',
+        //             duration: split[1] * splitPauseDuration
+        //         };
+        //         this.player.replaceInstruction(groupName, splitPausePosition+1, 0, newPauseInstruction);
+        //         historyActions.params.push({
+        //             action: 'insert',
+        //             params: [groupName, splitPausePosition+1, newPauseInstruction]
+        //         });
+        //     }
+        //     if(historyActions.params.length <= 1)
+        //         this.historyQueue(historyActions.params[0]);
+        //     else
+        //         this.historyQueue(historyActions);
+        //     this.grid.render();
+        // }
 
         addInstructionGroup(newGroupName, instructionList) {
             this.player.addInstructionGroup(newGroupName, instructionList);
@@ -1159,7 +1194,11 @@
 
                 case 'row:split':
                     const splitPercentage = prompt("Split row at what percentage? ", 50);
-                    this.editor.splitPauseInstructions(currentGroup, selectedPausePositions, splitPercentage);
+                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
+                    break;
+
+                case 'row:duplicate':
+                    this.editor.duplicateInstructionRows(currentGroup, selectedPausePositions);
                     break;
 
                 case 'group:edit':
@@ -1301,7 +1340,7 @@
 
                                 case 'row:split':
                                     const splitPercentage = prompt("Split row at what percentage? ", 50);
-                                    this.editor.splitPauseInstructions(currentGroup, selectedPausePositions, splitPercentage);
+                                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
                                     break;
 
                                 default:
@@ -1518,7 +1557,7 @@
                     </form>
                     <form class="form-pause-duplicate" data-command="row:duplicate">
                         <fieldset class="fieldset-pause">
-                            <button name="duplicate" disabled>Duplicate</button>
+                            <button name="duplicate">Duplicate</button>
                         </fieldset>
                     </form>
                     <form class="form-pause-insert" data-command="row:insert">
