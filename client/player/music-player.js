@@ -62,9 +62,8 @@
             songData.instructions = (songData.instructions || {});
             songData.instructions[songData.root] = songData.instructions[songData.root] || [];
             this.song = songData;
-            Object.keys(songData.instructions).map(function(groupName, i) {
-                this.processInstructions(groupName)
-            }.bind(this));
+            Object.keys(songData.instructions).map((groupName, i) =>
+                this.processInstructions(groupName));
             // TODO check all groups were processed
             // this.update();
         }
@@ -80,7 +79,7 @@
 
         processInstruction(instruction) {
             if (typeof instruction === 'number')
-                instruction = {command: '!pause', pause: instruction};
+                instruction = {command: '!pause', duration: instruction};
             if (typeof instruction === 'string')
                 instruction = instruction.split(':');
             if (Array.isArray(instruction))
@@ -294,8 +293,8 @@
                             const functionName = instruction.command.substr(1);
                             switch(functionName) {
                                 case 'pause':
-                                    stats.groupPosition += instruction.pause;
-                                    stats.groupPlaytime += instruction.pause * (60 / stats.currentBPM);
+                                    stats.groupPosition += instruction.duration;
+                                    stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
                                     if(stats.groupPlaytime > stats.maxPlaytime)
                                         stats.maxPlaytime = stats.groupPlaytime;
                                     break;

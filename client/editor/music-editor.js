@@ -86,7 +86,7 @@
                 throw new Error("WebSocket is supported by your Browser!");
 
             // Let us open a web socket
-            var ws = new WebSocket(
+            const ws = new WebSocket(
                 (location.protocol === 'https:' ? "wss://" : "ws://")
                 + document.location.hostname + ":" + document.location.port);
             const onWebSocketEvent = this.onWebSocketEvent.bind(this);
@@ -333,6 +333,44 @@
             else
                 this.historyQueue(historyActions);
 
+            this.grid.render();
+        }
+
+        splitPauseInstructions(groupName, splitPausePositions, splitPercentage) {
+            if(splitPercentage < 1 || splitPercentage > 100)
+                throw new Error("Invalid split percentage: " + splitPercentage);
+            if(!Array.isArray(splitPausePositions))
+                splitPausePositions = [splitPausePositions];
+
+            const split = [(splitPercentage / 100), ((100 - splitPercentage) / 100)];
+            const instructionList = this.player.getInstructions(groupName);
+            const historyActions = {action: 'group', params: []};
+            for(let i=splitPausePositions.length-1; i>=0; i--) {
+                const splitPausePosition = splitPausePositions[i];
+                const splitPauseDuration = instructionList[splitPausePosition].duration;
+                const splitParams = {
+                    duration: split[0] * splitPauseDuration
+                };
+                const oldParams = this.player.replaceInstructionParams(groupName, splitPausePosition, splitParams);
+                historyActions.params.push({
+                    action: 'params',
+                    params: [groupName, splitPausePosition, splitParams],
+                    return: oldParams
+                });
+                const newPauseInstruction = {
+                    command: '!pause',
+                    duration: split[1] * splitPauseDuration
+                };
+                this.player.replaceInstruction(groupName, splitPausePosition+1, 0, newPauseInstruction);
+                historyActions.params.push({
+                    action: 'insert',
+                    params: [groupName, splitPausePosition+1, newPauseInstruction]
+                });
+            }
+            if(historyActions.params.length <= 1)
+                this.historyQueue(historyActions.params[0]);
+            else
+                this.historyQueue(historyActions);
             this.grid.render();
         }
 
@@ -769,7 +807,7 @@
                             if(!this.nextCell) {
                                 let nextRowPosition = this.insertInstruction({
                                     command: '!pause',
-                                    pause: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
+                                    duration: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
                                 }); // insertPosition
                                 this.render();
                                 this.editor.gridSelect(e, nextRowPosition);
@@ -791,7 +829,7 @@
                             if(!this.nextRowCell) {
                                 let nextRowPosition = this.insertInstruction({
                                     command: '!pause',
-                                    pause: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
+                                    duration: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
                                 }); // insertPosition
                                 this.render();
                                 this.editor.gridSelect(e, nextRowPosition);
@@ -902,7 +940,7 @@
             let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
             for(let position=0; position<instructionList.length; position++) {
                 const instruction = instructionList[position];
-                // const nextPause = instructionList.find((i, p) => i.pause > 0 && p > position);
+                // const nextPause = instructionList.find((i, p) => i.duration > 0 && p > position);
                 const noteCSS = [];
                 if(selectedPositions.indexOf(position) !== -1) {
                     selectedRow = true;
@@ -921,15 +959,15 @@
                             var pauseCSS = (odd = !odd) ? ['odd'] : [];
                             if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.pause) / beatsPerMeasure))
                                 pauseCSS.push('measure-end');
-                            if(!instruction.pause)
+                            if(!instruction.duration)
                                 console.warn("Invalid Pause command: ", position, instruction);
-                            // lastPause = instruction.pause;
-                            songPosition += instruction.pause;
+                            // lastPause = instruction.duration;
+                            songPosition += instruction.duration;
 
                             if (selectedRow)
                                 pauseCSS.push('selected');
 
-                            addRowHTML(cellHTML, position, instruction.pause);
+                            addRowHTML(cellHTML, position, instruction.duration, pauseCSS);
                             cellHTML = '';
                             selectedRow = false;
                             break;
@@ -955,13 +993,15 @@
 
             // addRowHTML(cellHTML, instructionList.length);
 
+            const currentScrollPosition = (this.querySelector('.editor-grid') || {}).scrollTop || 0;
             this.innerHTML =
                 `<div class="editor-grid">`
                 +   editorHTML
                 + `</div>`;
 
+            this.querySelector('.editor-grid').scrollTop = currentScrollPosition;
 
-            function addRowHTML(cellHTML, position, pauseLength) {
+            function addRowHTML(cellHTML, position, pauseLength, pauseCSS) {
                 editorHTML +=
                     `<div class="grid-row ${pauseCSS.join(' ')}" data-position="${position}" data-pause="${pauseLength}" data-beats-per-minute="${beatsPerMinute}">`
                     +   cellHTML
@@ -975,7 +1015,7 @@
             }
         }
 
-        getGroupName() { return this.editor.gridStatus.groupName;}
+        getGroupName() { return this.editor.gridStatus.groupName; }
 
         selectCell(e, cursorCell) {
             // Manage cursor cell
@@ -1095,9 +1135,14 @@
                 case 'row:edit':
                     this.editor.replaceInstructionParams(currentGroup, selectedPausePositions, {
                         command: '!pause',
-                        pause: parseFloat(form.duration.value)
+                        duration: parseFloat(form.duration.value)
                     });
                     // this.editor.gridSelect([instruction]);
+                    break;
+
+                case 'row:split':
+                    const splitPercentage = prompt("Split row at what percentage? ", 50);
+                    this.editor.splitPauseInstructions(currentGroup, selectedPausePositions, splitPercentage);
                     break;
 
                 case 'group:edit':
@@ -1246,17 +1291,17 @@
             for(let i=0; i<gridStatus.selectedPositions.length; i++) {
                 const selectedPosition = gridStatus.selectedPositions[i];
                 const selectedInstruction = instructionList[selectedPosition];
-                const nextPause = instructionList.find((i, p) => i.pause > 0 && p > selectedPosition);
+                const nextPause = instructionList.find((i, p) => i.duration > 0 && p >= selectedPosition);
                 if(combinedInstruction === null) {
                     combinedInstruction = Object.assign({}, selectedInstruction);
-                    if(nextPause) combinedInstruction.pause = nextPause.pause;
+                    if(nextPause) combinedInstruction.duration = nextPause.duration;
                 } else {
                     Object.keys(combinedInstruction).map(function(key, i) {
                         if(selectedInstruction[key] !== combinedInstruction[key])
                             delete combinedInstruction[key];
                     });
-                    if(nextPause && nextPause.pause !== combinedInstruction.pause)
-                        delete combinedInstruction.pause;
+                    if(nextPause && nextPause.duration !== combinedInstruction.duration)
+                        delete combinedInstruction.duration;
                 }
             }
             if(!combinedInstruction)
@@ -1280,7 +1325,7 @@
             this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
 
             // Row/Pause
-            this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.pause;
+            this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.duration;
         }
 
         renderEditorMenuLoadFromMemory() {
@@ -1770,12 +1815,13 @@
         const selectedPausePositions = [];
         for(let i=0; i<selectedPositions.length; i++) {
             const selectedPosition = selectedPositions[i];
-            let nextPausePosition = instructionList.findIndex((i, p) => i.pause > 0 && p > selectedPosition);
+            let nextPausePosition = instructionList.findIndex((i, p) => i.command === '!pause' && p >= selectedPosition);
             if(nextPausePosition === -1) {
                 console.warn("no pauses follow selected instruction");
                 continue;
             }
-            selectedPausePositions.push(nextPausePosition);
+            if(selectedPausePositions.indexOf(nextPausePosition) === -1)
+                selectedPausePositions.push(nextPausePosition);
         }
         return selectedPausePositions;
 
