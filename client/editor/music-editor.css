@@ -171,9 +171,18 @@
     position: absolute;
     top: 1px;
     right: 5px;
-    color: #000;
+    color: #500;
     z-index: 1;
-    opacity: 0.3;
+    /*opacity: 0.3;*/
+}
+.music-editor .editor-grid .grid-cell-pause.duration-large {
+    /*opacity: 0.5;*/
+    color: #00A;
+    /*font-weight: bold;*/
+}
+.music-editor .editor-grid .grid-cell-pause.duration-medium {
+    color: #050;
+    /* opacity: 0.4; */
 }
 .music-editor .editor-grid .grid-row.selected .grid-cell-pause {
     opacity: 1;
@@ -258,8 +267,8 @@
     /* min-width: 200px; */
 }
 
-.music-editor .submenu:hover,
-.music-editor .menu-item:hover + .submenu,
+/*.music-editor .menu-item:hover + .submenu,*/
+/*.music-editor .submenu:hover,*/
 .music-editor .menu-item.open + .submenu,
 .music-editor .submenu.open {
     /* display: block; */

@@ -1001,14 +1001,17 @@
 
             this.querySelector('.editor-grid').scrollTop = currentScrollPosition;
 
-            function addRowHTML(cellHTML, position, pauseLength, pauseCSS) {
+            function addRowHTML(cellHTML, position, pauseLength, rowCSS) {
+                const pauseCSS = pauseLength >= 1 ? 'duration-large'
+                    : (pauseLength >= 1/4 ? 'duration-medium'
+                    : 'duration-small');
                 editorHTML +=
-                    `<div class="grid-row ${pauseCSS.join(' ')}" data-position="${position}" data-pause="${pauseLength}" data-beats-per-minute="${beatsPerMinute}">`
+                    `<div class="grid-row ${rowCSS.join(' ')}" data-position="${position}" data-pause="${pauseLength}" data-beats-per-minute="${beatsPerMinute}">`
                     +   cellHTML
                     +   `<div class="grid-cell grid-cell-new" data-position="${position}">`
                     +     `<div class="grid-parameter">+</div>`
                     +   `</div>`
-                    +   `<div class="grid-cell-pause" data-position="${position}" data-duration="${pauseLength}">`
+                    +   `<div class="grid-cell-pause ${pauseCSS}" data-position="${position}" data-duration="${pauseLength}">`
                     +     `<div class="grid-parameter">${formatDuration(pauseLength)}</div>`
                     +   `</div>`
                     + `</div>`;
@@ -1151,7 +1154,7 @@
                         let newGroupName = generateNewGroupName(songData, currentGroup);
                         newGroupName = prompt("Create new instruction group?", newGroupName);
                         if(newGroupName)    this.editor.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
-                        else                console.info("Create instruction group canceled");
+                        else                console.error("Create instruction group canceled");
                     } else {
                         this.editor.gridNavigate(form.groupName.value);
                     }
@@ -1224,8 +1227,8 @@
                                     );
 
                                     newGroupName = prompt("Create new instruction group?", newGroupName);
-                                    if(newGroupName)    this.editor.addInstructionGroup(newGroupName);
-                                    else                console.info("Create instruction group canceled");
+                                    if(newGroupName)    this.editor.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                                    else                console.error("Create instruction group canceled");
                                     break;
 
                                 case 'group:remove':
@@ -1236,7 +1239,7 @@
                                     let renameGroupName = prompt("Rename instruction group?", this.editor.grid.getGroupName());
 
                                     if(renameGroupName)     this.editor.renameInstructionGroup(this.editor.grid.getGroupName(), renameGroupName);
-                                    else                    console.info("Rename instruction group canceled");
+                                    else                    console.error("Rename instruction group canceled");
                                     break;
 
                                 case 'note:command':
@@ -1265,10 +1268,11 @@
                                 submenu.innerHTML = this.getElementsByClassName(targetClass)[0].innerHTML;
                             }
                             // let subMenu = menuItem.nextElementSibling;
+                            const isOpen = menuItem.classList.contains('open');
                             this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
                             let parentMenuItem = menuItem;
                             while(parentMenuItem && parentMenuItem.classList.contains('menu-item')) {
-                                parentMenuItem.classList.toggle('open');
+                                parentMenuItem.classList.toggle('open', !isOpen);
                                 parentMenuItem = parentMenuItem.parentNode.parentNode.previousElementSibling;
                             }
                             return;
@@ -1624,20 +1628,7 @@
                     break;
 
                 case 'durations':
-                    options = [
-                        // [null, 'Duration (Default)'],
-                        [1/64, '1/64'],
-                        [1/32, '1/32'],
-                        [1/16,  '1/16'],
-                        [1/8,   '1/8'],
-                        [1/4,   '1/4'],
-                        [1/2,   '1/2'],
-                        [1.0,   '1.0'],
-                        [2.0,   '2.0'],
-                        [4.0,  '4.0'],
-                        [8.0,  '8.0'],
-                    ];
-
+                    options = ARRAY_DURATIONS;
                     break;
 
                 case 'beats-per-measure':
@@ -1791,7 +1782,13 @@
     function formatInstrumentID(number) {
         return number < 10 ? "0" + number : "" + number;
     }
-    function formatDuration(duration) { return parseFloat(duration).toFixed(2); }
+    function formatDuration(duration) {
+        for(var i=0; i<ARRAY_DURATIONS.length; i++) {
+            if(ARRAY_DURATIONS[i][0] === duration)
+                return ARRAY_DURATIONS[i][1];
+        }
+        return parseFloat(duration).toFixed(2);
+    }
 
     // Misc Commands
 
@@ -1809,6 +1806,21 @@
         's':'C#4', 'd':'D#4', 'g':'F#4', 'h':'G#4', 'j':'A#4', 'l':'C#5', ';':'D#5',
         'z':'C4', 'x':'D4', 'c':'E4', 'v':'F4', 'b':'G4', 'n':'A4', 'm':'B4', ',':'C5', '.':'D5', '/':'E5',
     };
+
+    const ARRAY_DURATIONS = [
+        // [null, 'Duration (Default)'],
+        [1/64, '1/64'],
+        [1/32, '1/32'],
+        [1/16, '1/16'],
+        [1/8,  '1/8'],
+        [1/4,  '1/4'],
+        [1/2,  '1/2'],
+        [1.0,  '1B'],
+        [2.0,  '2B'],
+        [4.0,  '4B'],
+        [8.0,  '8B'],
+    ];
+
 
 
     function searchSelectedPausePositions(instructionList, selectedPositions) {
