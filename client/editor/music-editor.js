@@ -1030,14 +1030,24 @@
             return this.editor.gridSelect(e, cursorCell.getAttribute('data-position'));
         }
 
-        updateCellSelection(gridStatus) {
+        scrollToCursor() {
+            if(!this.currentCell)
+                return;
+            const currentCellParent = this.currentCell.parentNode;
+            const gridElm = this.querySelector('.editor-grid');
+            console.log("TODO: ", currentCellParent.offsetTop, gridElm.scrollTop, gridElm.offsetHeight);
+            if(currentCellParent.offsetTop < gridElm.scrollTop)
+                gridElm.scrollTop = currentCellParent.offsetTop;
+            if(currentCellParent.offsetTop > gridElm.scrollTop + gridElm.offsetHeight)
+                gridElm.scrollTop = currentCellParent.offsetTop - gridElm.offsetHeight + this.currentCell.offsetHeight;
+            // const cursorScrollDiff = oldCursorScrollPosition - cursorCell.parentNode.offsetTop;
+            // this.querySelector('.editor-grid').scrollTop -= cursorScrollDiff; // TODO: tweak
+        }
+
+        updateCellSelection(gridStatus, adjustScroll) {
             const cursorCell = this.querySelector(`.grid-cell[data-position='${gridStatus.cursorPosition}']`);
             if (!cursorCell)
                 throw new Error("Invalid cursor cell");
-
-            const oldCursorScrollPosition = this.currentCell ? this.currentCell.parentNode.offsetTop: 0;
-            const cursorScrollDiff = oldCursorScrollPosition - cursorCell.parentNode.offsetTop;
-            this.querySelector('.editor-grid').scrollTop -= cursorScrollDiff; // TODO: tweak
 
             this.querySelectorAll('.grid-cell.cursor')
                 .forEach(elm => elm.classList.remove('cursor'));
@@ -1056,6 +1066,8 @@
                 selectedCell.parentNode.classList.toggle('selected',
                     selectedCell.parentNode.querySelectorAll('.selected').length > 0);
             }
+
+            this.scrollToCursor();
         }
 
         findInstruction(instruction) {
