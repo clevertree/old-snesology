@@ -37,17 +37,7 @@
         getSongURL() { return this.getAttribute('src');}
 
         connectedCallback() {
-            // this.render();
-
-            // this.addEventListener('contextmenu', this.onInput);
             this.addEventListener('keydown', this.onInput);
-            // this.addEventListener('keyup', this.onInput);
-            // this.addEventListener('click', this.onInput);
-            // this.addEventListener('mousedown', this.onInput);
-            // this.addEventListener('mouseup', this.onInput);
-            // this.addEventListener('longpress', this.onInput);
-            // this.addEventListener('change', this.onInput);
-            // this.addEventListener('submit', this.onInput);
 
             const editor = this;
             loadScript('client/player/music-player.js', function() {
@@ -1165,7 +1155,7 @@
                         instrument: parseInt(instrumentID)
                     });
                     break;
-
+ 
                 case 'instruction:duration':
                     const duration = form.duration.value || null;
                     this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
@@ -1420,6 +1410,9 @@
 
             // Row/Pause
             this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.duration;
+
+            this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPausePositions.length > 1 ? 's' : '') + ":";
+            this.querySelector('.row-label-command').innerHTML = 'Command' + (gridStatus.selectedPositions.length > 1 ? 's' : '') + ":";
         }
 
         renderEditorMenuLoadFromMemory() {
@@ -1540,9 +1533,9 @@
         
         
          
+                    <label class="row-label row-label-row">Row:</label>
                     <form class="form-pause-duration" data-command="row:edit">
                         <fieldset class="fieldset-pause">
-                            <label class="row-label">Row:</label>
                             <select name="duration" title="Row Duration">
                                 <optgroup label="Row Duration">
                                     ${this.renderEditorFormOptions('durations')}
@@ -1557,7 +1550,7 @@
                     </form>
                     <form class="form-pause-duplicate" data-command="row:duplicate">
                         <fieldset class="fieldset-pause">
-                            <button name="duplicate">Duplicate</button>
+                            <button name="duplicate" disabled>Duplicate</button>
                         </fieldset>
                     </form>
                     <form class="form-pause-insert" data-command="row:insert">
@@ -1573,7 +1566,7 @@
                     
 
                     <br/>
-                    <label class="row-label">Command:</label>
+                    <label class="row-label row-label-command">Command</label>
                     <form class="form-instruction-command" data-command="instruction:command">
                         <fieldset class="fieldset-instruction">
                             <select name="command" title="Command">

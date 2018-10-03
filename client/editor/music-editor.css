@@ -181,11 +181,11 @@
 }
 .music-editor .editor-grid .grid-cell-pause.duration-medium {
     color: #050;
-    font-size: smaller;
+    font-size: small;
 }
 .music-editor .editor-grid .grid-cell-pause.duration-small {
     color: #050;
-    font-size: xx-small;
+    font-size: smaller;
 }
 .music-editor .editor-grid .grid-row.selected .grid-cell-pause {
     opacity: 1;
@@ -352,7 +352,7 @@
 
 .music-editor .editor-forms label.row-label {
     display: inline-block;
-    min-width: 57px;
+    min-width: 61px;
     text-align: right;
     font-size: smaller;
     font-weight: bold;
@@ -439,6 +439,7 @@ max-height: 15px;
     font-size: smaller;
     padding: 0px 3px 2px 2px;
     min-width: 18px;
+    border-radius: 2px;
 }
 .music-editor .editor-forms .form-group-selection form.form-group > button.new {
     color: #444;
