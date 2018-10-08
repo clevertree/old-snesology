@@ -1168,7 +1168,7 @@
                     // this.editor.gridSelect([instruction]);
                     break;
 
-                case 'instruction:duplicate':
+                case 'row:duplicate':
                     if(!selectedRange)
                         throw new Error("No selected range");
                     this.editor.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
@@ -1384,7 +1384,7 @@
             // let selectedPauseDisabled = this.editor.grid.gridSelectedPausePositions().length === 0;
 
             // Row Instructions
-            Array.prototype.slice.call(this.querySelectorAll('.fieldset-pause'))
+            Array.prototype.slice.call(this.querySelectorAll('.fieldset-row'))
                 .forEach(fieldset => selectedPausePositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
             Array.prototype.slice.call(this.querySelectorAll('.fieldset-instruction'))
                 .forEach(fieldset => this.editor.gridStatus.selectedPositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
@@ -1397,7 +1397,7 @@
             this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
 
             // Row/Pause
-            this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.duration;
+            this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
 
             this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPausePositions.length > 1 ? 's' : '') + ":";
             this.querySelector('.row-label-command').innerHTML = 'Command' + (gridStatus.selectedPositions.length > 1 ? 's' : '') + ":";
@@ -1522,8 +1522,8 @@
         
          
                     <label class="row-label row-label-row">Row:</label>
-                    <form class="form-pause-duration" data-command="row:edit">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-duration" data-command="row:edit">
+                        <fieldset class="fieldset-row">
                             <select name="duration" title="Row Duration">
                                 <optgroup label="Row Duration">
                                     ${this.renderEditorFormOptions('durations')}
@@ -1531,19 +1531,24 @@
                             </select>
                         </fieldset>
                     </form>
-                    <form class="form-pause-split" data-command="row:split">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-split" data-command="row:split">
+                        <fieldset class="fieldset-row">
                             <button name="split">Split</button>
                         </fieldset>
                     </form>
-                    <form class="form-pause-insert" data-command="row:insert">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-insert" data-command="row:insert">
+                        <fieldset class="fieldset-row">
                             <button name="insert">+</button>
                         </fieldset>
                     </form>
-                    <form class="form-pause-remove" data-command="row:remove">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-remove" data-command="row:remove">
+                        <fieldset class="fieldset-row">
                             <button name="remove">-</button>
+                        </fieldset>
+                    </form>
+                    <form class="form-row-duplicate" data-command="row:duplicate">
+                        <fieldset class="fieldset-row">
+                            <button name="duplicate">&#169;</button>
                         </fieldset>
                     </form>
                     
@@ -1604,11 +1609,6 @@
                     <form class="form-instruction-remove" data-command="instruction:remove">
                         <fieldset class="fieldset-instruction">
                             <button name="remove">-</button>
-                        </fieldset>
-                    </form>
-                    <form class="form-instruction-duplicate" data-command="instruction:duplicate">
-                        <fieldset class="fieldset-pause">
-                            <button name="duplicate">&#169;</button>
                         </fieldset>
                     </form>
                     
