@@ -346,14 +346,32 @@
 
 
 
-        replaceInstruction(groupName, replacePosition, replaceCount, replaceInstruction) {
+        replaceInstruction(groupName, replacePosition, replaceCount, replaceInstructions) {
             let instructionList = this.getInstructions(groupName);
             if (instructionList.length < replacePosition)
                 throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
 
-            if(replaceInstruction)
-                return instructionList.splice(replacePosition, replaceCount, replaceInstruction);
+            if(replaceInstructions)
+                return instructionList.splice(replacePosition, replaceCount, replaceInstructions);
             return instructionList.splice(replacePosition, replaceCount);
+        }
+
+        insertInstructions(groupName, insertPosition, insertInstructions) {
+            let instructionList = this.getInstructions(groupName);
+            if (instructionList.length < insertPosition)
+                throw new Error("Insert position out of index: " + instructionList.length + " < " + insertPosition + " for groupName: " + groupName);
+
+            if(!Array.isArray(insertInstructions))
+                insertInstructions = [insertInstructions];
+            for(let i=insertInstructions.length-1; i>=0; i--) // Insert backwards
+                instructionList.splice(insertPosition, 0, insertInstructions[i]);
+        }
+
+        deleteInstructions(groupName, deletePosition, deleteCount) {
+            let instructionList = this.getInstructions(groupName);
+            if (instructionList.length < deletePosition)
+                throw new Error("Delete position out of index: " + instructionList.length + " < " + deletePosition + " for groupName: " + groupName);
+            return instructionList.splice(deletePosition, deleteCount);
         }
 
         replaceInstructionParams(groupName, replacePosition, replaceParams) {

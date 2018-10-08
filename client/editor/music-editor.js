@@ -271,10 +271,10 @@
 
         }
 
-        insertInstruction(groupName, insertPosition, instructionsToAdd) {
+        insertInstructions(groupName, insertPosition, instructionsToAdd) {
             if(typeof insertPosition === 'undefined')
                 insertPosition = this.player.getInstructions(groupName).length;
-            this.player.replaceInstruction(groupName, insertPosition, 0, instructionsToAdd);
+            this.player.insertInstructions(groupName, insertPosition, instructionsToAdd);
             const historyAction = {
                 action: 'insert',
                 params: [groupName, insertPosition, instructionsToAdd]
@@ -351,7 +351,7 @@
                     command: '!pause',
                     duration: split[1] * splitPauseDuration
                 };
-                this.player.replaceInstruction(groupName, splitPausePosition+1, 0, newPauseInstruction);
+                this.player.insertInstructions(groupName, splitPausePosition+1, newPauseInstruction);
                 historyActions.params.push({
                     action: 'insert',
                     params: [groupName, splitPausePosition+1, newPauseInstruction]
@@ -366,18 +366,19 @@
 
         duplicateInstructionRange(groupName, rangeStart, rangeEnd) {
             const instructionList = this.player.getInstructions(groupName);
-            const historyActions = {action: 'group', params: []};
             const rangeLength = rangeEnd - rangeStart;
             if(rangeLength < 0)
                 throw new Error("Invalid range: " + rangeStart + " !=< " + rangeEnd);
+            const newInstructions = [];
             for (let i=0; i<=rangeLength; i++) {
                 const currentInstruction = instructionList[rangeStart + i];
                 const newInstruction = Object.assign({}, currentInstruction);
-                historyActions.params.push({
-                    action: 'insert',
-                    params: [groupName, rangeEnd + i, newInstruction]
-                });
+                newInstructions.push(newInstruction);
             }
+            const historyActions = {
+                action: 'insert',
+                params: [groupName, rangeEnd + 1, newInstructions]
+            };
             this.historyQueue(historyActions);
             this.applyHistoryAction(historyActions);
             this.grid.render();
@@ -422,10 +423,10 @@
                     this.gridSelect(null, 0);
                     break;
                 case 'insert':
-                    this.player.replaceInstruction(action.params[0], action.params[1], 0, action.params[2]);
+                    this.player.insertInstructions(action.params[0], action.params[1], action.params[2]);
                     break;
                 case 'delete':
-                    this.player.replaceInstruction(action.params[0], action.params[1], 1);
+                    this.player.deleteInstructions(action.params[0], action.params[1], action.params[2] || 1);
                     break;
                 case 'replace':
                     this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
@@ -459,7 +460,7 @@
                     this.player.deleteInstruction(action.params[0], action.params[1], 1);
                     break;
                 case 'delete':
-                    this.player.insertInstruction(action.params[0], action.params[1], action.return);
+                    this.player.insertInstructions(action.params[0], action.params[1], action.return);
                     break;
                 case 'replace':
                     this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.return);
@@ -923,7 +924,7 @@
         }
 
         insertInstruction(instruction, insertPosition) {
-            return this.editor.insertInstruction(this.getGroupName(), insertPosition, instruction);
+            return this.editor.insertInstructions(this.getGroupName(), insertPosition, instruction);
         }
 
         deleteInstruction(deletePosition) {
@@ -1286,7 +1287,7 @@
                                         duration: 1
                                     }; // new instruction
                                     // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                                    this.editor.insertInstruction(currentGroup, cursorPosition, newInstruction);
+                                    this.editor.insertInstructions(currentGroup, cursorPosition, newInstruction);
                                     break;
 
                                 case 'instruction:command':
@@ -1900,7 +1901,12 @@
                 return false;
             currentPosition++;
         }
-        return [selectedPositions[0], selectedPositions[selectedPositions.length-1]];
+        if(instructionList.length > currentPosition
+            && instructionList[currentPosition].command !== '!pause'
+            && instructionList[currentPosition+1].command === '!pause') {
+            currentPosition++;
+        }
+        return [selectedPositions[0], currentPosition];
     }
 
     function gatherSelectedPausePositions(instructionList, selectedPositions) {

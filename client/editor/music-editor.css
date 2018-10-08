@@ -32,7 +32,10 @@
 .music-editor .editor-grid .grid-row {
     cursor: pointer;
     background-color: #999;
-    height: 19px;
+    height: 20px;
+    /* margin: -3px 0px; */
+    /* border-top: 1px solid #BBB; */
+    border: 1px outset #CCC;
     position: relative;
     transition: background-color 0.1s ease-out;
 }
@@ -59,9 +62,11 @@
 /** Grid Cell **/
 
 .music-editor .editor-grid .grid-cell {
-     display: inline-block;
+     /* display: inline-block; */
+     float: left;
      overflow: hidden;
      padding: 0px 3px;
+     margin: 1px 0px 0px 1px;
      color: #666;
      border: solid 1px #666;
      border-radius: 4px;
@@ -155,8 +160,8 @@
 
 
 .music-editor .editor-grid .measure-end {
-    border-bottom: 2px solid #555;
-    border-bottom: 1px solid #666;
+    /* border-bottom: 2px solid #555; */
+    /* border-bottom: 1px solid #666; */
 }
 
 .music-editor .editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
