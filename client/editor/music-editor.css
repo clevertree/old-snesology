@@ -32,7 +32,10 @@
 .music-editor .editor-grid .grid-row {
     cursor: pointer;
     background-color: #999;
-    height: 19px;
+    height: 20px;
+    /* margin: -3px 0px; */
+    /* border-top: 1px solid #BBB; */
+    border: 1px outset #CCC;
     position: relative;
     transition: background-color 0.1s ease-out;
 }
@@ -59,9 +62,11 @@
 /** Grid Cell **/
 
 .music-editor .editor-grid .grid-cell {
-     display: inline-block;
+     /* display: inline-block; */
+     float: left;
      overflow: hidden;
      padding: 0px 3px;
+     margin: 1px 0px 0px 1px;
      color: #666;
      border: solid 1px #666;
      border-radius: 4px;
@@ -155,8 +160,8 @@
 
 
 .music-editor .editor-grid .measure-end {
-    border-bottom: 2px solid #555;
-    border-bottom: 1px solid #666;
+    /* border-bottom: 2px solid #555; */
+    /* border-bottom: 1px solid #666; */
 }
 
 .music-editor .editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
@@ -177,13 +182,15 @@
     /*opacity: 0.3;*/
 }
 .music-editor .editor-grid .grid-cell-pause.duration-large {
-    /*opacity: 0.5;*/
     color: #00A;
-    /*font-weight: bold;*/
 }
 .music-editor .editor-grid .grid-cell-pause.duration-medium {
     color: #050;
-    /* opacity: 0.4; */
+    font-size: small;
+}
+.music-editor .editor-grid .grid-cell-pause.duration-small {
+    color: #050;
+    font-size: smaller;
 }
 .music-editor .editor-grid .grid-row.selected .grid-cell-pause {
     opacity: 1;
@@ -350,7 +357,7 @@
 
 .music-editor .editor-forms label.row-label {
     display: inline-block;
-    min-width: 57px;
+    min-width: 61px;
     text-align: right;
     font-size: smaller;
     font-weight: bold;
@@ -437,6 +444,7 @@ max-height: 15px;
     font-size: smaller;
     padding: 0px 3px 2px 2px;
     min-width: 18px;
+    border-radius: 2px;
 }
 .music-editor .editor-forms .form-group-selection form.form-group > button.new {
     color: #444;

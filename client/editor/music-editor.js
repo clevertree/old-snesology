@@ -37,17 +37,7 @@
         getSongURL() { return this.getAttribute('src');}
 
         connectedCallback() {
-            // this.render();
-
-            // this.addEventListener('contextmenu', this.onInput);
             this.addEventListener('keydown', this.onInput);
-            // this.addEventListener('keyup', this.onInput);
-            // this.addEventListener('click', this.onInput);
-            // this.addEventListener('mousedown', this.onInput);
-            // this.addEventListener('mouseup', this.onInput);
-            // this.addEventListener('longpress', this.onInput);
-            // this.addEventListener('change', this.onInput);
-            // this.addEventListener('submit', this.onInput);
 
             const editor = this;
             loadScript('client/player/music-player.js', function() {
@@ -281,10 +271,10 @@
 
         }
 
-        insertInstruction(groupName, insertPosition, instructionsToAdd) {
+        insertInstructions(groupName, insertPosition, instructionsToAdd) {
             if(typeof insertPosition === 'undefined')
                 insertPosition = this.player.getInstructions(groupName).length;
-            this.player.replaceInstruction(groupName, insertPosition, 0, instructionsToAdd);
+            this.player.insertInstructions(groupName, insertPosition, instructionsToAdd);
             const historyAction = {
                 action: 'insert',
                 params: [groupName, insertPosition, instructionsToAdd]
@@ -336,7 +326,7 @@
             this.grid.render();
         }
 
-        splitPauseInstructions(groupName, splitPausePositions, splitPercentage) {
+        splitInstructionRows(groupName, splitPausePositions, splitPercentage) {
             if(splitPercentage < 1 || splitPercentage > 100)
                 throw new Error("Invalid split percentage: " + splitPercentage);
             if(!Array.isArray(splitPausePositions))
@@ -361,7 +351,7 @@
                     command: '!pause',
                     duration: split[1] * splitPauseDuration
                 };
-                this.player.replaceInstruction(groupName, splitPausePosition+1, 0, newPauseInstruction);
+                this.player.insertInstructions(groupName, splitPausePosition+1, newPauseInstruction);
                 historyActions.params.push({
                     action: 'insert',
                     params: [groupName, splitPausePosition+1, newPauseInstruction]
@@ -371,6 +361,26 @@
                 this.historyQueue(historyActions.params[0]);
             else
                 this.historyQueue(historyActions);
+            this.grid.render();
+        }
+
+        duplicateInstructionRange(groupName, rangeStart, rangeEnd) {
+            const instructionList = this.player.getInstructions(groupName);
+            const rangeLength = rangeEnd - rangeStart;
+            if(rangeLength < 0)
+                throw new Error("Invalid range: " + rangeStart + " !=< " + rangeEnd);
+            const newInstructions = [];
+            for (let i=0; i<=rangeLength; i++) {
+                const currentInstruction = instructionList[rangeStart + i];
+                const newInstruction = Object.assign({}, currentInstruction);
+                newInstructions.push(newInstruction);
+            }
+            const historyActions = {
+                action: 'insert',
+                params: [groupName, rangeEnd + 1, newInstructions]
+            };
+            this.historyQueue(historyActions);
+            this.applyHistoryAction(historyActions);
             this.grid.render();
         }
 
@@ -413,10 +423,10 @@
                     this.gridSelect(null, 0);
                     break;
                 case 'insert':
-                    this.player.replaceInstruction(action.params[0], action.params[1], 0, action.params[2]);
+                    this.player.insertInstructions(action.params[0], action.params[1], action.params[2]);
                     break;
                 case 'delete':
-                    this.player.replaceInstruction(action.params[0], action.params[1], 1);
+                    this.player.deleteInstructions(action.params[0], action.params[1], action.params[2] || 1);
                     break;
                 case 'replace':
                     this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
@@ -450,7 +460,7 @@
                     this.player.deleteInstruction(action.params[0], action.params[1], 1);
                     break;
                 case 'delete':
-                    this.player.insertInstruction(action.params[0], action.params[1], action.return);
+                    this.player.insertInstructions(action.params[0], action.params[1], action.return);
                     break;
                 case 'replace':
                     this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.return);
@@ -914,7 +924,7 @@
         }
 
         insertInstruction(instruction, insertPosition) {
-            return this.editor.insertInstruction(this.getGroupName(), insertPosition, instruction);
+            return this.editor.insertInstructions(this.getGroupName(), insertPosition, instruction);
         }
 
         deleteInstruction(deletePosition) {
@@ -1113,7 +1123,8 @@
             const currentGroup = this.editor.gridStatus.groupName;
             const instructionList = this.editor.player.getInstructions(currentGroup);
             const selectedPositions = this.editor.gridStatus.selectedPositions;
-            const selectedPausePositions = searchSelectedPausePositions(instructionList, selectedPositions);
+            const selectedPausePositions = gatherSelectedPausePositions(instructionList, selectedPositions);
+            const selectedRange = gatherSelectedRange(instructionList, selectedPositions);
 
             switch(command) {
                 case 'instruction:command':
@@ -1157,9 +1168,15 @@
                     // this.editor.gridSelect([instruction]);
                     break;
 
+                case 'row:duplicate':
+                    if(!selectedRange)
+                        throw new Error("No selected range");
+                    this.editor.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
+                    break;
+
                 case 'row:split':
                     const splitPercentage = prompt("Split row at what percentage? ", 50);
-                    this.editor.splitPauseInstructions(currentGroup, selectedPausePositions, splitPercentage);
+                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
                     break;
 
                 case 'group:edit':
@@ -1209,7 +1226,7 @@
             const cursorPosition = this.editor.gridStatus.cursorPosition;
             const cursorInstruction = instructionList[cursorPosition];
             const selectedPositions = this.editor.gridStatus.selectedPositions;
-            const selectedPausePositions = searchSelectedPausePositions(instructionList, selectedPositions);
+            const selectedPausePositions = gatherSelectedPausePositions(instructionList, selectedPositions);
 
             let targetClassList = e.target.classList;
             switch(e.type) {
@@ -1270,7 +1287,7 @@
                                         duration: 1
                                     }; // new instruction
                                     // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                                    this.editor.insertInstruction(currentGroup, cursorPosition, newInstruction);
+                                    this.editor.insertInstructions(currentGroup, cursorPosition, newInstruction);
                                     break;
 
                                 case 'instruction:command':
@@ -1301,7 +1318,7 @@
 
                                 case 'row:split':
                                     const splitPercentage = prompt("Split row at what percentage? ", 50);
-                                    this.editor.splitPauseInstructions(currentGroup, selectedPausePositions, splitPercentage);
+                                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
                                     break;
 
                                 default:
@@ -1363,11 +1380,11 @@
                 combinedInstruction = {command: 'C4'};
 
 // TODO: get position from status, not grid
-            let selectedPausePositions = searchSelectedPausePositions(instructionList, this.editor.gridStatus.selectedPositions);
+            let selectedPausePositions = gatherSelectedPausePositions(instructionList, this.editor.gridStatus.selectedPositions);
             // let selectedPauseDisabled = this.editor.grid.gridSelectedPausePositions().length === 0;
 
             // Row Instructions
-            Array.prototype.slice.call(this.querySelectorAll('.fieldset-pause'))
+            Array.prototype.slice.call(this.querySelectorAll('.fieldset-row'))
                 .forEach(fieldset => selectedPausePositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
             Array.prototype.slice.call(this.querySelectorAll('.fieldset-instruction'))
                 .forEach(fieldset => this.editor.gridStatus.selectedPositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
@@ -1380,7 +1397,10 @@
             this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
 
             // Row/Pause
-            this.querySelector('form.form-pause-duration').duration.value = combinedInstruction.duration;
+            this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
+
+            this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPausePositions.length > 1 ? 's' : '') + ":";
+            this.querySelector('.row-label-command').innerHTML = 'Command' + (gridStatus.selectedPositions.length > 1 ? 's' : '') + ":";
         }
 
         renderEditorMenuLoadFromMemory() {
@@ -1501,9 +1521,9 @@
         
         
          
-                    <form class="form-pause-duration" data-command="row:edit">
-                        <fieldset class="fieldset-pause">
-                            <label class="row-label">Row:</label>
+                    <label class="row-label row-label-row">Row:</label>
+                    <form class="form-row-duration" data-command="row:edit">
+                        <fieldset class="fieldset-row">
                             <select name="duration" title="Row Duration">
                                 <optgroup label="Row Duration">
                                     ${this.renderEditorFormOptions('durations')}
@@ -1511,30 +1531,30 @@
                             </select>
                         </fieldset>
                     </form>
-                    <form class="form-pause-split" data-command="row:split">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-split" data-command="row:split">
+                        <fieldset class="fieldset-row">
                             <button name="split">Split</button>
                         </fieldset>
                     </form>
-                    <form class="form-pause-duplicate" data-command="row:duplicate">
-                        <fieldset class="fieldset-pause">
-                            <button name="duplicate" disabled>Duplicate</button>
-                        </fieldset>
-                    </form>
-                    <form class="form-pause-insert" data-command="row:insert">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-insert" data-command="row:insert">
+                        <fieldset class="fieldset-row">
                             <button name="insert">+</button>
                         </fieldset>
                     </form>
-                    <form class="form-pause-remove" data-command="row:remove">
-                        <fieldset class="fieldset-pause">
+                    <form class="form-row-remove" data-command="row:remove">
+                        <fieldset class="fieldset-row">
                             <button name="remove">-</button>
+                        </fieldset>
+                    </form>
+                    <form class="form-row-duplicate" data-command="row:duplicate">
+                        <fieldset class="fieldset-row">
+                            <button name="duplicate">&#169;</button>
                         </fieldset>
                     </form>
                     
 
                     <br/>
-                    <label class="row-label">Command:</label>
+                    <label class="row-label row-label-command">Command</label>
                     <form class="form-instruction-command" data-command="instruction:command">
                         <fieldset class="fieldset-instruction">
                             <select name="command" title="Command">
@@ -1581,9 +1601,9 @@
                             </select>
                         </fieldset>
                     </form>
-                    <form class="form-instruction-duplicate" data-command="instruction:duplicate">
+                    <form class="form-instruction-insert" data-command="instruction:insert">
                         <fieldset class="fieldset-instruction">
-                            <button name="duplicate">+</button>
+                            <button name="insert">+</button>
                         </fieldset>
                     </form>
                     <form class="form-instruction-remove" data-command="instruction:remove">
@@ -1873,9 +1893,23 @@
         [8.0,  '8B'],
     ];
 
+    function gatherSelectedRange(instructionList, selectedPositions) {
+        selectedPositions = selectedPositions.concat().sort((a,b) => a - b);
+        let currentPosition = selectedPositions[0];
+        for(let i=0; i<selectedPositions.length; i++) {
+            if(currentPosition !== selectedPositions[i])
+                return false;
+            currentPosition++;
+        }
+        if(instructionList.length > currentPosition
+            && instructionList[currentPosition].command !== '!pause'
+            && instructionList[currentPosition+1].command === '!pause') {
+            currentPosition++;
+        }
+        return [selectedPositions[0], currentPosition];
+    }
 
-
-    function searchSelectedPausePositions(instructionList, selectedPositions) {
+    function gatherSelectedPausePositions(instructionList, selectedPositions) {
         const selectedPausePositions = [];
         for(let i=0; i<selectedPositions.length; i++) {
             const selectedPosition = selectedPositions[i];
@@ -1888,7 +1922,6 @@
                 selectedPausePositions.push(nextPausePosition);
         }
         return selectedPausePositions;
-
     }
 
     function generateNewGroupName(songData, currentGroup) {
