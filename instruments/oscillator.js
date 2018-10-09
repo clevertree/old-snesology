@@ -3,9 +3,10 @@
 (function() {
 
     class OscillatorSimple {
-        constructor(config) {
-            // TODO: validate config
-            this.config = config;
+        constructor(preset, id) {
+            this.id = id;
+            this.preset = preset;
+            this.config = preset.config || {};            // TODO: validate config
         }
 
         play(destination, frequency, startTime, duration) {
@@ -25,13 +26,18 @@
 
 
         renderEditor() {
-            const config = this.config || {};
+
+            const paddedID = this.id < 10 ? "0" + this.id : "" + this.id;
             return `
-                <label>Type:</label>
-                <select name="type" title="Type">
-                    ${TYPES.map(type => `<option ${config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
-                </select>
-                <br/>
+                <form class="instrument-editor">
+                    <fieldset>
+                        <legend>${paddedID}: ${this.preset.name} (Oscillator)</legend>
+                        <label>Type:</label>
+                        <select name="type" title="Type">
+                            ${TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                        </select>
+                    </fieldset>
+                </form>
             `
         };
 

@@ -5,13 +5,13 @@
 	"description": "Demonstration song",
 	"instruments": [
 		{
-			"url": "http://localhost:8080/instruments/oscillator.js",
-			"preset": "square",
+			"url": "/instruments/oscillator.js",
+			"config": {"type":"square"},
 			"name": "square"
 		},
 		{
-			"url": "http://localhost:8080/instruments/oscillator.js",
-			"preset": "triangle",
+			"url": "/instruments/oscillator.js",
+			"config": {"type":"triangle"},
 			"name": "triangle"
 		}
 	],

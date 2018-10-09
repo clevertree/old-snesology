@@ -1,16 +1,11 @@
 music-editor {
-    display: block;
-}
-
-.music-editor {
-    color: #FFF;
+    /* color: #FFF; */
     background-color: #DDD;
     display: block;
-    font-size: 14px;
+    /* font-size: 14px; */
     /* line-height: 16px; */
     font-family: monospace;
     position: relative;
-
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -20,9 +15,6 @@ music-editor {
 /** Grid **/
 music-editor-grid {
     display: block;
-}
-
-.music-editor .editor-grid {
     /*cursor: pointer;*/
     /* display: block; */
     /* border-collapse: collapse; */
@@ -36,10 +28,10 @@ music-editor-grid {
 
 /** Grid Row **/
 
-.music-editor .editor-grid .grid-row {
+music-editor-grid .grid-row {
     cursor: pointer;
     background-color: #999;
-    height: 20px;
+    height: 1.45em;
     /* margin: -3px 0px; */
     /* border-top: 1px solid #BBB; */
     border: 1px outset #CCC;
@@ -47,17 +39,17 @@ music-editor-grid {
     transition: background-color 0.1s ease-out;
 }
 
-.music-editor .editor-grid .grid-row.odd {
+music-editor-grid .grid-row.odd {
     background-color: #AAA;
 }
 
-.music-editor .editor-grid .grid-row.selected {
+music-editor-grid .grid-row.selected {
     background-color: #ffeedd;
     position: relative;
     box-shadow: #ffeedd 0px 0px 9px;
     z-index: 2;
 }
-.music-editor .editor-grid .grid-row.playing {
+music-editor-grid .grid-row.playing {
     transition: background-color 0s;
     background-color: #609060;
     position: relative;
@@ -68,7 +60,7 @@ music-editor-grid {
 
 /** Grid Cell **/
 
-.music-editor .editor-grid .grid-cell {
+music-editor-grid .grid-cell {
      /* display: inline-block; */
      float: left;
      overflow: hidden;
@@ -82,83 +74,83 @@ music-editor-grid {
      z-index: 1;
 }
 
-.music-editor .editor-grid .grid-cell-new {
+music-editor-grid .grid-cell-new {
     opacity: 0;
     transition: opacity 0.25s;
 }
-.music-editor .editor-grid .grid-cell-new.cursor,
-.music-editor .editor-grid .grid-cell-new.selected,
-.music-editor .editor-grid .grid-row.selected .grid-cell-new {
+music-editor-grid .grid-cell-new.cursor,
+music-editor-grid .grid-cell-new.selected,
+music-editor-grid .grid-row.selected .grid-cell-new {
     opacity: 1;
 }
 
-.music-editor .editor-grid .grid-cell:last-child {
+music-editor-grid .grid-cell:last-child {
     margin-right: 0;
 }
 
-.music-editor .editor-grid .grid-cell.playing {
+music-editor-grid .grid-cell.playing {
     font-weight: bold;
 }
 
 
-.music-editor .editor-grid .grid-cell.cursor,
-.music-editor .editor-grid .grid-cell.selected {
+music-editor-grid .grid-cell.cursor,
+music-editor-grid .grid-cell.selected {
     font-weight: bold;
     max-width: 1000px;
     box-shadow: #6b6b6b 0 0px 3px;
     z-index: 2;
     /* position: relative; */
 }
-.music-editor .editor-grid .grid-cell.selected {
+music-editor-grid .grid-cell.selected {
     background-color: white;
 }
 
-.music-editor .editor-grid .grid-cell.cursor {
+music-editor-grid .grid-cell.cursor {
     border-color: red;
     box-shadow: darkred 0 0 12px;
 }
 
-.music-editor .editor-grid .grid-parameter{
+music-editor-grid .grid-parameter{
     display: inline-block;
     overflow: hidden;
     vertical-align: top;
 }
 
-.music-editor .editor-grid .grid-parameter:not(:first-child) {
+music-editor-grid .grid-parameter:not(:first-child) {
     max-width: 40px;
     opacity: 1;
     transition: all 0.25s ease-out;
 }
 
-.music-editor .editor-grid .grid-parameter.command {
+music-editor-grid .grid-parameter.command {
     color: darkred;
 }
-.music-editor .editor-grid .grid-parameter.instrument {
+music-editor-grid .grid-parameter.instrument {
     color: darkblue;
     max-width: 0px;
 }
-.music-editor .editor-grid .grid-parameter.duration {
+music-editor-grid .grid-parameter.duration {
     color: purple;
     max-width: 0px;
 }
-.music-editor .editor-grid .grid-parameter.velocity {
+music-editor-grid .grid-parameter.velocity {
     color: green;
     max-width: 0px;
 }
-.music-editor.show-parameter-instrument .grid-parameter.instrument,
-.music-editor .editor-grid .grid-cell.selected .grid-parameter.instrument,
-.music-editor .editor-grid .grid-cell.cursor .grid-parameter.instrument,
-.music-editor .editor-grid .grid-cell.playing .grid-parameter.instrument,
+music-editor.show-parameter-instrument .grid-parameter.instrument,
+music-editor-grid .grid-cell.selected .grid-parameter.instrument,
+music-editor-grid .grid-cell.cursor .grid-parameter.instrument,
+music-editor-grid .grid-cell.playing .grid-parameter.instrument,
 
-.music-editor.show-parameter-duration .grid-parameter.duration,
-.music-editor .editor-grid .grid-cell.selected .grid-parameter.duration,
-.music-editor .editor-grid .grid-cell.cursor .grid-parameter.duration,
-.music-editor .editor-grid .grid-cell.playing .grid-parameter.duration,
+music-editor.show-parameter-duration .grid-parameter.duration,
+music-editor-grid .grid-cell.selected .grid-parameter.duration,
+music-editor-grid .grid-cell.cursor .grid-parameter.duration,
+music-editor-grid .grid-cell.playing .grid-parameter.duration,
 
-.music-editor.show-parameter-velocity .grid-parameter.velocity,
-.music-editor .editor-grid .grid-cell.selected .grid-parameter.velocity,
-.music-editor .editor-grid .grid-cell.cursor .grid-parameter.velocity,
-.music-editor .editor-grid .grid-cell.playing .grid-parameter.velocity{
+music-editor.show-parameter-velocity .grid-parameter.velocity,
+music-editor-grid .grid-cell.selected .grid-parameter.velocity,
+music-editor-grid .grid-cell.cursor .grid-parameter.velocity,
+music-editor-grid .grid-cell.playing .grid-parameter.velocity{
     border-left: 1px solid #888;
     max-width: 40px;
     margin-left: 3px;
@@ -166,12 +158,12 @@ music-editor-grid {
 }
 
 
-.music-editor .editor-grid .measure-end {
+music-editor-grid .measure-end {
     /* border-bottom: 2px solid #555; */
     /* border-bottom: 1px solid #666; */
 }
 
-.music-editor .editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
+music-editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
     max-width: 0px;
     margin-left: 0px;
     padding-left: 0;
@@ -180,7 +172,7 @@ music-editor-grid {
     transition-delay: 0.25s;
 }
 
-.music-editor .editor-grid .grid-cell-pause {
+music-editor-grid .grid-cell-pause {
     position: absolute;
     top: 1px;
     right: 5px;
@@ -188,18 +180,18 @@ music-editor-grid {
     z-index: 1;
     /*opacity: 0.3;*/
 }
-.music-editor .editor-grid .grid-cell-pause.duration-large {
+music-editor-grid .grid-cell-pause.duration-large {
     color: #00A;
 }
-.music-editor .editor-grid .grid-cell-pause.duration-medium {
+music-editor-grid .grid-cell-pause.duration-medium {
     color: #050;
     font-size: small;
 }
-.music-editor .editor-grid .grid-cell-pause.duration-small {
+music-editor-grid .grid-cell-pause.duration-small {
     color: #050;
     font-size: smaller;
 }
-.music-editor .editor-grid .grid-row.selected .grid-cell-pause {
+music-editor-grid .grid-row.selected .grid-cell-pause {
     opacity: 1;
 
 }
@@ -210,28 +202,30 @@ music-editor-menu {
     display: block;
 }
 
-.music-editor .editor-menu {
+music-editor .editor-menu {
     display: block;
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
+    padding: 0 0;
+    margin: 0 0;
 }
 
-.music-editor .editor-menu hr {
+music-editor .editor-menu hr {
     margin: 4px 0;
     border: 1px #666 solid;
 }
 
-.music-editor .editor-menu li {
+music-editor .editor-menu li {
     list-style-type: none;
 }
 
-.music-editor .editor-menu > li {
+music-editor .editor-menu > li {
     /*float: left;*/
     display: inline-block;
 }
 
-.music-editor .menu-section-title {
+music-editor .menu-section-title {
     text-align: center;
     display: block;
     /* font-weight: bold; */
@@ -242,12 +236,12 @@ music-editor-menu {
     /* text-decoration: underline; */
 }
 
-.music-editor .menu-item > .key {
+music-editor .menu-item > .key {
     /*font-weight: bold;*/
     text-decoration: underline;
 }
 
-.music-editor .menu-item {
+music-editor .menu-item {
     vertical-align: top;
     display: inline-block;
     padding: 3px 8px;
@@ -256,20 +250,20 @@ music-editor-menu {
     white-space: nowrap;
     position: relative;
 }
-.music-editor .submenu .menu-item {
+music-editor .submenu .menu-item {
     min-width: 128px;
 }
 
-.music-editor .menu-item > * {
+music-editor .menu-item > * {
     white-space: nowrap;
 }
 
-.music-editor .menu-item.disabled {
+music-editor .menu-item.disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.music-editor .submenu {
+music-editor .submenu {
     display: none;
     border: 1px solid grey;
     background-color: #BBB;
@@ -285,10 +279,10 @@ music-editor-menu {
     /* min-width: 200px; */
 }
 
-/*.music-editor .menu-item:hover + .submenu,*/
-/*.music-editor .submenu:hover,*/
-.music-editor .menu-item.open + .submenu,
-.music-editor .submenu.open {
+/*music-editor .menu-item:hover + .submenu,*/
+/*music-editor .submenu:hover,*/
+music-editor .menu-item.open + .submenu,
+music-editor .submenu.open {
     /* display: block; */
     display: inline-block;
     white-space: nowrap;
@@ -298,32 +292,32 @@ music-editor-menu {
     /*transition: max-height 2s;*/
     z-index: 98;
 }
-.music-editor .submenu:hover,
-.music-editor .menu-item:hover + .submenu {
+music-editor .submenu:hover,
+music-editor .menu-item:hover + .submenu {
     z-index: 99;
 }
-.music-editor .menu-item:hover {
+music-editor .menu-item:hover {
     background-color: #AAA;
 }
-.music-editor .menu-item.open {
+music-editor .menu-item.open {
     background-color: #99C;
 }
-.music-editor .menu-item:active {
+music-editor .menu-item:active {
     background-color: #888;
 }
 
-.music-editor .submenu-pointer {
+music-editor .submenu-pointer {
     /* float: right; */
     position:  absolute;
     right: 4px;
 }
-.music-editor .submenu-pointer:after {
+music-editor .submenu-pointer:after {
     content: '➤';
 }
 
 /** Context Menu **/
 
-.music-editor .editor-context-menu {
+music-editor .editor-context-menu {
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
@@ -331,41 +325,41 @@ music-editor-menu {
     display: none;
     z-index: 99;
 }
-.music-editor .editor-context-menu.open {
+music-editor .editor-context-menu.open {
     display: block;
 }
 
 /** Form **/
-.music-editor .editor-forms {
+music-editor .editor-forms {
     padding: 4px 0px;
     color: black;
 }
 
-.music-editor .editor-forms form {
+music-editor .editor-forms form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
     /* margin: 0px 0; */
     padding: 1px 2px 1px 0px;
     display: inline-block;
 }
-.music-editor .editor-forms .form-group-selection > form {
+music-editor .editor-forms .form-group-selection > form {
     float: left;
     padding: 0px 2px 3px 0px;
 }
 
-.music-editor .editor-forms fieldset{
+music-editor .editor-forms fieldset{
     border: 0px;
     padding: 0 0;
     margin: 0 0;
 }
 
-.music-editor .editor-forms fieldset legend{
+music-editor .editor-forms fieldset legend{
     text-align: center;
     font-size: xx-small;
     font-weight: bold;
 }
 
-.music-editor .editor-forms label.row-label {
+music-editor .editor-forms label.row-label {
     display: inline-block;
     min-width: 61px;
     text-align: right;
@@ -373,12 +367,12 @@ music-editor-menu {
     font-weight: bold;
 }
 
-.music-editor .editor-forms form.hidden {
+music-editor .editor-forms form.hidden {
     display: none;
 }
 
-.music-editor .editor-forms select,
-.music-editor .editor-forms button {
+music-editor .editor-forms select,
+music-editor .editor-forms button {
     border-radius: 5px;
     border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
@@ -386,29 +380,29 @@ music-editor-menu {
     cursor: pointer;
 }
 
-.music-editor .editor-forms select[name=instrument] {
+music-editor .editor-forms select[name=instrument] {
     max-width: 88px;
 }
-.music-editor .editor-forms select[name=frequency] {
+music-editor .editor-forms select[name=frequency] {
     max-width: 42px;
 }
-.music-editor .editor-forms select[name=duration] {
+music-editor .editor-forms select[name=duration] {
     max-width: 75px;
 }
-.music-editor .editor-forms select[name=velocity] {
+music-editor .editor-forms select[name=velocity] {
     max-width: 71px;
 }
-.music-editor .editor-forms select[name=pause] {
+music-editor .editor-forms select[name=pause] {
     max-width: 100px;
 }
-.music-editor .editor-forms select[name=beats-per-minute] {
+music-editor .editor-forms select[name=beats-per-minute] {
     max-width: 138px;
 }
-.music-editor .editor-forms select[name=beats-per-measure] {
+music-editor .editor-forms select[name=beats-per-measure] {
     max-width: 133px;
 }
 
-.music-editor .editor-forms input[name=volume] {
+music-editor .editor-forms input[name=volume] {
     max-width: 71px;
     max-height: 10px;
     padding: 0;
@@ -416,7 +410,7 @@ music-editor-menu {
     background-color: grey;
 }
 
-.music-editor .editor-forms div.volume-container {
+music-editor .editor-forms div.volume-container {
 
 border: 1px solid #AAA;
 
@@ -425,41 +419,41 @@ border-radius: 6px;
 max-height: 15px;
 }
 
-.music-editor:not(.playing) form.form-song-pause { display: none; }
-.music-editor.playing form.form-song-play { display: none; }
-.music-editor:not(.paused) form.form-song-resume { display: none; }
+music-editor:not(.playing) form.form-song-pause { display: none; }
+music-editor.playing form.form-song-play { display: none; }
+music-editor:not(.paused) form.form-song-resume { display: none; }
 
-.music-editor .editor-forms select:disabled,
-.music-editor .editor-forms button:disabled {
+music-editor .editor-forms select:disabled,
+music-editor .editor-forms button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
 }
 
-.music-editor .editor-forms button.selected {
+music-editor .editor-forms button.selected {
     /* border: 1px inset; */
     font-weight: bold;
     box-shadow: #333 1px 1px 4px;
 }
 
-.music-editor .editor-forms .form-group-selection {
+music-editor .editor-forms .form-group-selection {
     border: 0px;
     border: 1px outset #FFF;
     padding: 1px 2px 0px 2px;
     margin: 0px 1px 0px 1px;
 }
-.music-editor .editor-forms .form-group-selection > legend {
+music-editor .editor-forms .form-group-selection > legend {
     margin: 0px 0 -3px 0;
 }
-.music-editor .editor-forms .form-group-selection form.form-group > button {
+music-editor .editor-forms .form-group-selection form.form-group > button {
     font-size: smaller;
     padding: 0px 3px 2px 2px;
     min-width: 18px;
     border-radius: 2px;
 }
-.music-editor .editor-forms .form-group-selection form.form-group > button.new {
+music-editor .editor-forms .form-group-selection form.form-group > button.new {
     color: #444;
 }
-.music-editor .editor-forms .form-separator {
+music-editor .editor-forms .form-separator {
     height: 0px;
     margin: 0;
 }

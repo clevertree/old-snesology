@@ -546,10 +546,9 @@
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
-            const l = document.createElement("a");
-            l.href = instrumentPreset.url;
-            const path = l.pathname;
-            const domain = l.hostname;
+            const url = new URL(instrumentPreset.url, this.song.source);
+            const path = url.pathname;
+            const domain = url.hostname;
 
             if(!window.instruments[domain])
                 throw new Error("Instrument domain not found: " + domain);
@@ -559,7 +558,7 @@
                 throw new Error("Instrument not found: " + path);
 
             const instrument = collection[path];
-            const instance = new instrument(instrumentPreset.config);
+            const instance = new instrument(instrumentPreset, instrumentID);
             this.loadedInstruments[instrumentID] = instance;
             return instance;
         }

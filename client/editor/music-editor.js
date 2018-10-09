@@ -507,19 +507,26 @@
 
         render() {
             this.innerHTML = `
-                <div class="music-editor">
-                    <music-editor-menu></music-editor-menu>
-                    <music-editor-grid tabindex="1"></music-editor-grid>
-                    ${this.getSong().instruments.map((instrument, id) => 
-                    `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('')}
-                </div>
+                <music-editor-menu></music-editor-menu>
+                <music-editor-grid tabindex="1"></music-editor-grid>
+                ${this.getSong().instruments.map((instrument, id) => 
+                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('')}
             `;
         }
 
         // Grid Commands
 
+        profileInput(e) {
+            e = e || {};
+            return {
+                gridClearSelected: !e.ctrlKey && !e.shiftKey,
+                gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
+                gridCompleteSelection: e.shiftKey
+            };
+        }
+
         gridSelect(e, cursorPosition) {
-            const inputProfile = profileInput(e);
+            const inputProfile = this.profileInput(e);
             const gridStatus = this.gridStatus;
             cursorPosition = parseInt(cursorPosition);
             const lastCursorPosition = gridStatus.cursorPosition || 0;
@@ -650,9 +657,9 @@
         constructor() {
             super();
             this.longPressTimeout = null;
+            this.editor = null;
         }
 
-        get editor() { return this.parentNode.parentNode; }
 
         // get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
         get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected'); }
@@ -722,6 +729,7 @@
         }
 
         connectedCallback() {
+            this.editor = findParent(this, (p) => p.matches('music-editor'));
             this.addEventListener('contextmenu', this.onInput);
             this.addEventListener('keydown', this.onInput);
             // this.addEventListener('keyup', this.onInput.bind(this));
@@ -1004,13 +1012,13 @@
 
             // addRowHTML(cellHTML, instructionList.length);
 
-            const currentScrollPosition = (this.querySelector('.editor-grid') || {}).scrollTop || 0;
-            this.innerHTML =
-                `<div class="editor-grid">`
-                +   editorHTML
-                + `</div>`;
+            const currentScrollPosition = this.scrollTop || 0;
+            this.innerHTML = editorHTML;
+            this.scrollTop = currentScrollPosition;
+                // `<div class="editor-grid">`
+                // +   editorHTML
+                // + `</div>`;
 
-            this.querySelector('.editor-grid').scrollTop = currentScrollPosition;
 
             function addRowHTML(cellHTML, position, pauseLength, rowCSS) {
                 const pauseCSS = pauseLength >= 1 ? 'duration-large'
@@ -1071,12 +1079,11 @@
             if(!this.currentCell)
                 return;
             const currentCellParent = this.currentCell.parentNode;
-            const gridElm = this.querySelector('.editor-grid');
-            console.log("TODO: ", currentCellParent.offsetTop, gridElm.scrollTop, gridElm.offsetHeight);
-            if(currentCellParent.offsetTop < gridElm.scrollTop)
-                gridElm.scrollTop = currentCellParent.offsetTop;
-            if(currentCellParent.offsetTop > gridElm.scrollTop + gridElm.offsetHeight)
-                gridElm.scrollTop = currentCellParent.offsetTop - gridElm.offsetHeight + this.currentCell.offsetHeight;
+            console.log("TODO: ", currentCellParent.offsetTop, this.scrollTop, this.offsetHeight);
+            if(currentCellParent.offsetTop < this.scrollTop)
+                this.scrollTop = currentCellParent.offsetTop;
+            if(currentCellParent.offsetTop > this.scrollTop + this.offsetHeight)
+                this.scrollTop = currentCellParent.offsetTop - this.offsetHeight + this.currentCell.offsetHeight;
         }
 
         findInstruction(instruction) {
@@ -1096,18 +1103,16 @@
         }
     }
 
-    // Form Actions
-
-
     class MusicEditorMenuElement extends HTMLElement {
         constructor() {
             super();
+            this.editor = null;
         }
 
-        get editor() { return this.parentNode.parentNode; }
         get grid() { return this.editor.grid; } // Grid associated with menu
 
         connectedCallback() {
+            this.editor = findParent(this, (p) => p.matches('music-editor'));
             this.addEventListener('mousedown', this.onInput);
             this.addEventListener('change', this.onSubmit);
             this.addEventListener('submit', this.onSubmit);
@@ -1434,7 +1439,7 @@
             gridStatus = gridStatus || this.editor.gridStatus;
 
             this.innerHTML =
-                `<div class="editor-menu">
+                `<ul class="editor-menu">
                     <li>
                         <a class="menu-item"><span class="key">F</span>ile</a>
                         <ul class="submenu">
@@ -1482,7 +1487,7 @@
                         </ul>
                     </li>
                     <li><a class="menu-item disabled"><span class="key">C</span>ollaborate</a></li>
-                </div>
+                </ul>
                 <ul class="editor-context-menu submenu">
                     <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
                     <li>
@@ -1785,19 +1790,18 @@
 
     }
 
-
-
     class MusicEditorInstrumentElement extends HTMLElement {
         constructor() {
             super();
+            this.editor = null;
         }
 
-        get editor() { return this.parentNode.parentNode; }
         get id() { return parseInt(this.getAttribute('id')); }
         get preset() { return this.editor.getSong().instruments[this.id]; }
         get instrument() { return this.editor.player.getInstrument(this.id);}
 
         connectedCallback() {
+            this.editor = findParent(this, (p) => p.matches('music-editor'));
             this.addEventListener('change', this.onSubmit);
             this.addEventListener('submit', this.onSubmit);
 
@@ -1808,15 +1812,26 @@
             e.preventDefault();
             const form = e.target.form || e.target;
 
+            const newConfig = {};
+            for(var i=0; i<form.elements.length; i++) {
+                if(form.elements[i].name)
+                    newConfig[form.elements[i].name] = form.elements[i].value;
+            }
+            this.editor.getSong().instruments[this.id].config = newConfig;
+            this.editor.player.getInstrument(this.id, true);
+            console.log("Instrument Form " + e.type, newConfig, e);
         }
 
         render() {
-            const formRenderer = this.instrument.renderEditor || function() {};
-            this.innerHTML =
-                `<form class="instrument-editor">
-                    ${formRenderer.call(this.instrument)}
-                </form>
-            `;
+            if(this.instrument.renderEditor) {
+                this.innerHTML = this.instrument.renderEditor();
+            } else {
+                this.innerHTML =
+                    `<form class="instrument-editor">
+                        No Renderer
+                    </form>
+                `;
+            }
         }
     }
 
@@ -1825,17 +1840,6 @@
     customElements.define('music-editor-grid', MusicEditorGridElement);
     customElements.define('music-editor-menu', MusicEditorMenuElement);
     customElements.define('music-editor-instrument', MusicEditorInstrumentElement);
-
-    // Input Profile
-
-    function profileInput(e) {
-        e = e || {};
-        return {
-            gridClearSelected: !e.ctrlKey && !e.shiftKey,
-            gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
-            gridCompleteSelection: e.shiftKey
-        };
-    }
 
     // Load Javascript dependencies
     loadStylesheet('client/editor/music-editor.css');
@@ -1970,6 +1974,14 @@
         if(!newGroupName)
             throw new Error("Failed to generate group name");
         return newGroupName;
+    }
+
+    function findParent(child, callback) {
+        while(child.parentNode) {
+            if(callback(child.parentNode))
+                return child.parentNode;
+        }
+        throw new Error("Parent node not found");
     }
 
     // Rendering templates
