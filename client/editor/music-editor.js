@@ -26,7 +26,7 @@
             };
             this.webSocket = null;
             this.webSocketAttempts = 0;
-            this.initialSongJSON = null; // TODO: refactor
+            // this.initialSongJSON = null; // TODO: refactor
         }
         get grid() { return this.querySelector('music-editor-grid'); }
         get gridStatus() { return this.status.grids[0]; }
@@ -54,7 +54,7 @@
 
                 if(editor.getSongURL())
                     playerElement.loadSongFromURL(editor.getSongURL(), function(songJSON) {
-                        editor.initialSongJSON = JSON.stringify(songJSON); // TODO: ugly
+                        // editor.initialSongJSON = JSON.stringify(songJSON); // TODO: ugly
                         editor.render();
                         editor.gridSelect(null, 0);
 
@@ -216,7 +216,7 @@
 
         // getSelectedInstructions() {
         //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
-        //     return this.gridStatus.selectedPositions.map(p => instructionList[p]);
+        //     return this.gridStatus.selectedPositions.forEach(p => instructionList[p]);
         // }
 
         // getCursorInstruction() {
@@ -509,8 +509,9 @@
             this.innerHTML = `
                 <div class="music-editor">
                     <music-editor-menu></music-editor-menu>
-                    <music-editor-grid tabindex="1">
-                    </music-editor-grid>
+                    <music-editor-grid tabindex="1"></music-editor-grid>
+                    ${this.getSong().instruments.map((instrument, id) => 
+                    `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('')}
                 </div>
             `;
         }
@@ -1368,7 +1369,7 @@
                     combinedInstruction = Object.assign({}, selectedInstruction);
                     if(nextPause) combinedInstruction.duration = nextPause.duration;
                 } else {
-                    Object.keys(combinedInstruction).map(function(key, i) {
+                    Object.keys(combinedInstruction).forEach(function(key, i) {
                         if(selectedInstruction[key] !== combinedInstruction[key])
                             delete combinedInstruction[key];
                     });
@@ -1548,7 +1549,7 @@
                     </form>
                     <form class="form-row-duplicate" data-command="row:duplicate">
                         <fieldset class="fieldset-row">
-                            <button name="duplicate">&#169;</button>
+                            <button name="duplicate">Duplicate</button>
                         </fieldset>
                     </form>
                     
@@ -1667,7 +1668,7 @@
                     const instrumentList = this.editor.getSong().instruments;
                     for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
                         const instrumentInfo = instrumentList[instrumentID];
-                        const instrument = this.editor.player.getInstrument(instrumentInfo.url);
+                        const instrument = this.editor.player.getInstrument(instrumentID);
                         options.push([instrumentID, formatInstrumentID(instrumentID)
                         + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
                     }
@@ -1717,14 +1718,14 @@
 
                 case 'groups':
                     options = [];
-                    Object.keys(this.editor.getSong().instructions).map(function(key, i) {
+                    Object.keys(this.editor.getSong().instructions).forEach(function(key, i) {
                         options.push([key, key]);
                     });
                     break;
 
                 case 'command-group-execute':
                     options = [];
-                    Object.keys(this.editor.getSong().instructions).map(function(key, i) {
+                    Object.keys(this.editor.getSong().instructions).forEach(function(key, i) {
                         options.push(['@' + key, '@' + key]);
                     });
                     break;
@@ -1785,10 +1786,45 @@
     }
 
 
+
+    class MusicEditorInstrumentElement extends HTMLElement {
+        constructor() {
+            super();
+        }
+
+        get editor() { return this.parentNode.parentNode; }
+        get id() { return parseInt(this.getAttribute('id')); }
+        get preset() { return this.editor.getSong().instruments[this.id]; }
+        get instrument() { return this.editor.player.getInstrument(this.id);}
+
+        connectedCallback() {
+            this.addEventListener('change', this.onSubmit);
+            this.addEventListener('submit', this.onSubmit);
+
+            this.render();
+        }
+
+        onSubmit(e) {
+            e.preventDefault();
+            const form = e.target.form || e.target;
+
+        }
+
+        render() {
+            const formRenderer = this.instrument.renderEditor || function() {};
+            this.innerHTML =
+                `<form class="instrument-editor">
+                    ${formRenderer.call(this.instrument)}
+                </form>
+            `;
+        }
+    }
+
     // Define custom elements
     customElements.define('music-editor', MusicEditorElement);
     customElements.define('music-editor-grid', MusicEditorGridElement);
     customElements.define('music-editor-menu', MusicEditorMenuElement);
+    customElements.define('music-editor-instrument', MusicEditorInstrumentElement);
 
     // Input Profile
 
@@ -1837,9 +1873,9 @@
 
     function findInstruments(callback, instrumentsObject) {
         instrumentsObject = instrumentsObject || window.instruments;
-        Object.keys(instrumentsObject).map(function(domainString) {
+        Object.keys(instrumentsObject).forEach(function(domainString) {
             const domainCollection = instrumentsObject[domainString];
-            Object.keys(domainCollection).map(function(instrumentPathString) {
+            Object.keys(domainCollection).forEach(function(instrumentPathString) {
                 const instrument = domainCollection[instrumentPathString];
                 callback(instrument, instrumentPathString, domainString);
             }.bind(this));

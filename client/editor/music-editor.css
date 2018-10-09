@@ -1,3 +1,7 @@
+music-editor {
+    display: block;
+}
+
 .music-editor {
     color: #FFF;
     background-color: #DDD;
@@ -14,6 +18,9 @@
 }
 
 /** Grid **/
+music-editor-grid {
+    display: block;
+}
 
 .music-editor .editor-grid {
     /*cursor: pointer;*/
@@ -199,6 +206,9 @@
 
 
 /** Menu **/
+music-editor-menu {
+    display: block;
+}
 
 .music-editor .editor-menu {
     display: block;
@@ -452,4 +462,8 @@ max-height: 15px;
 .music-editor .editor-forms .form-separator {
     height: 0px;
     margin: 0;
+}
+
+music-editor-instrument {
+    display: block;
 }
