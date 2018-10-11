@@ -6,12 +6,12 @@
 	"instruments": [
 		{
 			"url": "/instruments/oscillator.js",
-			"config": {"type":"square"},
+			"type": "square",
 			"name": "square"
 		},
 		{
 			"url": "/instruments/oscillator.js",
-			"config": {"type":"triangle"},
+			"type": "triangle",
 			"name": "triangle"
 		}
 	],

@@ -25,10 +25,9 @@
 
 
     class OscillatorSimple {
-        constructor(preset, id) {
-            this.id = id;
-            this.preset = preset;
-            this.config = preset.config || {};            // TODO: validate config
+        constructor(config, instrumentID) {
+            this.id = instrumentID;
+            this.config = config || {};            // TODO: validate config
         }
 
         play(destination, frequency, startTime, duration) {
@@ -49,11 +48,11 @@
 
         renderEditor() {
 
-            const paddedID = this.id < 10 ? "0" + this.id : "" + this.id;
+            const instrumentID = this.id < 10 ? "0" + this.id : "" + this.id;
             return `
                 <form class="instrument-editor">
                     <fieldset>
-                        <legend>${paddedID}: ${this.preset.name} (Oscillator)</legend>
+                        <legend>${instrumentID}: ${this.config.name} (Oscillator)</legend>
                         <label>Type:</label>
                         <select name="type" title="Type">
                             ${TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}

@@ -433,20 +433,46 @@
         //     this.setInstruction(p1, instruction2);
         // }
 
-        addSongInstrument(instrumentPath, config) {
-            throw new Error("broken");
+        addInstrument(instrumentURL, instrumentConfig) {
             const instrumentList = this.getSong().instruments;
-            const instrument = this.getInstrument(instrumentPath);
             const instrumentID = instrumentList.length;
-            const defaultName = instrument.getDefaultName ? instrument.getDefaultName(instrumentPath)
-                : instrumentPath.substr(instrumentPath.lastIndexOf('.') + 1);
-            config = Object.assign({path: instrumentPath}, config || {}, {name: defaultName});
-            config.name = prompt("New Instrument Name (" + (instrumentID) + "): ", config.name);
-            if(!config.name)
-                throw new Error("Invalid new instrument name");
-            instrumentList[instrumentID] = config;
-            return instrumentID;
+            instrumentList[instrumentID] = {
+                url: instrumentURL,
+            };
+            this.loadInstrument(instrumentConfig, instrumentID);
         }
+
+        replaceInstrumentParams(instrumentID, replaceConfig) {
+            const instrumentList = this.getSong().instruments;
+            if(!instrumentList[instrumentID])
+                throw new Error("Invalid instrument ID: " + instrumentID);
+
+            const instConfig = instrumentList[instrumentID];
+            // Validate
+            const instance = this.loadInstrument(Object.assign({}, instConfig, replaceConfig), instrumentID);
+
+            const oldParams = {};
+            for(const paramName in replaceConfig) {
+                if(replaceConfig.hasOwnProperty(paramName)) {
+                    oldParams[paramName] = instConfig[paramName];
+                    if(replaceConfig[paramName] === null)
+                        delete instConfig[paramName];
+                    else
+                        instConfig[paramName] = replaceConfig[paramName];
+                }
+            }
+
+            this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+            return oldParams;
+        }
+
+        removeInstrument(instrumentID) {
+            const instrumentList = this.getSong().instruments;
+            if(!instrumentList[instrumentID])
+                throw new Error("Invalid instrument ID: " + instrumentID);
+            return instrumentList.splice(instrumentID, 1);
+        }
+
 
         // Playback
 
@@ -537,16 +563,11 @@
         //     return instrumentPreset.path;
         // }
 
-        getInstrument(instrumentID, reload) {
-            if(!reload && this.loadedInstruments[instrumentID])
-                return this.loadedInstruments[instrumentID];
-
-            let instrumentPreset = this.song.instruments[instrumentID];
-
+        loadInstrument(instrumentConfig, instrumentID) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
 
-            const url = new URL(instrumentPreset.url, this.song.source);
+            const url = new URL(instrumentConfig.url, this.song.source);
             const path = url.pathname;
             const domain = url.hostname;
 
@@ -558,7 +579,16 @@
                 throw new Error("Instrument not found: " + path);
 
             const instrument = collection[path];
-            const instance = new instrument(instrumentPreset, instrumentID);
+            return new instrument(instrumentConfig, instrumentID);
+        }
+
+        getInstrument(instrumentID, reload) {
+            if(!reload && this.loadedInstruments[instrumentID])
+                return this.loadedInstruments[instrumentID];
+
+            let instrumentPreset = this.song.instruments[instrumentID];
+            const instance = this.loadInstrument(instrumentPreset, instrumentID);
+
             this.loadedInstruments[instrumentID] = instance;
             return instance;
         }

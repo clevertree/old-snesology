@@ -415,6 +415,36 @@
             this.gridNavigate(newGroupName);
         }
 
+        addInstrument(instrumentURL, instrumentConfig) {
+            this.player.addInstrument(instrumentURL, instrumentConfig);
+            const historyAction = {
+                action: 'instrument-add',
+                params: [instrumentURL, instrumentConfig]
+            };
+            this.historyQueue(historyAction);
+            this.render();
+        }
+
+        removeInstrument(instrumentID) {
+            this.player.removeInstrument(instrumentID);
+            const historyAction = {
+                action: 'instrument-remove',
+                params: [instrumentID]
+            };
+            this.historyQueue(historyAction);
+            this.render();
+        }
+
+        replaceInstrumentParams(instrumentID, replaceConfig) {
+            this.player.replaceInstrumentParams(instrumentID, replaceConfig);
+            const historyAction = {
+                action: 'instrument-params',
+                params: [instrumentID, replaceConfig]
+            };
+            this.historyQueue(historyAction);
+            this.render();
+        }
+
         applyHistoryAction(action) {
             switch (action.action) {
                 case 'reset':
@@ -447,6 +477,15 @@
                     for (let i = 0; i < action.params.length; i++) {
                         this.applyHistoryAction(action.params[i]);
                     }
+                    break;
+                case 'instrument-add':
+                    this.player.addInstrument(action.params[0], action.params[1]);
+                    break;
+                case 'instrument-remove':
+                    this.player.removeInstrument(action.params[0], action.params[1]);
+                    break;
+                case 'instrument-params':
+                    this.player.replaceInstrumentParams(action.params[0], action.params[1]);
                     break;
                 default:
                     throw new Error("Unrecognized history action: " + action.action);
@@ -1142,7 +1181,7 @@
                 case 'instruction:instrument':
                     let instrumentID = form.instrument.value;
                     if (instrumentID.indexOf('add:') === 0)
-                        instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
+                        instrumentID = this.editor.addInstrument(instrumentID.substr(4));
                     this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
                         instrument: parseInt(instrumentID)
                     });
@@ -1813,12 +1852,11 @@
             const form = e.target.form || e.target;
 
             const newConfig = {};
-            for(var i=0; i<form.elements.length; i++) {
+            for(var i=0; i<form.elements.length; i++)
                 if(form.elements[i].name)
                     newConfig[form.elements[i].name] = form.elements[i].value;
-            }
-            this.editor.getSong().instruments[this.id].config = newConfig;
-            this.editor.player.getInstrument(this.id, true);
+
+            this.editor.replaceInstrumentParams(this.id, newConfig);
             console.log("Instrument Form " + e.type, newConfig, e);
         }
 
