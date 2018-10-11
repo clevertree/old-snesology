@@ -12,6 +12,12 @@ app.redisClient.on("error", function (err) {
 app.redisClient.DB_PREFIX = 'snesology.net/';
 
 // Configure app
+let config = {
+    port: 8080,
+    debug: false
+};
+try { config = require('../config.js'); } catch (e) { }
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -19,9 +25,6 @@ app.use(bodyParser.json());
 // Init Routes
 const router = express.Router(null);
 
-let config = {};
-try { config = require('../config.js'); } catch (e) {}
-config = Object.assign({port: 8080}, config);
 
 require('./server.js')(app, router);                // Include first
 require('./songs.js')(app, router);
@@ -31,6 +34,7 @@ require('./git.js')(app, router);
 app.use('/', router);
 
 // Start
+
 app.listen(config.port, () => console.log('Snesology listening on port ' + config.port));
 
 

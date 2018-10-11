@@ -17,6 +17,7 @@
             super();
             this.audioContext = null;
             this.song = null;
+            this.loadedInstruments = [];
             this.seekLength = 4;
             this.seekPosition = 0;
             this.volumeGain = null;
@@ -142,68 +143,20 @@
             });
         }
 
-        playInstrument(instrumentID, noteFrequency, noteStartTime, instruction, stats) {
-            let instrumentConfig = this.song.instruments[instrumentID];
-            // const instrumentPath = this.getInstrumentPath(instrumentID);
-            const instrument = this.getInstrument(instrumentConfig.url);
+        playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
+            const instrument = this.getInstrument(instrumentID);
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
-            const currentTime = this.getAudioContext().currentTime;
 
             const context = this.getAudioContext();
             const destination = this.getVolumeGain();
 
-            const bpm = stats.currentBPM || 60;
-            const noteDuration = (instruction.duration || 1) * (60 / bpm);
-            const noteEventData = {
-                noteEvent: null,
-                frequency: noteFrequency,
-                startTime: noteStartTime,
-                startOffset: noteStartTime,
-                duration: noteDuration,
-                instrumentConfig: instrumentConfig,
-                instruction: instruction,
-                groupInstruction: stats.groupInstruction,
-                stats: stats || {},
-                calculateVelocity: function() {
-                    let calculatedVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
-                    if(stats.groupInstruction && stats.groupInstruction.velocity)
-                        calculatedVelocity *= stats.groupInstruction.velocity/100;
-                    return calculatedVelocity;
-                },
-                connectGain: function(source) {
-                    // Velocity
-                    let gain = context.createGain();
-                    gain.gain.value = this.calculateVelocity() / 100;
-                    source.connect(gain);
-                    gain.connect(destination);
-                    return gain;
-                },
-                connect: function(source) {
-                    this.connectGain(source);
-                }
-            };
+            let velocityGain = context.createGain();
+            velocityGain.gain.value = noteVelocity / 100;
+            velocityGain.connect(destination);
 
-            const noteEvent = instrument(context, noteEventData);
-            noteEventData.noteEvent = noteEvent;
-
-            if(noteStartTime > currentTime)
-                setTimeout(function() {
-                    this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-                }.bind(this), (noteStartTime - currentTime) * 1000);
-            else {
-                // Start immediately
-                this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-            }
-
-            if(noteDuration) {
-                setTimeout(function() {
-                    this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
-                }.bind(this), (noteStartTime - currentTime + noteDuration) * 1000);
-            }
-
-            return noteEvent;
+            return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
         }
 
         findInstructionGroup(instruction) {
@@ -247,9 +200,48 @@
                 // TODO: play groups too
             }
 
-            const instrumentID = instruction.instrument || 0; // TODO: use current set instrument
+            const instrumentID = typeof instruction.instrument === 'undefined'
+                ? stats.groupInstruction.instrument || 0
+                : instruction.instrument // TO
             const noteFrequency = instruction.command;
-            return this.playInstrument(instrumentID, noteFrequency, noteStartTime, instruction, stats);
+            const currentTime = this.getAudioContext().currentTime;
+
+
+            const bpm = stats.currentBPM || 60;
+            const noteDuration = (instruction.duration || 1) * (60 / bpm);
+
+            // Velocity
+            let noteVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
+            if(stats.groupInstruction && stats.groupInstruction.velocity)
+                noteVelocity *= stats.groupInstruction.velocity/100;
+            const audioNode = this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
+
+            const noteEventData = {
+                audioNode: audioNode,
+                frequency: noteFrequency,
+                startTime: noteStartTime,
+                duration: noteDuration,
+                instrumentPreset: this.song.instruments[instrumentID],
+                instruction: instruction,
+                // groupInstruction: stats.groupInstruction,
+                stats: stats || {}
+            };
+
+            if(noteStartTime > currentTime)
+                setTimeout(function() {
+                    this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
+                }.bind(this), (noteStartTime - currentTime) * 1000);
+            else {
+                // Start immediately
+                this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
+            }
+
+            if(noteDuration) {
+                setTimeout(function() {
+                    this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
+                }.bind(this), (noteStartTime - currentTime + noteDuration) * 1000);
+            }
+
         }
 
         playInstructions(instructionGroup, playbackPosition, playbackLength, currentTime) {
@@ -440,19 +432,46 @@
         //     this.setInstruction(p1, instruction2);
         // }
 
-        addSongInstrument(instrumentPath, config) {
+        addInstrument(instrumentURL, instrumentConfig) {
             const instrumentList = this.getSong().instruments;
-            const instrument = this.getInstrument(instrumentPath);
             const instrumentID = instrumentList.length;
-            const defaultName = instrument.getDefaultName ? instrument.getDefaultName(instrumentPath)
-                : instrumentPath.substr(instrumentPath.lastIndexOf('.') + 1);
-            config = Object.assign({path: instrumentPath}, config || {}, {name: defaultName});
-            config.name = prompt("New Instrument Name (" + (instrumentID) + "): ", config.name);
-            if(!config.name)
-                throw new Error("Invalid new instrument name");
-            instrumentList[instrumentID] = config;
-            return instrumentID;
+            instrumentList[instrumentID] = {
+                url: instrumentURL,
+            };
+            this.loadInstrument(instrumentConfig, instrumentID);
         }
+
+        replaceInstrumentParams(instrumentID, replaceConfig) {
+            const instrumentList = this.getSong().instruments;
+            if(!instrumentList[instrumentID])
+                throw new Error("Invalid instrument ID: " + instrumentID);
+
+            const instConfig = instrumentList[instrumentID];
+            // Validate
+            const instance = this.loadInstrument(Object.assign({}, instConfig, replaceConfig), instrumentID);
+
+            const oldParams = {};
+            for(const paramName in replaceConfig) {
+                if(replaceConfig.hasOwnProperty(paramName)) {
+                    oldParams[paramName] = instConfig[paramName];
+                    if(replaceConfig[paramName] === null)
+                        delete instConfig[paramName];
+                    else
+                        instConfig[paramName] = replaceConfig[paramName];
+                }
+            }
+
+            this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+            return oldParams;
+        }
+
+        removeInstrument(instrumentID) {
+            const instrumentList = this.getSong().instruments;
+            if(!instrumentList[instrumentID])
+                throw new Error("Invalid instrument ID: " + instrumentID);
+            return instrumentList.splice(instrumentID, 1);
+        }
+
 
         // Playback
 
@@ -535,25 +554,23 @@
         // getInstrumentPath(instrumentID) {
         //     if(typeof instrumentID !== "number")
         //         throw new Error("Invalid instrumentID");
-        //     let instrumentConfig = this.song.instruments[instrumentID];
-        //     if(!instrumentConfig)
+        //     let instrumentPreset = this.song.instruments[instrumentID];
+        //     if(!instrumentPreset)
         //         throw new Error("Invalid Instrument ID: " + instrumentID);
-        //     if(!instrumentConfig.path)
-        //         throw new Error("Invalid Instrument Config: " + instrumentConfig);
-        //     return instrumentConfig.path;
+        //     if(!instrumentPreset.path)
+        //         throw new Error("Invalid Instrument Config: " + instrumentPreset);
+        //     return instrumentPreset.path;
         // }
 
-        getInstrument(url) {
+        loadInstrument(instrumentConfig, instrumentID) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
+            if(!instrumentConfig)
+                throw new Error("Invalid config");
 
-            if(!url)
-                throw new Error("Invalid instrument path");
-
-            const l = document.createElement("a");
-            l.href = url;
-            const path = l.pathname;
-            const domain = l.hostname;
+            const url = new URL(instrumentConfig.url, this.song.source);
+            const path = url.pathname;
+            const domain = url.hostname;
 
             if(!window.instruments[domain])
                 throw new Error("Instrument domain not found: " + domain);
@@ -562,7 +579,19 @@
             if(!collection[path])
                 throw new Error("Instrument not found: " + path);
 
-            return collection[path];
+            const instrument = collection[path];
+            return new instrument(instrumentConfig, instrumentID);
+        }
+
+        getInstrument(instrumentID, reload) {
+            if(!reload && this.loadedInstruments[instrumentID])
+                return this.loadedInstruments[instrumentID];
+
+            let instrumentPreset = this.song.instruments[instrumentID];
+            const instance = this.loadInstrument(instrumentPreset, instrumentID);
+
+            this.loadedInstruments[instrumentID] = instance;
+            return instance;
         }
 
         getInstructionFrequency (instruction) {

@@ -26,7 +26,7 @@
             };
             this.webSocket = null;
             this.webSocketAttempts = 0;
-            this.initialSongJSON = null; // TODO: refactor
+            // this.initialSongJSON = null; // TODO: refactor
         }
         get grid() { return this.querySelector('music-editor-grid'); }
         get gridStatus() { return this.status.grids[0]; }
@@ -54,7 +54,7 @@
 
                 if(editor.getSongURL())
                     playerElement.loadSongFromURL(editor.getSongURL(), function(songJSON) {
-                        editor.initialSongJSON = JSON.stringify(songJSON); // TODO: ugly
+                        // editor.initialSongJSON = JSON.stringify(songJSON); // TODO: ugly
                         editor.render();
                         editor.gridSelect(null, 0);
 
@@ -216,7 +216,7 @@
 
         // getSelectedInstructions() {
         //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
-        //     return this.gridStatus.selectedPositions.map(p => instructionList[p]);
+        //     return this.gridStatus.selectedPositions.forEach(p => instructionList[p]);
         // }
 
         // getCursorInstruction() {
@@ -415,6 +415,36 @@
             this.gridNavigate(newGroupName);
         }
 
+        addInstrument(instrumentURL, instrumentConfig) {
+            this.player.addInstrument(instrumentURL, instrumentConfig);
+            const historyAction = {
+                action: 'instrument-add',
+                params: [instrumentURL, instrumentConfig]
+            };
+            this.historyQueue(historyAction);
+            this.render();
+        }
+
+        removeInstrument(instrumentID) {
+            this.player.removeInstrument(instrumentID);
+            const historyAction = {
+                action: 'instrument-remove',
+                params: [instrumentID]
+            };
+            this.historyQueue(historyAction);
+            this.render();
+        }
+
+        replaceInstrumentParams(instrumentID, replaceConfig) {
+            this.player.replaceInstrumentParams(instrumentID, replaceConfig);
+            const historyAction = {
+                action: 'instrument-params',
+                params: [instrumentID, replaceConfig]
+            };
+            this.historyQueue(historyAction);
+            this.render();
+        }
+
         applyHistoryAction(action) {
             switch (action.action) {
                 case 'reset':
@@ -447,6 +477,15 @@
                     for (let i = 0; i < action.params.length; i++) {
                         this.applyHistoryAction(action.params[i]);
                     }
+                    break;
+                case 'instrument-add':
+                    this.player.addInstrument(action.params[0], action.params[1]);
+                    break;
+                case 'instrument-remove':
+                    this.player.removeInstrument(action.params[0], action.params[1]);
+                    break;
+                case 'instrument-params':
+                    this.player.replaceInstrumentParams(action.params[0], action.params[1]);
                     break;
                 default:
                     throw new Error("Unrecognized history action: " + action.action);
@@ -507,18 +546,26 @@
 
         render() {
             this.innerHTML = `
-                <div class="music-editor">
-                    <music-editor-menu></music-editor-menu>
-                    <music-editor-grid tabindex="1">
-                    </music-editor-grid>
-                </div>
+                <music-editor-menu></music-editor-menu>
+                <music-editor-grid tabindex="1"></music-editor-grid>
+                ${this.getSong().instruments.map((instrument, id) => 
+                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('')}
             `;
         }
 
         // Grid Commands
 
+        profileInput(e) {
+            e = e || {};
+            return {
+                gridClearSelected: !e.ctrlKey && !e.shiftKey,
+                gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
+                gridCompleteSelection: e.shiftKey
+            };
+        }
+
         gridSelect(e, cursorPosition) {
-            const inputProfile = profileInput(e);
+            const inputProfile = this.profileInput(e);
             const gridStatus = this.gridStatus;
             cursorPosition = parseInt(cursorPosition);
             const lastCursorPosition = gridStatus.cursorPosition || 0;
@@ -631,11 +678,11 @@
                     break;
 
                 case 'song:start':
-                    this.querySelector('.music-editor').classList.add('playing');
+                    this.classList.add('playing');
                     break;
                 case 'song:end':
                 case 'song:pause':
-                    this.querySelector('.music-editor').classList.remove('playing');
+                    this.classList.remove('playing');
                     break;
             }
         }
@@ -649,9 +696,9 @@
         constructor() {
             super();
             this.longPressTimeout = null;
+            this.editor = null;
         }
 
-        get editor() { return this.parentNode.parentNode; }
 
         // get selectedCells() { return this.querySelectorAll('.grid-cell.selected'); }
         get currentCell() { return this.querySelector('.grid-cell.cursor') || this.querySelector('.grid-cell.selected'); }
@@ -721,6 +768,7 @@
         }
 
         connectedCallback() {
+            this.editor = findParent(this, (p) => p.matches('music-editor'));
             this.addEventListener('contextmenu', this.onInput);
             this.addEventListener('keydown', this.onInput);
             // this.addEventListener('keyup', this.onInput.bind(this));
@@ -1003,13 +1051,13 @@
 
             // addRowHTML(cellHTML, instructionList.length);
 
-            const currentScrollPosition = (this.querySelector('.editor-grid') || {}).scrollTop || 0;
-            this.innerHTML =
-                `<div class="editor-grid">`
-                +   editorHTML
-                + `</div>`;
+            const currentScrollPosition = this.scrollTop || 0;
+            this.innerHTML = editorHTML;
+            this.scrollTop = currentScrollPosition;
+                // `<div class="editor-grid">`
+                // +   editorHTML
+                // + `</div>`;
 
-            this.querySelector('.editor-grid').scrollTop = currentScrollPosition;
 
             function addRowHTML(cellHTML, position, pauseLength, rowCSS) {
                 const pauseCSS = pauseLength >= 1 ? 'duration-large'
@@ -1070,12 +1118,11 @@
             if(!this.currentCell)
                 return;
             const currentCellParent = this.currentCell.parentNode;
-            const gridElm = this.querySelector('.editor-grid');
-            console.log("TODO: ", currentCellParent.offsetTop, gridElm.scrollTop, gridElm.offsetHeight);
-            if(currentCellParent.offsetTop < gridElm.scrollTop)
-                gridElm.scrollTop = currentCellParent.offsetTop;
-            if(currentCellParent.offsetTop > gridElm.scrollTop + gridElm.offsetHeight)
-                gridElm.scrollTop = currentCellParent.offsetTop - gridElm.offsetHeight + this.currentCell.offsetHeight;
+            // console.log("TODO: ", currentCellParent.offsetTop, this.scrollTop, this.offsetHeight);
+            if(currentCellParent.offsetTop < this.scrollTop)
+                this.scrollTop = currentCellParent.offsetTop;
+            if(currentCellParent.offsetTop > this.scrollTop + this.offsetHeight)
+                this.scrollTop = currentCellParent.offsetTop - this.offsetHeight + this.currentCell.offsetHeight;
         }
 
         findInstruction(instruction) {
@@ -1095,18 +1142,16 @@
         }
     }
 
-    // Form Actions
-
-
     class MusicEditorMenuElement extends HTMLElement {
         constructor() {
             super();
+            this.editor = null;
         }
 
-        get editor() { return this.parentNode.parentNode; }
         get grid() { return this.editor.grid; } // Grid associated with menu
 
         connectedCallback() {
+            this.editor = findParent(this, (p) => p.matches('music-editor'));
             this.addEventListener('mousedown', this.onInput);
             this.addEventListener('change', this.onSubmit);
             this.addEventListener('submit', this.onSubmit);
@@ -1136,7 +1181,7 @@
                 case 'instruction:instrument':
                     let instrumentID = form.instrument.value;
                     if (instrumentID.indexOf('add:') === 0)
-                        instrumentID = this.editor.player.addSongInstrument(instrumentID.substr(4));
+                        instrumentID = this.editor.addInstrument(instrumentID.substr(4));
                     this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
                         instrument: parseInt(instrumentID)
                     });
@@ -1368,7 +1413,7 @@
                     combinedInstruction = Object.assign({}, selectedInstruction);
                     if(nextPause) combinedInstruction.duration = nextPause.duration;
                 } else {
-                    Object.keys(combinedInstruction).map(function(key, i) {
+                    Object.keys(combinedInstruction).forEach(function(key, i) {
                         if(selectedInstruction[key] !== combinedInstruction[key])
                             delete combinedInstruction[key];
                     });
@@ -1433,7 +1478,7 @@
             gridStatus = gridStatus || this.editor.gridStatus;
 
             this.innerHTML =
-                `<div class="editor-menu">
+                `<ul class="editor-menu">
                     <li>
                         <a class="menu-item"><span class="key">F</span>ile</a>
                         <ul class="submenu">
@@ -1481,7 +1526,7 @@
                         </ul>
                     </li>
                     <li><a class="menu-item disabled"><span class="key">C</span>ollaborate</a></li>
-                </div>
+                </ul>
                 <ul class="editor-context-menu submenu">
                     <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
                     <li>
@@ -1548,7 +1593,7 @@
                     </form>
                     <form class="form-row-duplicate" data-command="row:duplicate">
                         <fieldset class="fieldset-row">
-                            <button name="duplicate">&#169;</button>
+                            <button name="duplicate">Duplicate</button>
                         </fieldset>
                     </form>
                     
@@ -1667,7 +1712,7 @@
                     const instrumentList = this.editor.getSong().instruments;
                     for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
                         const instrumentInfo = instrumentList[instrumentID];
-                        const instrument = this.editor.player.getInstrument(instrumentInfo.url);
+                        const instrument = this.editor.player.getInstrument(instrumentID);
                         options.push([instrumentID, formatInstrumentID(instrumentID)
                         + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
                     }
@@ -1717,14 +1762,14 @@
 
                 case 'groups':
                     options = [];
-                    Object.keys(this.editor.getSong().instructions).map(function(key, i) {
+                    Object.keys(this.editor.getSong().instructions).forEach(function(key, i) {
                         options.push([key, key]);
                     });
                     break;
 
                 case 'command-group-execute':
                     options = [];
-                    Object.keys(this.editor.getSong().instructions).map(function(key, i) {
+                    Object.keys(this.editor.getSong().instructions).forEach(function(key, i) {
                         options.push(['@' + key, '@' + key]);
                     });
                     break;
@@ -1784,22 +1829,65 @@
 
     }
 
+    class MusicEditorInstrumentElement extends HTMLElement {
+        constructor() {
+            super();
+            this.editor = null;
+        }
+
+        get id() { return parseInt(this.getAttribute('id')); }
+        get preset() { return this.editor.getSong().instruments[this.id]; }
+        get instrument() { return this.editor.player.getInstrument(this.id);}
+
+        connectedCallback() {
+            this.editor = findParent(this, (p) => p.matches('music-editor'));
+            this.addEventListener('change', this.onSubmit);
+            this.addEventListener('input', this.onSubmit);
+            this.addEventListener('submit', this.onSubmit);
+
+            this.render();
+        }
+
+        onSubmit(e) {
+            e.preventDefault();
+            const form = e.target.form || e.target;
+
+            const newConfig = {};
+            for(var i=0; i<form.elements.length; i++)
+                if(form.elements[i].name)
+                    newConfig[form.elements[i].name] = form.elements[i].value;
+
+            switch(e.type) {
+                case 'submit':
+                case 'change':
+                    console.log("Instrument Form " + e.type, newConfig, e);
+                    this.editor.replaceInstrumentParams(this.id, newConfig);
+                    break;
+
+                case 'input':
+                    this.editor.player.replaceInstrumentParams(this.id, newConfig);
+                    break;
+            }
+        }
+
+        render() {
+            if(this.instrument.renderEditor) {
+                this.innerHTML = this.instrument.renderEditor();
+            } else {
+                this.innerHTML =
+                    `<form class="instrument-editor">
+                        No Renderer
+                    </form>
+                `;
+            }
+        }
+    }
 
     // Define custom elements
     customElements.define('music-editor', MusicEditorElement);
     customElements.define('music-editor-grid', MusicEditorGridElement);
     customElements.define('music-editor-menu', MusicEditorMenuElement);
-
-    // Input Profile
-
-    function profileInput(e) {
-        e = e || {};
-        return {
-            gridClearSelected: !e.ctrlKey && !e.shiftKey,
-            gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
-            gridCompleteSelection: e.shiftKey
-        };
-    }
+    customElements.define('music-editor-instrument', MusicEditorInstrumentElement);
 
     // Load Javascript dependencies
     loadStylesheet('client/editor/music-editor.css');
@@ -1837,9 +1925,9 @@
 
     function findInstruments(callback, instrumentsObject) {
         instrumentsObject = instrumentsObject || window.instruments;
-        Object.keys(instrumentsObject).map(function(domainString) {
+        Object.keys(instrumentsObject).forEach(function(domainString) {
             const domainCollection = instrumentsObject[domainString];
-            Object.keys(domainCollection).map(function(instrumentPathString) {
+            Object.keys(domainCollection).forEach(function(instrumentPathString) {
                 const instrument = domainCollection[instrumentPathString];
                 callback(instrument, instrumentPathString, domainString);
             }.bind(this));
@@ -1934,6 +2022,14 @@
         if(!newGroupName)
             throw new Error("Failed to generate group name");
         return newGroupName;
+    }
+
+    function findParent(child, callback) {
+        while(child.parentNode) {
+            if(callback(child.parentNode))
+                return child.parentNode;
+        }
+        throw new Error("Parent node not found");
     }
 
     // Rendering templates
