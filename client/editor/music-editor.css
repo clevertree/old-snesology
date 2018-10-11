@@ -330,6 +330,24 @@ music-editor .editor-context-menu.open {
 }
 
 /** Form **/
+
+
+music-editor input[type='range'] {
+    -webkit-appearance: none;
+    background-color: #AAA;
+    border-radius: 15px;
+    height: 12px;
+}
+
+music-editor input[type='range']::-webkit-slider-thumb {
+    vertical-align: middle;
+    -webkit-appearance: none;
+    background-color: #444;
+    width: 16px;
+    height: 16px;
+    border-radius: 16px;
+}
+
 music-editor .editor-forms {
     padding: 4px 0px;
     color: black;
@@ -404,19 +422,16 @@ music-editor .editor-forms select[name=beats-per-measure] {
 
 music-editor .editor-forms input[name=volume] {
     max-width: 71px;
-    max-height: 10px;
-    padding: 0;
-    margin: 0;
-    background-color: grey;
+    /* max-height: 10px; */
 }
 
 music-editor .editor-forms div.volume-container {
 
-border: 1px solid #AAA;
+/* border: 1px solid #AAA; */
 
-border-radius: 6px;
+/* border-radius: 6px; */
 
-max-height: 15px;
+/* max-height: 15px; */
 }
 
 music-editor:not(.playing) form.form-song-pause { display: none; }
@@ -461,3 +476,9 @@ music-editor .editor-forms .form-separator {
 music-editor-instrument {
     display: block;
 }
+
+music-editor-instrument .instrument-editor {
+
+}
+
+

@@ -678,11 +678,11 @@
                     break;
 
                 case 'song:start':
-                    this.querySelector('.music-editor').classList.add('playing');
+                    this.classList.add('playing');
                     break;
                 case 'song:end':
                 case 'song:pause':
-                    this.querySelector('.music-editor').classList.remove('playing');
+                    this.classList.remove('playing');
                     break;
             }
         }
@@ -1118,7 +1118,7 @@
             if(!this.currentCell)
                 return;
             const currentCellParent = this.currentCell.parentNode;
-            console.log("TODO: ", currentCellParent.offsetTop, this.scrollTop, this.offsetHeight);
+            // console.log("TODO: ", currentCellParent.offsetTop, this.scrollTop, this.offsetHeight);
             if(currentCellParent.offsetTop < this.scrollTop)
                 this.scrollTop = currentCellParent.offsetTop;
             if(currentCellParent.offsetTop > this.scrollTop + this.offsetHeight)
@@ -1842,6 +1842,7 @@
         connectedCallback() {
             this.editor = findParent(this, (p) => p.matches('music-editor'));
             this.addEventListener('change', this.onSubmit);
+            this.addEventListener('input', this.onSubmit);
             this.addEventListener('submit', this.onSubmit);
 
             this.render();
@@ -1856,8 +1857,17 @@
                 if(form.elements[i].name)
                     newConfig[form.elements[i].name] = form.elements[i].value;
 
-            this.editor.replaceInstrumentParams(this.id, newConfig);
-            console.log("Instrument Form " + e.type, newConfig, e);
+            switch(e.type) {
+                case 'submit':
+                case 'change':
+                    console.log("Instrument Form " + e.type, newConfig, e);
+                    this.editor.replaceInstrumentParams(this.id, newConfig);
+                    break;
+
+                case 'input':
+                    this.editor.player.replaceInstrumentParams(this.id, newConfig);
+                    break;
+            }
         }
 
         render() {

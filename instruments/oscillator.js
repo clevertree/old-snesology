@@ -31,18 +31,28 @@
         }
 
         play(destination, frequency, startTime, duration) {
+            const type =this.config.type || 'sine';
+            function p(detune) {
+                const osc = destination.context.createOscillator();   // instantiate an oscillator
+                osc.type = type;
+                osc.frequency.value = frequency;    // set Frequency (hz)
+                osc.detune.value = detune;
+                osc.connect(destination);
 
-            const osc = destination.context.createOscillator();   // instantiate an oscillator
-            osc.type = this.config.type || 'sine';
-            osc.frequency.value = frequency;    // set Frequency (hz)
+                // Play note
+                osc.start(startTime);
+                osc.stop(startTime + duration);
 
-            destination.connect(osc);
-
-            // Play note
-            osc.start(startTime);
-            osc.stop(startTime + duration);
-
-            return osc;
+                return osc;
+            }
+            if(!this.config.detune) {
+                return [p(0)];
+            } else {
+                return [
+                    p(-this.config.detune),
+                    p(this.config.detune)
+                ];
+            }
         }
 
 
@@ -57,6 +67,8 @@
                         <select name="type" title="Type">
                             ${TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
                         </select>
+                        <label>Detune:</label>
+                        <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" />
                     </fieldset>
                 </form>
             `

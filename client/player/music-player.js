@@ -154,12 +154,9 @@
 
             let velocityGain = context.createGain();
             velocityGain.gain.value = noteVelocity / 100;
-            source.connect(velocityGain);
             velocityGain.connect(destination);
 
-            const audioNode = instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
-
-            return audioNode;
+            return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
         }
 
         findInstructionGroup(instruction) {
@@ -203,7 +200,9 @@
                 // TODO: play groups too
             }
 
-            const instrumentID = instruction.instrument || 0; // TODO: use current set instrument
+            const instrumentID = typeof instruction.instrument === 'undefined'
+                ? stats.groupInstruction.instrument || 0
+                : instruction.instrument // TO
             const noteFrequency = instruction.command;
             const currentTime = this.getAudioContext().currentTime;
 
@@ -566,6 +565,8 @@
         loadInstrument(instrumentConfig, instrumentID) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
+            if(!instrumentConfig)
+                throw new Error("Invalid config");
 
             const url = new URL(instrumentConfig.url, this.song.source);
             const path = url.pathname;
