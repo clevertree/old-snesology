@@ -32,6 +32,29 @@
 // start the source playing
     source.start();
 
+    // var xhr = new XMLHttpRequest();
+    // xhr.open('GET', '/path/to/image.png', true);
+
+    //
+    // request.open('GET', 'viper.ogg', true);
+    //
+    // request.responseType = 'arraybuffer';
+    //
+    //
+    // request.onload = function() {
+    //     var audioData = request.response;
+    //
+    //     audioCtx.decodeAudioData(audioData, function(buffer) {
+    //             source.buffer = buffer;
+    //
+    //             source.connect(audioCtx.destination);
+    //             source.loop = true;
+    //         },
+    //
+    //         function(e){ console.log("Error with decoding audio data" + e.err); });
+    //
+    // }
+
 
 
 
@@ -88,7 +111,7 @@
         window.instruments = {};
     if(!window.instruments['snesology.net'])
         window.instruments['snesology.net'] = {};
-    window.instruments['snesology.net']['/instruments/buffersource.js'] = BufferSource;
+    window.instruments['snesology.net']['/instrument/buffersource/simple.js'] = BufferSource;
     window.instruments['localhost'] = window.instruments['snesology.net']; // For local debugging
 
     // instrument

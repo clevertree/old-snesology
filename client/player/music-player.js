@@ -108,7 +108,7 @@
                     throw new Error("Song contains no instruments");
                 } else {
                     for(let i=0; i<songJSON.instruments.length; i++) {
-                        const url = songJSON.instruments[i].url;
+                        const url = songJSON.instruments[i].source;
                         if(loadFiles.indexOf(url) === -1)
                             loadFiles.push(url);
                     }
@@ -432,13 +432,15 @@
         //     this.setInstruction(p1, instruction2);
         // }
 
-        addInstrument(instrumentURL, instrumentConfig) {
+        addInstrument(sourceURL, instrumentConfig) {
             const instrumentList = this.getSong().instruments;
             const instrumentID = instrumentList.length;
-            instrumentList[instrumentID] = {
-                url: instrumentURL,
+            const instrumentPreset = {
+                source: sourceURL,
+                config: instrumentConfig
             };
-            this.loadInstrument(instrumentConfig, instrumentID);
+            instrumentList[instrumentID] = instrumentPreset
+            this.loadInstrument(instrumentPreset, instrumentID);
         }
 
         replaceInstrumentParams(instrumentID, replaceConfig) {
@@ -446,20 +448,23 @@
             if(!instrumentList[instrumentID])
                 throw new Error("Invalid instrument ID: " + instrumentID);
 
-            const instConfig = instrumentList[instrumentID];
-            // Validate
-            const instance = this.loadInstrument(Object.assign({}, instConfig, replaceConfig), instrumentID);
+            const presetData = instrumentList[instrumentID];
+            const newPresetData = Object.assign({}, presetData);
+            const newPresetConfig = newPresetData.config;
 
             const oldParams = {};
             for(const paramName in replaceConfig) {
                 if(replaceConfig.hasOwnProperty(paramName)) {
-                    oldParams[paramName] = instConfig[paramName];
+                    oldParams[paramName] = newPresetConfig[paramName];
                     if(replaceConfig[paramName] === null)
-                        delete instConfig[paramName];
+                        delete newPresetConfig[paramName];
                     else
-                        instConfig[paramName] = replaceConfig[paramName];
+                        newPresetConfig[paramName] = replaceConfig[paramName];
                 }
             }
+            // Validate
+            const instance = this.loadInstrument(newPresetData, instrumentID);
+            instrumentList[instrumentID] = newPresetData;
 
             this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
             return oldParams;
@@ -562,13 +567,13 @@
         //     return instrumentPreset.path;
         // }
 
-        loadInstrument(instrumentConfig, instrumentID) {
+        loadInstrument(instrumentPreset, instrumentID) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
-            if(!instrumentConfig)
-                throw new Error("Invalid config");
+            if(!instrumentPreset || !instrumentPreset.source)
+                throw new Error("Invalid preset");
 
-            const url = new URL(instrumentConfig.url, this.song.source);
+            const url = new URL(instrumentPreset.source);
             const path = url.pathname;
             const domain = url.hostname;
 
@@ -580,7 +585,7 @@
                 throw new Error("Instrument not found: " + path);
 
             const instrument = collection[path];
-            return new instrument(instrumentConfig, instrumentID);
+            return new instrument(this.getAudioContext(), instrumentPreset, instrumentID);
         }
 
         getInstrument(instrumentID, reload) {
