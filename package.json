@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/clevertree/snesology.git"
+    "customURL": "git+ssh://git@github.com/clevertree/snesology.git"
   },
   "keywords": [
     "video",
@@ -21,7 +21,7 @@
   "author": "Ari Asulin",
   "license": "GNU GPLv3",
   "bugs": {
-    "url": "https://github.com/clevertree/snesology/issues"
+    "customURL": "https://github.com/clevertree/snesology/issues"
   },
   "homepage": "https://github.com/clevertree/snesology#readme",
   "dependencies": {

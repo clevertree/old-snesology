@@ -9,34 +9,25 @@
             this.periodicWave = null;
 
             if(this.preset.config.type === 'custom') {
-                this.loadPeriodicWave(context, this.preset.config.url, (periodicWave) => {
-                    this.periodicWave = periodicWave;
-                });
+                if(!this.preset.config.customURL)
+                    console.warn("type=custom requires 'customURL' field");
+                else
+                    this.loadPeriodicWave(context, this.preset.config.customURL, (periodicWave) => {
+                        this.periodicWave = periodicWave;
+                    });
             }
         }
 
         play(destination, frequency, startTime, duration) {
-            if (!this.preset.config.detune) {
-                this.createOscillator(destination.context, frequency, 0, startTime, duration)
-                    .connect(destination);
-            } else {
-                this.createOscillator(destination.context, frequency, -this.preset.config.detune, startTime, duration)
-                    .connect(destination);
-                this.createOscillator(destination.context, frequency, this.preset.config.detune, startTime, duration)
-                    .connect(destination);
-            }
-        }
-
-        createOscillator(context, frequency, detune, startTime, duration) {
-            const osc = context.createOscillator();   // instantiate an oscillator
+            const osc = destination.context.createOscillator();   // instantiate an oscillator
             osc.frequency.value = frequency;    // set Frequency (hz)
-            if(detune)
-                osc.detune.value = detune;
+            if(typeof this.preset.config.detune !== "undefined")
+                osc.detune.value = this.preset.config.detune;
 
-            if(this.preset.config.type !== 'custom') {
-                osc.type = this.preset.config.type;
-            } else {
+            if(this.periodicWave) {
                 osc.setPeriodicWave(this.periodicWave);
+            } else {
+                osc.type = this.preset.config.type;
             }
 
             // Play note
@@ -57,12 +48,20 @@
                 <form class="instrument-editor">
                     <fieldset>
                         <legend>${instrumentID}: ${this.preset.name} (Oscillator)</legend>
-                        <label>Type:</label>
-                        <select name="type" title="Type">
-                            ${BUILD_IN_TYPES.map(type => `<option ${this.preset.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
-                        </select>
-                        <label>Detune:</label>
-                        <input name="detune" type="range" min="-100" max="100" value="${this.preset.config.detune}" />
+                        <label class="oscillator-type">Type:
+                            <select name="type" title="Wave Type">
+                                ${BUILD_IN_TYPES.map(type => `<option ${this.preset.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                            </select>
+                        </label>
+                        <label class="oscillator-custom-url" ${this.preset.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
+                            <select name="customURL" title="Custom Periodic Wave">
+                            
+                            
+                            </select>
+                        </label>
+                        <label class="oscillator-detune">Detune:
+                            <input name="detune" type="range" min="-100" max="100" value="${this.preset.config.detune}" />
+                        </label>
                     </fieldset>
                 </form>
             `
@@ -81,13 +80,13 @@
                 if(url.pathname.endsWith('.library.json')) {
                     const library = xhr.response;
                     let baseURL = library.baseURL;
-                    if(url.search) {
-                        const searchParam = url.search.substr(1);
-                        if(library.index.indexOf(searchParam) === -1)
-                            console.error("Redirect path not found in list: " + searchParam, library);
-                        baseURL += searchParam;
+                    if(url.hash) {
+                        const hashParam = url.hash.substr(1);
+                        if(library.index.indexOf(hashParam) === -1)
+                            console.error("Redirect path not found in list: " + hashParam, library);
+                        baseURL += hashParam;
                     }
-                    console.info("Redirecting... " + baseURL);
+                    // console.info("Redirecting... " + baseURL);
                     this.loadPeriodicWave(context, baseURL, onLoaded);
 
                 } else {
@@ -120,12 +119,21 @@
         }
     }
 
+    class iOscillatorDoubleDetune extends iOscillatorSimple {
+        play(destination, frequency, startTime, duration) {
+            const positive = super.play(destination, frequency, startTime, duration);
+            const negative = super.play(destination, frequency, startTime, duration);
+            negative.detune.value = -negative.detune.value;
+        }
+    }
+
     // snesology.net.instruments.oscillator
     if (!window.instruments)
         window.instruments = {};
     if (!window.instruments['snesology.net'])
         window.instruments['snesology.net'] = {};
     window.instruments['snesology.net']['/instrument/oscillator/simple.js'] = iOscillatorSimple;
+    window.instruments['snesology.net']['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
     window.instruments['localhost'] = window.instruments['snesology.net']; // For local debugging
 
     // instrument

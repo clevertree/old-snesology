@@ -13,10 +13,10 @@
 		},
 		{
 			"name": "custom",
-			"source": "http://localhost:8080/instrument/oscillator/simple.js",
+			"source": "http://localhost:8080/instrument/oscillator/simple.js#doubledetune",
 			"config": {
 				"type": "custom",
-				"url": "http://localhost:8080/sample/3rdparty/mohayonao.library.json?Pulse.json"
+				"customURL": "http://localhost:8080/sample/3rdparty/mohayonao.library.json#Pulse.json"
 			}
 		}
 	],
@@ -26,7 +26,8 @@
 			2,
 			{
 				"command": "@seq",
-				"velocity": 40
+				"velocity": 40,
+				"instrument": 1
 			},
 			1,
 			1,

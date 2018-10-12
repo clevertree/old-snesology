@@ -574,7 +574,7 @@
                 throw new Error("Invalid preset");
 
             const url = new URL(instrumentPreset.source);
-            const path = url.pathname;
+            const path = url.pathname + url.hash;
             const domain = url.hostname;
 
             if(!window.instruments[domain])
