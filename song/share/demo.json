@@ -1,18 +1,23 @@
 {
 	"name": "Demo Song",
-	"source": "http://localhost:8080/songs/share/demo.json",
+	"source": "http://localhost:8080/song/share/demo.json",
 	"version": "v0.0.1",
 	"description": "Demonstration song",
 	"instruments": [
 		{
-			"url": "/instruments/oscillator.js",
-			"type": "square",
-			"name": "square"
+			"name": "square",
+			"source": "http://localhost:8080/instrument/oscillator/simple.js",
+			"config": {
+				"type": "square"
+			}
 		},
 		{
-			"url": "/instruments/oscillator.js",
-			"type": "triangle",
-			"name": "triangle"
+			"name": "custom",
+			"source": "http://localhost:8080/instrument/oscillator/simple.js",
+			"config": {
+				"type": "custom",
+				"url": "http://localhost:8080/sample/waveform/nes/pulse1.json"
+			}
 		}
 	],
 	"instructions": {
