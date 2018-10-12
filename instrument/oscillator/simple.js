@@ -5,38 +5,39 @@
     class iOscillatorSimple {
         constructor(context, preset, instrumentID) {
             this.id = instrumentID;
-            this.config = preset.config || {};            // TODO: validate config
+            this.preset = preset;            // TODO: validate config
             this.periodicWave = null;
 
-            if(this.config.type === 'custom') {
-                this.loadPeriodicWave(context, this.config.url, function(periodicWave) {
+            if(this.preset.config.type === 'custom') {
+                this.loadPeriodicWave(context, this.preset.config.url, (periodicWave) => {
                     this.periodicWave = periodicWave;
-                }.bind(this));
+                });
             }
         }
 
         play(destination, frequency, startTime, duration) {
-            if (!this.config.detune) {
-                this.createOscillator(destination, frequency, 0, startTime, duration);
+            if (!this.preset.config.detune) {
+                this.createOscillator(destination.context, frequency, 0, startTime, duration)
+                    .connect(destination);
             } else {
-                this.createOscillator(destination, frequency, -this.config.detune, startTime, duration);
-                this.createOscillator(destination, frequency, this.config.detune, startTime, duration);
+                this.createOscillator(destination.context, frequency, -this.preset.config.detune, startTime, duration)
+                    .connect(destination);
+                this.createOscillator(destination.context, frequency, this.preset.config.detune, startTime, duration)
+                    .connect(destination);
             }
         }
 
-        createOscillator(destination, frequency, detune, startTime, duration) {
-            const osc = destination.context.createOscillator();   // instantiate an oscillator
+        createOscillator(context, frequency, detune, startTime, duration) {
+            const osc = context.createOscillator();   // instantiate an oscillator
             osc.frequency.value = frequency;    // set Frequency (hz)
             if(detune)
                 osc.detune.value = detune;
 
-            if(this.config.type !== 'custom') {
-                osc.type = this.config.type;
+            if(this.preset.config.type !== 'custom') {
+                osc.type = this.preset.config.type;
             } else {
                 osc.setPeriodicWave(this.periodicWave);
             }
-
-            osc.connect(destination);
 
             // Play note
             if(startTime) {
@@ -55,39 +56,55 @@
             return `
                 <form class="instrument-editor">
                     <fieldset>
-                        <legend>${instrumentID}: ${this.config.name} (Oscillator)</legend>
+                        <legend>${instrumentID}: ${this.preset.name} (Oscillator)</legend>
                         <label>Type:</label>
                         <select name="type" title="Type">
-                            ${BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                            ${BUILD_IN_TYPES.map(type => `<option ${this.preset.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
                         </select>
                         <label>Detune:</label>
-                        <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" />
+                        <input name="detune" type="range" min="-100" max="100" value="${this.preset.config.detune}" />
                     </fieldset>
                 </form>
             `
         };
 
         loadPeriodicWave(context, url, onLoaded) {
-            url = new URL(url, this.config.url) + '';
+            url = new URL(url, this.preset.config.url);
 
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
+            xhr.open('GET', url + '', true);
             xhr.responseType = 'json';
-            xhr.onload = function() {
+            xhr.onload = () => {
                 if(xhr.status !== 200)
                     throw new Error("Periodic periodicWave not found: " + url);
 
-                const tables = xhr.response;
-                var c = tables.real.length;
-                var real = new Float32Array(c);
-                var imag = new Float32Array(c);
-                for (var i = 0; i < c; i++) {
-                    real[i] = tables.real[i];
-                    imag[i] = tables.imag[i];
-                }
+                if(url.pathname.endsWith('.library.json')) {
+                    const library = xhr.response;
+                    let baseURL = library.baseURL;
+                    if(url.search) {
+                        const searchParam = url.search.substr(1);
+                        if(library.index.indexOf(searchParam) === -1)
+                            console.error("Redirect path not found in list: " + searchParam, library);
+                        baseURL += searchParam;
+                    }
+                    console.info("Redirecting... " + baseURL);
+                    this.loadPeriodicWave(context, baseURL, onLoaded);
 
-                const periodicWave = context.createPeriodicWave(real, imag);
-                onLoaded(periodicWave);
+                } else {
+                    const tables = xhr.response;
+                    if(!tables.real || !tables.imag)
+                        throw new Error("Invalid JSON for periodic wave");
+                    var c = tables.real.length;
+                    var real = new Float32Array(c);
+                    var imag = new Float32Array(c);
+                    for (var i = 0; i < c; i++) {
+                        real[i] = tables.real[i];
+                        imag[i] = tables.imag[i];
+                    }
+
+                    const periodicWave = context.createPeriodicWave(real, imag);
+                    onLoaded(periodicWave);
+                }
             };
             xhr.send();
         }

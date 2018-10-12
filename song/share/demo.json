@@ -16,7 +16,7 @@
 			"source": "http://localhost:8080/instrument/oscillator/simple.js",
 			"config": {
 				"type": "custom",
-				"url": "http://localhost:8080/sample/waveform/nes/pulse1.json"
+				"url": "http://localhost:8080/sample/3rdparty/mohayonao.library.json?Pulse.json"
 			}
 		}
 	],
