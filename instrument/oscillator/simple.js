@@ -57,6 +57,7 @@
                     osc.stop(startTime + duration);
                 }
             }
+            osc.connect(destination);
             return osc;
 
         }
