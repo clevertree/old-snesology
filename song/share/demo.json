@@ -1,19 +1,19 @@
 {
 	"name": "Demo Song",
-	"sourceURL": "http://localhost:8080/song/share/demo.json",
+	"sourceURL": "https://snesology.net/song/share/demo.json",
 	"version": "v0.0.1",
 	"description": "Demonstration song",
 	"instruments": [
 		{
 			"name": "square",
-			"sourceURL": "http://localhost:8080/instrument/oscillator/simple.js",
+			"sourceURL": "https://snesology.net/instrument/oscillator/simple.js",
 			"config": {
 				"type": "square"
 			}
 		},
 		{
 			"name": "custom",
-			"sourceURL": "http://localhost:8080/instrument/oscillator/simple.js#doubledetune",
+			"sourceURL": "https://snesology.net/instrument/oscillator/simple.js#doubledetune",
 			"config": {
 				"type": "custom"
 			}
