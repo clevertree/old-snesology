@@ -1,6 +1,8 @@
 {
+  "name": "Mohayonao Wave-Table",
   "sourceURL": "https://github.com/mohayonao/wave-tables",
   "baseURL": "https://raw.githubusercontent.com/mohayonao/wave-tables/master/",
+  "default": "Brass.json",
   "index": [
     "Bass.json",
     "BassAmp360.json",

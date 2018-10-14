@@ -1,4 +1,5 @@
 {
+  "name": "3rd Party Libraries",
   "baseURL": "http://localhost:8080/sample/3rdparty/",
   "index": [
     "mohayonao.library.json"
