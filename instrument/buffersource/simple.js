@@ -106,13 +106,14 @@
         }
     }
 
-    // snesology.net.instruments.oscillator
-    if(!window.instruments)
+    const NAMESPACE = document.location.hostname; // 'localhost'; // For local debugging 'snesology.net'
+    // const NAMESPACE = 'snesology.net'; // For local debugging 'localhost'
+    if (!window.instruments)
         window.instruments = {};
-    if(!window.instruments['snesology.net'])
-        window.instruments['snesology.net'] = {};
-    window.instruments['snesology.net']['/instrument/buffersource/simple.js'] = BufferSource;
-    window.instruments['localhost'] = window.instruments['snesology.net']; // For local debugging
+    if (!window.instruments[NAMESPACE])
+        window.instruments[NAMESPACE] = {};
+    window.instruments[NAMESPACE]['/instrument/buffersource/simple.js'] = BufferSource;
+    window.instruments[NAMESPACE]['/instrument/buffersource/simple.js#doubledetune'] = BufferSource;
 
     // instrument
 

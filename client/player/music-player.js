@@ -438,11 +438,16 @@
             const instrumentList = this.getSong().instruments;
             const instrumentID = instrumentList.length;
             const instrumentPreset = {
-                source: sourceURL,
+                sourceURL: sourceURL,
                 config: instrumentConfig
             };
-            instrumentList[instrumentID] = instrumentPreset
-            this.loadInstrument(instrumentPreset, instrumentID);
+
+            const instance = this.loadInstrument(instrumentPreset, instrumentID);
+            instrumentList[instrumentID] = instrumentPreset;
+
+            if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
+                this.loadedInstruments[instrumentID].unload();
+            this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
         }
 
         replaceInstrumentParams(instrumentID, replaceConfig) {
@@ -579,14 +584,13 @@
             if(!instrumentPreset || !instrumentPreset.sourceURL)
                 throw new Error("Invalid preset");
 
-            const url = new URL(instrumentPreset.sourceURL);
+            const url = new URL(instrumentPreset.sourceURL, document.location);
+
+            if(!window.instruments[url.origin])
+                throw new Error("Instrument origin not found: " + url.origin);
+            const collection = window.instruments[url.origin];
+
             const path = url.pathname + url.hash;
-            const domain = url.hostname;
-
-            if(!window.instruments[domain])
-                throw new Error("Instrument domain not found: " + domain);
-            const collection = window.instruments[domain];
-
             if(!collection[path])
                 throw new Error("Instrument not found: " + path);
 

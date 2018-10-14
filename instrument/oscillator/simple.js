@@ -2,19 +2,25 @@
 
 (function() {
     const CACHE_PERIOD_WAVE = {};
+    let NEW_COUNTER = 1;
     class iOscillatorSimple {
         constructor(context, preset) {
             // this.id = instrumentID;
+            if(!preset.config)
+                preset.config = {};
+            if(!preset.name)
+                preset.name = this.constructor.name + NEW_COUNTER++;
+            const config = preset.config;
             this.preset = preset;            // TODO: validate config
-            this.lastEditorContainer = null;
             this.presetHTML = [];
+            this.lastEditorContainer = null;
 
-            if(this.preset.config.type === 'custom') {
+            if(config.type === 'custom') {
                 this.periodicWave = null;
                 this.periodicWaveName = "loading...";
-                if(!this.preset.config.customURL)
-                    this.preset.config.customURL = new URL('/sample/index.library.json', this.preset.sourceURL) + '';
-                this.loadPeriodicWave(context, this.preset.config.customURL, (periodicWave, finalURL) => {
+                if(!config.customURL)
+                    config.customURL = new URL('/sample/index.library.json', document.location) + '';
+                this.loadPeriodicWave(context, config.customURL, (periodicWave, finalURL) => {
                     this.periodicWave = periodicWave;
                     this.periodicWaveName = (finalURL+'').split('/').pop().replace('.json', '');
                     if(this.lastEditorContainer)  // Re-render
@@ -24,7 +30,8 @@
         }
 
         unload() {
-            const customURL = this.preset.config.customURL;
+            const config = this.preset.config || {};
+            const customURL = config.customURL;
             if(customURL && CACHE_PERIOD_WAVE[customURL]) {
                 const cache = CACHE_PERIOD_WAVE[customURL];
                 cache.queue.splice(cache.queue.indexOf(this), 1);
@@ -66,7 +73,7 @@
             this.lastEditorContainer = editorContainer;
             const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
             // this.loadSampleLibrary()
-            const defaultSampleLibraryURL = new URL('/sample/', this.preset.sourceURL) + '';
+            const defaultSampleLibraryURL = new URL('/sample/', document.location) + '';
             editorContainer.innerHTML = `
                 <form class="instrument-editor">
                     <fieldset>
@@ -96,7 +103,7 @@
                 urlString = urlString + 'index.library.json';
 
 
-            const url = new URL(urlString, this.preset.sourceURL);
+            const url = new URL(urlString, document.location);
             if(url.pathname.endsWith('.library.json')) {
                 // Load default sample from sample library:
                 return this.loadSampleLibrary(url, (library) => {
@@ -217,14 +224,14 @@
         }
     }
 
-    // snesology.net.instruments.oscillator
+    const NAMESPACE = document.location.origin; // 'localhost'; // For local debugging 'snesology.net'
+    // const NAMESPACE = 'snesology.net'; // For local debugging 'localhost'
     if (!window.instruments)
         window.instruments = {};
-    if (!window.instruments['snesology.net'])
-        window.instruments['snesology.net'] = {};
-    window.instruments['snesology.net']['/instrument/oscillator/simple.js'] = iOscillatorSimple;
-    window.instruments['snesology.net']['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
-    window.instruments['localhost'] = window.instruments['snesology.net']; // For local debugging
+    if (!window.instruments[NAMESPACE])
+        window.instruments[NAMESPACE] = {};
+    window.instruments[NAMESPACE]['/instrument/oscillator/simple.js'] = iOscillatorSimple;
+    window.instruments[NAMESPACE]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 
     // instrument
 
