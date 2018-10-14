@@ -1,19 +1,19 @@
 {
 	"name": "Demo Song",
-	"sourceURL": "/song/share/demo.json",
+	"url": "/song/share/demo.json",
 	"version": "v0.0.1",
 	"description": "Demonstration song",
 	"instruments": [
 		{
 			"name": "square",
-			"sourceURL": "/instrument/oscillator/simple.js",
+			"url": "/instrument/oscillator/simple.js",
 			"config": {
 				"type": "square"
 			}
 		},
 		{
 			"name": "custom",
-			"sourceURL": "/instrument/oscillator/simple.js#doubledetune",
+			"url": "/instrument/oscillator/simple.js#doubledetune",
 			"config": {
 				"type": "custom"
 			}

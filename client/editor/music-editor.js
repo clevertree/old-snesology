@@ -26,25 +26,12 @@
             };
             this.webSocket = null;
             this.webSocketAttempts = 0;
-            // this.initialSongJSON = null; // TODO: refactor
-        }
-        get grid() { return this.querySelector('music-editor-grid'); }
-        get gridStatus() { return this.status.grids[0]; }
-        get menu() { return this.querySelector('music-editor-menu'); }
 
-        getAudioContext() { return this.player.getAudioContext(); }
-        getSong() { return this.player.getSong(); }
-        getSongURL() { return this.getAttribute('src');}
 
-        connectedCallback() {
-            this.addEventListener('keydown', this.onInput);
-
-            const editor = this;
-            loadScript('client/player/music-player.js', function() {
-
+            loadScript('client/player/music-player.js', () => {
                 const playerElement = document.createElement('music-player');
-                editor.player = playerElement;
-                const onSongEvent = editor.onSongEvent.bind(editor);
+                this.player = playerElement;
+                const onSongEvent = this.onSongEvent.bind(this);
                 playerElement.addEventListener('note:end', onSongEvent);
                 playerElement.addEventListener('note:start', onSongEvent);
                 playerElement.addEventListener('song:start', onSongEvent);
@@ -52,61 +39,58 @@
                 playerElement.addEventListener('song:end', onSongEvent);
                 playerElement.addEventListener('song:pause', onSongEvent);
 
-                if(editor.getSongURL())
-                    playerElement.loadSongFromURL(editor.getSongURL(), function(songJSON) {
-                        // editor.initialSongJSON = JSON.stringify(songJSON); // TODO: ugly
-                        editor.render();
-                        editor.gridSelect(null, 0);
 
-                        // Load recent
-                        // const recentSongGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
-                        // if(recentSongGUIDs.length > 0)
-                        //     editor.loadSongFromMemory(recentSongGUIDs[0]);
+                if ("WebSocket" in window) {
+                    this.initWebSocket();
+                } else {
+                    console.warn("WebSocket is supported by your Browser!");
+                }
+                this.render(); // Render after player element is loaded
 
-                        editor.getWebSocket(); // Init websocket
-                    });
             });
         }
+        get grid() { return this.querySelector('music-editor-grid'); }
+        get gridStatus() { return this.status.grids[0]; }
+        get menu() { return this.querySelector('music-editor-menu'); }
 
-        getWebSocket() {
-            if(this.webSocket)
-                return this.webSocket;
+        getAudioContext() { return this.player.getAudioContext(); }
+        getSong() { return this.player ? this.player.getSong() : null; }
+        getSongURL() { return this.getAttribute('src');}
 
-            if (!"WebSocket" in window)
-                throw new Error("WebSocket is supported by your Browser!");
+        connectedCallback() {
+            this.addEventListener('keydown', this.onInput);
+            this.render();
+        }
 
-            // Let us open a web socket
-            const ws = new WebSocket(
-                (location.protocol === 'https:' ? "wss://" : "ws://")
-                + document.location.hostname + ":" + document.location.port);
+        initWebSocket(url) {
+            const ws = new WebSocket(url || location.origin.replace(/^http/i, 'ws'));
             const onWebSocketEvent = this.onWebSocketEvent.bind(this);
             ws.addEventListener('open', onWebSocketEvent);
             ws.addEventListener('message', onWebSocketEvent);
             ws.addEventListener('close', onWebSocketEvent);
             this.webSocket = ws;
-            return ws;
         }
 
         onWebSocketEvent(e) {
             // console.info("WS " + e.type, e);
             switch(e.type) {
                 case 'open':
-                    e.target
-                        .send(JSON.stringify({
-                            type: 'history:register',
-                            path: this.getSongURL()
-                            // historyStep:
-                        }));
                     this.webSocketAttempts = 0;
+                    if(this.getSongURL()) {
+                        this.webSocket
+                            .send(JSON.stringify({
+                                type: 'history:register',
+                                path: this.getSongURL()
+                                // historyStep:
+                            }));
+                    }
                     // e.target.send("WELCOME");
                     break;
+
                 case 'close':
                     this.webSocketAttempts++;
                     if(this.webSocketAttempts <= DEFAULT_WEBSOCKET_ATTEMPTS) {
-                        setTimeout(function () {
-                            this.webSocket = null;
-                            this.getWebSocket();
-                        }.bind(this), DEFAULT_WEBSOCKET_RECONNECT);
+                        setTimeout(() => this.initWebSocket(), DEFAULT_WEBSOCKET_RECONNECT);
                         console.info("Reopening WebSocket in " + (DEFAULT_WEBSOCKET_RECONNECT/1000) + ' seconds (' + this.webSocketAttempts + ')' );
                     } else {
                         console.info("Giving up on WebSocket");
@@ -118,15 +102,14 @@
                         const json = JSON.parse(e.data);
                         switch(json.type) {
                             case 'history:entry':
-                                for (let i = 0; i < json.historyActions.length; i++) {
-                                    const historyAction = json.historyActions[i];
-                                    this.applyHistoryAction(historyAction);
-                                    this.status.history.undoList.push(historyAction);
-                                    this.status.history.undoPosition = this.status.history.undoList.length-1;
-                                    if(typeof historyAction.step !== "undefined")
-                                        this.status.history.currentStep = historyAction.step;
-                                }
-                                this.render();
+                                // for (let i = 0; i < json.historyActions.length; i++) {
+                                //     const historyAction = json.historyActions[i];
+                                    this.applyHistoryActions(json.historyActions, () => {
+                                        this.render();
+                                        this.gridSelect(e, 0);
+                                        this.grid.focus();
+                                    });
+                                // }
                                 break;
 
                             default:
@@ -171,14 +154,14 @@
         saveSongToMemory() {
             const song = this.getSong();
             const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
-            if(songList.indexOf(song.sourceURL) === -1)
-                songList.push(song.sourceURL);
+            if(songList.indexOf(song.url) === -1)
+                songList.push(song.url);
             console.log("Saving song: ", song, songList);
-            localStorage.setItem('song:' + song.sourceURL, JSON.stringify(song));
+            localStorage.setItem('song:' + song.url, JSON.stringify(song));
             localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
             this.menu.render();
             // this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
-            console.info("Song saved to memory: " + song.sourceURL, song);
+            console.info("Song saved to memory: " + song.url, song);
         }
 
         saveSongToFile() {
@@ -187,7 +170,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href",     dataStr);
-            downloadAnchorNode.setAttribute("download", song.sourceURL.split('/').reverse()[0]);
+            downloadAnchorNode.setAttribute("download", song.url.split('/').reverse()[0]);
             document.body.appendChild(downloadAnchorNode); // required for firefox
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -255,7 +238,7 @@
             this.status.history.undoList.push(historyAction);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-            this.getWebSocket()
+            this.webSocket
                 .send(JSON.stringify({
                     type: 'history:entry',
                     historyAction: historyAction,
@@ -380,8 +363,8 @@
                 params: [groupName, rangeEnd + 1, newInstructions]
             };
             this.historyQueue(historyActions);
-            this.applyHistoryAction(historyActions);
-            this.grid.render();
+            this.applyHistoryActions(historyActions, () => this.grid.render());
+
         }
 
         addInstructionGroup(newGroupName, instructionList) {
@@ -448,13 +431,33 @@
             this.render();
         }
 
-        applyHistoryAction(action) {
+        applyHistoryActions(actionList, onActionCompleted) {
+            actionList = actionList.slice(0);
+            const action = actionList.shift();
+
+            this.status.history.undoList.push(action);
+            this.status.history.undoPosition = this.status.history.undoList.length-1;
+            if(typeof action.step !== "undefined")
+                this.status.history.currentStep = action.step;
+
+            const next = () => {
+                if(actionList.length > 0)
+                    this.applyHistoryActions(actionList, onActionCompleted);
+                else
+                    onActionCompleted();
+            };
             switch (action.action) {
                 case 'reset':
-                    this.player.loadSongData(action.songContent);
-                    this.render();
-                    this.gridSelect(null, 0);
-                    break;
+
+                    this.status.history.undoList = [];
+                    this.status.history.undoPosition = 0;
+                    this.status.history.currentStep = 0;
+
+                    this.player.loadSongData(action.songContent, next);
+                    return;
+                    // this.render();
+                    // this.gridSelect(null, 0);
+                    // break;
                 case 'insert':
                     this.player.insertInstructions(action.params[0], action.params[1], action.params[2]);
                     break;
@@ -477,9 +480,7 @@
                     this.player.renameInstructionGroup(action.params[0], action.params[1]);
                     break;
                 case 'group':
-                    for (let i = 0; i < action.params.length; i++) {
-                        this.applyHistoryAction(action.params[i]);
-                    }
+                    this.applyHistoryActions(action.params, next);
                     break;
                 case 'instrument-add':
                     this.player.addInstrument(action.params[0], action.params[1]);
@@ -493,7 +494,8 @@
                 default:
                     throw new Error("Unrecognized history action: " + action.action);
             }
-            this.grid.render();
+            next();
+            // this.grid.render();
         }
 
         undoHistoryAction(action) {
@@ -548,11 +550,12 @@
         // Rendering
 
         render() {
+            const song = this.getSong();
             this.innerHTML = `
                 <music-editor-menu></music-editor-menu>
                 <music-editor-grid tabindex="1"></music-editor-grid>
-                ${this.getSong().instruments.map((instrument, id) => 
-                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('')}
+                ${song ? song.instruments.map((instrument, id) => 
+                    `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
             `;
         }
 
@@ -991,14 +994,17 @@
             const selectedPositions = gridStatus.selectedPositions;
             const cursorPosition = gridStatus.cursorPosition;
             const editor = this.editor;
-            const song = editor.getSong();
+            const song = editor.getSong() || function() {
+                const song = {};
+                song.instructions = {};
+                song.instructions[groupName] = [];
+                return song;
+            }();
+            // var pausesPerBeat = song.pausesPerBeat;
+
             const beatsPerMinute = song.beatsPerMinute;
             const beatsPerMeasure = song.beatsPerMeasure;
-            // var pausesPerBeat = song.pausesPerBeat;
             const instructionList = song.instructions[groupName];
-            if(!instructionList)
-                throw new Error("Could not find instruction groupName: " + groupName);
-
             let odd = false, selectedRow = false;
 
             let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
@@ -1410,7 +1416,7 @@
         }
 
         update(gridStatus) {
-            const instructionList = this.editor.player.getInstructions(gridStatus.groupName);
+            const instructionList = this.editor.player ? this.editor.player.getInstructions(gridStatus.groupName) : [];
             let combinedInstruction = null;
             for(let i=0; i<gridStatus.selectedPositions.length; i++) {
                 const selectedPosition = gridStatus.selectedPositions[i];
@@ -1562,7 +1568,7 @@
                     </form>
                     <form class="form-song-volume" data-command="song:volume">
                         <div class="volume-container">
-                            <input name="volume" type="range" min="1" max="100" value="${this.editor.player.getVolumeGain().gain.value*100}">
+                            <input name="volume" type="range" min="1" max="100" value="${this.editor.player ? this.editor.player.getVolumeGain().gain.value*100 : 0}">
                         </div>
                     </form>
                     <form class="form-song-info" data-command="song:info">
@@ -1712,16 +1718,19 @@
         getEditorFormOptions(optionType, callback, selectCallback) {
             let html = '';
             let options = [];
-            // let song = editor ? editor.getSong() : null;
+            const songData = this.editor.getSong() || {};
+
             if(!selectCallback) selectCallback = function() { return null; };
             switch(optionType) {
                 case 'song-instruments':
-                    const instrumentList = this.editor.getSong().instruments;
-                    for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
-                        const instrumentInfo = instrumentList[instrumentID];
-                        const instrument = this.editor.player.getInstrument(instrumentID);
-                        options.push([instrumentID, formatInstrumentID(instrumentID)
-                        + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.constructor.name + ")" : instrument.constructor.name)]);
+                    if(songData.instruments) {
+                        const instrumentList = songData.instruments;
+                        for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
+                            const instrumentInfo = instrumentList[instrumentID];
+                            const instrument = this.editor.player.getInstrument(instrumentID);
+                            options.push([instrumentID, formatInstrumentID(instrumentID)
+                            + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.constructor.name + ")" : instrument.constructor.name)]);
+                        }
                     }
                     break;
 
@@ -1769,16 +1778,18 @@
 
                 case 'groups':
                     options = [];
-                    Object.keys(this.editor.getSong().instructions).forEach(function(key, i) {
-                        options.push([key, key]);
-                    });
+                    if(songData.instructions)
+                        Object.keys(songData.instructions).forEach(function(key, i) {
+                            options.push([key, key]);
+                        });
                     break;
 
                 case 'command-group-execute':
                     options = [];
-                    Object.keys(this.editor.getSong().instructions).forEach(function(key, i) {
-                        options.push(['@' + key, '@' + key]);
-                    });
+                    if(songData.instructions)
+                        Object.keys(songData.instructions).forEach(function(key, i) {
+                            options.push(['@' + key, '@' + key]);
+                        });
                     break;
             }
 

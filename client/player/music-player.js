@@ -23,7 +23,7 @@
             this.volumeGain = null;
             this.playing = false;
             this.config = DEFAULT_CONFIG;
-            this.loadSongData({});
+            this.loadSongData({}, ()=>{});
         }
 
         getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
@@ -45,16 +45,16 @@
             this.addEventListener('keyup', this.onInput.bind(this));
             this.addEventListener('click', this.onInput.bind(this));
 
-            if(this.getSongURL())
-                this.loadSongFromURL(this.getSongURL());
+            // if(this.getSongURL())
+            //     this.loadSongFromURL(this.getSongURL());
 
             if(!this.getAttribute('tabindex'))
                 this.setAttribute('tabindex', '1');
         }
 
-        getSongURL() { return this.getAttribute('src');}
+        // getSongURL() { return this.getAttribute('src');}
 
-        loadSongData(songData) {
+        loadSongData(songData, onLoadComplete) {
             songData.beatsPerMinute =   (songData.beatsPerMinute || DEFAULT_BEATS_PER_MINUTE);
             // songData.pausesPerBeat =    (songData.pausesPerBeat || DEFAULT_PAUSES_PER_BEAT);
             songData.beatsPerMeasure =  (songData.beatsPerMeasure || DEFAULT_BEATS_PER_MEASURE);
@@ -66,7 +66,29 @@
             Object.keys(songData.instructions).map((groupName, i) =>
                 this.processInstructions(groupName));
             // TODO check all groups were processed
-            // this.update();
+
+            let loadFiles = [];
+            let scriptsLoading = 0;
+            if(songData.instruments.length === 0) {
+                console.warn("Song contains no instruments");
+            } else {
+                for(let i=0; i<songData.instruments.length; i++) {
+                    const url = songData.instruments[i].url;
+                    if(loadFiles.indexOf(url) === -1) {
+                        loadFiles.push(url);
+                        scriptsLoading++;
+                        loadScript(url, () => {
+                            // console.log("Scripts loading: ", scriptsLoading);
+                            scriptsLoading--;
+                            if(scriptsLoading === 0)
+                                onLoadComplete();
+                        });
+                    }
+                }
+            }
+            if(scriptsLoading === 0)
+                onLoadComplete();
+
         }
 
         processInstructions(groupName) {
@@ -94,6 +116,8 @@
             return instruction;
         }
 
+
+
         loadSongFromURL(songURL, onLoaded) {
             const playerElm = this;
 //             console.log('Song loading:', songURL);
@@ -103,43 +127,6 @@
                 if(!songJSON)
                     throw new Error("Invalid JSON File: " + songURL);
 
-                let loadFiles = [];
-                if(songJSON.instruments.length === 0) {
-                    throw new Error("Song contains no instruments");
-                } else {
-                    for(let i=0; i<songJSON.instruments.length; i++) {
-                        const url = songJSON.instruments[i].sourceURL;
-                        if(loadFiles.indexOf(url) === -1)
-                            loadFiles.push(url);
-                    }
-                }
-
-                playerElm.setAttribute('src', songURL);
-
-                // Load Scripts
-                let scriptsLoading = 0;
-                if(loadFiles) {
-                    for(let i=0; i<loadFiles.length; i++) {
-                        const scriptPath = loadFiles[i];
-                        scriptsLoading++;
-                        loadScript.call(playerElm, scriptPath, function() {
-                            // console.log("Scripts loading: ", scriptsLoading);
-                            scriptsLoading--;
-                            if(scriptsLoading === 0) {
-                                loadJSON();
-                                onLoaded && onLoaded(songJSON); // initInstructions.call(THIS);
-                            }
-                        });
-                    }
-                }
-                if(scriptsLoading === 0) {
-                    loadJSON();
-                    onLoaded && onLoaded(songJSON); // initInstructions.call(THIS);
-                }
-                function loadJSON() {
-                    playerElm.loadSongData(songJSON);
-                    console.log('Song loaded:', playerElm.song);
-                }
             });
         }
 
@@ -434,11 +421,11 @@
         //     this.setInstruction(p1, instruction2);
         // }
 
-        addInstrument(sourceURL, instrumentConfig) {
+        addInstrument(url, instrumentConfig) {
             const instrumentList = this.getSong().instruments;
             const instrumentID = instrumentList.length;
             const instrumentPreset = {
-                sourceURL: sourceURL,
+                url: url,
                 config: instrumentConfig
             };
 
@@ -581,10 +568,10 @@
         loadInstrument(instrumentPreset) {
             if(!window.instruments)
                 throw new Error("window.instruments is not loaded");
-            if(!instrumentPreset || !instrumentPreset.sourceURL)
+            if(!instrumentPreset || !instrumentPreset.url)
                 throw new Error("Invalid preset");
 
-            const url = new URL(instrumentPreset.sourceURL, document.location);
+            const url = new URL(instrumentPreset.url, document.location);
 
             if(!window.instruments[url.origin])
                 throw new Error("Instrument origin not found: " + url.origin);
