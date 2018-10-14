@@ -43,5 +43,5 @@ app.use('/', router);
 
 // Start
 
-app.listen(config.port, () => console.log('Snesology listening on port ' + config.port));
+app.listen(config.port, () => console.log('Server listening on port ' + config.port));
 
