@@ -1185,8 +1185,9 @@
                     let instrumentID = form.instrument.value;
                     if (instrumentID.indexOf('add:') === 0)
                         instrumentID = this.editor.addInstrument(instrumentID.substr(4));
+                    else instrumentID = instrumentID === '' ? null : parseInt(instrumentID);
                     this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        instrument: parseInt(instrumentID)
+                        instrument: instrumentID
                     });
                     break;
 
