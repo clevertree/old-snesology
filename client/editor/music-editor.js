@@ -171,14 +171,14 @@
         saveSongToMemory() {
             const song = this.getSong();
             const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
-            if(songList.indexOf(song.source) === -1)
-                songList.push(song.source);
+            if(songList.indexOf(song.sourceURL) === -1)
+                songList.push(song.sourceURL);
             console.log("Saving song: ", song, songList);
-            localStorage.setItem('song:' + song.source, JSON.stringify(song));
+            localStorage.setItem('song:' + song.sourceURL, JSON.stringify(song));
             localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
             this.menu.render();
             // this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
-            console.info("Song saved to memory: " + song.source, song);
+            console.info("Song saved to memory: " + song.sourceURL, song);
         }
 
         saveSongToFile() {
@@ -187,7 +187,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href",     dataStr);
-            downloadAnchorNode.setAttribute("download", song.source.split('/').reverse()[0]);
+            downloadAnchorNode.setAttribute("download", song.sourceURL.split('/').reverse()[0]);
             document.body.appendChild(downloadAnchorNode); // required for firefox
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -436,12 +436,15 @@
         }
 
         replaceInstrumentParams(instrumentID, replaceConfig) {
-            this.player.replaceInstrumentParams(instrumentID, replaceConfig);
-            const historyAction = {
-                action: 'instrument-params',
-                params: [instrumentID, replaceConfig]
-            };
-            this.historyQueue(historyAction);
+            const oldParams = this.player.replaceInstrumentParams(instrumentID, replaceConfig);
+            if(Object.keys(oldParams).length > 0) {
+                const historyAction = {
+                    action: 'instrument-params',
+                    params: [instrumentID, replaceConfig],
+                    return: oldParams
+                };
+                this.historyQueue(historyAction);
+            }
             this.render();
         }
 
@@ -1865,14 +1868,15 @@
                     break;
 
                 case 'input':
-                    this.editor.player.replaceInstrumentParams(this.id, newConfig);
+                    // Causes problems
+                    // this.editor.player.replaceInstrumentParams(this.id, newConfig);
                     break;
             }
         }
 
         render() {
             if(this.instrument.renderEditor) {
-                this.innerHTML = this.instrument.renderEditor();
+                this.instrument.renderEditor(this);
             } else {
                 this.innerHTML =
                     `<form class="instrument-editor">

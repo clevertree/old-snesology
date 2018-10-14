@@ -1,0 +1,7 @@
+{
+  "name": "All Sample Libraries",
+  "baseURL": "http://localhost:8080/sample/",
+  "index": [
+    "3rdparty/index.library.json"
+  ]
+}

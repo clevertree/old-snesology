@@ -132,7 +132,7 @@ function generateDefaultSong() {
     const UUID = uuidv4(); // -> '110ec58a-a0f2-4ac4-8393-c866d813b8d1'
     return {
         "name": "New Song",
-        "source": "https://snesology.net/song/share/" + UUID + ".json",
+        "sourceURL": "https://snesology.net/song/share/" + UUID + ".json",
         "version": "v0.0.1",
         "description": "New Song",
         "instruments": [],

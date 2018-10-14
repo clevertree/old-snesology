@@ -1,42 +1,54 @@
 
 
 (function() {
-
+    const CACHE_PERIOD_WAVE = {};
     class iOscillatorSimple {
-        constructor(context, preset, instrumentID) {
-            this.id = instrumentID;
-            this.config = preset.config || {};            // TODO: validate config
-            this.periodicWave = null;
+        constructor(context, preset) {
+            // this.id = instrumentID;
+            this.preset = preset;            // TODO: validate config
+            this.lastEditorContainer = null;
+            this.presetHTML = [];
 
-            if(this.config.type === 'custom') {
-                this.loadPeriodicWave(context, this.config.url, function(periodicWave) {
+            if(this.preset.config.type === 'custom') {
+                this.periodicWave = null;
+                this.periodicWaveName = "loading...";
+                if(!this.preset.config.customURL)
+                    this.preset.config.customURL = new URL('/sample/index.library.json', this.preset.sourceURL) + '';
+                this.loadPeriodicWave(context, this.preset.config.customURL, (periodicWave, finalURL) => {
                     this.periodicWave = periodicWave;
-                }.bind(this));
+                    this.periodicWaveName = (finalURL+'').split('/').pop().replace('.json', '');
+                    if(this.lastEditorContainer)  // Re-render
+                        this.renderEditor(this.lastEditorContainer);
+                });
             }
         }
+
+        unload() {
+            const customURL = this.preset.config.customURL;
+            if(customURL && CACHE_PERIOD_WAVE[customURL]) {
+                const cache = CACHE_PERIOD_WAVE[customURL];
+                cache.queue.splice(cache.queue.indexOf(this), 1);
+                cache.count--;
+                if (cache.count <= 0) {
+                    delete CACHE_PERIOD_WAVE[customURL];
+                    console.info("Unloading " + customURL);
+                }
+            }
+        }
+
+
 
         play(destination, frequency, startTime, duration) {
-            if (!this.config.detune) {
-                this.createOscillator(destination, frequency, 0, startTime, duration);
-            } else {
-                this.createOscillator(destination, frequency, -this.config.detune, startTime, duration);
-                this.createOscillator(destination, frequency, this.config.detune, startTime, duration);
-            }
-        }
-
-        createOscillator(destination, frequency, detune, startTime, duration) {
             const osc = destination.context.createOscillator();   // instantiate an oscillator
             osc.frequency.value = frequency;    // set Frequency (hz)
-            if(detune)
-                osc.detune.value = detune;
+            if(typeof this.preset.config.detune !== "undefined")
+                osc.detune.value = this.preset.config.detune;
 
-            if(this.config.type !== 'custom') {
-                osc.type = this.config.type;
-            } else {
+            if(this.periodicWave) {
                 osc.setPeriodicWave(this.periodicWave);
+            } else {
+                osc.type = this.preset.config.type;
             }
-
-            osc.connect(destination);
 
             // Play note
             if(startTime) {
@@ -45,39 +57,86 @@
                     osc.stop(startTime + duration);
                 }
             }
+            osc.connect(destination);
             return osc;
 
         }
 
-        renderEditor() {
-
-            const instrumentID = this.id < 10 ? "0" + this.id : "" + this.id;
-            return `
+        renderEditor(editorContainer) {
+            this.lastEditorContainer = editorContainer;
+            const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
+            // this.loadSampleLibrary()
+            const defaultSampleLibraryURL = new URL('/sample/', this.preset.sourceURL) + '';
+            editorContainer.innerHTML = `
                 <form class="instrument-editor">
                     <fieldset>
-                        <legend>${instrumentID}: ${this.config.name} (Oscillator)</legend>
-                        <label>Type:</label>
-                        <select name="type" title="Type">
-                            ${BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
-                        </select>
-                        <label>Detune:</label>
-                        <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" />
+                        <legend>${instrumentID}: ${this.preset.name} (Oscillator)</legend>
+                        <label class="oscillator-type">Type:
+                            <select name="type" title="Wave Type">
+                                ${BUILD_IN_TYPES.map(type => `<option ${this.preset.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                            </select>
+                        </label>
+                        <label class="oscillator-custom-url" ${this.preset.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
+                            <select name="customURL" title="Custom Periodic Wave">
+                                <option value="${this.preset.config.customURL}">${this.periodicWaveName}</option>
+                                ${this.presetHTML}
+                                <option value="${defaultSampleLibraryURL}">More Samples...</option>
+                            </select>
+                        </label>
+                        <label class="oscillator-detune">Detune:
+                            <input name="detune" type="range" min="-100" max="100" value="${this.preset.config.detune}" />
+                        </label>
                     </fieldset>
                 </form>
-            `
+            `;
         };
 
-        loadPeriodicWave(context, url, onLoaded) {
-            url = new URL(url, this.config.url) + '';
+        loadPeriodicWave(context, urlString, onLoaded) {
+            if(urlString.substr(-1, 1) === '/')
+                urlString = urlString + 'index.library.json';
+
+
+            const url = new URL(urlString, this.preset.sourceURL);
+            if(url.pathname.endsWith('.library.json')) {
+                // Load default sample from sample library:
+                return this.loadSampleLibrary(urlString, (library) => {
+                    let baseURL = library.baseURL;
+                    if(url.hash) {
+                        const hashParam = url.hash.substr(1);
+                        if(library.index.indexOf(hashParam) === -1)
+                            console.error("Redirect path not found in list: " + hashParam, library);
+                        baseURL += hashParam;
+                    } else {
+                        baseURL += library.default || library.index[0];
+                    }
+                    this.updatePresetList(urlString, library);
+                    // console.info("Redirecting... " + baseURL);
+                    this.loadPeriodicWave(context, baseURL, onLoaded);
+                });
+            }
+
+            if(CACHE_PERIOD_WAVE[urlString]) {
+                if (CACHE_PERIOD_WAVE[urlString].periodicWave)
+                    return onLoaded(CACHE_PERIOD_WAVE[urlString].periodicWave, urlString);
+
+                CACHE_PERIOD_WAVE[urlString].queue.push(onLoaded);
+                CACHE_PERIOD_WAVE[urlString].count++;
+                return;
+            }
+
+            // Load
+            CACHE_PERIOD_WAVE[urlString] = {periodicWave: null, count:1, queue:[onLoaded]};
 
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
+            xhr.open('GET', url + '', true);
             xhr.responseType = 'json';
-            xhr.onload = function() {
+            xhr.onload = () => {
                 if(xhr.status !== 200)
                     throw new Error("Periodic periodicWave not found: " + url);
 
                 const tables = xhr.response;
+                if(!tables.real || !tables.imag)
+                    throw new Error("Invalid JSON for periodic wave");
                 var c = tables.real.length;
                 var real = new Float32Array(c);
                 var imag = new Float32Array(c);
@@ -87,9 +146,56 @@
                 }
 
                 const periodicWave = context.createPeriodicWave(real, imag);
-                onLoaded(periodicWave);
+                console.info("Loaded Periodic wave: " + url);
+
+                if(!CACHE_PERIOD_WAVE[urlString]) {
+                    console.warn("Periodic wave load canceled: " + urlString);
+                } else {
+                    CACHE_PERIOD_WAVE[urlString].periodicWave = periodicWave;
+                    CACHE_PERIOD_WAVE[urlString].queue.forEach(onLoaded => onLoaded(periodicWave, url));
+                    CACHE_PERIOD_WAVE[urlString].queue = [];
+                }
             };
             xhr.send();
+        }
+
+        loadSampleLibrary(urlString, onLoaded) {
+            if(urlString.substr(-1, 1) === '/')
+                urlString = urlString + 'index.library.json';
+
+            const url = new URL(urlString, this.preset.config.url);
+            if(!url.pathname.endsWith('.library.json'))
+                throw new Error("Invalid sample library url: " + url);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url + '', true);
+            xhr.responseType = 'json';
+            xhr.onload = () => {
+                if(xhr.status !== 200)
+                    throw new Error("Sample library not found: " + url);
+
+                const library = xhr.response;
+                onLoaded(library);
+            };
+            xhr.send();
+        }
+
+        updatePresetList(libraryURL, library) {
+            libraryURL = new URL(libraryURL);
+            libraryURL.hash = '';
+            let html = '';
+            for(var i=0; i<library.index.length; i++) {
+                const path = library.index[i];
+                let value = library.baseURL + path;
+                let title = path;
+                if(path.endsWith('.library.json')) {
+                    title = title.replace('.library.json', '') + " (Library)";
+                } else {
+                    value = libraryURL + '#' + path;
+                }
+                html += `<option value="${value}">${title}</option>`;
+            }
+            this.presetHTML = `<optgroup label="${library.name}">\n` + html + `</optgroup>`;
         }
 
         getNamedFrequency(frequencyName) {
@@ -103,12 +209,21 @@
         }
     }
 
+    class iOscillatorDoubleDetune extends iOscillatorSimple {
+        play(destination, frequency, startTime, duration) {
+            const positive = super.play(destination, frequency, startTime, duration);
+            const negative = super.play(destination, frequency, startTime, duration);
+            negative.detune.value = -negative.detune.value;
+        }
+    }
+
     // snesology.net.instruments.oscillator
     if (!window.instruments)
         window.instruments = {};
     if (!window.instruments['snesology.net'])
         window.instruments['snesology.net'] = {};
     window.instruments['snesology.net']['/instrument/oscillator/simple.js'] = iOscillatorSimple;
+    window.instruments['snesology.net']['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
     window.instruments['localhost'] = window.instruments['snesology.net']; // For local debugging
 
     // instrument
