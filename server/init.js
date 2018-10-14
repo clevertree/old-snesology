@@ -30,18 +30,18 @@ require('./server.js')(app, router);                // Include first
 require('./songs.js')(app, router);
 require('./git.js')(app, router);
 
+
+app.use(function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    return next();
+});
+
+
+
 // Register Routes
 app.use('/', router);
 
 // Start
 
 app.listen(config.port, () => console.log('Snesology listening on port ' + config.port));
-
-
-
-app.use(function (req, res, next) {
-    console.log('middleware');
-    // req.testing = 'testing';
-    return next();
-});
 
