@@ -966,6 +966,9 @@
                     break;
 
                 case 'contextmenu':
+                    if (e.target.classList.contains('grid-parameter')) {
+                        console.info("TODO: add parameter editor at top of context menu: ", e.target);
+                    }
                     this.editor.menu.openContextMenu(e);
                     if(!e.altKey) e.preventDefault();
                     break;
@@ -1718,14 +1721,14 @@
                         const instrumentInfo = instrumentList[instrumentID];
                         const instrument = this.editor.player.getInstrument(instrumentID);
                         options.push([instrumentID, formatInstrumentID(instrumentID)
-                        + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.name + ")" : instrument.name)]);
+                        + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.constructor.name + ")" : instrument.constructor.name)]);
                     }
                     break;
 
                 case 'instruments-available':
                     if(window.instruments) {
-                        findInstruments(function (instrument, path, domain) {
-                            options.push(["add:" + domain + ":" + path, instrument.name + " (" + path + ")"]);
+                        findInstruments(function (instrument, path, origin) {
+                            options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
                         });
                     }
                     break;
@@ -1930,11 +1933,11 @@
 
     function findInstruments(callback, instrumentsObject) {
         instrumentsObject = instrumentsObject || window.instruments;
-        Object.keys(instrumentsObject).forEach(function(domainString) {
-            const domainCollection = instrumentsObject[domainString];
-            Object.keys(domainCollection).forEach(function(instrumentPathString) {
-                const instrument = domainCollection[instrumentPathString];
-                callback(instrument, instrumentPathString, domainString);
+        Object.keys(instrumentsObject).forEach(function(originString) {
+            const originCollection = instrumentsObject[originString];
+            Object.keys(originCollection).forEach(function(instrumentPathString) {
+                const instrument = originCollection[instrumentPathString];
+                callback(instrument, instrumentPathString, originString);
             }.bind(this));
         }.bind(this));
     }
