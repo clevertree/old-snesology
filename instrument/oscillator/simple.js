@@ -99,7 +99,7 @@
             const url = new URL(urlString, this.preset.sourceURL);
             if(url.pathname.endsWith('.library.json')) {
                 // Load default sample from sample library:
-                return this.loadSampleLibrary(urlString, (library) => {
+                return this.loadSampleLibrary(url, (library) => {
                     let baseURL = library.baseURL;
                     if(url.hash) {
                         const hashParam = url.hash.substr(1);
@@ -109,7 +109,7 @@
                     } else {
                         baseURL += library.default || library.index[0];
                     }
-                    this.updatePresetList(urlString, library);
+                    this.updatePresetList(url, library);
                     // console.info("Redirecting... " + baseURL);
                     this.loadPeriodicWave(context, baseURL, onLoaded);
                 });
@@ -160,10 +160,10 @@
         }
 
         loadSampleLibrary(urlString, onLoaded) {
-            if(urlString.substr(-1, 1) === '/')
-                urlString = urlString + 'index.library.json';
+            const url = new URL(urlString, this.preset.config.customURL);
+            if(url.pathname.substr(-1, 1) === '/')
+                url.pathname += 'index.library.json';
 
-            const url = new URL(urlString, this.preset.config.url);
             if(!url.pathname.endsWith('.library.json'))
                 throw new Error("Invalid sample library url: " + url);
 
