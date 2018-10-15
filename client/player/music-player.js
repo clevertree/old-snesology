@@ -437,21 +437,26 @@
         //     this.setInstruction(p1, instruction2);
         // }
 
-        addInstrument(url, instrumentConfig) {
+
+
+        addInstrument(url, instrumentConfig, onScriptLoaded) {
             const instrumentList = this.getSong().instruments;
             const instrumentID = instrumentList.length;
             const instrumentPreset = {
                 url: url,
                 config: instrumentConfig
             };
-
-
-            const instance = this.loadInstrument(instrumentPreset, instrumentID);
             instrumentList[instrumentID] = instrumentPreset;
 
-            if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
-                this.loadedInstruments[instrumentID].unload();
-            this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+            loadScript(url, () => {
+                const instance = this.loadInstrument(instrumentPreset, instrumentID);
+
+                if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
+                    this.loadedInstruments[instrumentID].unload();
+                this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+                onScriptLoaded && onScriptLoaded(instance);
+            })
+            return instrumentID;
         }
 
         replaceInstrumentParams(instrumentID, replaceConfig) {

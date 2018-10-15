@@ -409,15 +409,14 @@
         }
 
         addInstrument(instrumentURL, instrumentConfig) {
-            loadScript(instrumentURL, () => {
-                this.player.addInstrument(instrumentURL, instrumentConfig);
+            this.player.addInstrument(instrumentURL, instrumentConfig, () => {
                 const historyAction = {
                     action: 'instrument-add',
                     params: [instrumentURL, instrumentConfig]
                 };
                 this.historyQueue(historyAction);
                 this.render();
-            })
+            });
         }
 
         removeInstrument(instrumentID) {
@@ -1737,9 +1736,9 @@
                         const instrumentList = songData.instruments;
                         for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
                             const instrumentInfo = instrumentList[instrumentID];
-                            const instrument = this.editor.player.getInstrument(instrumentID);
+                            // const instrument = this.editor.player.getInstrument(instrumentID);
                             options.push([instrumentID, formatInstrumentID(instrumentID)
-                            + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrument.constructor.name + ")" : instrument.constructor.name)]);
+                            + ': ' + (instrumentInfo.name ? instrumentInfo.name + " (" + instrumentInfo.url + ")" : instrumentInfo.url)]);
                         }
                     }
                     break;
