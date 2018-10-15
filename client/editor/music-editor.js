@@ -76,14 +76,12 @@
             switch(e.type) {
                 case 'open':
                     this.webSocketAttempts = 0;
-                    if(this.getSongURL()) {
-                        this.webSocket
-                            .send(JSON.stringify({
-                                type: 'history:register',
-                                path: this.getSongURL()
-                                // historyStep:
-                            }));
-                    }
+                    this.webSocket
+                        .send(JSON.stringify({
+                            type: 'history:register',
+                            path: this.getSongURL()
+                            // historyStep:
+                        }));
                     // e.target.send("WELCOME");
                     break;
 
@@ -630,14 +628,9 @@
 
 
         playInstruction(instruction) {
-            const associatedElement = this.grid.findInstruction(instruction);
             return this.player.playInstruction(
                 instruction,
-                this.player.getAudioContext().currentTime,
-                this.player.getStartingBeatsPerMinute(),
-                function (playing) {
-                    associatedElement && associatedElement.classList.toggle('playing', playing);
-                }.bind(this),
+                this.player.getAudioContext().currentTime
             );
         }
 

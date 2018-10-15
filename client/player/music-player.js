@@ -182,25 +182,40 @@
         // }
 
         playInstruction(instruction, noteStartTime, stats) {
-            if (instruction.command[0] === '@') {
-                const commandGroup = instruction.command.substr(1);
+            // if (instruction.command[0] === '@') {
+            //     const commandGroup = instruction.command.substr(1);
                 // TODO: play groups too
-            }
+            // }
 
-            const instrumentID = typeof instruction.instrument === 'undefined'
-                ? stats.groupInstruction.instrument || 0
-                : instruction.instrument // TO
-            const noteFrequency = instruction.command;
             const currentTime = this.getAudioContext().currentTime;
+            let instrumentID = instruction.instrument;
+            let noteFrequency = instruction.command;
+            let noteVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
+            let bpm = 60;
 
-
-            const bpm = stats.currentBPM || 60;
+            if(stats) {
+                bpm = stats.currentBPM;
+                if(stats.groupInstruction) {
+                    if(typeof stats.groupInstruction.velocity !== 'undefined')
+                        noteVelocity *= stats.groupInstruction.velocity/100;
+                    if(typeof instrumentID === 'undefined' && typeof stats.groupInstruction.instrument !== 'undefined')
+                        instrumentID = stats.groupInstruction.instrument;
+                }
+            }
             const noteDuration = (instruction.duration || 1) * (60 / bpm);
 
-            // Velocity
-            let noteVelocity = typeof instruction.velocity !== 'undefined' ? instruction.velocity : 100;
-            if(stats.groupInstruction && stats.groupInstruction.velocity)
-                noteVelocity *= stats.groupInstruction.velocity/100;
+            if(!instrumentID && instrumentID !== 0) {
+                console.error("No instrument set for instruction. Playback skipped. ");
+                return;
+            }
+            if(!this.song.instruments[instrumentID]) {
+                console.error(`Instrument ${instrumentID} is not loaded. Playback skipped. `);
+                return;
+            }
+
+
+
+
             const audioNode = this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
 
             const noteEventData = {
@@ -235,13 +250,14 @@
             playbackPosition = playbackPosition || 0;
             currentTime = currentTime || this.getAudioContext().currentTime;
             // instructionList = instructionList || this.song.instructions;
-            return this.eachInstruction(instructionGroup, function(noteInstruction, stats) {
-                if(stats.absolutePlaytime < playbackPosition)
+            return this.eachInstruction(instructionGroup, function(noteInstruction, groupStats) {
+                const absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
+                if(absolutePlaytime < playbackPosition)
                     return;   // Instructions were already played
-                if(playbackLength && stats.absolutePlaytime >= playbackPosition + playbackLength)
+                if(playbackLength && absolutePlaytime >= playbackPosition + playbackLength)
                     return;
                 // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
-                this.playInstruction(noteInstruction, currentTime + stats.absolutePlaytime, stats);
+                this.playInstruction(noteInstruction, currentTime + absolutePlaytime, groupStats);
             }.bind(this));
         }
 
@@ -255,15 +271,17 @@
                 "parentPosition": 0,
                 "parentPlaytime": 0,
                 "currentGroup": rootGroup,
+                "groupInstruction": {
+                    instrument: 0
+                }
             });
 
-            function playGroup(instructionList, stats) {
-                stats = Object.assign({}, stats);
-                stats.currentBPM = stats.parentBPM;
-                stats.parentPosition = stats.parentPosition || 0;
-                stats.groupPosition = 0;
-                stats.groupPlaytime = 0;
-                stats.maxPlaytime = 0;
+            function playGroup(instructionList, groupStats) {
+                groupStats.currentBPM = groupStats.parentBPM;
+                // groupStats.parentPosition = groupStats.parentPosition || 0;
+                groupStats.groupPosition = 0;
+                groupStats.groupPlaytime = 0;
+                let maxPlaytime = 0;
                 for(let i=0; i<instructionList.length; i++) {
                     const instruction = instructionList[i];
 
@@ -272,10 +290,10 @@
                             const functionName = instruction.command.substr(1);
                             switch(functionName) {
                                 case 'pause':
-                                    stats.groupPosition += instruction.duration;
-                                    stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
-                                    if(stats.groupPlaytime > stats.maxPlaytime)
-                                        stats.maxPlaytime = stats.groupPlaytime;
+                                    groupStats.groupPosition += instruction.duration;
+                                    groupStats.groupPlaytime += instruction.duration * (60 / groupStats.currentBPM);
+                                    if(groupStats.groupPlaytime > maxPlaytime)
+                                        maxPlaytime = groupStats.groupPlaytime;
                                     break;
 
                                 default:
@@ -284,39 +302,37 @@
                             }
 
                         } else if (instruction.command[0] === '@') {
-                            // if(groupPosition < startPosition) // Execute all groups each time
-                            //     continue;
                             let groupName = instruction.command.substr(1);
                             let instructionGroupList = this.song.instructions[groupName];
                             if (!instructionGroupList)
                                 throw new Error("Instruction groupName not found: " + groupName);
-                            if(groupName === stats.currentGroup) { // TODO group stack
+                            if(groupName === groupStats.currentGroup) { // TODO group stack
                                 console.error("Recursive group call. Skipping group '" + groupName + "'");
                                 continue;
                             }
                             // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
-                            const substats = Object.assign({}, stats);
-                            substats.parentBPM = stats.currentBPM;
-                            substats.parentPosition = stats.groupPosition + stats.parentPosition;
-                            substats.parentPlaytime = stats.groupPlaytime + stats.parentPlaytime;
-                            substats.groupInstruction = instruction;
-                            substats.currentGroup = groupName;
-                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, substats);
-                            if (subGroupPlayTime > stats.maxPlaytime)
-                                stats.maxPlaytime = subGroupPlayTime;
+                            const subGroupPlayTime = playGroup.call(this, instructionGroupList, {
+                                "parentBPM": groupStats.currentBPM,
+                                "parentPosition": groupStats.groupPosition + groupStats.parentPosition,
+                                "parentPlaytime": groupStats.groupPlaytime + groupStats.parentPlaytime,
+                                "currentGroup": groupName,
+                                "groupInstruction": instruction,
+                                "parentStats": groupStats
+                            });
+                            if (subGroupPlayTime > maxPlaytime)
+                                maxPlaytime = subGroupPlayTime;
 
                         } else {
-                            stats.parentBPM = stats.currentBPM;
-                            stats.absolutePosition = stats.groupPosition + stats.parentPosition;
-                            stats.absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
-                            callback(instruction, stats);
+                            // groupStats.absolutePosition = groupStats.groupPosition + groupStats.parentPosition;
+                            // groupStats.absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
+                            callback(instruction, groupStats);
                         }
                     }
 
                 }
-                if(stats.groupPlaytime > stats.maxPlaytime)
-                    stats.maxPlaytime = stats.groupPlaytime;
-                return stats.maxPlaytime;
+                if(groupStats.groupPlaytime > maxPlaytime)
+                    maxPlaytime = groupStats.groupPlaytime;
+                return maxPlaytime;
             }
         }
 
@@ -566,10 +582,10 @@
         // }
 
         loadInstrument(instrumentPreset) {
-            if(!window.instruments)
-                throw new Error("window.instruments is not loaded");
             if(!instrumentPreset || !instrumentPreset.url)
                 throw new Error("Invalid preset");
+            if(!window.instruments)
+                throw new Error("window.instruments is not loaded");
 
             const url = new URL(instrumentPreset.url, document.location);
 
@@ -586,9 +602,13 @@
         }
 
         getInstrument(instrumentID, reload) {
+            if(!instrumentID && instrumentID !== 0)
+                throw new Error("Invalid instrument ID");
             if(!reload && this.loadedInstruments[instrumentID])
                 return this.loadedInstruments[instrumentID];
 
+            if(!this.song.instruments[instrumentID])
+                throw new Error("Instrument ID not found: " + instrumentID);
             let instrumentPreset = this.song.instruments[instrumentID];
             const instance = this.loadInstrument(instrumentPreset);
 
