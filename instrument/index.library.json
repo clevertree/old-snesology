@@ -1,8 +1,0 @@
-{
-  "name": "Instrument Libraries",
-  "baseURL": "/instrument/",
-  "index": [
-    "/oscillator/simple.js",
-    "/buffersource/simple.js"
-  ]
-}

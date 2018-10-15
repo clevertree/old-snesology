@@ -445,6 +445,7 @@
                 config: instrumentConfig
             };
 
+
             const instance = this.loadInstrument(instrumentPreset, instrumentID);
             instrumentList[instrumentID] = instrumentPreset;
 

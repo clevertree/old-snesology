@@ -23,10 +23,10 @@
                     undoList: [],
                     undoPosition: []
                 },
+                instrumentLibrary: null
             };
             this.webSocket = null;
             this.webSocketAttempts = 0;
-
 
             loadScript('client/player/music-player.js', () => {
                 const playerElement = document.createElement('music-player');
@@ -48,6 +48,18 @@
                 this.render(); // Render after player element is loaded
 
             });
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'instrument/instruments.json', true);
+            xhr.responseType = 'json';
+            xhr.onload = () => {
+                if(xhr.status !== 200)
+                    throw new Error("Instrument list not found");
+                this.status.instrumentLibrary = xhr.response;
+                this.render();
+            };
+            xhr.send();
+
         }
         get grid() { return this.querySelector('music-editor-grid'); }
         get gridStatus() { return this.status.grids[0]; }
@@ -397,13 +409,15 @@
         }
 
         addInstrument(instrumentURL, instrumentConfig) {
-            this.player.addInstrument(instrumentURL, instrumentConfig);
-            const historyAction = {
-                action: 'instrument-add',
-                params: [instrumentURL, instrumentConfig]
-            };
-            this.historyQueue(historyAction);
-            this.render();
+            loadScript(instrumentURL, () => {
+                this.player.addInstrument(instrumentURL, instrumentConfig);
+                const historyAction = {
+                    action: 'instrument-add',
+                    params: [instrumentURL, instrumentConfig]
+                };
+                this.historyQueue(historyAction);
+                this.render();
+            })
         }
 
         removeInstrument(instrumentID) {
@@ -1626,6 +1640,9 @@
                                 <optgroup label="Song Instruments">
                                     ${this.renderEditorFormOptions('song-instruments')}
                                 </optgroup>
+                                <optgroup label="Loaded Instruments">
+                                    ${this.renderEditorFormOptions('instruments-loaded')}
+                                </optgroup>
                                 <optgroup label="Available Instruments">
                                     ${this.renderEditorFormOptions('instruments-available')}
                                 </optgroup>
@@ -1728,6 +1745,18 @@
                     break;
 
                 case 'instruments-available':
+                    if(this.editor.status.instrumentLibrary) {
+                        const instrumentLibrary = this.editor.status.instrumentLibrary;
+                        Object.keys(instrumentLibrary.index).forEach((path) => {
+                            let pathConfig = instrumentLibrary.index[path];
+                            if (typeof pathConfig !== 'object') pathConfig = {title: pathConfig};
+                            options.push(["add:" + instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")"]);
+                        });
+                    }
+                    break;
+
+
+                case 'instruments-loaded':
                     if(window.instruments) {
                         findInstruments(function (instrument, path, origin) {
                             options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
@@ -1905,7 +1934,7 @@
     loadStylesheet('client/editor/music-editor.css');
 
     function loadScript(scriptPath, onLoaded) {
-        let scriptPathEsc = scriptPath.replace(/[/.]/g, '\\$&');
+        let scriptPathEsc = scriptPath.split('#')[0].replace(/[/.]/g, '\\$&');
         let scriptElm = document.head.querySelector(`script[src$=${scriptPathEsc}]`);
         if (!scriptElm) {
             scriptElm = document.createElement('script');
