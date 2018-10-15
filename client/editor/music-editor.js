@@ -492,10 +492,10 @@
                     break;
                 case 'group':
                     this.applyHistoryActions(action.params, next);
-                    break;
+                    return;
                 case 'instrument-add':
-                    this.player.addInstrument(action.params[0], action.params[1]);
-                    break;
+                    this.player.addInstrument(action.params[0], action.params[1], next);
+                    return;
                 case 'instrument-remove':
                     this.player.removeInstrument(action.params[0], action.params[1]);
                     break;
@@ -1876,7 +1876,7 @@
 
         get id() { return parseInt(this.getAttribute('id')); }
         get preset() { return this.editor.getSong().instruments[this.id]; }
-        get instrument() { return this.editor.player.getInstrument(this.id);}
+        // get instrument() { return this.editor.player.getInstrument(this.id);}
 
         connectedCallback() {
             this.editor = findParent(this, (p) => p.matches('music-editor'));
@@ -1911,14 +1911,15 @@
         }
 
         render() {
-            if(this.instrument.renderEditor) {
-                this.instrument.renderEditor(this);
+            if(this.editor.player.isInstrumentLoaded(this.id)) {
+                const instrument = this.editor.player.getInstrumentInstance(this.id);
+                if(instrument.renderEditor) {
+                    instrument.renderEditor(this);
+                } else {
+                    this.innerHTML = "No Renderer";
+                }
             } else {
-                this.innerHTML =
-                    `<form class="instrument-editor">
-                        No Renderer
-                    </form>
-                `;
+                this.innerHTML = "Loading ...";
             }
         }
     }

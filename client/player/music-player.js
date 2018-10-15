@@ -131,7 +131,8 @@
         }
 
         playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
-            const instrument = this.getInstrument(instrumentID);
+            const instrument = this.loadedInstruments[instrumentID];
+
             if(instrument.getNamedFrequency)
                 noteFrequency = instrument.getNamedFrequency(noteFrequency);
             noteFrequency = this.getInstructionFrequency(noteFrequency);
@@ -449,7 +450,7 @@
             instrumentList[instrumentID] = instrumentPreset;
 
             loadScript(url, () => {
-                const instance = this.loadInstrument(instrumentPreset, instrumentID);
+                const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
 
                 if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
                     this.loadedInstruments[instrumentID].unload();
@@ -481,7 +482,7 @@
                 }
             }
             // Validate
-            const instance = this.loadInstrument(newPresetData);
+            const instance = this.loadInstrumentPreset(newPresetData);
             instrumentList[instrumentID] = newPresetData;
 
             if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
@@ -587,7 +588,7 @@
         //     return instrumentPreset.path;
         // }
 
-        loadInstrument(instrumentPreset) {
+        loadInstrumentPreset(instrumentPreset) {
             if(!instrumentPreset || !instrumentPreset.url)
                 throw new Error("Invalid preset");
             if(!window.instruments)
@@ -607,21 +608,14 @@
             return new instrument(this.getAudioContext(), instrumentPreset);
         }
 
-        getInstrument(instrumentID, reload) {
-            if(!instrumentID && instrumentID !== 0)
-                throw new Error("Invalid instrument ID");
-            if(!reload && this.loadedInstruments[instrumentID])
-                return this.loadedInstruments[instrumentID];
+        isInstrumentLoaded(instrumentID) {
+            return !!this.loadedInstruments[instrumentID];
+        }
 
-            if(!this.song.instruments[instrumentID])
-                throw new Error("Instrument ID not found: " + instrumentID);
-            let instrumentPreset = this.song.instruments[instrumentID];
-            const instance = this.loadInstrument(instrumentPreset);
-
-            if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
-                this.loadedInstruments[instrumentID].unload();
-            this.loadedInstruments[instrumentID] = instance;
-            return instance;
+        getInstrumentInstance(instrumentID) {
+            if(!this.loadedInstruments[instrumentID])
+                throw new Error("Instrument not loaded: " + instrumentID);
+            return this.loadedInstruments[instrumentID];
         }
 
         getInstructionFrequency (instruction) {
