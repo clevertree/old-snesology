@@ -25,6 +25,11 @@ module.exports = function(appInstance, router) {
 function httpEditRequest(req, res) {
 
     let songPath = req.query.src;
+    if(typeof req.query.src === 'undefined') {
+        const uuidv4 = require('uuid/v4');
+        songPath = 'song/share/' + uuidv4() + '.json';
+        return res.redirect('?src=' + songPath);
+    }
     if(!songPath.endsWith('.json'))
         songPath += '.json';
     const absolutePath = path.resolve(BASE_DIR + '/' + songPath);
