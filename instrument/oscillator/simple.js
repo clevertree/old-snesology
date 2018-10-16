@@ -191,8 +191,9 @@
             libraryURL = new URL(libraryURL);
             libraryURL.hash = '';
             let html = '';
-            for(var i=0; i<library.index.length; i++) {
-                const path = library.index[i];
+            const index = Array.isArray(library.index) ? library.index : Object.keys(library.index);
+            for(var i=0; i<index.length; i++) {
+                const path = index[i];
                 let value = library.baseURL + path;
                 let title = path;
                 if(path.endsWith('.library.json')) {
