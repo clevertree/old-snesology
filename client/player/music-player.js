@@ -81,9 +81,6 @@
                     const config = songData.instruments[instrumentID].config;
                     this.addInstrument(url, config, () => {
 
-                        if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
-                            this.loadedInstruments[instrumentID].unload();
-                        this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
                         // console.log("Scripts loading: ", scriptsLoading);
                         scriptsLoading--;
                         if(scriptsLoading === 0)
