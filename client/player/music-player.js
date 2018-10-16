@@ -67,23 +67,29 @@
                 this.processInstructions(groupName));
             // TODO check all groups were processed
 
-            let loadFiles = [];
+            // let loadFiles = [];
             let scriptsLoading = 0;
-            if(songData.instruments.length === 0) {
+            const instrumentCount = songData.instruments.length;
+            if(instrumentCount === 0) {
                 console.warn("Song contains no instruments");
             } else {
-                for(let i=0; i<songData.instruments.length; i++) {
-                    const url = songData.instruments[i].url;
-                    if(loadFiles.indexOf(url) === -1) {
-                        loadFiles.push(url);
-                        scriptsLoading++;
-                        loadScript(url, () => {
-                            // console.log("Scripts loading: ", scriptsLoading);
-                            scriptsLoading--;
-                            if(scriptsLoading === 0)
-                                onLoadComplete();
-                        });
-                    }
+                for(let instrumentID=0; instrumentID<instrumentCount; instrumentID++) {
+                    const url = songData.instruments[instrumentID].url;
+                    // if(loadFiles.indexOf(url) === -1) {
+                    //     loadFiles.push(url);
+                    scriptsLoading++;
+                    const config = songData.instruments[instrumentID].config;
+                    this.addInstrument(url, config, () => {
+
+                        if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
+                            this.loadedInstruments[instrumentID].unload();
+                        this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+                        // console.log("Scripts loading: ", scriptsLoading);
+                        scriptsLoading--;
+                        if(scriptsLoading === 0)
+                            onLoadComplete();
+                    });
+                    // }
                 }
             }
             if(scriptsLoading === 0)
@@ -439,7 +445,6 @@
         // }
 
 
-
         addInstrument(url, instrumentConfig, onScriptLoaded) {
             const instrumentList = this.getSong().instruments;
             const instrumentID = instrumentList.length;
@@ -449,6 +454,10 @@
             };
             instrumentList[instrumentID] = instrumentPreset;
 
+            // TODO: resolve library
+            if(url.endsWith('.library.json')) {
+
+            }
             loadScript(url, () => {
                 const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
 
@@ -456,7 +465,7 @@
                     this.loadedInstruments[instrumentID].unload();
                 this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
                 onScriptLoaded && onScriptLoaded(instance);
-            })
+            });
             return instrumentID;
         }
 
