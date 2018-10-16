@@ -50,7 +50,7 @@
             });
 
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'instrument/instruments.json', true);
+            xhr.open('GET', 'instrument/index.library.json', true);
             xhr.responseType = 'json';
             xhr.onload = () => {
                 if(xhr.status !== 200)
