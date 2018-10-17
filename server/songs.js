@@ -210,10 +210,10 @@ function generateDefaultSong(songPath) {
     return {
         "name": "New Song",
         "url": songPath, // "https://snesology.net/song/share/" + UUID + ".json",
-        "version": "v0.0.1",
+        "version": "v0.0.2",
         "description": "New Song",
         "instruments": [{
-            "url": "/instrument/index.library.json", // Default instrument
+            "url": "/instrument/oscillator/simple.js", // Default instrument
         }],
         "instructions": {
             "root": [1,1,1,1]
