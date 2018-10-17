@@ -71,15 +71,15 @@
             let scriptsLoading = 0;
             const instrumentCount = songData.instruments.length;
             if(instrumentCount === 0) {
-                console.warn("Song contains no instruments");
+                // console.warn("Song contains no instruments");
             } else {
                 for(let instrumentID=0; instrumentID<instrumentCount; instrumentID++) {
-                    const url = songData.instruments[instrumentID].url;
+                    // const url = songData.instruments[instrumentID].url;
                     // if(loadFiles.indexOf(url) === -1) {
                     //     loadFiles.push(url);
                     scriptsLoading++;
-                    const config = songData.instruments[instrumentID].config;
-                    this.addInstrument(url, config, () => {
+                    // const config = songData.instruments[instrumentID].config;
+                    this.initInstrument(instrumentID, () => {
 
                         // console.log("Scripts loading: ", scriptsLoading);
                         scriptsLoading--;
@@ -209,8 +209,9 @@
             const noteDuration = (instruction.duration || 1) * (60 / bpm);
 
             if(!instrumentID && instrumentID !== 0) {
-                console.error("No instrument set for instruction. Playback skipped. ");
-                return;
+                console.warn("No instrument set for instruction. Using instrument 0");
+                instrumentID = 0;
+                // return;
             }
             if(!this.song.instruments[instrumentID]) {
                 console.error(`Instrument ${instrumentID} is not loaded. Playback skipped. `);
@@ -450,12 +451,21 @@
                 config: instrumentConfig
             };
             instrumentList[instrumentID] = instrumentPreset;
+            this.initInstrument(instrumentID);
+            return instrumentID;
+        }
+
+        initInstrument(instrumentID, onScriptLoaded) {
+            const instrumentList = this.getSong().instruments;
+            if(!instrumentList[instrumentID])
+                throw new Error("Instrument ID not found: " + instrumentID);
+            const instrumentPreset = instrumentList[instrumentID];
 
             // TODO: resolve library
-            if(url.endsWith('.library.json')) {
+            // if(url.endsWith('.library.json')) {
 
-            }
-            loadScript(url, () => {
+            // }
+            loadScript(instrumentPreset.url, () => {
                 const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
 
                 if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
@@ -463,7 +473,6 @@
                 this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
                 onScriptLoaded && onScriptLoaded(instance);
             });
-            return instrumentID;
         }
 
         replaceInstrumentParams(instrumentID, replaceConfig) {

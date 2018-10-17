@@ -11,6 +11,8 @@
             if(!preset.name)
                 preset.name = this.constructor.name + NEW_COUNTER++;
             const config = preset.config;
+            if(!config.type)
+                config.type = 'sine';
             this.preset = preset;            // TODO: validate config
             this.presetHTML = [];
             this.lastEditorContainer = null;
