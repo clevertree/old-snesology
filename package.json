@@ -2,6 +2,8 @@
   "name": "snesology",
   "version": "0.0.1",
   "description": "Snesology Website",
+  "author": "Ari Asulin",
+  "license": "GPL-3.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -18,8 +20,6 @@
     "editor",
     "player"
   ],
-  "author": "Ari Asulin",
-  "license": "GNU GPLv3",
   "bugs": {
     "customURL": "https://github.com/clevertree/snesology/issues"
   },

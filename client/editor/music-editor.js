@@ -75,7 +75,9 @@
         }
 
         initWebSocket(url) {
-            const ws = new WebSocket(url || location.origin.replace(/^http/i, 'ws'));
+            url = url || new URL(this.getSongURL(), document.location) || location;
+            const wsURL = (url+'').replace(/^http/i, 'ws');
+            const ws = new WebSocket(wsURL);
             const onWebSocketEvent = this.onWebSocketEvent.bind(this);
             ws.addEventListener('open', onWebSocketEvent);
             ws.addEventListener('message', onWebSocketEvent);
