@@ -90,12 +90,12 @@
             switch(e.type) {
                 case 'open':
                     this.webSocketAttempts = 0;
-                    this.webSocket
-                        .send(JSON.stringify({
-                            type: 'history:register',
-                            path: this.getSongURL()
+                    // this.webSocket
+                    //     .send(JSON.stringify({
+                    //         type: 'history:register',
+                    //         path: this.getSongURL()
                             // historyStep:
-                        }));
+                        // }));
                     // e.target.send("WELCOME");
                     break;
 
@@ -133,6 +133,16 @@
                     break;
             }
 
+        }
+
+        onError(err) {
+            if(this.webSocket)
+                this.webSocket
+                    .send(JSON.stringify({
+                        type: 'error',
+                        message: err.message || err,
+                        stack: err.stack
+                    }));
         }
 
         onInput(e) {
@@ -447,6 +457,8 @@
         applyHistoryActions(actionList, onActionCompleted) {
             actionList = actionList.slice(0);
             const action = actionList.shift();
+
+            // console.info("Applying historic action: ", action);
 
             this.status.history.undoList.push(action);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
@@ -797,193 +809,197 @@
             if (e.defaultPrevented)
                 return;
 
-            // const cursorPositions = this.selectedPositions;
-            // const initialCursorPosition = cursorPositions[0];
-            // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
+            try {
+                // const cursorPositions = this.selectedPositions;
+                // const initialCursorPosition = cursorPositions[0];
+                // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
-            // const editor = this.editor;
+                // const editor = this.editor;
 
-            switch (e.type) {
-                case 'keydown':
+                switch (e.type) {
+                    case 'keydown':
 
-                    let keyEvent = e.key;
-                    if (this.editor.keyboardLayout[e.key])
-                        keyEvent = 'PlayFrequency';
-                    if (keyEvent === 'Enter' && e.altKey)
-                        keyEvent = 'ContextMenu';
+                        let keyEvent = e.key;
+                        if (this.editor.keyboardLayout[e.key])
+                            keyEvent = 'PlayFrequency';
+                        if (keyEvent === 'Enter' && e.altKey)
+                            keyEvent = 'ContextMenu';
 
-                    let keydownCellElm = this.currentCell;
+                        let keydownCellElm = this.currentCell;
 
-                    if (keydownCellElm.classList.contains('grid-cell-new')) {
-                        let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
-                        // let newInstruction = null;
-                        // let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
-                        switch (keyEvent) {
-                            case 'Enter':
-                            case 'PlayFrequency':
-                                let newInstruction = {
-                                    // instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
-                                    command: this.editor.keyboardLayout[e.key]
-                                        || this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
-                                    // duration: duration
-                                }; // new instruction
-                                if(this.editor.querySelector('form.form-instruction-instrument').instrument.value)
-                                    newInstruction.instrument = parseInt(this.editor.querySelector('form.form-instruction-instrument').instrument.value);
-                                if(this.editor.querySelector('form.form-instruction-duration').duration.value)
-                                    newInstruction.duration = this.editor.querySelector('form.form-instruction-duration').duration.value;
-                                if(newInstruction) {
-                                    this.insertInstruction(newInstruction, insertPosition);
-                                    this.render();
-                                    this.editor.gridSelect(e, insertPosition);
-                                }
-                                break;
+                        if (keydownCellElm.classList.contains('grid-cell-new')) {
+                            let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
+                            // let newInstruction = null;
+                            // let duration = parseFloat(this.currentRow.getAttribute('data-duration'));
+                            switch (keyEvent) {
+                                case 'Enter':
+                                case 'PlayFrequency':
+                                    let newInstruction = {
+                                        // instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
+                                        command: this.editor.keyboardLayout[e.key]
+                                            || this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
+                                        // duration: duration
+                                    }; // new instruction
+                                    if(this.editor.querySelector('form.form-instruction-instrument').instrument.value)
+                                        newInstruction.instrument = parseInt(this.editor.querySelector('form.form-instruction-instrument').instrument.value);
+                                    if(this.editor.querySelector('form.form-instruction-duration').duration.value)
+                                        newInstruction.duration = this.editor.querySelector('form.form-instruction-duration').duration.value;
+                                    if(newInstruction) {
+                                        this.insertInstruction(newInstruction, insertPosition);
+                                        this.render();
+                                        this.editor.gridSelect(e, insertPosition);
+                                    }
+                                    break;
+                            }
                         }
-                    }
 
-                    let cursorPosition = this.editor.gridStatus.cursorPosition;
-                    const currentGroup = this.getGroupName();
-                    const instructionList = this.editor.player.getInstructions(currentGroup);
-                    let cursorInstruction = instructionList[cursorPosition];
-                    switch (keyEvent) {
-                        case 'Delete':
-                            this.editor.deleteInstructions(this.getGroupName(), this.editor.gridStatus.selectedPositions);
-                            e.preventDefault();
-                            // editor.render(true);
-                            break;
-                        case 'Escape':
-                        case 'Backspace':
-                            this.editor.gridNavigatePop();
-                            this.editor.gridSelect(e, 0);
-                            this.editor.grid.focus();
-                            e.preventDefault();
-                            break;
-                        case 'Enter':
-                            if (cursorInstruction.command[0] === '@') {
-                                const groupName = cursorInstruction.command.substr(1);
-                                this.editor.gridNavigate(groupName, cursorInstruction);
-                                //this.editor.gridSelect(e, 0);
-                                //this.editor.grid.focus();
-                            } else {
+                        let cursorPosition = this.editor.gridStatus.cursorPosition;
+                        const currentGroup = this.getGroupName();
+                        const instructionList = this.editor.player.getInstructions(currentGroup);
+                        let cursorInstruction = instructionList[cursorPosition];
+                        switch (keyEvent) {
+                            case 'Delete':
+                                this.editor.deleteInstructions(this.getGroupName(), this.editor.gridStatus.selectedPositions);
+                                e.preventDefault();
+                                // editor.render(true);
+                                break;
+                            case 'Escape':
+                            case 'Backspace':
+                                this.editor.gridNavigatePop();
+                                this.editor.gridSelect(e, 0);
+                                this.editor.grid.focus();
+                                e.preventDefault();
+                                break;
+                            case 'Enter':
+                                if (cursorInstruction.command[0] === '@') {
+                                    const groupName = cursorInstruction.command.substr(1);
+                                    this.editor.gridNavigate(groupName, cursorInstruction);
+                                    //this.editor.gridSelect(e, 0);
+                                    //this.editor.grid.focus();
+                                } else {
+                                    this.editor.playInstruction(cursorInstruction);
+                                }
+                                e.preventDefault();
+                                break;
+
+                            case 'Play':
                                 this.editor.playInstruction(cursorInstruction);
-                            }
-                            e.preventDefault();
-                            break;
+                                e.preventDefault();
+                                break;
 
-                        case 'Play':
-                            this.editor.playInstruction(cursorInstruction);
-                            e.preventDefault();
-                            break;
+                            // ctrlKey && metaKey skips a measure. shiftKey selects a range
+                            case 'ArrowRight':
+                                if(!this.nextCell) {
+                                    let nextRowPosition = this.insertInstruction({
+                                        command: '!pause',
+                                        duration: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
+                                    }); // insertPosition
+                                    this.render();
+                                    this.editor.gridSelect(e, nextRowPosition);
 
-                        // ctrlKey && metaKey skips a measure. shiftKey selects a range
-                        case 'ArrowRight':
-                            if(!this.nextCell) {
-                                let nextRowPosition = this.insertInstruction({
-                                    command: '!pause',
-                                    duration: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
-                                }); // insertPosition
+                                } else {
+                                    this.selectCell(e, this.nextCell);
+                                }
+                                // this.focus();
+                                e.preventDefault();
+                                break;
+
+                            case 'ArrowLeft':
+                                this.previousCell && this.selectCell(e, this.previousCell);
+                                // this.focus();
+                                e.preventDefault();
+                                break;
+
+                            case 'ArrowDown':
+                                if(!this.nextRowCell) {
+                                    let nextRowPosition = this.insertInstruction({
+                                        command: '!pause',
+                                        duration: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
+                                    }); // insertPosition
+                                    this.render();
+                                    this.editor.gridSelect(e, nextRowPosition);
+
+                                } else {
+                                    this.selectCell(e, this.nextRowCell);
+                                }
+                                // this.focus();
+                                e.preventDefault();
+                                break;
+
+                            case 'ArrowUp':
+                                this.selectCell(e, this.previousRowCell || this.previousCell || this.currentCell);
+                                // this.focus();
+                                e.preventDefault();
+                                break;
+
+                            case ' ':
+                                this.selectCell(e, this.currentCell);
+                                if(e.ctrlKey) e.preventDefault();
+                                break;
+
+                            case 'PlayFrequency':
+                                cursorInstruction.command = this.editor.keyboardLayout[e.key];
                                 this.render();
-                                this.editor.gridSelect(e, nextRowPosition);
+                                this.focus();
+                                this.editor.playInstruction(cursorInstruction);
 
-                            } else {
-                                this.selectCell(e, this.nextCell);
-                            }
-                            // this.focus();
-                            e.preventDefault();
-                            break;
+                                // editor.gridSelectInstructions([selectedInstruction]);
+                                e.preventDefault();
+                                break;
 
-                        case 'ArrowLeft':
-                            this.previousCell && this.selectCell(e, this.previousCell);
-                            // this.focus();
-                            e.preventDefault();
-                            break;
+                        }
+                        break;
 
-                        case 'ArrowDown':
-                            if(!this.nextRowCell) {
-                                let nextRowPosition = this.insertInstruction({
-                                    command: '!pause',
-                                    duration: parseFloat(this.currentCell.parentNode.getAttribute('data-pause'))
-                                }); // insertPosition
-                                this.render();
-                                this.editor.gridSelect(e, nextRowPosition);
+                    case 'mousedown':
+                        this.editor.menu.closeMenu();
+                        let cellElm = e.target;
+                        if (cellElm.classList.contains('grid-parameter'))
+                            cellElm = cellElm.parentNode;
+                        if (cellElm.classList.contains('grid-parameter'))
+                            cellElm = cellElm.parentNode;
+                        if (cellElm.classList.contains('grid-row'))
+                            cellElm = cellElm.firstElementChild;
+                        if (!cellElm.classList.contains('grid-cell'))
+                            cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
+                        if(!cellElm)
+                            throw new Error("Could not find grid-cell");
 
-                            } else {
-                                this.selectCell(e, this.nextRowCell);
-                            }
-                            // this.focus();
-                            e.preventDefault();
-                            break;
+                        this.selectCell(e, cellElm);
+                        this.focus();
 
-                        case 'ArrowUp':
-                            this.selectCell(e, this.previousRowCell || this.previousCell || this.currentCell);
-                            // this.focus();
-                            e.preventDefault();
-                            break;
+                        // Longpress
+                        clearTimeout(this.longPressTimeout);
+                        this.longPressTimeout = setTimeout(function() {
+                            e.target.dispatchEvent(new CustomEvent('longpress', {
+                                detail: {originalEvent: e},
+                                bubbles: true
+                            }));
+                        }, DEFAULT_LONG_PRESS_TIMEOUT);
+                        e.preventDefault();
+                        break;
 
-                        case ' ':
-                            this.selectCell(e, this.currentCell);
-                            if(e.ctrlKey) e.preventDefault();
-                            break;
+                    case 'mouseup':
+                        e.preventDefault();
+                        clearTimeout(this.longPressTimeout);
+                        break;
 
-                        case 'PlayFrequency':
-                            cursorInstruction.command = this.editor.keyboardLayout[e.key];
-                            this.render();
-                            this.focus();
-                            this.editor.playInstruction(cursorInstruction);
+                    case 'longpress':
+                        console.log("Longpress", e);
+                        this.editor.menu.openContextMenu(e);
+                        e.preventDefault();
+                        break;
 
-                            // editor.gridSelectInstructions([selectedInstruction]);
-                            e.preventDefault();
-                            break;
+                    case 'contextmenu':
+                        if (e.target.classList.contains('grid-parameter')) {
+                            console.info("TODO: add parameter editor at top of context menu: ", e.target);
+                        }
+                        this.editor.menu.openContextMenu(e);
+                        if(!e.altKey) e.preventDefault();
+                        break;
 
-                    }
-                    break;
-
-                case 'mousedown':
-                    this.editor.menu.closeMenu();
-                    let cellElm = e.target;
-                    if (cellElm.classList.contains('grid-parameter'))
-                        cellElm = cellElm.parentNode;
-                    if (cellElm.classList.contains('grid-parameter'))
-                        cellElm = cellElm.parentNode;
-                    if (cellElm.classList.contains('grid-row'))
-                        cellElm = cellElm.firstElementChild;
-                    if (!cellElm.classList.contains('grid-cell'))
-                        cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
-                    if(!cellElm)
-                        throw new Error("Could not find grid-cell");
-
-                    this.selectCell(e, cellElm);
-                    this.focus();
-
-                    // Longpress
-                    clearTimeout(this.longPressTimeout);
-                    this.longPressTimeout = setTimeout(function() {
-                        e.target.dispatchEvent(new CustomEvent('longpress', {
-                            detail: {originalEvent: e},
-                            bubbles: true
-                        }));
-                    }, DEFAULT_LONG_PRESS_TIMEOUT);
-                    e.preventDefault();
-                    break;
-
-                case 'mouseup':
-                    e.preventDefault();
-                    clearTimeout(this.longPressTimeout);
-                    break;
-
-                case 'longpress':
-                    console.log("Longpress", e);
-                    this.editor.menu.openContextMenu(e);
-                    e.preventDefault();
-                    break;
-
-                case 'contextmenu':
-                    if (e.target.classList.contains('grid-parameter')) {
-                        console.info("TODO: add parameter editor at top of context menu: ", e.target);
-                    }
-                    this.editor.menu.openContextMenu(e);
-                    if(!e.altKey) e.preventDefault();
-                    break;
-
+                }
+            } catch (e) {
+                this.editor.onError(e);
             }
 
         }
@@ -1181,106 +1197,113 @@
 
         onSubmit(e) {
             e.preventDefault();
-            const form = e.target.form || e.target;
-            const command = form.getAttribute('data-command');
-            let cursorPosition = this.editor.gridStatus.cursorPosition;
+            try {
+                const form = e.target.form || e.target;
+                const command = form.getAttribute('data-command');
+                let cursorPosition = this.editor.gridStatus.cursorPosition;
 
-            const currentGroup = this.editor.gridStatus.groupName;
-            const instructionList = this.editor.player.getInstructions(currentGroup);
-            const selectedPositions = this.editor.gridStatus.selectedPositions;
-            const selectedPausePositions = gatherSelectedPausePositions(instructionList, selectedPositions);
-            const selectedRange = gatherSelectedRange(instructionList, selectedPositions);
+                const currentGroup = this.editor.gridStatus.groupName;
+                const instructionList = this.editor.player.getInstructions(currentGroup);
+                const selectedPositions = this.editor.gridStatus.selectedPositions;
+                const selectedPausePositions = gatherSelectedPausePositions(instructionList, selectedPositions);
+                const selectedRange = gatherSelectedRange(instructionList, selectedPositions);
 
-            switch(command) {
-                case 'instruction:command':
-                    this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
-                        command: form.command.value
-                    });
-                    break;
+                switch (command) {
+                    case 'instruction:command':
+                        this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
+                            command: form.command.value
+                        });
+                        break;
 
-                case 'instruction:instrument':
-                    let instrumentID = form.instrument.value;
-                    if (instrumentID.indexOf('add:') === 0)
-                        instrumentID = this.editor.addInstrument(instrumentID.substr(4));
-                    else instrumentID = instrumentID === '' ? null : parseInt(instrumentID);
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        instrument: instrumentID
-                    });
-                    break;
+                    case 'instruction:instrument':
+                        let instrumentID = form.instrument.value;
+                        if (instrumentID.indexOf('add:') === 0)
+                            instrumentID = this.editor.addInstrument(instrumentID.substr(4));
+                        else instrumentID = instrumentID === '' ? null : parseInt(instrumentID);
+                        this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                            instrument: instrumentID
+                        });
+                        break;
 
-                case 'instruction:duration':
-                    const duration = form.duration.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        duration: parseFloat(duration)
-                    });
-                    break;
+                    case 'instruction:duration':
+                        const duration = form.duration.value || null;
+                        this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                            duration: parseFloat(duration)
+                        });
+                        break;
 
-                case 'instruction:velocity':
-                    const velocity = form.velocity.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
-                        velocity: parseInt(velocity)
-                    });
-                    break;
+                    case 'instruction:velocity':
+                        const velocity = form.velocity.value || null;
+                        this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                            velocity: parseInt(velocity)
+                        });
+                        break;
 
-                case 'instruction:remove':
-                    this.editor.deleteInstructions(currentGroup, selectedPositions);
-                    break;
+                    case 'instruction:remove':
+                        this.editor.deleteInstructions(currentGroup, selectedPositions);
+                        break;
 
-                case 'row:edit':
-                    this.editor.replaceInstructionParams(currentGroup, selectedPausePositions, {
-                        command: '!pause',
-                        duration: parseFloat(form.duration.value)
-                    });
-                    // this.editor.gridSelect([instruction]);
-                    break;
+                    case 'row:edit':
+                        this.editor.replaceInstructionParams(currentGroup, selectedPausePositions, {
+                            command: '!pause',
+                            duration: parseFloat(form.duration.value)
+                        });
+                        // this.editor.gridSelect([instruction]);
+                        break;
 
-                case 'row:duplicate':
-                    if(!selectedRange)
-                        throw new Error("No selected range");
-                    this.editor.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
-                    break;
+                    case 'row:duplicate':
+                        if (!selectedRange)
+                            throw new Error("No selected range");
+                        this.editor.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
+                        break;
 
-                case 'row:split':
-                    const splitPercentage = prompt("Split row at what percentage? ", 50);
-                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
-                    break;
+                    case 'row:split':
+                        const splitPercentage = prompt("Split row at what percentage? ", 50);
+                        this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
+                        break;
 
-                case 'group:edit':
-                    if(form.groupName.value === ':new') {
-                        const songData = this.editor.player.getSong();
-                        let newGroupName = generateNewGroupName(songData, currentGroup);
-                        newGroupName = prompt("Create new instruction group?", newGroupName);
-                        if(newGroupName)    this.editor.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
-                        else                console.error("Create instruction group canceled");
-                    } else {
-                        this.editor.gridNavigate(form.groupName.value);
-                    }
-                    break;
+                    case 'group:edit':
+                        if (form.groupName.value === ':new') {
+                            const songData = this.editor.player.getSong();
+                            let newGroupName = generateNewGroupName(songData, currentGroup);
+                            newGroupName = prompt("Create new instruction group?", newGroupName);
+                            if (newGroupName) this.editor.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                            else console.error("Create instruction group canceled");
+                        } else {
+                            this.editor.gridNavigate(form.groupName.value);
+                        }
+                        break;
 
-                case 'song:edit':
-                    const song = this.editor.getSong();
-                    // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
-                    song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
-                    song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
-                    this.editor.render();
-                    // this.editor.gridSelect(e, 0);
-                    break;
+                    case 'song:edit':
+                        const song = this.editor.getSong();
+                        // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+                        song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
+                        song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
+                        this.editor.render();
+                        // this.editor.gridSelect(e, 0);
+                        break;
 
-                case 'song:play':  this.editor.player.play(); break;
-                case 'song:pause':  this.editor.player.pause(); break;
-                case 'song:playback':
-                    console.log(e.target);
-                    break;
+                    case 'song:play':
+                        this.editor.player.play();
+                        break;
+                    case 'song:pause':
+                        this.editor.player.pause();
+                        break;
+                    case 'song:playback':
+                        console.log(e.target);
+                        break;
 
-                case 'song:volume':
-                    this.editor.player.setVolume(parseInt(form['volume'].value));
-                    break;
+                    case 'song:volume':
+                        this.editor.player.setVolume(parseInt(form['volume'].value));
+                        break;
 
-                default:
-                    console.warn("Unhandled " + e.type + ": ", command);
-                    break;
+                    default:
+                        console.warn("Unhandled " + e.type + ": ", command);
+                        break;
+                }
+            } catch (e) {
+                this.editor.onError(e);
             }
-
         }
 
         onInput(e) {
@@ -1891,24 +1914,28 @@
 
         onSubmit(e) {
             e.preventDefault();
-            const form = e.target.form || e.target;
 
-            const newConfig = {};
-            for(var i=0; i<form.elements.length; i++)
-                if(form.elements[i].name)
-                    newConfig[form.elements[i].name] = form.elements[i].value;
+            try {
+                const form = e.target.form || e.target;
+                const newConfig = {};
+                for(var i=0; i<form.elements.length; i++)
+                    if(form.elements[i].name)
+                        newConfig[form.elements[i].name] = form.elements[i].value;
 
-            switch(e.type) {
-                case 'submit':
-                case 'change':
-                    console.log("Instrument Form " + e.type, newConfig, e);
-                    this.editor.replaceInstrumentParams(this.id, newConfig);
-                    break;
+                switch(e.type) {
+                    case 'submit':
+                    case 'change':
+                        console.log("Instrument Form " + e.type, newConfig, e);
+                        this.editor.replaceInstrumentParams(this.id, newConfig);
+                        break;
 
-                case 'input':
-                    // Causes problems
-                    // this.editor.player.replaceInstrumentParams(this.id, newConfig);
-                    break;
+                    case 'input':
+                        // Causes problems
+                        // this.editor.player.replaceInstrumentParams(this.id, newConfig);
+                        break;
+                }
+            } catch (e) {
+                this.editor.onError(e);
             }
         }
 

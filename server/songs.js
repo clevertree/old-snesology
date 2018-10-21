@@ -13,14 +13,14 @@ module.exports = function(appInstance, router) {
 
     // No periods allowed in path!
     router.get('/editor/?', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/]+).json/edit', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/]+)/edit', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/]+).json/play', httpPlayRequest); // Render Editor
-    router.get('/song/:path([\\w/]+)/play', httpPlayRequest); // Render Editor
-    router.get('/song/:path([\\w/]+)', httpPlayRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+).json/edit', httpEditRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+)/edit', httpEditRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+).json/play', httpPlayRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+)/play', httpPlayRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+)', httpPlayRequest); // Render Editor
 
-    router.ws('/song/:path([\\w/]+).json', handleWebSocketRequest);
-    router.ws('/song/:path([\\w/]+)', handleWebSocketRequest);
+    router.ws('/song/:path([\\w/-]+).json', handleWSRequest);
+    router.ws('/song/:path([\\w/-]+)', handleWSRequest);
 
     // app.addWebSocketListener(handleWebSocketRequest);
 };
@@ -104,20 +104,38 @@ function getListeners(songPath) {
 }
 
 
-function handleWebSocketRequest(ws, req) {
+function handleWSRequest(ws, req) {
+    if(!req.params.path)
+        throw new Error("Invalid path parameter");
+    let songPath = '/song/' + req.params.path.toLowerCase();
+    if(!songPath.endsWith('.json'))
+        songPath += '.json';
+
+    const registerListeners = getListeners(songPath);
+    if(registerListeners.indexOf(ws) !== -1)
+        throw new Error("Websocket is already registered to " + songPath);
+
+    registerListeners.push(ws);
+
     ws.on('message', function(msg) {
         try {
-            let songPath = '/song/' + req.params.path;
-            if(!songPath.endsWith('.json'))
-                songPath += '.json';
             if (msg[0] === '{') {
-                const json = JSON.parse(msg);
-                if (typeof json.type !== "undefined") {
-                    if (json.type.indexOf('history:') === 0) {
-                        return handleHistoryWebSocketEvent(ws, req, json, songPath);
-                    }
+                const jsonRequest = JSON.parse(msg);
+                switch(jsonRequest.type) {
+                    case 'history:entry':
+                        handleWSHistoryEntry(ws, req, jsonRequest, songPath);
+                        break;
+                    case 'error':
+                    case 'info':
+                    case 'warn':
+                    case 'log':
+                        console[jsonRequest.type]("WS " + jsonRequest.type + ": " + jsonRequest.message, jsonRequest.stack);
+                        break;
+                    default:
+                        console.error("Invalid JSON Message Type: " + jsonRequest.type);
+                        break;
                 }
-                console.warn("Invalid JSON Message", msg);
+
             }
         } catch (e) {
             console.error(e);
@@ -129,98 +147,85 @@ function handleWebSocketRequest(ws, req) {
 
         }
     });
+
+    // Send history
+    sendHistoricRecord(songPath, ws);
 }
 
 
-function handleHistoryWebSocketEvent(ws, req, jsonRequest, songPath) {
+function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
     const db = app.redisClient;
     if(!jsonRequest.type)
         throw new Error("Missing 'type' field");
     if(!req.params.path)
         throw new Error("Missing 'path' param");
 
-    const historyType = jsonRequest.type.split(':')[1];
-    switch(historyType) {
-        case 'entry':
-            const entrySongPath = url.parse(songPath).pathname;
-            const entryKeyPath = db.DB_PREFIX + entrySongPath + ":history";
-            const entryListeners = getListeners(entrySongPath);
-            db.lindex(entryKeyPath, -1, function(err, result) {
-                if(err)
-                    throw new Error(err);
+    const entrySongPath = url.parse(songPath).pathname;
+    const entryKeyPath = db.DB_PREFIX + entrySongPath + ":history";
+    const entryListeners = getListeners(entrySongPath);
+    db.lindex(entryKeyPath, -1, function(err, result) {
+        if(err)
+            throw new Error(err);
 
-                // Check for step increment
-                const oldJSONEntry = JSON.parse(result);
-                if(!oldJSONEntry || jsonRequest.historyAction.step === oldJSONEntry.step + 1) {
-                    // Step is incremented as expected
-                    db.rpush(entryKeyPath, JSON.stringify(jsonRequest.historyAction));
+        // Check for step increment
+        const oldJSONEntry = JSON.parse(result);
+        if(!oldJSONEntry || jsonRequest.historyAction.step === oldJSONEntry.step + 1) {
+            // Step is incremented as expected
+            db.rpush(entryKeyPath, JSON.stringify(jsonRequest.historyAction));
 
-                    for(let i=0; i<entryListeners.length; i++) {
-                        const listener = entryListeners[i];
-                        if(listener === ws)
-                            continue;
-                        if(!isActive(listener))
-                            continue;
-                        listener.send(JSON.stringify({
-                            type: 'history:entry',
-                            historyActions: [jsonRequest.historyAction]
-                        }));
-                    }
-                } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
-                    // Step is out of date
-                    throw new Error("Step is out of date");
-                } else {
-                    // Step is in the future
-                    throw new Error("Step is in the future");
-                }
-            });
-            break;
-
-        case 'register':
-            let songContent = null;
-            let registerSongPath = songPath.toLowerCase();
-            if(registerSongPath) {
-                if(!registerSongPath.startsWith('/song/'))
-                    throw new Error("Registration path must start with '/song/'");
-                if(!registerSongPath.endsWith('.json'))
-                    throw new Error("Registration path must end with '.json'");
-                if(fs.existsSync(registerSongPath))
-                    songContent = JSON.parse(fs.readFileSync(registerSongPath, 'utf8'));
-                else
-                    songContent = generateDefaultSong(registerSongPath);
-            } else {
-                const uuidv4 = require('uuid/v4');
-                registerSongPath = '/song/share/' + uuidv4() + '.json';
-                songContent = generateDefaultSong(registerSongPath);
-            }
-            const registerKeyPath = db.DB_PREFIX + registerSongPath + ":history";
-            const registerListeners = getListeners(registerSongPath);
-            if(registerListeners.indexOf(ws) !== -1)
-                return ws.send(JSON.stringify({
-                    type: 'error',
-                    message: "Websocket is already registered to " + registerSongPath
-                }));
-
-            registerListeners.push(ws);
-
-            db.lrange(registerKeyPath, 0, -1, function(err, resultList) {
-                if(err)
-                    throw new Error(err);
-
-                const historyActions = [{
-                    action: 'reset',
-                    songContent: songContent
-                }];
-                for(let i=0; i<resultList.length; i++)
-                    historyActions.push(JSON.parse(resultList[i]));
-
-                ws.send(JSON.stringify({
+            for(let i=0; i<entryListeners.length; i++) {
+                const listener = entryListeners[i];
+                if(listener === ws)
+                    continue;
+                if(!isActive(listener))
+                    continue;
+                listener.send(JSON.stringify({
                     type: 'history:entry',
-                    historyActions: historyActions
+                    historyActions: [jsonRequest.historyAction]
                 }));
-            });
-            break;
-    }
+            }
+        } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
+            // Step is out of date
+            throw new Error("Step is out of date");
+        } else {
+            // Step is in the future
+            throw new Error("Step is in the future");
+        }
+    });
+
+}
+
+function sendHistoricRecord(registerSongPath, ws) {
+    const db = app.redisClient;
+    let songContent = null;
+    if(!registerSongPath.startsWith('/song/'))
+        throw new Error("Registration path must start with '/song/'");
+    if(!registerSongPath.endsWith('.json'))
+        throw new Error("Registration path must end with '.json'");
+    if(fs.existsSync(registerSongPath))
+        songContent = JSON.parse(fs.readFileSync(registerSongPath, 'utf8'));
+    else
+        songContent = generateDefaultSong(registerSongPath);
+
+    const registerKeyPath = db.DB_PREFIX + registerSongPath + ":history";
+
+    db.lrange(registerKeyPath, 0, -1, function(err, resultList) {
+        if(err)
+            throw new Error(err);
+
+        const historyActions = [{
+            action: 'reset',
+            songContent: songContent
+        }];
+        for(let i=0; i<resultList.length; i++)
+            historyActions.push(JSON.parse(resultList[i]));
+
+        ws.send(JSON.stringify({
+            type: 'history:entry',
+            historyActions: historyActions
+        }));
+    });
+
 }
 
 function generateDefaultSong(songPath) {
