@@ -5,11 +5,6 @@
  */
 
 (function() {
-    const DEFAULT_GROUP = 'root';
-    const DEFAULT_LONG_PRESS_TIMEOUT = 500;
-    const DEFAULT_WEBSOCKET_RECONNECT = 3000;
-    const DEFAULT_WEBSOCKET_ATTEMPTS = 3;
-
     class MusicEditorElement extends HTMLElement {
         constructor() {
             super();
@@ -17,37 +12,41 @@
             this.config = DEFAULT_CONFIG;
             this.keyboardLayout = DEFAULT_KEYBOARD_LAYOUT;
             this.status = {
-                grids: [{groupName: DEFAULT_GROUP, cursorPosition: 0, selectedPositions: []}],
+                grids: [{groupName: 'root', cursorPosition: 0, selectedPositions: []}],
                 history: {
                     currentStep: 0,
                     undoList: [],
                     undoPosition: []
                 },
+                webSocket: {
+                    attempts: 0,
+                    reconnectTimeout: 3000,
+                    maxAttempts: 3,
+                },
+                longPressTimeout: 500,
                 instrumentLibrary: null
             };
             this.webSocket = null;
             this.webSocketAttempts = 0;
 
-            loadScript('client/player/music-player.js', () => {
-                const playerElement = document.createElement('music-player');
-                this.player = playerElement;
-                const onSongEvent = this.onSongEvent.bind(this);
-                playerElement.addEventListener('note:end', onSongEvent);
-                playerElement.addEventListener('note:start', onSongEvent);
-                playerElement.addEventListener('song:start', onSongEvent);
-                playerElement.addEventListener('song:playback', onSongEvent);
-                playerElement.addEventListener('song:end', onSongEvent);
-                playerElement.addEventListener('song:pause', onSongEvent);
+            const playerElement = document.createElement('music-player');
+            this.player = playerElement;
+            const onSongEvent = this.onSongEvent.bind(this);
+            playerElement.addEventListener('note:end', onSongEvent);
+            playerElement.addEventListener('note:start', onSongEvent);
+            playerElement.addEventListener('song:start', onSongEvent);
+            playerElement.addEventListener('song:playback', onSongEvent);
+            playerElement.addEventListener('song:end', onSongEvent);
+            playerElement.addEventListener('song:pause', onSongEvent);
 
 
-                if ("WebSocket" in window) {
-                    this.initWebSocket();
-                } else {
-                    console.warn("WebSocket is supported by your Browser!");
-                }
-                this.render(); // Render after player element is loaded
+            if ("WebSocket" in window) {
+                this.initWebSocket();
+            } else {
+                console.warn("WebSocket is not supported by your Browser!");
+            }
+            this.render(); // Render after player element is loaded
 
-            });
 
             const xhr = new XMLHttpRequest();
             xhr.open('GET', 'instrument/index.library.json', true);
@@ -62,8 +61,48 @@
 
         }
         get grid() { return this.querySelector('music-editor-grid'); }
-        get gridStatus() { return this.status.grids[0]; }
         get menu() { return this.querySelector('music-editor-menu'); }
+
+        get gridStatus() { return this.status.grids[0]; }
+
+        get gridCursorPosition() { return this.gridStatus.cursorPosition; }
+        get gridCurrentGroup() { return this.gridStatus.groupName; }
+        get gridInstructionList() { return this.player.getInstructions(this.gridCurrentGroup); }
+        get gridSelectedPositions() { return this.gridStatus.selectedPositions; }
+        get gridSelectedPausePositions() {
+            const instructionList = this.gridInstructionList;
+            const selectedPositions = this.gridSelectedPositions;
+            const selectedPausePositions = [];
+            for(let i=0; i<selectedPositions.length; i++) {
+                const selectedPosition = selectedPositions[i];
+                let nextPausePosition = instructionList.findIndex((i, p) => i.command === '!pause' && p >= selectedPosition);
+                if(nextPausePosition === -1) {
+                    console.warn("no pauses follow selected instruction");
+                    continue;
+                }
+                if(selectedPausePositions.indexOf(nextPausePosition) === -1)
+                    selectedPausePositions.push(nextPausePosition);
+            }
+            return selectedPausePositions;
+        }
+        get gridSelectedRange() {
+            const instructionList = this.gridInstructionList;
+            let selectedPositions = this.gridSelectedPositions;
+            selectedPositions = selectedPositions.concat().sort((a,b) => a - b);
+
+            let currentPosition = selectedPositions[0];
+            for(let i=0; i<selectedPositions.length; i++) {
+                if(currentPosition !== selectedPositions[i])
+                    return false;
+                currentPosition++;
+            }
+            if(instructionList.length > currentPosition
+                && instructionList[currentPosition].command !== '!pause'
+                && instructionList[currentPosition+1].command === '!pause') {
+                currentPosition++;
+            }
+            return [selectedPositions[0], currentPosition];
+        }
 
         getAudioContext() { return this.player.getAudioContext(); }
         getSong() { return this.player ? this.player.getSong() : null; }
@@ -101,9 +140,9 @@
 
                 case 'close':
                     this.webSocketAttempts++;
-                    if(this.webSocketAttempts <= DEFAULT_WEBSOCKET_ATTEMPTS) {
-                        setTimeout(() => this.initWebSocket(), DEFAULT_WEBSOCKET_RECONNECT);
-                        console.info("Reopening WebSocket in " + (DEFAULT_WEBSOCKET_RECONNECT/1000) + ' seconds (' + this.webSocketAttempts + ')' );
+                    if(this.webSocketAttempts <= this.status.webSocket.maxAttempts) {
+                        setTimeout(() => this.initWebSocket(), this.status.webSocket.reconnectTimeout);
+                        console.info("Reopening WebSocket in " + (this.status.webSocket.reconnectTimeout/1000) + ' seconds (' + this.webSocketAttempts + ')' );
                     } else {
                         console.info("Giving up on WebSocket");
                     }
@@ -122,6 +161,11 @@
                                         this.grid.focus();
                                     });
                                 // }
+                                break;
+
+                            case 'history:error':
+                            case 'error':
+                                console.error("WS " + json.message + "\n" + json.stack);
                                 break;
 
                             default:
@@ -421,14 +465,15 @@
         }
 
         addInstrument(instrumentURL, instrumentConfig) {
-            this.player.addInstrument(instrumentURL, instrumentConfig, () => {
-                const historyAction = {
-                    action: 'instrument-add',
-                    params: [instrumentURL, instrumentConfig]
-                };
-                this.historyQueue(historyAction);
+            const instrumentID = this.player.addInstrument(instrumentURL, instrumentConfig, () => {
                 this.render();
             });
+            const historyAction = {
+                action: 'instrument-add',
+                params: [instrumentURL, instrumentConfig]
+            };
+            this.historyQueue(historyAction);
+            return instrumentID
         }
 
         removeInstrument(instrumentID) {
@@ -458,7 +503,7 @@
             actionList = actionList.slice(0);
             const action = actionList.shift();
 
-            // console.info("Applying historic action: ", action);
+            console.info("Applying historic action: ", action);
 
             this.status.history.undoList.push(action);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
@@ -713,10 +758,21 @@
             }
         }
 
+        static findInstruments(callback, instrumentsObject) {
+            instrumentsObject = instrumentsObject || window.instruments;
+            Object.keys(instrumentsObject).forEach(function(originString) {
+                const originCollection = instrumentsObject[originString];
+                Object.keys(originCollection).forEach(function(instrumentPathString) {
+                    const instrument = originCollection[instrumentPathString];
+                    callback(instrument, instrumentPathString, originString);
+                });
+            });
+        }
 
         // Input
 
     }
+    customElements.define('music-editor', MusicEditorElement);
 
     class MusicEditorGridElement extends HTMLElement {
         constructor() {
@@ -974,7 +1030,7 @@
                                 detail: {originalEvent: e},
                                 bubbles: true
                             }));
-                        }, DEFAULT_LONG_PRESS_TIMEOUT);
+                        }, this.status.longPressTimeout);
                         e.preventDefault();
                         break;
 
@@ -1177,6 +1233,7 @@
             return null;
         }
     }
+    customElements.define('music-editor-grid', MusicEditorGridElement);
 
     class MusicEditorMenuElement extends HTMLElement {
         constructor() {
@@ -1200,13 +1257,11 @@
             try {
                 const form = e.target.form || e.target;
                 const command = form.getAttribute('data-command');
-                let cursorPosition = this.editor.gridStatus.cursorPosition;
-
-                const currentGroup = this.editor.gridStatus.groupName;
-                const instructionList = this.editor.player.getInstructions(currentGroup);
-                const selectedPositions = this.editor.gridStatus.selectedPositions;
-                const selectedPausePositions = gatherSelectedPausePositions(instructionList, selectedPositions);
-                const selectedRange = gatherSelectedRange(instructionList, selectedPositions);
+                const cursorPosition = this.editor.gridCursorPosition;
+                const currentGroup = this.editor.gridCurrentGroup;
+                const selectedPositions = this.editor.gridSelectedPositions;
+                const selectedPausePositions = this.editor.gridSelectedPausePositions;
+                const selectedRange = this.editor.gridSelectedRange;
 
                 switch (command) {
                     case 'instruction:command':
@@ -1217,9 +1272,12 @@
 
                     case 'instruction:instrument':
                         let instrumentID = form.instrument.value;
-                        if (instrumentID.indexOf('add:') === 0)
+                        if (instrumentID.indexOf('add:') === 0) {
                             instrumentID = this.editor.addInstrument(instrumentID.substr(4));
-                        else instrumentID = instrumentID === '' ? null : parseInt(instrumentID);
+
+                        } else {
+                            instrumentID = instrumentID === '' ? null : parseInt(instrumentID);
+                        }
                         this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
                             instrument: instrumentID
                         });
@@ -1310,12 +1368,10 @@
             if(e.defaultPrevented)
                 return;
 
-            const currentGroup = this.editor.grid.getGroupName();
-            const instructionList = this.editor.player.getInstructions(currentGroup);
-            const cursorPosition = this.editor.gridStatus.cursorPosition;
+            const cursorPosition = this.editor.gridCursorPosition;
+            const currentGroup = this.editor.gridCurrentGroup;
+            const instructionList = this.editor.gridInstructionList;
             const cursorInstruction = instructionList[cursorPosition];
-            const selectedPositions = this.editor.gridStatus.selectedPositions;
-            const selectedPausePositions = gatherSelectedPausePositions(instructionList, selectedPositions);
 
             let targetClassList = e.target.classList;
             switch(e.type) {
@@ -1407,7 +1463,7 @@
 
                                 case 'row:split':
                                     const splitPercentage = prompt("Split row at what percentage? ", 50);
-                                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
+                                    this.editor.splitInstructionRows(currentGroup, this.editor.gridSelectedPausePositions, splitPercentage);
                                     break;
 
                                 default:
@@ -1469,7 +1525,7 @@
                 combinedInstruction = {command: 'C4'};
 
 // TODO: get position from status, not grid
-            let selectedPausePositions = gatherSelectedPausePositions(instructionList, this.editor.gridStatus.selectedPositions);
+            let selectedPausePositions = this.editor.gridSelectedPausePositions;
             // let selectedPauseDisabled = this.editor.grid.gridSelectedPausePositions().length === 0;
 
             // Row Instructions
@@ -1569,16 +1625,16 @@
                             <li><a class="menu-item" data-command="group:rename"><span class="key">R</span>ename Group</a></li>
                         </ul>
                     </li>
-                    <li><a class="menu-item disabled"><span class="key">C</span>ollaborate</a></li>
+                    <li><a class="menu-item disabled"><span class="key">P</span>ublish</a></li>
                 </ul>
                 <ul class="editor-context-menu submenu">
                     <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
                     <li>
-                        <a class="menu-item"><span class="key">N</span>otes (Cell) <span class="submenu-pointer"></span></a>
+                        <a class="menu-item"><span class="key">N</span>ote<span class="submenu-pointer"></span></a>
                         <ul class="submenu" data-submenu-content="submenu:note"></ul>
                     </li>
                     <li>
-                        <a class="menu-item"><span class="key">P</span>ause (Row) <span class="submenu-pointer"></span></a>
+                        <a class="menu-item"><span class="key">R</span>ow<span class="submenu-pointer"></span></a>
                         <ul class="submenu" data-submenu-content="submenu:pause"></ul>
                     </li>
                     <li>
@@ -1782,7 +1838,7 @@
 
                 case 'instruments-loaded':
                     if(window.instruments) {
-                        findInstruments(function (instrument, path, origin) {
+                        this.editor.findInstruments(function (instrument, path, origin) {
                             options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
                         });
                     }
@@ -1892,6 +1948,7 @@
         }
 
     }
+    customElements.define('music-editor-menu', MusicEditorMenuElement);
 
     class MusicEditorInstrumentElement extends HTMLElement {
         constructor() {
@@ -1952,60 +2009,7 @@
             }
         }
     }
-
-    // Define custom elements
-    customElements.define('music-editor', MusicEditorElement);
-    customElements.define('music-editor-grid', MusicEditorGridElement);
-    customElements.define('music-editor-menu', MusicEditorMenuElement);
     customElements.define('music-editor-instrument', MusicEditorInstrumentElement);
-
-    // Load Javascript dependencies
-    loadStylesheet('client/editor/music-editor.css');
-
-    function loadScript(scriptPath, onLoaded) {
-        let scriptPathEsc = scriptPath.split('#')[0].replace(/[/.]/g, '\\$&');
-        let scriptElm = document.head.querySelector(`script[src$=${scriptPathEsc}]`);
-        if (!scriptElm) {
-            scriptElm = document.createElement('script');
-            scriptElm.src = scriptPath;
-            scriptElm.onload = function(e) {
-                for(let i=0; i<scriptElm.onloads.length; i++)
-                    scriptElm.onloads[i](e);
-                scriptElm.onloads = null;
-            };
-            document.head.appendChild(scriptElm);
-        }
-        if(!scriptElm.onloads) scriptElm.onloads = [];
-        scriptElm.onloads.push(onLoaded);
-    }
-    function loadStylesheet(styleSheetPath, onLoaded) {
-        let styleSheetPathEsc = styleSheetPath.replace(/[/.]/g, '\\$&');
-        let foundScript = document.head.querySelectorAll(`link[href$=${styleSheetPathEsc}]`);
-        if (foundScript.length === 0) {
-            let styleSheetElm = document.createElement('link');
-            styleSheetElm.href = styleSheetPath;
-            styleSheetElm.rel = 'stylesheet';
-            styleSheetElm.onload = onLoaded;
-            document.head.appendChild(styleSheetElm);
-        }
-    }
-
-
-    // Instrument Commands
-
-    function findInstruments(callback, instrumentsObject) {
-        instrumentsObject = instrumentsObject || window.instruments;
-        Object.keys(instrumentsObject).forEach(function(originString) {
-            const originCollection = instrumentsObject[originString];
-            Object.keys(originCollection).forEach(function(instrumentPathString) {
-                const instrument = originCollection[instrumentPathString];
-                callback(instrument, instrumentPathString, originString);
-            }.bind(this));
-        }.bind(this));
-    }
-
-
-
 
     // Format Functions
 
@@ -2051,36 +2055,6 @@
         [8.0,  '8B'],
     ];
 
-    function gatherSelectedRange(instructionList, selectedPositions) {
-        selectedPositions = selectedPositions.concat().sort((a,b) => a - b);
-        let currentPosition = selectedPositions[0];
-        for(let i=0; i<selectedPositions.length; i++) {
-            if(currentPosition !== selectedPositions[i])
-                return false;
-            currentPosition++;
-        }
-        if(instructionList.length > currentPosition
-            && instructionList[currentPosition].command !== '!pause'
-            && instructionList[currentPosition+1].command === '!pause') {
-            currentPosition++;
-        }
-        return [selectedPositions[0], currentPosition];
-    }
-
-    function gatherSelectedPausePositions(instructionList, selectedPositions) {
-        const selectedPausePositions = [];
-        for(let i=0; i<selectedPositions.length; i++) {
-            const selectedPosition = selectedPositions[i];
-            let nextPausePosition = instructionList.findIndex((i, p) => i.command === '!pause' && p >= selectedPosition);
-            if(nextPausePosition === -1) {
-                console.warn("no pauses follow selected instruction");
-                continue;
-            }
-            if(selectedPausePositions.indexOf(nextPausePosition) === -1)
-                selectedPausePositions.push(nextPausePosition);
-        }
-        return selectedPausePositions;
-    }
 
     function generateNewGroupName(songData, currentGroup) {
         let newGroupName;
@@ -2101,8 +2075,5 @@
         }
         throw new Error("Parent node not found");
     }
-
-    // Rendering templates
-
 
 })();

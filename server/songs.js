@@ -185,11 +185,19 @@ function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
                 }));
             }
         } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
+            ws.send(JSON.stringify({
+                type: "error",
+                message: "Step is out of date"
+            }));
             // Step is out of date
-            throw new Error("Step is out of date");
+            console.error("Step is out of date");
         } else {
+            ws.send(JSON.stringify({
+                type: "error",
+                message: "Step is in the future"
+            }));
             // Step is in the future
-            throw new Error("Step is in the future");
+            console.error("Step is in the future");
         }
     });
 

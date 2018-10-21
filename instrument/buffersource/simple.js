@@ -56,6 +56,26 @@
     // }
 
 
+    /*
+      This audio context is unprefixed!
+    */
+    var context = new AudioContext();
+
+    var audioSource = context.createBufferSource();
+    audioSource.connect( context.destination );
+
+    context.decodeAudioData( buffer, function( res ) {
+
+        audioSource.buffer = res;
+
+        /*
+           Do something with the sound, for instance, play it.
+           Watch out: all the sounds will sound at the same time!
+        */
+        audioSource.noteOn( 0 );
+
+    } );
+
 
 
     class BufferSource {
