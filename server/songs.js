@@ -13,14 +13,14 @@ module.exports = function(appInstance, router) {
 
     // No periods allowed in path!
     router.get('/editor/?', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/]+).json/edit', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/]+)/edit', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/]+).json/play', httpPlayRequest); // Render Editor
-    router.get('/song/:path([\\w/]+)/play', httpPlayRequest); // Render Editor
-    router.get('/song/:path([\\w/]+)', httpPlayRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+).json/edit', httpEditRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+)/edit', httpEditRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+).json/play', httpPlayRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+)/play', httpPlayRequest); // Render Editor
+    router.get('/song/:path([\\w/-]+)', httpPlayRequest); // Render Editor
 
-    router.ws('/song/:path([\\w/]+).json', handleWebSocketRequest);
-    router.ws('/song/:path([\\w/]+)', handleWebSocketRequest);
+    router.ws('/song/:path([\\w/-]+).json', handleWebSocketRequest);
+    router.ws('/song/:path([\\w/-]+)', handleWebSocketRequest);
 
     // app.addWebSocketListener(handleWebSocketRequest);
 };

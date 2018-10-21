@@ -448,6 +448,8 @@
             actionList = actionList.slice(0);
             const action = actionList.shift();
 
+            console.info("Applying historic action: ", action);
+
             this.status.history.undoList.push(action);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
             if(typeof action.step !== "undefined")
