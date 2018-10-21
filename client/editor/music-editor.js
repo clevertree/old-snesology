@@ -458,7 +458,7 @@
             actionList = actionList.slice(0);
             const action = actionList.shift();
 
-            // console.info("Applying historic action: ", action);
+            console.info("Applying historic action: ", action);
 
             this.status.history.undoList.push(action);
             this.status.history.undoPosition = this.status.history.undoList.length-1;
@@ -938,7 +938,10 @@
                                 break;
 
                             case 'PlayFrequency':
-                                cursorInstruction.command = this.editor.keyboardLayout[e.key];
+                                this.replaceInstructionParams(cursorPosition, {
+                                    command: this.editor.keyboardLayout[e.key]
+                                });
+                                // cursorInstruction.command = this.editor.keyboardLayout[e.key];
                                 this.render();
                                 this.focus();
                                 this.editor.playInstruction(cursorInstruction);
@@ -1006,6 +1009,10 @@
 
         insertInstruction(instruction, insertPosition) {
             return this.editor.insertInstructions(this.getGroupName(), insertPosition, instruction);
+        }
+
+        replaceInstructionParams(replacePositions, replaceParams) {
+            return this.editor.replaceInstructionParams(this.getGroupName(), replacePositions, replaceParams);
         }
 
         deleteInstruction(deletePosition) {
