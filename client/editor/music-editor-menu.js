@@ -272,6 +272,9 @@ class MusicEditorMenuElement extends HTMLElement {
         for(let i=0; i<gridStatus.selectedPositions.length; i++) {
             const selectedPosition = gridStatus.selectedPositions[i];
             const selectedInstruction = instructionList[selectedPosition];
+            if(selectedInstruction.command[0] === '!')
+                continue;
+
             const nextPause = instructionList.find((i, p) => i.duration > 0 && p >= selectedPosition);
             if(combinedInstruction === null) {
                 combinedInstruction = Object.assign({}, selectedInstruction);
@@ -285,8 +288,8 @@ class MusicEditorMenuElement extends HTMLElement {
                     delete combinedInstruction.duration;
             }
         }
-        if(!combinedInstruction)
-            combinedInstruction = {command: 'C4'};
+        // if(!combinedInstruction)
+        //     combinedInstruction = {command: 'C4'};
 
 // TODO: get position from status, not grid
         let selectedPausePositions = this.editor.gridSelectedPausePositions;
@@ -299,14 +302,16 @@ class MusicEditorMenuElement extends HTMLElement {
             .forEach(fieldset => this.editor.gridStatus.selectedPositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
 
 
-        // Note Instruction
-        this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command || '';
-        this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument || '';
-        this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity || '';
-        this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
+        if(combinedInstruction) {
+            // Note Instruction
+            this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command || '';
+            this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument || '';
+            this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity || '';
+            this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
 
-        // Row/Pause
-        this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
+            // Row/Pause
+            this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
+        }
 
         this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPausePositions.length > 1 ? 's' : '') + ":";
         this.querySelector('.row-label-command').innerHTML = 'Command' + (gridStatus.selectedPositions.length > 1 ? 's' : '') + ":";
@@ -446,18 +451,18 @@ class MusicEditorMenuElement extends HTMLElement {
                     </fieldset>
                 </form>
                 <form class="form-row-insert" data-command="row:insert">
-                    <fieldset class="fieldset-row">
-                        <button name="insert">+</button>
+                    <fieldset class="fieldset-row" disabled>
+                        <button name="insert" disabled="disabled">+</button>
                     </fieldset>
                 </form>
                 <form class="form-row-remove" data-command="row:remove">
-                    <fieldset class="fieldset-row">
-                        <button name="remove">-</button>
+                    <fieldset class="fieldset-row" disabled="disabled">
+                        <button name="remove" disabled="disabled">-</button>
                     </fieldset>
                 </form>
                 <form class="form-row-duplicate" data-command="row:duplicate">
                     <fieldset class="fieldset-row">
-                        <button name="duplicate">Duplicate</button>
+                        <button name="duplicate" disabled="disabled">Duplicate</button>
                     </fieldset>
                 </form>
                 

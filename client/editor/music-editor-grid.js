@@ -114,21 +114,26 @@ class MusicEditorGridElement extends HTMLElement {
                         switch (keyEvent) {
                             case 'Enter':
                             case 'PlayFrequency':
+                                const formValues = {
+                                    instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
+                                    duration: this.editor.querySelector('form.form-instruction-duration').duration.value,
+                                    command: this.editor.querySelector('form.form-instruction-command').command.value,
+                                    velocity: this.editor.querySelector('form.form-instruction-velocity').velocity.value
+                                };
                                 let newInstruction = {
-                                    // instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
                                     command: this.editor.keyboardLayout[e.key]
-                                        || this.editor.querySelector('form.form-instruction-command').command.value || 'C4',
-                                    // duration: duration
-                                }; // new instruction
-                                if(this.editor.querySelector('form.form-instruction-instrument').instrument.value)
-                                    newInstruction.instrument = parseInt(this.editor.querySelector('form.form-instruction-instrument').instrument.value);
-                                if(this.editor.querySelector('form.form-instruction-duration').duration.value)
-                                    newInstruction.duration = this.editor.querySelector('form.form-instruction-duration').duration.value;
-                                if(newInstruction) {
-                                    this.insertInstruction(newInstruction, insertPosition);
-                                    this.render();
-                                    this.editor.gridSelect(e, insertPosition);
-                                }
+                                        || formValues.command || 'C4',
+                                };
+
+                                if(formValues.instrument || formValues.instrument === 0)
+                                    newInstruction.instrument = parseInt(formValues.instrument);
+                                if(formValues.duration)
+                                    newInstruction.duration = formValues.duration;
+                                if(formValues.velocity || formValues.velocity === 0)
+                                    newInstruction.velocity = formValues.velocity;
+                                this.insertInstruction(newInstruction, insertPosition);
+                                this.render();
+                                this.editor.gridSelect(e, insertPosition);
                                 break;
                         }
                     }
@@ -254,7 +259,7 @@ class MusicEditorGridElement extends HTMLElement {
                             detail: {originalEvent: e},
                             bubbles: true
                         }));
-                    }, this.status.longPressTimeout);
+                    }, this.editor.status.longPressTimeout);
                     e.preventDefault();
                     break;
 

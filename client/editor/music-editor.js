@@ -33,6 +33,8 @@ class MusicEditorElement extends HTMLElement {
         this.webSocket = null;
         this.webSocketAttempts = 0;
 
+    }
+    connectedCallback() {
         const playerElement = document.createElement('music-player');
         this.player = playerElement;
         const onSongEvent = this.onSongEvent.bind(this);
@@ -43,13 +45,12 @@ class MusicEditorElement extends HTMLElement {
         playerElement.addEventListener('song:end', onSongEvent);
         playerElement.addEventListener('song:pause', onSongEvent);
 
-
         if ("WebSocket" in window) {
             this.initWebSocket();
         } else {
             console.warn("WebSocket is not supported by your Browser!");
         }
-        this.render(); // Render after player element is loaded
+        // this.render(); // Render after player element is loaded
 
 
         const xhr = new XMLHttpRequest();
@@ -63,12 +64,17 @@ class MusicEditorElement extends HTMLElement {
         };
         xhr.send();
 
+
+
+
+        this.addEventListener('keydown', this.onInput);
+        this.render();
     }
     get grid() { return this.querySelector('music-editor-grid'); }
+
     get menu() { return this.querySelector('music-editor-menu'); }
 
     get gridStatus() { return this.status.grids[0]; }
-
     get gridCursorPosition() { return this.gridStatus.cursorPosition; }
     get gridCurrentGroup() { return this.gridStatus.groupName; }
     get gridInstructionList() { return this.player.getInstructions(this.gridCurrentGroup); }
@@ -89,6 +95,7 @@ class MusicEditorElement extends HTMLElement {
         }
         return selectedPausePositions;
     }
+
     get gridSelectedRange() {
         const instructionList = this.gridInstructionList;
         let selectedPositions = this.gridSelectedPositions;
@@ -107,15 +114,10 @@ class MusicEditorElement extends HTMLElement {
         }
         return [selectedPositions[0], currentPosition];
     }
-
     getAudioContext() { return this.player.getAudioContext(); }
     getSong() { return this.player ? this.player.getSong() : null; }
-    getSongURL() { return this.getAttribute('src');}
 
-    connectedCallback() {
-        this.addEventListener('keydown', this.onInput);
-        this.render();
-    }
+    getSongURL() { return this.getAttribute('src');}
 
     initWebSocket(url) {
         url = url || new URL(this.getSongURL(), document.location) || location;
@@ -169,7 +171,7 @@ class MusicEditorElement extends HTMLElement {
 
                         case 'history:error':
                         case 'error':
-                            console.error("WS " + json.message + "\n" + json.stack);
+                            console.error("WS:" + json.message, json.stack);
                             break;
 
                         default:
@@ -184,6 +186,7 @@ class MusicEditorElement extends HTMLElement {
     }
 
     onError(err) {
+        console.error(err);
         if(this.webSocket)
             this.webSocket
                 .send(JSON.stringify({
@@ -308,6 +311,7 @@ class MusicEditorElement extends HTMLElement {
         this.status.history.undoList.push(historyAction);
         this.status.history.undoPosition = this.status.history.undoList.length-1;
 
+        console.info("Sending history action: " + historyAction.step, historyAction);
         this.webSocket
             .send(JSON.stringify({
                 type: 'history:entry',
@@ -793,7 +797,7 @@ class MusicEditorElement extends HTMLElement {
         }
     }
 
-    static findInstruments(callback, instrumentsObject) {
+    findInstruments(callback, instrumentsObject) {
         instrumentsObject = instrumentsObject || window.instruments;
         Object.keys(instrumentsObject).forEach(function(originString) {
             const originCollection = instrumentsObject[originString];

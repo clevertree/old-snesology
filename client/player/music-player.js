@@ -457,7 +457,7 @@ class MusicPlayerElement extends HTMLElement {
         // if(url.endsWith('.library.json')) {
 
         // }
-        this.loadScript(instrumentPreset.url, () => {
+        MusicPlayerElement.loadScript(instrumentPreset.url, () => {
             const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
 
             if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
@@ -672,7 +672,6 @@ class MusicPlayerElement extends HTMLElement {
                 if(scripts[i].loaded) {
                     onLoaded();
                 } else {
-                    if(!scripts[i].onloads) scripts[i].onloads = [];
                     scripts[i].onloads.push(onLoaded);
                 }
                 return scripts[i];
@@ -680,6 +679,7 @@ class MusicPlayerElement extends HTMLElement {
         }
         const newScriptElm = document.createElement('script');
         newScriptElm.src = scriptPath;
+        newScriptElm.onloads = [onLoaded];
         newScriptElm.onload = function(e) {
             newScriptElm.loaded = true;
             for(let i=0; i<newScriptElm.onloads.length; i++)

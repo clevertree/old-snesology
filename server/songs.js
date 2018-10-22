@@ -138,13 +138,7 @@ function handleWSRequest(ws, req) {
 
             }
         } catch (e) {
-            console.error(e);
-            return ws.send(JSON.stringify({
-                type: 'error',
-                message: e.message,
-                stack: e.stack
-            }));
-
+            return sendError(ws, e);
         }
     });
 
@@ -152,6 +146,15 @@ function handleWSRequest(ws, req) {
     sendHistoricRecord(songPath, ws);
 }
 
+function sendError(ws, err) {
+    ws.send(JSON.stringify({
+        type: "error",
+        message: err.message || err,
+        stack: err.stack
+    }));
+    // Step is out of date
+    console.error("WS:", err);
+}
 
 function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
     const db = app.redisClient;
@@ -165,7 +168,7 @@ function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
     const entryListeners = getListeners(entrySongPath);
     db.lindex(entryKeyPath, -1, function(err, result) {
         if(err)
-            throw new Error(err);
+            return sendError(ws, err);
 
         // Check for step increment
         const oldJSONEntry = JSON.parse(result);
@@ -184,20 +187,13 @@ function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
                     historyActions: [jsonRequest.historyAction]
                 }));
             }
+            console.info(`History Entry (${jsonRequest.historyAction.step}): ${entryKeyPath}`);
         } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
-            ws.send(JSON.stringify({
-                type: "error",
-                message: "Step is out of date"
-            }));
             // Step is out of date
-            console.error("Step is out of date");
+            sendError(ws, `Step is out of date: ${jsonRequest.historyAction.step} < ${oldJSONEntry.step} + 1`);
         } else {
-            ws.send(JSON.stringify({
-                type: "error",
-                message: "Step is in the future"
-            }));
             // Step is in the future
-            console.error("Step is in the future");
+            sendError(ws, `Step is in the future: ${jsonRequest.historyAction.step} > ${oldJSONEntry.step} + 1`);
         }
     });
 
