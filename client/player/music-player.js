@@ -13,8 +13,7 @@ class MusicPlayerElement extends HTMLElement {
         this.volumeGain = null;
         this.playing = false;
         this.config = {
-            volume: 0.3,
-            previewInstructionsOnSelect: false
+            volume: 0.3
         };
         this.loadSongData({}, ()=>{});
     }
