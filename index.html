@@ -20,10 +20,20 @@
             // Support older browsers
             window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
         </script>
+
+        <script src="client/player/music-player.js" ></script>
         <script src="client/editor/music-editor.js" ></script>
+        <script src="client/editor/music-editor-menu.js" ></script>
+        <script src="client/editor/music-editor-grid.js" ></script>
+        <script src="client/editor/music-editor-instrument.js" ></script>
+        <link href="client/editor/music-editor.css" rel="stylesheet" />
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-               document.querySelector('music-editor').focus();
+                var editor = document.querySelector('music-editor');
+                editor.grid.focus();
+                window.addEventListener('error', function(e) {
+                    editor.onError(e);
+                })
             });
         </script>
     </head>
