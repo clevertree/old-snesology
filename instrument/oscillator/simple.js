@@ -118,15 +118,18 @@
                 const tables = xhr.response;
                 if(!tables.real || !tables.imag)
                     throw new Error("Invalid JSON for periodic wave");
-                var c = tables.real.length;
-                var real = new Float32Array(c);
-                var imag = new Float32Array(c);
-                for (var i = 0; i < c; i++) {
-                    real[i] = tables.real[i];
-                    imag[i] = tables.imag[i];
-                }
+                // var c = tables.real.length;
+                // var real = new Float32Array(c);
+                // var imag = new Float32Array(c);
+                // for (var i = 0; i < c; i++) {
+                //     real[i] = tables.real[i];
+                //     imag[i] = tables.imag[i];
+                // }
 
-                const periodicWave = context.createPeriodicWave(real, imag);
+                const periodicWave = context.createPeriodicWave(
+                    new Float32Array(tables.real),
+                    new Float32Array(tables.imag)
+                );
                 console.info("Loaded Periodic wave: " + url);
                 onLoaded(periodicWave);
             };
@@ -204,8 +207,8 @@
     ];
 
     const DEFAULT_PERIODIC_WAVE = {
-        real: [0, 1],
-        imag: [1, 0]
+        real: new Float32Array([0, 1]),
+        imag: new Float32Array([1, 0])
     };
     const DEFAULT_SAMPLE_LIBRARY_URL = '/sample/index.library.json';
     let LAST_SAMPLE_LIBRARY_URL = DEFAULT_SAMPLE_LIBRARY_URL;
