@@ -18,6 +18,8 @@ class MusicEditorInstrumentElement extends HTMLElement {
     }
 
     onSubmit(e) {
+        if(e.defaultPrevented)
+            return;
         e.preventDefault();
 
         try {
