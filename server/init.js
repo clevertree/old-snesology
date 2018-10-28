@@ -12,11 +12,10 @@ app.redisClient.on("error", function (err) {
 app.redisClient.DB_PREFIX = 'snesology.net/';
 
 // Configure app
-let config = {
-    port: 8080,
-    debug: false
-};
-try { config = require('../config.js'); } catch (e) { }
+const config = (function() {
+    try { return require('../config.js'); } catch (e) { return null; }
+})() || require('./config.sample.js');
+app.config = config;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
