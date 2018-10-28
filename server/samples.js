@@ -1,6 +1,7 @@
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
+const ini = require('multi-ini');
 const url = require('url');
 const {spawn, exec} = require('child_process');
 const unzip = require('unzip');
@@ -34,7 +35,7 @@ function buildSoundfontLibrary(sfURL, outputPath) {
     let fileName = path.basename(url.parse(sfURL).pathname);
     let tempFilePath = path.resolve(tempFileDirectory + "/" + fileName);
     if(fs.existsSync(tempFilePath)) {
-        processSoundFontLibrary();
+        extractSoundFontLibrary();
     } else {
         var writeStream = fs.createWriteStream(tempFilePath);
         http.get(sfURL, function(response) {
@@ -43,33 +44,29 @@ function buildSoundfontLibrary(sfURL, outputPath) {
             writeStream.on('finish', function() {
                 writeStream.close(function() {
                     console.info(`Download finished: ${fileName}`);
-                    processSoundFontLibrary()
+                    extractSoundFontLibrary()
                 });  // close()
 
             });
         });
     }
 
-    function processSoundFontLibrary() {
+    function extractSoundFontLibrary() {
         console.info(`Processing: ${fileName}`);
         if(path.extname(tempFilePath).toLowerCase() === '.zip') {
             unzipSF(tempFilePath, function(unzippedFileName) {
                 tempFilePath = unzippedFileName; // path.resolve(tempFileDirectory + "/" + fileName);
                 fileName = path.basename(tempFilePath);
-                extractSoundFontLibrary(function() {
-                    console.log("TODO: build instrument - " + tempFilePath);
-                });
+                processSoundFontLibrary();
             })
         } else if(path.extname(tempFilePath).toLowerCase() === '.sfark') {
             extractSFArk(function() {
                 fileName = fileName.substr(0, fileName.length - 6).replace('_', ' ') + '.sf2';
                 tempFilePath = path.resolve(tempFileDirectory + "/" + fileName);
-                extractSoundFontLibrary(function() {
-                    console.log("TODO: build instrument - " + tempFilePath);
-                });
+                processSoundFontLibrary();
             })
         } else {
-            extractSoundFontLibrary();
+            processSoundFontLibrary();
         }
     }
 
@@ -121,8 +118,9 @@ function buildSoundfontLibrary(sfURL, outputPath) {
         child.stdin.write("\x03");
     }
 
-    function extractSoundFontLibrary(onFinished) {
+    function processSoundFontLibrary(onFinished) {
         console.info(`Extracting: ${fileName}`);
+        const iniFilePath = tempFilePath.substr(0, tempFilePath.length - 4) + '.txt';
         const child = exec(`sf2comp.exe d "${tempFilePath}"`,
             {
                 async: false,
@@ -130,9 +128,73 @@ function buildSoundfontLibrary(sfURL, outputPath) {
             },
             function(code, stdout, stderr) {
                 console.log("Exit code: " + code, stdout, stderr);
-                onFinished();
+                onFinished && onFinished();
+
+                console.log("TODO: build instrument - " + tempFilePath);
+
+                readINIFile(iniFilePath, function(config) {
+                    console.log("Sound font config", config);
+                });
+
             });
         // child.stdin.write("\x03");
+    }
+
+    function readINIFile(iniFilePath, onFinished) {
+        var lineReader = require('readline').createInterface({
+            input: require('fs').createReadStream(iniFilePath)
+        });
+
+        const config = {
+            samples:{},
+            instruments:{}
+        };
+        let section = null;
+        let currentSample = null;
+        let currentInstrument = null;
+
+        lineReader.on('close', function () {
+            onFinished(config);
+        });
+
+        lineReader.on('line', function (line) {
+            console.log(line);
+            line = line.trim();
+            switch(line) {
+                case '[Info]':
+                case '[Presets]':
+                case '[Samples]':
+                case '[Instruments]':
+                    section = line;
+                    return;
+                case '':
+                    return;
+            }
+
+            const pair = line.split('=', 2);
+            const name = pair[0];
+            const value = pair[1];
+            switch(section) {
+                case '[Samples]':
+                    switch(name) {
+                        case 'SampleName':
+                            config.samples[value] = currentSample = {
+                                name: value
+                            };
+                            break;
+                        case 'SampleRate': currentSample.rate = value; break;
+                        case 'Key': currentSample.key = value; break;
+                        case 'FineTune': currentSample.fine = value; break;
+                        case 'Type': currentSample.type = value; break;
+                        case 'Link': currentSample.link = value; break;
+                    }
+
+                    break;
+                case '[Instruments]':
+                    break;
+            }
+        });
+
     }
 }
 
