@@ -28,6 +28,7 @@ const router = express.Router(null);
 
 require('./server.js')(app, router);                // Include first
 require('./songs.js')(app, router);
+require('./samples.js')(app, router);
 require('./git.js')(app, router);
 
 
