@@ -1,7 +1,8 @@
 {
   "name": "All Sample Libraries",
   "baseURL": "/sample/",
-  "index": [
-    "3rdparty/index.library.json"
-  ]
+  "index": {
+    "snes/ffvi.library.json": {},
+    "3rdparty/index.library.json": {}
+  }
 }

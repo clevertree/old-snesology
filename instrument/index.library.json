@@ -3,8 +3,8 @@
   "baseURL": "/instrument/",
   "index": {
     "oscillator/simple.js": "Simple Oscillator",
-    "oscillator/simple.js#doubledetune": "Simple Oscillator (Double Detune)",
     "buffersource/simple.js": "Simple AudioBuffer",
-    "buffersource/simple.js#doubledetune": "Simple AudioBuffer (Double Detune)"
+
+    "snes/ffvi/ffvi.library.json": "Final Fantasy VI Library"
   }
 }

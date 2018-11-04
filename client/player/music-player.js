@@ -625,20 +625,20 @@ class MusicPlayerElement extends HTMLElement {
         return this.loadedInstruments[instrumentID];
     }
 
-    getInstructionFrequency (instruction) {
-        if(Number(instruction) === instruction && instruction % 1 !== 0)
-            return instruction;
+    getInstructionFrequency (command) {
+        if(Number(command) === command && command % 1 !== 0)
+            return command;
         const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
         let octave,
             keyNumber;
 
-        if (instruction.length === 3) {
-            octave = instruction.charAt(2);
+        if (command.length === 3) {
+            octave = command.charAt(2);
         } else {
-            octave = instruction.charAt(1);
+            octave = command.charAt(1);
         }
 
-        keyNumber = instructions.indexOf(instruction.slice(0, -1));
+        keyNumber = instructions.indexOf(command.slice(0, -1));
 
         if (keyNumber < 3) {
             keyNumber = keyNumber + 12 + ((octave - 1) * 12) + 1;
