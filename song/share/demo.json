@@ -6,14 +6,14 @@
 	"instruments": [
 		{
 			"name": "square",
-			"url": "/instrument/oscillator/simple.js",
+			"url": "/instrument/audiosource/oscillator.js",
 			"config": {
 				"type": "square"
 			}
 		},
 		{
 			"name": "custom",
-			"url": "/instrument/oscillator/simple.js#doubledetune",
+			"url": "/instrument/audiosource/oscillator.js",
 			"config": {
 				"type": "custom"
 			}

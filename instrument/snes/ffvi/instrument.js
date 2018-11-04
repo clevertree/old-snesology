@@ -2,7 +2,7 @@
 
 (function() {
     const NAMESPACE = document.location.hostname; // 'localhost'; // For local debugging 'snesology.net'
-    const BufferSource = window.instruments[NAMESPACE]['/instrument/buffersource/simple.js'];
+    const BufferSource = window.instruments[NAMESPACE]['/instrument/audiosource/buffersource.js'];
 
     class FFVIInstrument extends BufferSource {
         constructor(preset, id) {

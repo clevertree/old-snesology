@@ -1,0 +1,563 @@
+[Samples]
+
+    SampleName=BrassHit
+        SampleRate=14861
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=DistortedChug
+        SampleRate=19666
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=ElectricBass
+        SampleRate=16722
+        Key=48
+        FineTune=0
+        Type=1
+
+    SampleName=FunkyChord
+        SampleRate=12837
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=Glockenspiel
+        SampleRate=29703
+        Key=72
+        FineTune=0
+        Type=1
+
+    SampleName=LeadGuitar
+        SampleRate=16725
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=PalmMute
+        SampleRate=11206
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=Powerchord
+        SampleRate=23457
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=PowerchordLow
+        SampleRate=9912
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=RockOrgan
+        SampleRate=29810
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=Strings
+        SampleRate=15936
+        Key=48
+        FineTune=0
+        Type=1
+
+    SampleName=Synthbass
+        SampleRate=19861
+        Key=36
+        FineTune=0
+        Type=1
+
+    SampleName=SynthOrgan
+        SampleRate=14815
+        Key=48
+        FineTune=0
+        Type=1
+
+    SampleName=Timpani
+        SampleRate=8091
+        Key=48
+        FineTune=0
+        Type=1
+
+    SampleName=zzBongo
+        SampleRate=16384
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=zzCowbell
+        SampleRate=13008
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=zzHatOpen
+        SampleRate=34720
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=zzKick
+        SampleRate=14600
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=zzSnare
+        SampleRate=16384
+        Key=60
+        FineTune=0
+        Type=1
+
+    SampleName=zzTom
+        SampleRate=7736
+        Key=48
+        FineTune=0
+        Type=1
+
+
+[Instruments]
+
+    InstrumentName=BrassHit
+
+        Sample=BrassHit
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=DistortedChug
+
+        Sample=DistortedChug
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=ElectricBass
+
+        Sample=ElectricBass
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=FunkyChord
+
+        Sample=FunkyChord
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=Glockenspiel
+
+        Sample=Glockenspiel
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=LeadGuitar
+
+        Sample=LeadGuitar
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=PalmMute
+
+        Sample=PalmMute
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=PowerChord
+
+        Sample=Powerchord
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=PowerChordLow
+
+        Sample=PowerchordLow
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=RockOrgan
+
+        Sample=RockOrgan
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=Strings
+
+        Sample=Strings
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=SynthBass
+
+        Sample=Synthbass
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=SynthOrgan
+
+        Sample=SynthOrgan
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=Timpani
+
+        Sample=Timpani
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+        GlobalZone
+            GZ_sampleModes=1
+
+
+    InstrumentName=zzBongo
+
+        Sample=zzBongo
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=zzCowbell
+
+        Sample=zzCowbell
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=zzHatOpen
+
+        Sample=zzHatOpen
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=zzKick
+
+        Sample=zzKick
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=zzSnare
+
+        Sample=zzSnare
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+    InstrumentName=zzTom
+
+        Sample=zzTom
+            Z_LowKey=0
+            Z_HighKey=127
+            Z_LowVelocity=0
+            Z_HighVelocity=127
+
+
+[Presets]
+
+    PresetName=Brass Hit
+        Bank=0
+        Program=0
+
+        Instrument=BrassHit
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Distorted Chug
+        Bank=0
+        Program=1
+
+        Instrument=DistortedChug
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Electric Bass
+        Bank=0
+        Program=2
+
+        Instrument=ElectricBass
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Funk Chord
+        Bank=0
+        Program=3
+
+        Instrument=FunkyChord
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Glockenspiel
+        Bank=0
+        Program=4
+
+        Instrument=Glockenspiel
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Lead Guitar
+        Bank=0
+        Program=5
+
+        Instrument=LeadGuitar
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Palm Mute
+        Bank=0
+        Program=6
+
+        Instrument=PalmMute
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Power Chord
+        Bank=0
+        Program=7
+
+        Instrument=PowerChord
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Power Chord (Low)
+        Bank=0
+        Program=8
+
+        Instrument=PowerChordLow
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Rock Organ
+        Bank=0
+        Program=9
+
+        Instrument=RockOrgan
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Strings
+        Bank=0
+        Program=10
+
+        Instrument=Strings
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Synth Bass
+        Bank=0
+        Program=11
+
+        Instrument=SynthBass
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Synth Organ
+        Bank=0
+        Program=12
+
+        Instrument=SynthOrgan
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Timpani
+        Bank=0
+        Program=13
+
+        Instrument=Timpani
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Bongo
+        Bank=0
+        Program=14
+
+        Instrument=zzBongo
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Cowbell
+        Bank=0
+        Program=15
+
+        Instrument=zzCowbell
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Hat
+        Bank=0
+        Program=16
+
+        Instrument=zzHatOpen
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Kick
+        Bank=0
+        Program=17
+
+        Instrument=zzKick
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Snare
+        Bank=0
+        Program=18
+
+        Instrument=zzSnare
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+    PresetName=Tom
+        Bank=0
+        Program=19
+
+        Instrument=zzTom
+            L_LowKey=0
+            L_HighKey=127
+            L_LowVelocity=0
+            L_HighVelocity=127
+
+
+[Info]
+Version=2.1
+Engine=E-mu 10K1 
+Name=Battletoads and DD.sf2  
+ROMName=
+ROMVersion=0.0
+Date=11/24/2013 2:04:38 AM 
+Designer=
+Product=SynthFont Viena 
+Copyright=
+Editor=SynthFont Viena 
+Comments=

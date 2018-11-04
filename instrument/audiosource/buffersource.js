@@ -132,8 +132,7 @@
         window.instruments = {};
     if (!window.instruments[NAMESPACE])
         window.instruments[NAMESPACE] = {};
-    window.instruments[NAMESPACE]['/instrument/buffersource/simple.js'] = BufferSource;
-    window.instruments[NAMESPACE]['/instrument/buffersource/simple.js#doubledetune'] = BufferSource;
+    window.instruments[NAMESPACE]['/instrument/audiosource/buffersource.js'] = BufferSource;
 
     // instrument
 

@@ -197,8 +197,8 @@
         window.instruments = {};
     if (!window.instruments[URL_ORIGIN])
         window.instruments[URL_ORIGIN] = {};
-    window.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js'] = iOscillatorSimple;
-    window.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
+    window.instruments[URL_ORIGIN]['/instrument/audiosource/oscillator.js'] = iOscillatorSimple;
+    // window.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 
     // instrument
 
