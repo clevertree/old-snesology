@@ -1,0 +1,3 @@
+[submodule "instrument/chiptune"]
+	path = instrument/chiptune
+	url = ssh://git@github.com/clevertree/snesology-samples
