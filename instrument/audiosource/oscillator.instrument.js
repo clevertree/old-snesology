@@ -1,19 +1,18 @@
-
-
 (function() {
-    const URL_ORIGIN = document.location.origin; // 'localhost'; // For local debugging 'snesology.net'
+    const CLASS_PATH = '/instrument/audiosource/oscillator.instrument.js';
+    const NAMESPACE = document.location.origin; // 'localhost'; // For local debugging 'snesology.net'
     let NEW_COUNTER = 1;
-    class iOscillatorSimple {
-        constructor(context, preset) {
+    let LAST_SAMPLE_LIBRARY_URL = null;
+    class OscillatorInstrument {
+        get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
+
+        constructor(config, audioContext) {
             // this.id = instrumentID;
-            if(!preset.config)
-                preset.config = {};
-            if(!preset.name)
-                preset.name = this.constructor.name + NEW_COUNTER++;
-            const config = preset.config;
+            if(!config.name)
+                config.name = this.constructor.name + NEW_COUNTER++;
             if(!config.type)
                 config.type = 'sine';
-            this.preset = preset;            // TODO: validate config
+            this.config = config;            // TODO: validate config
             this.presetHTML = [];
             this.lastEditorContainer = null;
             this.periodicWave = null;
@@ -21,9 +20,9 @@
 
             // Periodic Wave
             if(config.type === 'custom') {
-                this.periodicWave = context.createPeriodicWave(DEFAULT_PERIODIC_WAVE.real, DEFAULT_PERIODIC_WAVE.imag);
+                this.periodicWave = audioContext.createPeriodicWave(DEFAULT_PERIODIC_WAVE.real, DEFAULT_PERIODIC_WAVE.imag);
                 if(config.customURL) {
-                    this.loadPeriodicWave(context, config.customURL, (periodicWave) => {
+                    this.loadPeriodicWave(audioContext, config.customURL, (periodicWave) => {
                         this.periodicWave = periodicWave;
                         this.periodicWaveName = (config.customURL+'').split('/').pop().replace('.json', '');
                         if(this.lastEditorContainer)  // Re-render
@@ -33,19 +32,19 @@
             }
 
             // Sample Library
-            this.loadSampleLibrary(LAST_SAMPLE_LIBRARY_URL);
+            this.loadSampleLibrary(LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL);
         }
 
         play(destination, frequency, startTime, duration) {
             const osc = destination.context.createOscillator();   // instantiate an oscillator
             osc.frequency.value = frequency;    // set Frequency (hz)
-            if(typeof this.preset.config.detune !== "undefined")
-                osc.detune.value = this.preset.config.detune;
+            if(typeof this.config.detune !== "undefined")
+                osc.detune.value = this.config.detune;
 
             if(this.periodicWave) {
                 osc.setPeriodicWave(this.periodicWave);
             } else {
-                osc.type = this.preset.config.type;
+                osc.type = this.config.type;
             }
 
             // Play note
@@ -63,25 +62,25 @@
         renderEditor(editorContainer) {
             this.lastEditorContainer = editorContainer;
             const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
-            const defaultSampleLibraryURL = new URL('/sample/', URL_ORIGIN) + '';
+            const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
             editorContainer.innerHTML = `
                 <form class="instrument-editor">
                     <fieldset>
-                        <legend>${instrumentID}: ${this.preset.name} (Oscillator)</legend>
+                        <legend>${instrumentID}: ${this.config.name} (${this.constructor.name})</legend>
                         <label class="oscillator-type">Type:
                             <select name="type" title="Wave Type">
-                                ${BUILD_IN_TYPES.map(type => `<option ${this.preset.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                                ${BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
                             </select>
                         </label>
-                        <label class="oscillator-custom-url" ${this.preset.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
+                        <label class="oscillator-custom-url" ${this.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
                             <select name="customURL" title="Custom Periodic Wave">
-                                <option value="${this.preset.config.customURL}">${this.periodicWaveName}</option>
+                                <option value="${this.config.customURL}">${this.periodicWaveName}</option>
                                 ${this.presetHTML}
                                 <option value="${defaultSampleLibraryURL}">More Samples...</option>
                             </select>
                         </label>
                         <label class="oscillator-detune">Detune:
-                            <input name="detune" type="range" min="-100" max="100" value="${this.preset.config.detune}" />
+                            <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" />
                         </label>
                     </fieldset>
                 </form>
@@ -106,7 +105,7 @@
         loadPeriodicWave(context, urlString, onLoaded) {
             if(!urlString)
                 throw new Error("Invalid url");
-            const url = new URL(urlString, URL_ORIGIN);
+            const url = new URL(urlString, NAMESPACE);
 
             const xhr = new XMLHttpRequest();
             xhr.open('GET', url + '', true);
@@ -137,7 +136,7 @@
         }
 
         loadSampleLibrary(libraryURL, onLoaded) {
-            const url = new URL(libraryURL, URL_ORIGIN);
+            const url = new URL(libraryURL, NAMESPACE);
             if(url.pathname.substr(-1, 1) === '/')
                 url.pathname += 'index.library.json';
 
@@ -184,21 +183,28 @@
         }
     }
 
-    class iOscillatorDoubleDetune extends iOscillatorSimple {
-        play(destination, frequency, startTime, duration) {
-            const positive = super.play(destination, frequency, startTime, duration);
-            const negative = super.play(destination, frequency, startTime, duration);
-            negative.detune.value = -negative.detune.value;
-        }
-    }
+    // class iOscillatorDoubleDetune extends OscillatorInstrument {
+    //     play(destination, frequency, startTime, duration) {
+    //         const positive = super.play(destination, frequency, startTime, duration);
+    //         const negative = super.play(destination, frequency, startTime, duration);
+    //         negative.detune.value = -negative.detune.value;
+    //     }
+    // }
 
     // const NAMESPACE = 'snesology.net'; // For local debugging 'localhost'
-    if (!window.instruments)
-        window.instruments = {};
-    if (!window.instruments[URL_ORIGIN])
-        window.instruments[URL_ORIGIN] = {};
-    window.instruments[URL_ORIGIN]['/instrument/audiosource/oscillator.js'] = iOscillatorSimple;
-    // window.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
+    if (!document.instruments)
+        document.instruments = {};
+    if (!document.instruments[NAMESPACE])
+        document.instruments[NAMESPACE] = {};
+    document.instruments[NAMESPACE][CLASS_PATH] = OscillatorInstrument;
+    
+    // Notify this instrument has been loaded
+    document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
+        class: OscillatorInstrument,
+        classPath: CLASS_PATH,
+        origin: NAMESPACE
+    }}));
+    // document.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 
     // instrument
 
@@ -210,6 +216,4 @@
         real: new Float32Array([0, 1]),
         imag: new Float32Array([1, 0])
     };
-    const DEFAULT_SAMPLE_LIBRARY_URL = '/sample/index.library.json';
-    let LAST_SAMPLE_LIBRARY_URL = DEFAULT_SAMPLE_LIBRARY_URL;
 })();

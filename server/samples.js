@@ -223,9 +223,9 @@ function buildSoundfontLibrary(sfURL, outputPath) {
     }
 
     function installInstruments(config) {
-        console.log("Installing Sound font samples: \n", config.samples);
+        console.log("Installing Sound font buffers: \n", config.samples);
 
-        // Install samples
+        // Install buffers
         Object.keys(config.samples).forEach((key, i) => {
             const sample = config.samples[key];
             const samplePath = path.resolve(tempFileDirectory + '/' + key + '.wav');

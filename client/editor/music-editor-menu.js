@@ -606,7 +606,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
 
             case 'instruments-loaded':
-                if(window.instruments) {
+                if(document.instruments) {
                     this.editor.findInstruments(function (instrument, path, origin) {
                         options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
                     });

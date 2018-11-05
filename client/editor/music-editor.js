@@ -798,7 +798,7 @@ class MusicEditorElement extends HTMLElement {
     }
 
     findInstruments(callback, instrumentsObject) {
-        instrumentsObject = instrumentsObject || window.instruments;
+        instrumentsObject = instrumentsObject || document.instruments;
         Object.keys(instrumentsObject).forEach(function(originString) {
             const originCollection = instrumentsObject[originString];
             Object.keys(originCollection).forEach(function(instrumentPathString) {

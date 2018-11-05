@@ -598,14 +598,14 @@ class MusicPlayerElement extends HTMLElement {
     loadInstrumentPreset(instrumentPreset) {
         if(!instrumentPreset || !instrumentPreset.url)
             throw new Error("Invalid preset");
-        if(!window.instruments)
-            throw new Error("window.instruments is not loaded");
+        if(!document.instruments)
+            throw new Error("document.instruments is not loaded");
 
         const url = new URL(instrumentPreset.url, document.location);
 
-        if(!window.instruments[url.origin])
+        if(!document.instruments[url.origin])
             throw new Error("Instrument origin not found: " + url.origin);
-        const collection = window.instruments[url.origin];
+        const collection = document.instruments[url.origin];
 
         const path = url.pathname + url.hash;
         if(!collection[path])

@@ -239,7 +239,7 @@ function generateDefaultSong(songPath) {
         "version": "v0.0.2",
         "description": "New Song",
         "instruments": [{
-            "url": "/instrument/audiosource/oscillator.js", // Default instrument
+            "url": "/instrument/audiosource/oscillator.instrument.js", // Default instrument
         }],
         "instructions": {
             "root": [1,1,1,1]
