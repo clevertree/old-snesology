@@ -132,14 +132,28 @@
 
             // Validate Config
             if(newConfig.preset !== this.config.preset) {
-                const presetConfig = this.library.instruments[newConfig.preset];
-                Object.assign(newConfig, presetConfig);
-                for(var i=0; i<presetConfig.samples.length; i++) {
-                    presetConfig.samples[i].url = new URL(this.library.baseHREF + presetConfig.samples[i].url, this.library.url) + '';
-                }
+                Object.assign(newConfig, this.loadPresetConfig(newConfig.preset));
             }
 
             form.dispatchEvent(new CustomEvent('config:updated', { bubbles:true, detail: newConfig}))
+        }
+
+        loadPresetConfig(presetName) {
+            const urlPrefix = this.library.urlPrefix || '';
+            const newConfig = Object.assign({}, this.config);
+            newConfig.samples = [];
+            const presetConfig = this.library.instruments[presetName];
+            // Object.assign(newConfig, presetConfig);
+            Object.keys(presetConfig.samples).forEach((sampleName) => {
+                const sampleConfig =
+                    Object.assign({},
+                        presetConfig.samples[sampleName],
+                        this.library.samples[sampleName]);
+                sampleConfig.url = new URL(urlPrefix + sampleConfig.url, LAST_SAMPLE_LIBRARY_URL) + '';
+                newConfig.samples.push(sampleConfig);
+            });
+
+            return newConfig;
         }
 
         // static validateConfig(config, form) {
