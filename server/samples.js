@@ -26,7 +26,7 @@ function buildSampleLibraries() {
         path: "sample/3rdparty/chaos_v20/"
     }];
 
-    // for(var i=0; i<compileList.length; i++) {
+    // for(let i=0; i<compileList.length; i++) {
     //     buildSoundfontLibrary(compileList[i].url, compileList[i].path);
     // }
 }

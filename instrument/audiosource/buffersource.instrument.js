@@ -21,7 +21,7 @@
             this.presetHTML = [];
             this.lastEditorContainer = null;
 
-            for(const i=0; i<config.samples.length; i++) {
+            for(let i=0; i<config.samples.length; i++) {
                 const sampleConfig = config.samples[i];
                 if(!sampleConfig.url)
                     throw new Error("Sample config is missing url");
@@ -41,7 +41,7 @@
 
             // Loop through samples
             const sources = [];
-            for(var i=0; i<this.config.samples.length; i++) {
+            for(let i=0; i<this.config.samples.length; i++) {
                 const sampleConfig = this.config.samples[i];
 
                 // Filter sample playback
@@ -160,7 +160,7 @@
 
                 let html = '';
                 const index = Array.isArray(library.index) ? library.index : Object.keys(library.index);
-                for(var i=0; i<index.length; i++) {
+                for(let i=0; i<index.length; i++) {
                     const path = index[i];
                     let value = library.baseURL + path;
                     let title = path;
@@ -187,8 +187,7 @@
     // Notify this instrument has been loaded
     document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
         class: BufferSourceInstrument,
-        classPath: CLASS_PATH,
-        origin: NAMESPACE
+        url: NAMESPACE + CLASS_PATH
     }}));
 
 })();

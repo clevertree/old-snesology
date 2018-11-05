@@ -155,7 +155,7 @@
 
                 let html = '';
                 const index = Array.isArray(library.index) ? library.index : Object.keys(library.index);
-                for(var i=0; i<index.length; i++) {
+                for(let i=0; i<index.length; i++) {
                     const path = index[i];
                     let value = library.baseURL + path;
                     let title = path;
@@ -201,8 +201,7 @@
     // Notify this instrument has been loaded
     document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
         class: OscillatorInstrument,
-        classPath: CLASS_PATH,
-        origin: NAMESPACE
+        url: NAMESPACE + CLASS_PATH
     }}));
     // document.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 

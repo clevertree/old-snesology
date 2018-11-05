@@ -38,7 +38,7 @@ var site = (function() {
 
     Site.prototype.onEvent = function(className, eventName, callback, options) {
         var elements = document.getElementsByClassName(className);
-        for(var i=0; i<elements.length; i++)
+        for(let i=0; i<elements.length; i++)
             elements[i].addEventListener(eventName, callback, options)
     };
 

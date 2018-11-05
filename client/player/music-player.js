@@ -42,6 +42,31 @@ class MusicPlayerElement extends HTMLElement {
 
         if(!this.getAttribute('tabindex'))
             this.setAttribute('tabindex', '1');
+
+        document.addEventListener('instrument:loaded', (e) => {
+            const instrumentURL = e.details.url;
+            console.info("Initialize instrument: " + instrumentURL, e);
+            const songData = this.getSong();
+            let allInstrumentsLoaded = songData.instruments.length > 0;
+            for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
+                const instrumentList = songData.instruments;
+                if(!instrumentList[instrumentID])
+                    throw new Error("Instrument ID not found: " + instrumentID);
+
+                if(this.loadedInstruments[instrumentID])
+                    continue;
+                const instrumentPreset = instrumentList[instrumentID];
+                if(instrumentPreset.url !== instrumentURL) {
+                    allInstrumentsLoaded = false;
+                    continue;
+                }
+
+                this.getInstrument(instrumentID);
+            }
+
+            if(allInstrumentsLoaded)
+                this.dispatchEvent(new CustomEvent('instruments:initialized'));
+        });
     }
 
     // getSongURL() { return this.getAttribute('src');}
@@ -125,22 +150,6 @@ class MusicPlayerElement extends HTMLElement {
 //             });
 //         }
 
-    playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
-        const instrument = this.loadedInstruments[instrumentID];
-
-        if(instrument.getNamedFrequency)
-            noteFrequency = instrument.getNamedFrequency(noteFrequency);
-        noteFrequency = this.getInstructionFrequency(noteFrequency);
-
-        const context = this.getAudioContext();
-        const destination = this.getVolumeGain();
-
-        let velocityGain = context.createGain();
-        velocityGain.gain.value = noteVelocity / 100;
-        velocityGain.connect(destination);
-
-        return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
-    }
 
     findInstructionGroup(instruction) {
         if(typeof instruction !== 'object')
@@ -434,20 +443,43 @@ class MusicPlayerElement extends HTMLElement {
     //     this.setInstruction(p1, instruction2);
     // }
 
+    getInstrument(instrumentID) {
+        if(this.loadedInstruments[instrumentID])
+            return this.loadedInstruments[instrumentID];
 
-    addInstrument(url, instrumentConfig, onScriptLoaded) {
         const instrumentList = this.getSong().instruments;
-        const instrumentID = instrumentList.length;
-        const instrumentPreset = {
-            url: url,
-            config: instrumentConfig
-        };
-        instrumentList[instrumentID] = instrumentPreset;
-        this.initInstrument(instrumentID, onScriptLoaded);
-        return instrumentID;
+        if(!instrumentList[instrumentID])
+            throw new Error("Instrument ID not found: " + instrumentID);
+        const instrumentPreset = instrumentList[instrumentID];
+        const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
+        this.loadedInstruments[instrumentID] = instance;
+        return instance;
     }
 
-    initInstrument(instrumentID, onScriptLoaded) {
+    playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
+        let instrument;
+        try {
+            instrument = this.getInstrument(instrumentID);
+        } catch (e) {
+            console.warn("Error playing instrument: " + e);
+            return null;
+        }
+
+        if(instrument.getNamedFrequency)
+            noteFrequency = instrument.getNamedFrequency(noteFrequency);
+        noteFrequency = this.getInstructionFrequency(noteFrequency);
+
+        const context = this.getAudioContext();
+        const destination = this.getVolumeGain();
+
+        let velocityGain = context.createGain();
+        velocityGain.gain.value = noteVelocity / 100;
+        velocityGain.connect(destination);
+
+        return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
+    }
+
+    initInstrument(instrumentID, ) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
@@ -458,13 +490,24 @@ class MusicPlayerElement extends HTMLElement {
 
         // }
         MusicPlayerElement.loadScript(instrumentPreset.url, () => {
-            const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
-
-            if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
-                this.loadedInstruments[instrumentID].unload();
-            this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
-            onScriptLoaded && onScriptLoaded(instance);
+            // const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
+            //
+            // if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
+            //     this.loadedInstruments[instrumentID].unload();
+            // this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+            // onScriptLoaded && onScriptLoaded(instance);
         });
+    }
+
+    addInstrument(url, instrumentConfig) {
+        const instrumentList = this.getSong().instruments;
+        const instrumentID = instrumentList.length;
+        instrumentList[instrumentID] = {
+            url: url,
+            config: instrumentConfig
+        };
+        this.initInstrument(instrumentID);
+        return instrumentID;
     }
 
     replaceInstrumentParams(instrumentID, replaceConfig) {
@@ -617,12 +660,6 @@ class MusicPlayerElement extends HTMLElement {
 
     isInstrumentLoaded(instrumentID) {
         return !!this.loadedInstruments[instrumentID];
-    }
-
-    getInstrumentInstance(instrumentID) {
-        if(!this.loadedInstruments[instrumentID])
-            throw new Error("Instrument not loaded: " + instrumentID);
-        return this.loadedInstruments[instrumentID];
     }
 
     getInstructionFrequency (command) {

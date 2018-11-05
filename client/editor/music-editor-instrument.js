@@ -25,7 +25,7 @@ class MusicEditorInstrumentElement extends HTMLElement {
         try {
             const form = e.target.form || e.target;
             const newConfig = {};
-            for(var i=0; i<form.elements.length; i++)
+            for(let i=0; i<form.elements.length; i++)
                 if(form.elements[i].name)
                     newConfig[form.elements[i].name] = form.elements[i].value;
 
@@ -48,11 +48,13 @@ class MusicEditorInstrumentElement extends HTMLElement {
 
     render() {
         if(this.editor.player.isInstrumentLoaded(this.id)) {
-            const instrument = this.editor.player.getInstrumentInstance(this.id);
-            if(instrument.renderEditor) {
+            try {
+                const instrument = this.editor.player.getInstrument(this.id);
+                if (!instrument.renderEditor)
+                    throw new Error("No Renderer");
                 instrument.renderEditor(this);
-            } else {
-                this.innerHTML = "No Renderer";
+            } catch (e) {
+                this.innerHTML = e;
             }
         } else {
             this.innerHTML = "Loading ...";
