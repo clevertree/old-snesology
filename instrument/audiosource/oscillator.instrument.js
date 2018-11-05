@@ -173,6 +173,11 @@
 
         }
 
+        // static validateConfig(config, form) {
+        //     console.info("Validate: ", config, form);
+        // }
+
+
         getNamedFrequency(frequencyName) {
             switch (frequencyName) {
                 case 'kick':

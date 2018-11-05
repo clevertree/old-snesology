@@ -506,10 +506,10 @@ class MusicPlayerElement extends HTMLElement {
     addInstrument(url, instrumentConfig) {
         const instrumentList = this.getSong().instruments;
         const instrumentID = instrumentList.length;
-        instrumentList[instrumentID] = {
-            url: url,
-            config: instrumentConfig
-        };
+
+        instrumentList[instrumentID] = Object.assign({
+            url: url
+        }, instrumentConfig || {});
         this.initInstrument(instrumentID);
         return instrumentID;
     }
@@ -520,8 +520,7 @@ class MusicPlayerElement extends HTMLElement {
             throw new Error("Invalid instrument ID: " + instrumentID);
 
         const presetData = instrumentList[instrumentID];
-        const newPresetData = Object.assign({}, presetData);
-        const newPresetConfig = newPresetData.config;
+        const newPresetConfig = Object.assign({}, presetData);
 
         const oldParams = {};
         for(const paramName in replaceConfig) {
@@ -536,8 +535,8 @@ class MusicPlayerElement extends HTMLElement {
             }
         }
         // Validate
-        const instance = this.loadInstrumentPreset(newPresetData);
-        instrumentList[instrumentID] = newPresetData;
+        const instance = this.loadInstrumentPreset(newPresetConfig);
+        instrumentList[instrumentID] = newPresetConfig;
 
         if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
             this.loadedInstruments[instrumentID].unload();
@@ -659,6 +658,8 @@ class MusicPlayerElement extends HTMLElement {
             throw new Error("Instrument not found: " + path);
 
         const instrument = collection[path];
+        // if(instrument.validateConfig)
+        //     instrument.validateConfig(instrumentPreset);
         return new instrument(instrumentPreset, this.getAudioContext());
     }
 

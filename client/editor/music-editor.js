@@ -45,8 +45,9 @@ class MusicEditorElement extends HTMLElement {
         playerElement.addEventListener('song:end', onSongEvent);
         playerElement.addEventListener('song:pause', onSongEvent);
 
-        playerElement.addEventListener('instruments:initialized', function(e) {
+        playerElement.addEventListener('instruments:initialized', (e) => {
             console.log("init", e);
+            this.render();
         });
 
         if ("WebSocket" in window) {

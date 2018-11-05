@@ -15,11 +15,10 @@
                 config.name = this.constructor.name + NEW_COUNTER++;
             if(!config.samples)
                 config.samples = [];
-            if(!config.preset)
-                config.preset = {};
+            // if(!config.preset)
+            //     config.preset = {};
             this.config = config;            // TODO: validate config
             this.buffers = {};
-            this.presetHTML = [];
             this.lastEditorContainer = null;
 
             for(let i=0; i<config.samples.length; i++) {
@@ -86,37 +85,66 @@
                 <form class="instrument-editor">
                     <fieldset>
                         <legend>${instrumentID}: ${this.config.name} (${this.constructor.name})</legend>
-                        <label class="oscillator-custom-url" ${this.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
-                            <select name="customURL" title="Custom Periodic Wave">
-                                <option value="${this.config.customURL}">${this.periodicWaveName}</option>
-                                ${this.presetHTML}
-                                <option value="${defaultSampleLibraryURL}">More Samples...</option>
+                        <label class="buffersource-preset">
+                            Preset:
+                            <select name="preset" title="Load Preset">
+                                ${this.library ? 
+                                    `<optgroup label="${this.library.name || 'Unnamed Library'}">` +
+                                    Object.keys(this.library.instruments).map((instrumentName) => {
+                                        const instrumentConfig = this.library.instruments[instrumentName];
+                                        let title = instrumentName || instrumentConfig.title;
+                                        if(instrumentName.endsWith('.library.json'))
+                                            title = "Library: " + title.replace('.library.json', '');
+                                        return `<option value="${instrumentName}">${title}</option>`;
+                                    }).join("\n")
+                                    + `</optgroup>`
+                                : null}
                             </select>
-                        </label>
-                        <label class="oscillator-detune">Detune:
-                            <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" />
                         </label>
                     </fieldset>
                 </form>
             `;
 
-            editorContainer.querySelector('form.instrument-editor').addEventListener('change', (e) => {
-                switch(e.target.name) {
-                    case 'customURL':
-                        const libraryURL = e.target.value;
-                        if(libraryURL.endsWith('.library.json')) {
-                            console.log("Loading library: " + libraryURL);
-                            e.preventDefault();
-                            e.stopPropagation();
-                            this.loadSampleLibrary(libraryURL);
-                            return;
-                        }
-                        break;
-                }
-            });
+            var form = editorContainer.querySelector('form.instrument-editor');
+            form.addEventListener('change', this.onEditorSubmit.bind(this));
+            form.addEventListener('submit', this.onEditorSubmit.bind(this));
         };
 
+        onEditorSubmit(e) {
+            e.preventDefault();
+            const form = e.target.form || e.target;
+            switch(e.target.name) {
+                case 'customURL':
+                    const libraryURL = e.target.value;
+                    if(libraryURL.endsWith('.library.json')) {
+                        console.log("Loading library: " + libraryURL);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.loadSampleLibrary(libraryURL);
+                        return;
+                    }
+                    break;
+            }
+            const newConfig = {};
+            for(let i=0; i<form.elements.length; i++)
+                if(form.elements[i].name)
+                    newConfig[form.elements[i].name] = form.elements[i].value;
 
+            // Validate Config
+            if(newConfig.preset !== this.config.preset) {
+                const presetConfig = this.library.instruments[newConfig.preset];
+                Object.assign(newConfig, presetConfig);
+                for(var i=0; i<presetConfig.samples.length; i++) {
+                    presetConfig.samples[i].url = new URL(this.library.baseHREF + presetConfig.samples[i].url, this.library.url) + '';
+                }
+            }
+
+            form.dispatchEvent(new CustomEvent('config:updated', { bubbles:true, detail: newConfig}))
+        }
+
+        // static validateConfig(config, form) {
+        //     console.info("Validate: ", config, form);
+        // }
 
         loadAudioSample(context, sampleURL, onLoad) {
             const request = new XMLHttpRequest();
@@ -156,20 +184,9 @@
                 if(xhr.status !== 200)
                     throw new Error("Sample library not found: " + url);
 
-                const library = xhr.response;
+                this.library = xhr.response;
                 LAST_SAMPLE_LIBRARY_URL = url + '';
-
-                let html = '';
-                const index = Array.isArray(library.index) ? library.index : Object.keys(library.index);
-                for(let i=0; i<index.length; i++) {
-                    const path = index[i];
-                    let value = library.baseURL + path;
-                    let title = path;
-                    if(path.endsWith('.library.json'))
-                        title = "Library: " + title.replace('.library.json', '');
-                    html += `<option value="${value}">${title}</option>`;
-                }
-                this.presetHTML = `<optgroup label="${library.name}">` + html + `</optgroup>`;
+                
                 if(this.lastEditorContainer)  // Re-render
                     this.renderEditor(this.lastEditorContainer);
                 onLoaded && onLoaded();
