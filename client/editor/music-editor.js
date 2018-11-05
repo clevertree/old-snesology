@@ -45,6 +45,10 @@ class MusicEditorElement extends HTMLElement {
         playerElement.addEventListener('song:end', onSongEvent);
         playerElement.addEventListener('song:pause', onSongEvent);
 
+        playerElement.addEventListener('instruments:initialized', function(e) {
+            console.log("init", e);
+        });
+
         if ("WebSocket" in window) {
             this.initWebSocket();
         } else {
@@ -54,7 +58,7 @@ class MusicEditorElement extends HTMLElement {
 
 
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', 'instrument/index.library.json', true);
+        xhr.open('GET', 'instrument/index.json', true);
         xhr.responseType = 'json';
         xhr.onload = () => {
             if(xhr.status !== 200)
@@ -64,11 +68,9 @@ class MusicEditorElement extends HTMLElement {
         };
         xhr.send();
 
-
-
-
         this.addEventListener('keydown', this.onInput);
         this.render();
+
     }
     get grid() { return this.querySelector('music-editor-grid'); }
 

@@ -6,7 +6,8 @@
     let LAST_SAMPLE_LIBRARY_URL = null;
 
     class BufferSourceInstrument {
-        get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
+        // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
+        get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/chiptune/snes/ffvi/ffvi.library.json'; }
 
         constructor(config, audioContext) {
             // this.id = instrumentID;
