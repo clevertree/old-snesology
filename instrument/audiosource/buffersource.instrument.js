@@ -80,7 +80,7 @@
         renderEditor(editorContainer) {
             this.lastEditorContainer = editorContainer;
             const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
-            const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
+            // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
             editorContainer.innerHTML = `
                 <form class="instrument-editor">
                     <fieldset>
@@ -90,12 +90,13 @@
                             <select name="preset" title="Load Preset">
                                 ${this.library ? 
                                     `<optgroup label="${this.library.name || 'Unnamed Library'}">` +
-                                    Object.keys(this.library.instruments).map((instrumentName) => {
-                                        const instrumentConfig = this.library.instruments[instrumentName];
-                                        let title = instrumentName || instrumentConfig.title;
-                                        if(instrumentName.endsWith('.library.json'))
+                                    Object.keys(this.library.instruments).map((presetName) => {
+                                        const instrumentConfig = this.library.instruments[presetName];
+                                        let title = presetName || instrumentConfig.title;
+                                        if(presetName.endsWith('.library.json'))
                                             title = "Library: " + title.replace('.library.json', '');
-                                        return `<option value="${instrumentName}">${title}</option>`;
+                                        const selected = presetName === this.config.preset ? ` selected="selected"` : '';
+                                        return `<option value="${presetName}" ${selected}>${title}</option>`;
                                     }).join("\n")
                                     + `</optgroup>`
                                 : null}
