@@ -548,7 +548,8 @@ class MusicEditorElement extends HTMLElement {
                 this.status.history.undoPosition = 0;
                 this.status.history.currentStep = 0;
 
-                this.player.loadSongData(action.songContent, next);
+                this.player.loadSongData(action.songContent);
+                next();
                 return;
                 // this.render();
                 // this.gridSelect(null, 0);

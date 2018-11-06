@@ -154,8 +154,10 @@
                         this.library.samples[sampleName]);
                 sampleConfig.url = new URL(urlPrefix + sampleConfig.url, LAST_SAMPLE_LIBRARY_URL) + '';
                 sampleConfig.rootKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.rootKey);
-                sampleConfig.lowKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.lowKey);
-                sampleConfig.highKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.highKey);
+                if(typeof sampleConfig.lowKey !== "undefined")
+                    sampleConfig.lowKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.lowKey);
+                if(typeof sampleConfig.highKey !== "undefined")
+                    sampleConfig.highKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.highKey);
                 newConfig.samples.push(sampleConfig);
             });
 
