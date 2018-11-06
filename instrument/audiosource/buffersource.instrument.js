@@ -49,7 +49,8 @@
                     return console.error("Sample not loaded: " + sampleConfig.url);
                 const buffer = this.buffers[i];
 
-                const source = this.playBuffer(buffer, destination, frequency, startTime, duration);
+                const playbackRate = frequency / sampleConfig.rootKey || 440;
+                const source = this.playBuffer(buffer, sampleConfig.loop, playbackRate, destination, startTime, duration);
                 if(source)
                     sources.push(sources);
             }
@@ -57,12 +58,12 @@
             return sources;
         }
 
-        playBuffer(buffer, destination, frequency, startTime, duration) {
+        playBuffer(buffer, loop, playbackRate, destination, startTime, duration) {
 
             const source = destination.context.createBufferSource();
             source.buffer = buffer;
-            source.loop = true;
-            source.playbackRate.value = 100 * frequency / buffer.sampleRate; //  Math.random()*2;
+            source.loop = loop;
+            source.playbackRate.value = playbackRate; //  Math.random()*2;
 
             // songLength = buffer.duration;
             // source.playbackRate.value = playbackControl.value;
@@ -152,6 +153,9 @@
                         presetConfig.samples[sampleName],
                         this.library.samples[sampleName]);
                 sampleConfig.url = new URL(urlPrefix + sampleConfig.url, LAST_SAMPLE_LIBRARY_URL) + '';
+                sampleConfig.rootKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.rootKey);
+                sampleConfig.lowKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.lowKey);
+                sampleConfig.highKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.highKey);
                 newConfig.samples.push(sampleConfig);
             });
 
@@ -209,6 +213,17 @@
             };
             xhr.send();
 
+        }
+
+        static getCommandFrequency (command) {
+            if(Number(command) === command && command % 1 !== 0)
+                return command;
+            const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+            let octave = command.length === 3 ? command.charAt(2) : command.charAt(1),
+                keyNumber = instructions.indexOf(command.slice(0, -1));
+            if (keyNumber < 3)  keyNumber = keyNumber + 12 + ((octave - 1) * 12) + 1;
+            else                keyNumber = keyNumber + ((octave - 1) * 12) + 1;
+            return 440 * Math.pow(2, (keyNumber- 49) / 12);
         }
     }
 
