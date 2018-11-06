@@ -18,7 +18,7 @@
             // if(!config.preset)
             //     config.preset = {};
             this.config = config;            // TODO: validate config
-            this.buffers = {};
+            this.buffers = [];
             this.lastEditorContainer = null;
 
             for(let i=0; i<config.samples.length; i++) {
@@ -28,7 +28,7 @@
                 this.loadAudioSample(audioContext, sampleConfig.url, (err, audioBuffer) => {
                     if(err)
                         throw new err;
-                    this.buffers[sampleConfig.url] = audioBuffer;
+                    this.buffers[i] = audioBuffer;
                 })
             }
 
@@ -45,8 +45,11 @@
                 const sampleConfig = this.config.samples[i];
 
                 // Filter sample playback
+                if(typeof this.buffers[i] === 'undefined')
+                    return console.error("Sample not loaded: " + sampleConfig.url);
+                const buffer = this.buffers[i];
 
-                const source = this.playSample(sampleConfig, destination, frequency, startTime, duration);
+                const source = this.playBuffer(buffer, destination, frequency, startTime, duration);
                 if(source)
                     sources.push(sources);
             }
@@ -54,14 +57,12 @@
             return sources;
         }
 
-        playSample(sampleConfig, destination, frequency, startTime, duration) {
-            if(typeof this.buffers[sampleConfig.url] === 'undefined')
-                return console.error("Sample not loaded: " + sampleConfig.url);
-            const buffer = this.buffers[sampleConfig.url];
+        playBuffer(buffer, destination, frequency, startTime, duration) {
 
             const source = destination.context.createBufferSource();
             source.buffer = buffer;
             source.loop = true;
+            source.playbackRate.value = 100 * frequency / buffer.sampleRate; //  Math.random()*2;
 
             // songLength = buffer.duration;
             // source.playbackRate.value = playbackControl.value;
