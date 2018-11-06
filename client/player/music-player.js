@@ -508,8 +508,9 @@ class MusicPlayerElement extends HTMLElement {
         }
 
         // Unload existing instance
-        if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload) {
-            this.loadedInstruments[instrumentID].unload();
+        if(this.loadedInstruments[instrumentID]) {
+            if(this.loadedInstruments[instrumentID].unload)
+                this.loadedInstruments[instrumentID].unload();
             this.loadedInstruments[instrumentID] = null;
             // this.loadedInstruments[instrumentID] = this.loadInstrumentPreset(newPresetConfig);
         }
