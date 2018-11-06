@@ -49,7 +49,7 @@
                     return console.error("Sample not loaded: " + sampleConfig.url);
                 const buffer = this.buffers[i];
 
-                const playbackRate = frequency / sampleConfig.rootKey || 440;
+                const playbackRate = frequency / sampleConfig.keyRoot || 440;
                 const source = this.playBuffer(buffer, sampleConfig.loop, playbackRate, destination, startTime, duration);
                 if(source)
                     sources.push(sources);
@@ -153,9 +153,17 @@
                         presetConfig.samples[sampleName],
                         this.library.samples[sampleName]);
                 sampleConfig.url = new URL(urlPrefix + sampleConfig.url, LAST_SAMPLE_LIBRARY_URL) + '';
-                sampleConfig.rootKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.rootKey);
-                sampleConfig.lowKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.lowKey);
-                sampleConfig.highKey = BufferSourceInstrument.getCommandFrequency(sampleConfig.highKey);
+                sampleConfig.keyRoot = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyRoot);
+                if(sampleConfig.keyRange) {
+                    let pair = sampleConfig.keyRange;
+                    if(typeof pair === 'string')
+                        pair = pair.split('-');
+                    sampleConfig.keyLow = pair[0];
+                    sampleConfig.keyHigh = pair[1] || pair[0];
+                    delete sampleConfig.keyRange;
+                }
+                sampleConfig.keyLow = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyLow);
+                sampleConfig.keyHigh = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyHigh);
                 newConfig.samples.push(sampleConfig);
             });
 
