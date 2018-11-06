@@ -46,7 +46,8 @@ class MusicEditorElement extends HTMLElement {
         playerElement.addEventListener('song:pause', onSongEvent);
 
         playerElement.addEventListener('instruments:initialized', (e) => {
-            console.log("init", e);
+            // console.log("init", e);
+
             this.render();
         });
 

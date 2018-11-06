@@ -19,27 +19,29 @@ class MusicPlayerElement extends HTMLElement {
 
         document.addEventListener('instrument:loaded', (e) => {
             const instrumentURL = new URL(e.detail.url, document.location);
-            console.info("Initialize instrument: " + instrumentURL, e);
+            // console.info("Initialize instrument: " + instrumentURL, e);
             const songData = this.getSong();
-            let allInstrumentsLoaded = songData.instruments.length > 0;
+            // let foundInstrument = false;
             for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
                 const instrumentList = songData.instruments;
                 if(!instrumentList[instrumentID])
                     throw new Error("Instrument ID not found: " + instrumentID);
 
-                if(this.loadedInstruments[instrumentID])
-                    continue;
                 const instrumentPreset = instrumentList[instrumentID];
                 const instrumentPresetURL = new URL(instrumentPreset.url, document.location);
-                if(instrumentPresetURL.href !== instrumentURL.href) {
-                    allInstrumentsLoaded = false;
+                if(instrumentPresetURL.href !== instrumentURL.href)
                     continue;
-                }
 
-                this.getInstrument(instrumentID);
+                // foundInstrument = true;
+
+                if(!this.loadedInstruments[instrumentID])
+                    this.getInstrument(instrumentID);
             }
 
-            if(allInstrumentsLoaded)
+            // if(!foundInstrument)
+            //     console.warn("Instrument not found: " + instrumentURL);
+
+            if(songData.instruments.length === this.loadedInstruments.length)
                 this.dispatchEvent(new CustomEvent('instruments:initialized', {
                     bubbles: true
                 }));
