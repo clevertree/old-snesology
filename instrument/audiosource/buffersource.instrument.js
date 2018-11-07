@@ -45,6 +45,7 @@
                 const sampleConfig = this.config.samples[i];
 
                 // Filter sample playback
+
                 if(typeof this.buffers[i] === 'undefined')
                     return console.error("Sample not loaded: " + sampleConfig.url);
                 const buffer = this.buffers[i];
@@ -154,7 +155,7 @@
                         this.library.samples[sampleName]);
                 sampleConfig.url = new URL(urlPrefix + sampleConfig.url, LAST_SAMPLE_LIBRARY_URL) + '';
                 sampleConfig.keyRoot = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyRoot);
-                if(sampleConfig.keyRange) {
+                if(typeof sampleConfig.keyRange !== "undefined") {
                     let pair = sampleConfig.keyRange;
                     if(typeof pair === 'string')
                         pair = pair.split('-');
