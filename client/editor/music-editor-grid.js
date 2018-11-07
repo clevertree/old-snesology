@@ -315,6 +315,8 @@ class MusicEditorGridElement extends HTMLElement {
             song.instructions[groupName] = [];
             return song;
         }();
+        if(gridStatus.maxPause)
+            console.info("TODO: ", gridStatus, gridStatus.maxPause);
         // var pausesPerBeat = song.pausesPerBeat;
 
         const beatsPerMinute = song.beatsPerMinute;
