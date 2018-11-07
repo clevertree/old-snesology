@@ -10,9 +10,11 @@ class MusicEditorInstrumentElement extends HTMLElement {
 
     connectedCallback() {
         this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
-        this.addEventListener('change', this.onSubmit);
-        this.addEventListener('input', this.onSubmit);
+        // this.addEventListener('change', this.onSubmit);
+        // this.addEventListener('input', this.onSubmit);
         this.addEventListener('submit', this.onSubmit);
+        this.addEventListener('config:updated', this.onSubmit);
+
 
         this.render();
     }
@@ -23,15 +25,21 @@ class MusicEditorInstrumentElement extends HTMLElement {
         e.preventDefault();
 
         try {
-            const form = e.target.form || e.target;
-            const newConfig = {};
-            for(var i=0; i<form.elements.length; i++)
-                if(form.elements[i].name)
-                    newConfig[form.elements[i].name] = form.elements[i].value;
 
             switch(e.type) {
+                case 'config:updated':
+                    // case 'change':
+                    console.log("Instrument Form " + e.type, e);
+                    this.editor.replaceInstrumentParams(this.id, e.detail);
+                    break;
+
                 case 'submit':
-                case 'change':
+                    // case 'change':
+                    const form = e.target.form || e.target;
+                    const newConfig = {};
+                    for(let i=0; i<form.elements.length; i++)
+                        if(form.elements[i].name)
+                            newConfig[form.elements[i].name] = form.elements[i].value;
                     console.log("Instrument Form " + e.type, newConfig, e);
                     this.editor.replaceInstrumentParams(this.id, newConfig);
                     break;
@@ -48,11 +56,13 @@ class MusicEditorInstrumentElement extends HTMLElement {
 
     render() {
         if(this.editor.player.isInstrumentLoaded(this.id)) {
-            const instrument = this.editor.player.getInstrumentInstance(this.id);
-            if(instrument.renderEditor) {
+            try {
+                const instrument = this.editor.player.getInstrument(this.id);
+                if (!instrument.renderEditor)
+                    throw new Error("No Renderer");
                 instrument.renderEditor(this);
-            } else {
-                this.innerHTML = "No Renderer";
+            } catch (e) {
+                this.innerHTML = e;
             }
         } else {
             this.innerHTML = "Loading ...";

@@ -123,6 +123,11 @@ class MusicEditorMenuElement extends HTMLElement {
                     this.editor.player.setVolume(parseInt(form['volume'].value));
                     break;
 
+                case 'grid:max-pause':
+                    this.editor.gridStatus.maxPause = parseFloat(form['max-pause'].value);
+                    this.editor.grid.render();
+                    break;
+
                 default:
                     console.warn("Unhandled " + e.type + ": ", command);
                     break;
@@ -542,6 +547,21 @@ class MusicEditorMenuElement extends HTMLElement {
 
                 </fieldset>
 
+    
+                
+                <form class="form-grid-max-pause" data-command="grid:max-pause" style="float: right;">
+                    <fieldset class="fieldset-row">
+                        <label class="row-label row-label-command">Max Pause:
+                            <select name="max-pause" title="Max Pause">
+                                <optgroup label="Max Pause">
+                                    ${this.renderEditorFormOptions('durations')}
+                                </optgroup>
+                            </select>
+                        </label>
+                    </fieldset>
+                </form>
+                <br/>
+    
             </div>
         `;
         this.update(gridStatus);
@@ -606,7 +626,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
 
             case 'instruments-loaded':
-                if(window.instruments) {
+                if(document.instruments) {
                     this.editor.findInstruments(function (instrument, path, origin) {
                         options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
                     });

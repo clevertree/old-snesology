@@ -35,7 +35,7 @@
             scriptElm = document.createElement('script');
             scriptElm.src = scriptPath;
             scriptElm.onload = function(e) {
-                for(var i=0; i<scriptElm.onloads.length; i++)
+                for(let i=0; i<scriptElm.onloads.length; i++)
                     scriptElm.onloads[i](e);
                 scriptElm.onloads = null;
             };

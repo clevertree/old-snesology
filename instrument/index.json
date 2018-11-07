@@ -1,0 +1,13 @@
+{
+  "name": "Instrument Libraries",
+  "baseURL": "/instrument/",
+  "index": {
+    "audiosource/oscillator.js": "Simple Oscillator",
+    "audiosource/buffersource.js": "Simple AudioBuffer",
+
+    "chiptune/snes/ffvi/ffvi.instrument.js": {
+      "title": "Final Fantasy VI Instrument",
+      "urlDependencies": ["/instrument/audiosource/buffersource.instrument.js"]
+    }
+  }
+}

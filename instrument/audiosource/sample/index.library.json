@@ -1,0 +1,7 @@
+{
+  "name": "All Sample Libraries",
+  "baseURL": "/sample/",
+  "index": {
+    "3rdparty/index.library.json": {}
+  }
+}

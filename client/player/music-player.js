@@ -15,7 +15,7 @@ class MusicPlayerElement extends HTMLElement {
         this.config = {
             volume: 0.3
         };
-        this.loadSongData({}, ()=>{});
+        this.loadSongData({});
     }
 
     getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
@@ -42,11 +42,12 @@ class MusicPlayerElement extends HTMLElement {
 
         if(!this.getAttribute('tabindex'))
             this.setAttribute('tabindex', '1');
+
     }
 
     // getSongURL() { return this.getAttribute('src');}
 
-    loadSongData(songData, onLoadComplete) {
+    loadSongData(songData) {
         songData.beatsPerMinute =   (songData.beatsPerMinute || 160);
         // songData.pausesPerBeat =    (songData.pausesPerBeat || DEFAULT_PAUSES_PER_BEAT);
         songData.beatsPerMeasure =  (songData.beatsPerMeasure || 4);
@@ -59,31 +60,22 @@ class MusicPlayerElement extends HTMLElement {
             this.processInstructions(groupName));
         // TODO check all groups were processed
 
-        // let loadFiles = [];
-        let scriptsLoading = 0;
-        const instrumentCount = songData.instruments.length;
-        if(instrumentCount === 0) {
-            // console.warn("Song contains no instruments");
+        let loadingInstruments = 0;
+        if(songData.instruments.length === 0) {
+            console.warn("Song contains no instruments");
         } else {
-            for(let instrumentID=0; instrumentID<instrumentCount; instrumentID++) {
-                // const url = songData.instruments[instrumentID].url;
-                // if(loadFiles.indexOf(url) === -1) {
-                //     loadFiles.push(url);
-                scriptsLoading++;
-                // const config = songData.instruments[instrumentID].config;
-                this.initInstrument(instrumentID, () => {
-
-                    // console.log("Scripts loading: ", scriptsLoading);
-                    scriptsLoading--;
-                    if(scriptsLoading === 0)
-                        onLoadComplete();
+            for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
+                loadingInstruments++;
+                this.initInstrument(instrumentID, (instance) => {
+                    loadingInstruments--;
+                    if(loadingInstruments === 0) {
+                        this.dispatchEvent(new CustomEvent('instruments:initialized', {
+                            bubbles: true
+                        }));
+                    }
                 });
-                // }
             }
         }
-        if(scriptsLoading === 0)
-            onLoadComplete();
-
     }
 
     processInstructions(groupName) {
@@ -125,22 +117,6 @@ class MusicPlayerElement extends HTMLElement {
 //             });
 //         }
 
-    playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
-        const instrument = this.loadedInstruments[instrumentID];
-
-        if(instrument.getNamedFrequency)
-            noteFrequency = instrument.getNamedFrequency(noteFrequency);
-        noteFrequency = this.getInstructionFrequency(noteFrequency);
-
-        const context = this.getAudioContext();
-        const destination = this.getVolumeGain();
-
-        let velocityGain = context.createGain();
-        velocityGain.gain.value = noteVelocity / 100;
-        velocityGain.connect(destination);
-
-        return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
-    }
 
     findInstructionGroup(instruction) {
         if(typeof instruction !== 'object')
@@ -434,47 +410,74 @@ class MusicPlayerElement extends HTMLElement {
     //     this.setInstruction(p1, instruction2);
     // }
 
+    getInstrument(instrumentID) {
+        if(this.loadedInstruments[instrumentID])
+            return this.loadedInstruments[instrumentID];
 
-    addInstrument(url, instrumentConfig, onScriptLoaded) {
-        const instrumentList = this.getSong().instruments;
-        const instrumentID = instrumentList.length;
-        const instrumentPreset = {
-            url: url,
-            config: instrumentConfig
-        };
-        instrumentList[instrumentID] = instrumentPreset;
-        this.initInstrument(instrumentID, onScriptLoaded);
-        return instrumentID;
-    }
-
-    initInstrument(instrumentID, onScriptLoaded) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         const instrumentPreset = instrumentList[instrumentID];
+        const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
+        this.loadedInstruments[instrumentID] = instance;
+        return instance;
+    }
 
-        // TODO: resolve library
-        // if(url.endsWith('.library.json')) {
+    playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
+        let instrument;
+        try {
+            instrument = this.getInstrument(instrumentID);
+        } catch (e) {
+            console.warn("Error playing instrument: " + e);
+            return null;
+        }
 
-        // }
+        if(instrument.getNamedFrequency)
+            noteFrequency = instrument.getNamedFrequency(noteFrequency);
+        noteFrequency = this.getInstructionFrequency(noteFrequency);
+
+        const context = this.getAudioContext();
+        const destination = this.getVolumeGain();
+
+        let velocityGain = context.createGain();
+        velocityGain.gain.value = noteVelocity / 100;
+        velocityGain.connect(destination);
+
+        return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
+    }
+
+    initInstrument(instrumentID, onInitiated) {
+        const instrumentList = this.getSong().instruments;
+        if(!instrumentList[instrumentID])
+            throw new Error("Instrument ID not found: " + instrumentID);
+        const instrumentPreset = instrumentList[instrumentID];
+        if(instrumentPreset.urlDependencies)
+            for(var i=0; i<instrumentPreset.urlDependencies.length; i++)
+                MusicPlayerElement.loadScript(instrumentPreset.urlDependencies[0], () => {});
         MusicPlayerElement.loadScript(instrumentPreset.url, () => {
-            const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
-
-            if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
-                this.loadedInstruments[instrumentID].unload();
-            this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
-            onScriptLoaded && onScriptLoaded(instance);
+            const instance = this.getInstrument(instrumentID);
+            onInitiated && onInitiated(instance);
         });
     }
 
-    replaceInstrumentParams(instrumentID, replaceConfig) {
+    addInstrument(url, instrumentConfig) {
+        const instrumentList = this.getSong().instruments;
+        const instrumentID = instrumentList.length;
+
+        instrumentList[instrumentID] = Object.assign({
+            url: url
+        }, instrumentConfig || {});
+        this.initInstrument(instrumentID);
+        return instrumentID;
+    }
+
+    replaceInstrumentParams(instrumentID, replaceConfig, onInstrumentLoad) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
 
         const presetData = instrumentList[instrumentID];
-        const newPresetData = Object.assign({}, presetData);
-        const newPresetConfig = newPresetData.config;
+        const newPresetConfig = Object.assign({}, presetData);
 
         const oldParams = {};
         for(const paramName in replaceConfig) {
@@ -488,13 +491,18 @@ class MusicPlayerElement extends HTMLElement {
                     newPresetConfig[paramName] = replaceConfig[paramName];
             }
         }
-        // Validate
-        const instance = this.loadInstrumentPreset(newPresetData);
-        instrumentList[instrumentID] = newPresetData;
 
-        if(this.loadedInstruments[instrumentID] && this.loadedInstruments[instrumentID].unload)
-            this.loadedInstruments[instrumentID].unload();
-        this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
+        // Unload existing instance
+        if(this.loadedInstruments[instrumentID]) {
+            if(this.loadedInstruments[instrumentID].unload)
+                this.loadedInstruments[instrumentID].unload();
+            this.loadedInstruments[instrumentID] = null;
+            // this.loadedInstruments[instrumentID] = this.loadInstrumentPreset(newPresetConfig);
+        }
+        instrumentList[instrumentID] = newPresetConfig;
+        this.initInstrument(instrumentID, onInstrumentLoad);
+
+        // this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
         return oldParams;
     }
 
@@ -505,6 +513,28 @@ class MusicPlayerElement extends HTMLElement {
         return instrumentList.splice(instrumentID, 1);
     }
 
+
+    loadInstrumentPreset(instrumentPreset) {
+        if(!instrumentPreset || !instrumentPreset.url)
+            throw new Error("Invalid preset");
+        if(!document.instruments)
+            throw new Error("document.instruments is not loaded");
+
+        const url = new URL(instrumentPreset.url, document.location);
+
+        if(!document.instruments[url.origin])
+            throw new Error("Instrument origin not found: " + url.origin);
+        const collection = document.instruments[url.origin];
+
+        const path = url.pathname + url.hash;
+        if(!collection[path])
+            throw new Error("Instrument not found: " + path);
+
+        const instrument = collection[path];
+        // if(instrument.validateConfig)
+        //     instrument.validateConfig(instrumentPreset);
+        return new instrument(instrumentPreset, this.getAudioContext());
+    }
 
     // Playback
 
@@ -595,50 +625,24 @@ class MusicPlayerElement extends HTMLElement {
     //     return instrumentPreset.path;
     // }
 
-    loadInstrumentPreset(instrumentPreset) {
-        if(!instrumentPreset || !instrumentPreset.url)
-            throw new Error("Invalid preset");
-        if(!window.instruments)
-            throw new Error("window.instruments is not loaded");
-
-        const url = new URL(instrumentPreset.url, document.location);
-
-        if(!window.instruments[url.origin])
-            throw new Error("Instrument origin not found: " + url.origin);
-        const collection = window.instruments[url.origin];
-
-        const path = url.pathname + url.hash;
-        if(!collection[path])
-            throw new Error("Instrument not found: " + path);
-
-        const instrument = collection[path];
-        return new instrument(this.getAudioContext(), instrumentPreset);
-    }
-
     isInstrumentLoaded(instrumentID) {
         return !!this.loadedInstruments[instrumentID];
     }
 
-    getInstrumentInstance(instrumentID) {
-        if(!this.loadedInstruments[instrumentID])
-            throw new Error("Instrument not loaded: " + instrumentID);
-        return this.loadedInstruments[instrumentID];
-    }
-
-    getInstructionFrequency (instruction) {
-        if(Number(instruction) === instruction && instruction % 1 !== 0)
-            return instruction;
+    getInstructionFrequency (command) {
+        if(Number(command) === command && command % 1 !== 0)
+            return command;
         const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
         let octave,
             keyNumber;
 
-        if (instruction.length === 3) {
-            octave = instruction.charAt(2);
+        if (command.length === 3) {
+            octave = command.charAt(2);
         } else {
-            octave = instruction.charAt(1);
+            octave = command.charAt(1);
         }
 
-        keyNumber = instructions.indexOf(instruction.slice(0, -1));
+        keyNumber = instructions.indexOf(command.slice(0, -1));
 
         if (keyNumber < 3) {
             keyNumber = keyNumber + 12 + ((octave - 1) * 12) + 1;
