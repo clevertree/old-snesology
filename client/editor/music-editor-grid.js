@@ -223,7 +223,9 @@ class MusicEditorGridElement extends HTMLElement {
                             break;
 
                         case 'PlayFrequency':
-                            cursorInstruction.command = this.editor.keyboardLayout[e.key];
+                            this.replaceInstructionParams(cursorPosition, {
+                                command: this.editor.keyboardLayout[e.key]
+                            });
                             this.render();
                             this.focus();
                             this.editor.playInstruction(cursorInstruction);
@@ -295,6 +297,10 @@ class MusicEditorGridElement extends HTMLElement {
 
     deleteInstruction(deletePosition) {
         return this.editor.deleteInstruction(this.getGroupName(), deletePosition, 1);
+    }
+
+    replaceInstructionParams(replacePositions, replaceParams) {
+        return this.editor.replaceInstructionParams(this.getGroupName(), replacePositions, replaceParams);
     }
 
     render() {

@@ -45,6 +45,11 @@
                 const sampleConfig = this.config.samples[i];
 
                 // Filter sample playback
+                if(sampleConfig.keyLow > frequency)
+                    continue;
+                if(sampleConfig.keyHigh && sampleConfig.keyHigh < frequency)
+                    continue;
+
 
                 if(typeof this.buffers[i] === 'undefined')
                     return console.error("Sample not loaded: " + sampleConfig.url);
@@ -145,6 +150,7 @@
         loadPresetConfig(presetName) {
             const urlPrefix = this.library.urlPrefix || '';
             const newConfig = Object.assign({}, this.config);
+            newConfig.preset = presetName;
             newConfig.samples = [];
             const presetConfig = this.library.instruments[presetName];
             // Object.assign(newConfig, presetConfig);
@@ -245,9 +251,9 @@
     document.instruments[NAMESPACE][CLASS_PATH] = BufferSourceInstrument;
 
     // Notify this instrument has been loaded
-    document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
-        class: BufferSourceInstrument,
-        url: NAMESPACE + CLASS_PATH
-    }}));
+    // document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
+    //     class: BufferSourceInstrument,
+    //     url: NAMESPACE + CLASS_PATH
+    // }}));
 
 })();

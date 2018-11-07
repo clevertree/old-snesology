@@ -239,8 +239,8 @@ function generateDefaultSong(songPath) {
         "version": "v0.0.2",
         "description": "New Song",
         "instruments": [{
-            // "url": "/instrument/audiosource/oscillator.instrument.js", // Default instrument
             "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js", // Default instrument
+            "urlDependencies": ["/instrument/audiosource/buffersource.instrument.js"], // Dependencies
         }],
         "instructions": {
             "root": [1,1,1,1]

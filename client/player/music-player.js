@@ -16,36 +16,6 @@ class MusicPlayerElement extends HTMLElement {
             volume: 0.3
         };
         this.loadSongData({});
-
-        document.addEventListener('instrument:loaded', (e) => {
-            const instrumentURL = new URL(e.detail.url, document.location);
-            // console.info("Initialize instrument: " + instrumentURL, e);
-            const songData = this.getSong();
-            // let foundInstrument = false;
-            for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
-                const instrumentList = songData.instruments;
-                if(!instrumentList[instrumentID])
-                    throw new Error("Instrument ID not found: " + instrumentID);
-
-                const instrumentPreset = instrumentList[instrumentID];
-                const instrumentPresetURL = new URL(instrumentPreset.url, document.location);
-                if(instrumentPresetURL.href !== instrumentURL.href)
-                    continue;
-
-                // foundInstrument = true;
-
-                if(!this.loadedInstruments[instrumentID])
-                    this.getInstrument(instrumentID);
-            }
-
-            // if(!foundInstrument)
-            //     console.warn("Instrument not found: " + instrumentURL);
-
-            if(songData.instruments.length === this.loadedInstruments.length)
-                this.dispatchEvent(new CustomEvent('instruments:initialized', {
-                    bubbles: true
-                }));
-        });
     }
 
     getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
@@ -90,11 +60,20 @@ class MusicPlayerElement extends HTMLElement {
             this.processInstructions(groupName));
         // TODO check all groups were processed
 
+        let loadingInstruments = 0;
         if(songData.instruments.length === 0) {
             console.warn("Song contains no instruments");
         } else {
             for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
-                this.initInstrument(instrumentID);
+                loadingInstruments++;
+                this.initInstrument(instrumentID, (instance) => {
+                    loadingInstruments--;
+                    if(loadingInstruments === 0) {
+                        this.dispatchEvent(new CustomEvent('instruments:initialized', {
+                            bubbles: true
+                        }));
+                    }
+                });
             }
         }
     }
@@ -467,12 +446,18 @@ class MusicPlayerElement extends HTMLElement {
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
     }
 
-    initInstrument(instrumentID) {
+    initInstrument(instrumentID, onInitiated) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         const instrumentPreset = instrumentList[instrumentID];
-        MusicPlayerElement.loadScript(instrumentPreset.url, () => {});
+        if(instrumentPreset.urlDependencies)
+            for(var i=0; i<instrumentPreset.urlDependencies.length; i++)
+                MusicPlayerElement.loadScript(instrumentPreset.urlDependencies[0], () => {});
+        MusicPlayerElement.loadScript(instrumentPreset.url, () => {
+            const instance = this.getInstrument(instrumentID);
+            onInitiated && onInitiated(instance);
+        });
     }
 
     addInstrument(url, instrumentConfig) {
@@ -486,7 +471,7 @@ class MusicPlayerElement extends HTMLElement {
         return instrumentID;
     }
 
-    replaceInstrumentParams(instrumentID, replaceConfig) {
+    replaceInstrumentParams(instrumentID, replaceConfig, onInstrumentLoad) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
@@ -515,6 +500,7 @@ class MusicPlayerElement extends HTMLElement {
             // this.loadedInstruments[instrumentID] = this.loadInstrumentPreset(newPresetConfig);
         }
         instrumentList[instrumentID] = newPresetConfig;
+        this.initInstrument(instrumentID, onInstrumentLoad);
 
         // this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
         return oldParams;
@@ -527,6 +513,28 @@ class MusicPlayerElement extends HTMLElement {
         return instrumentList.splice(instrumentID, 1);
     }
 
+
+    loadInstrumentPreset(instrumentPreset) {
+        if(!instrumentPreset || !instrumentPreset.url)
+            throw new Error("Invalid preset");
+        if(!document.instruments)
+            throw new Error("document.instruments is not loaded");
+
+        const url = new URL(instrumentPreset.url, document.location);
+
+        if(!document.instruments[url.origin])
+            throw new Error("Instrument origin not found: " + url.origin);
+        const collection = document.instruments[url.origin];
+
+        const path = url.pathname + url.hash;
+        if(!collection[path])
+            throw new Error("Instrument not found: " + path);
+
+        const instrument = collection[path];
+        // if(instrument.validateConfig)
+        //     instrument.validateConfig(instrumentPreset);
+        return new instrument(instrumentPreset, this.getAudioContext());
+    }
 
     // Playback
 
@@ -616,28 +624,6 @@ class MusicPlayerElement extends HTMLElement {
     //         throw new Error("Invalid Instrument Config: " + instrumentPreset);
     //     return instrumentPreset.path;
     // }
-
-    loadInstrumentPreset(instrumentPreset) {
-        if(!instrumentPreset || !instrumentPreset.url)
-            throw new Error("Invalid preset");
-        if(!document.instruments)
-            throw new Error("document.instruments is not loaded");
-
-        const url = new URL(instrumentPreset.url, document.location);
-
-        if(!document.instruments[url.origin])
-            throw new Error("Instrument origin not found: " + url.origin);
-        const collection = document.instruments[url.origin];
-
-        const path = url.pathname + url.hash;
-        if(!collection[path])
-            throw new Error("Instrument not found: " + path);
-
-        const instrument = collection[path];
-        // if(instrument.validateConfig)
-        //     instrument.validateConfig(instrumentPreset);
-        return new instrument(instrumentPreset, this.getAudioContext());
-    }
 
     isInstrumentLoaded(instrumentID) {
         return !!this.loadedInstruments[instrumentID];

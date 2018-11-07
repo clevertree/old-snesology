@@ -205,10 +205,10 @@
     document.instruments[NAMESPACE][CLASS_PATH] = OscillatorInstrument;
     
     // Notify this instrument has been loaded
-    document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
-        class: OscillatorInstrument,
-        url: NAMESPACE + CLASS_PATH
-    }}));
+    // document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
+    //     class: OscillatorInstrument,
+    //     url: NAMESPACE + CLASS_PATH
+    // }}));
     // document.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 
     // instrument
