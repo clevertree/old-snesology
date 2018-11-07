@@ -451,13 +451,27 @@ class MusicPlayerElement extends HTMLElement {
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         const instrumentPreset = instrumentList[instrumentID];
-        if(instrumentPreset.urlDependencies)
-            for(var i=0; i<instrumentPreset.urlDependencies.length; i++)
-                MusicPlayerElement.loadScript(instrumentPreset.urlDependencies[0], () => {});
-        MusicPlayerElement.loadScript(instrumentPreset.url, () => {
-            const instance = this.getInstrument(instrumentID);
-            onInitiated && onInitiated(instance);
-        });
+        const final = () => {
+            MusicPlayerElement.loadScript(instrumentPreset.url, () => {
+                const instance = this.getInstrument(instrumentID);
+                onInitiated && onInitiated(instance);
+            });
+        };
+        if(instrumentPreset.urlDependencies) {
+            const urlDependencies = instrumentPreset.urlDependencies.slice();
+            const next = () => {
+                if(urlDependencies.length === 0) {
+                    final();
+
+                } else {
+                    const nextURL = urlDependencies.pop();
+                    MusicPlayerElement.loadScript(nextURL, next);
+                }
+            };
+            next();
+        } else {
+            final();
+        }
     }
 
     addInstrument(url, instrumentConfig) {
