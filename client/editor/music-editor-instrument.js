@@ -58,9 +58,16 @@ class MusicEditorInstrumentElement extends HTMLElement {
         if(this.editor.player.isInstrumentLoaded(this.id)) {
             try {
                 const instrument = this.editor.player.getInstrument(this.id);
-                if (!instrument.renderEditor)
+                if (instrument instanceof HTMLElement) {
+                    this.appendChild(instrument);
+                } else if (instrument.render) {
+                    const renderedHTML = instrument.render(this);
+                    if(renderedHTML)
+                        this.innerHTML = renderedHTML;
+                } else {
                     throw new Error("No Renderer");
-                instrument.renderEditor(this);
+                }
+
             } catch (e) {
                 this.innerHTML = e;
             }

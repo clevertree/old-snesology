@@ -86,11 +86,21 @@
             return source;
         }
 
-        renderEditor(editorContainer) {
-            this.lastEditorContainer = editorContainer;
-            const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
+        connectedCallback() {
+            // this.editor = this.closest('music-editor'); // Don't rely on this !!!
+            this.addEventListener('change', this.onSubmit);
+            // this.addEventListener('input', this.onSubmit);
+            this.addEventListener('submit', this.onSubmit);
+
+
+            this.render();
+        }
+
+        render() {
+            // this.lastEditorContainer = editorContainer;
+            // const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
             // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
-            editorContainer.innerHTML = `
+            this.innerHTML = `
                 <form class="instrument-editor">
                     <fieldset>
                         <legend>${instrumentID}: ${this.config.name} (${this.constructor.name})</legend>
@@ -115,9 +125,6 @@
                 </form>
             `;
 
-            var form = editorContainer.querySelector('form.instrument-editor');
-            form.addEventListener('change', this.onEditorSubmit.bind(this));
-            form.addEventListener('submit', this.onEditorSubmit.bind(this));
         };
 
         onEditorSubmit(e) {
