@@ -3,7 +3,6 @@ const http = require('http');
 const fs = require('fs');
 const url = require('url');
 const {spawn, exec} = require('child_process');
-const unzip = require('unzip');
 // const md5File = require('md5-file');
 const { crc32 } = require('crc');
 
@@ -75,6 +74,7 @@ function buildSoundfontLibrary(sfURL, outputPath) {
         console.info(`Unzipping: ${zippedFilePath}`);
         let finished = false;
 
+        const unzip = require('unzip');
         fs.createReadStream(zippedFilePath)
             .pipe(unzip.Parse())
             .on('entry', function (entry) {
