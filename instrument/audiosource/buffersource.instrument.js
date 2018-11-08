@@ -5,11 +5,12 @@
     let NEW_COUNTER = 1;
     let LAST_SAMPLE_LIBRARY_URL = null;
 
-    class BufferSourceInstrument {
+    class BufferSourceInstrument extends HTMLElement {
         // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
         get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/chiptune/snes/ffvi/ffvi.library.json'; }
 
         constructor(config, audioContext) {
+            super();
             // this.id = instrumentID;
             if(!config.name)
                 config.name = this.constructor.name + NEW_COUNTER++;
