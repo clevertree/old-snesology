@@ -1,13 +1,10 @@
 (function() {
-    const CLASS_PATH = '/instrument/audiosource/oscillator.instrument.js';
-    const NAMESPACE = document.location.origin; // 'localhost'; // For local debugging 'snesology.net'
-    let NEW_COUNTER = 1;
     let LAST_SAMPLE_LIBRARY_URL = null;
-    class OscillatorInstrument {
+    class OscillatorInstrument extends HTMLElement {
         get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/chiptune/snes/ffvi/ffvi.library.json'; }
         // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
 
-        constructor(config, audioContext) {
+        setConfig(config, audioContext) {
             // this.id = instrumentID;
             if(!config.name)
                 config.name = this.constructor.name + NEW_COUNTER++;
@@ -198,12 +195,7 @@
     // }
 
     // const NAMESPACE = 'snesology.net'; // For local debugging 'localhost'
-    if (!document.instruments)
-        document.instruments = {};
-    if (!document.instruments[NAMESPACE])
-        document.instruments[NAMESPACE] = {};
-    document.instruments[NAMESPACE][CLASS_PATH] = OscillatorInstrument;
-    
+
     // Notify this instrument has been loaded
     // document.dispatchEvent(new CustomEvent('instrument:loaded', {detail: {
     //     class: OscillatorInstrument,
@@ -211,7 +203,7 @@
     // }}));
     // document.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 
-    // instrument
+    customElements.define('instrument-oscillator', BufferSourceInstrument);
 
     const BUILD_IN_TYPES = [
         'sine', 'square', 'sawtooth', 'triangle', 'custom'

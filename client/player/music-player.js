@@ -410,19 +410,6 @@ class MusicPlayerElement extends HTMLElement {
     //     this.setInstruction(p1, instruction2);
     // }
 
-    getInstrument(instrumentID) {
-        if(this.loadedInstruments[instrumentID])
-            return this.loadedInstruments[instrumentID];
-
-        const instrumentList = this.getSong().instruments;
-        if(!instrumentList[instrumentID])
-            throw new Error("Instrument ID not found: " + instrumentID);
-        const instrumentPreset = instrumentList[instrumentID];
-        const instance = this.loadInstrumentPreset(instrumentPreset, instrumentID);
-        this.loadedInstruments[instrumentID] = instance;
-        return instance;
-    }
-
     playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
         let instrument;
         try {
@@ -446,6 +433,25 @@ class MusicPlayerElement extends HTMLElement {
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
     }
 
+    getInstrument(instrumentID) {
+        if(this.loadedInstruments[instrumentID])
+            return this.loadedInstruments[instrumentID];
+
+        const instrumentList = this.getSong().instruments;
+        if(!instrumentList[instrumentID])
+            throw new Error("Instrument ID not found: " + instrumentID);
+        const instrumentPreset = instrumentList[instrumentID];
+
+        const url = new URL(instrumentPreset.url, document.location);
+        const elementName = url.pathname.substring(url.pathname.lastIndexOf('/')+1).split('.')[0];
+
+        const instrumentClass = customElements.get(elementName);
+        const instance = new instrumentClass();
+
+        this.loadedInstruments[instrumentID] = instance;
+        return instance;
+    }
+
     initInstrument(instrumentID, onInitiated) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
@@ -454,6 +460,8 @@ class MusicPlayerElement extends HTMLElement {
         const final = () => {
             MusicPlayerElement.loadScript(instrumentPreset.url, () => {
                 const instance = this.getInstrument(instrumentID);
+                if(instance.setConfig)
+                    instance.setConfig(instrumentPreset, this.getAudioContext());
                 onInitiated && onInitiated(instance);
             });
         };
@@ -506,13 +514,6 @@ class MusicPlayerElement extends HTMLElement {
             }
         }
 
-        // Unload existing instance
-        if(this.loadedInstruments[instrumentID]) {
-            if(this.loadedInstruments[instrumentID].unload)
-                this.loadedInstruments[instrumentID].unload();
-            this.loadedInstruments[instrumentID] = null;
-            // this.loadedInstruments[instrumentID] = this.loadInstrumentPreset(newPresetConfig);
-        }
         instrumentList[instrumentID] = newPresetConfig;
         this.initInstrument(instrumentID, onInstrumentLoad);
 
@@ -520,34 +521,12 @@ class MusicPlayerElement extends HTMLElement {
         return oldParams;
     }
 
+
     removeInstrument(instrumentID) {
         const instrumentList = this.getSong().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
         return instrumentList.splice(instrumentID, 1);
-    }
-
-
-    loadInstrumentPreset(instrumentPreset) {
-        if(!instrumentPreset || !instrumentPreset.url)
-            throw new Error("Invalid preset");
-        if(!document.instruments)
-            throw new Error("document.instruments is not loaded");
-
-        const url = new URL(instrumentPreset.url, document.location);
-
-        if(!document.instruments[url.origin])
-            throw new Error("Instrument origin not found: " + url.origin);
-        const collection = document.instruments[url.origin];
-
-        const path = url.pathname + url.hash;
-        if(!collection[path])
-            throw new Error("Instrument not found: " + path);
-
-        const instrument = collection[path];
-        // if(instrument.validateConfig)
-        //     instrument.validateConfig(instrumentPreset);
-        return new instrument(instrumentPreset, this.getAudioContext());
     }
 
     // Playback
@@ -686,7 +665,7 @@ class MusicPlayerElement extends HTMLElement {
     static loadScript(scriptPath, onLoaded) {
         const scripts = document.head.querySelectorAll('script');
         for(let i=0; i<scripts.length; i++) {
-            if(scripts[i].src === scriptPath) {
+            if(scripts[i].src.endsWith(scriptPath)) {
                 if(scripts[i].loaded) {
                     onLoaded();
                 } else {
