@@ -87,13 +87,14 @@ class MusicEditorGridElement extends HTMLElement {
 
     render() {
         // const groupName = this.groupName || 'root';
+        // Get cell positions, not instrument indices
+        let cellList = this.querySelectorAll('.grid-cell');
+        let cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+
+
         const selectedIndices = this.selectedIndices;
         const cursorIndex = this.cursorIndex;
         const maxPause = this.maxPause;
-        const editor = this.editor;
-        const song = editor.getSong();
-        if(!song)
-            return;
         // var pausesPerBeat = song.pausesPerBeat;
 
         // const beatsPerMinute = song.beatsPerMinute;
@@ -118,7 +119,7 @@ class MusicEditorGridElement extends HTMLElement {
             if (typeof instruction.velocity !== 'undefined')
                 cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
             if (typeof instruction.duration !== 'undefined')
-                cellHTML += `<div class="grid-parameter duration">${editor.format(instruction.duration, 'duration')}</div>`;
+                cellHTML += `<div class="grid-parameter duration">${this.editor.format(instruction.duration, 'duration')}</div>`;
             cellHTML += `</div>`;
         };
 
@@ -146,7 +147,7 @@ class MusicEditorGridElement extends HTMLElement {
                     +   `<div class="grid-cell grid-cell-new" data-position="${songPosition}">`
                     +     `<div class="grid-parameter">+</div>`
                     +   `</div>`
-                    +   `<div class="grid-cell-pause ${gridCSS}" data-index="${index}" data-position="${songPosition}" data-duration="${subDuration}">`
+                    +   `<div class="grid-cell-pause ${gridCSS}">`
                     +     `<div class="grid-parameter">${this.editor.format(subDuration, 'duration')}</div>`
                     +   `</div>`
                     + `</div>`;
@@ -185,6 +186,10 @@ class MusicEditorGridElement extends HTMLElement {
         const currentScrollPosition = this.scrollTop || 0;
         this.innerHTML = editorHTML;
         this.scrollTop = currentScrollPosition;
+
+        cellList = this.querySelectorAll('.grid-cell');
+        if(cellList[cursorCellIndex])
+            cellList[cursorCellIndex].classList.add('cursor');
     }
 
     onInput(e) {
@@ -240,9 +245,9 @@ class MusicEditorGridElement extends HTMLElement {
                         }
                     }
 
-                    let cursorPosition = this.cursorPosition;
+                    let cursorIndex = this.cursorIndex;
                     const instructionList = this.editor.player.getInstructions(this.groupName);
-                    let cursorInstruction = instructionList[cursorPosition];
+                    let cursorInstruction = instructionList[cursorIndex];
                     switch (keyEvent) {
                         case 'Delete':
                             this.editor.deleteInstruction(this.groupName, this.selectedPositions);
@@ -276,12 +281,9 @@ class MusicEditorGridElement extends HTMLElement {
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
                             if(!this.nextCell) {
-                                let nextRowPosition = this.insertInstruction({
-                                    command: '!pause',
-                                    duration: parseFloat(this.cursorCell.parentNode.getAttribute('data-pause'))
-                                }); // insertPosition
-                                this.render();
-                                this.editor.grid.selectIndices(nextRowPosition);
+                                this.increaseGridSize();
+                                // this.render();
+                                this.selectCell(e, this.nextCell);
 
                             } else {
                                 this.selectCell(e, this.nextCell);
@@ -298,12 +300,9 @@ class MusicEditorGridElement extends HTMLElement {
 
                         case 'ArrowDown':
                             if(!this.nextRowCell) {
-                                let nextRowPosition = this.insertInstruction({
-                                    command: '!pause',
-                                    duration: parseFloat(this.cursorCell.parentNode.getAttribute('data-pause'))
-                                }); // insertPosition
-                                this.render();
-                                this.editor.grid.selectIndices(nextRowPosition);
+                                this.increaseGridSize();
+                                // this.render();
+                                this.selectCell(e, this.nextRowCell);
 
                             } else {
                                 this.selectCell(e, this.nextRowCell);
@@ -324,7 +323,7 @@ class MusicEditorGridElement extends HTMLElement {
                             break;
 
                         case 'PlayFrequency':
-                            this.replaceInstructionParams(cursorPosition, {
+                            this.replaceInstructionParams(cursorIndex, {
                                 command: this.editor.keyboardLayout[e.key]
                             });
                             this.render();
@@ -390,6 +389,18 @@ class MusicEditorGridElement extends HTMLElement {
             this.editor.onError(e);
         }
 
+    }
+
+    increaseGridSize() {
+        const instructionList = this.instructionList;
+        let lastIndex = instructionList.length - 1;
+        let lastInstruction = instructionList[lastIndex];
+        if(lastInstruction.command !== '!pause') {
+            throw new Error("TODO: Insert new pause");
+        }
+        this.replaceInstructionParams(lastIndex, {
+            duration: lastInstruction.duration + this.maxPause
+        });
     }
 
     insertInstruction(instruction, insertPosition) {

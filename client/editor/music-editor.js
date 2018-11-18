@@ -341,16 +341,16 @@ class MusicEditorElement extends HTMLElement {
         this.grid.render();
     }
 
-    replaceInstructionParams(groupName, replacePositions, replaceParams) {
-        if(!Array.isArray(replacePositions))
-            replacePositions = [replacePositions];
+    replaceInstructionParams(groupName, replaceIndices, replaceParams) {
+        if(!Array.isArray(replaceIndices))
+            replaceIndices = [replaceIndices];
         const historyActions = {action: 'group', params: []};
-        for(let i=0; i<replacePositions.length; i++) {
-            const replacePosition = replacePositions[i];
+        for(let i=0; i<replaceIndices.length; i++) {
+            const replacePosition = replaceIndices[i];
             const oldParams = this.player.replaceInstructionParams(groupName, replacePosition, replaceParams);
             const historyAction = {
                 action: 'params',
-                params: [groupName, replacePositions, replaceParams],
+                params: [groupName, replaceIndices, replaceParams],
                 return: oldParams
             };
             historyActions.params.push(historyAction);
