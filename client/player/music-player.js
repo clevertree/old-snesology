@@ -324,22 +324,22 @@ class MusicPlayerElement extends HTMLElement {
         return instructionList.splice(replacePosition, replaceCount);
     }
 
-    insertInstructions(groupName, insertPosition, insertInstructions) {
+    insertInstructions(groupName, insertIndexPosition, insertInstructions) {
         let instructionList = this.getInstructions(groupName);
-        if (instructionList.length < insertPosition)
-            throw new Error("Insert position out of index: " + instructionList.length + " < " + insertPosition + " for groupName: " + groupName);
+        if (instructionList.length < insertIndexPosition)
+            throw new Error("Insert position out of index: " + instructionList.length + " < " + insertIndexPosition + " for groupName: " + groupName);
 
         if(!Array.isArray(insertInstructions))
             insertInstructions = [insertInstructions];
         for(let i=insertInstructions.length-1; i>=0; i--) // Insert backwards
-            instructionList.splice(insertPosition, 0, insertInstructions[i]);
+            instructionList.splice(insertIndexPosition, 0, insertInstructions[i]);
     }
 
-    deleteInstructions(groupName, deletePosition, deleteCount) {
+    deleteInstruction(groupName, deleteIndexPosition, deleteCount) {
         let instructionList = this.getInstructions(groupName);
-        if (instructionList.length < deletePosition)
-            throw new Error("Delete position out of index: " + instructionList.length + " < " + deletePosition + " for groupName: " + groupName);
-        return instructionList.splice(deletePosition, deleteCount);
+        if (instructionList.length < deleteIndexPosition)
+            throw new Error("Delete position out of index: " + instructionList.length + " < " + deleteIndexPosition + " for groupName: " + groupName);
+        return instructionList.splice(deleteIndexPosition, deleteCount);
     }
 
     replaceInstructionParams(groupName, replacePosition, replaceParams) {

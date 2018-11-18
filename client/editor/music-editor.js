@@ -19,7 +19,9 @@ class MusicEditorElement extends HTMLElement {
             'z':'C1', 'x':'D1', 'c':'E1', 'v':'F1', 'b':'G1', 'n':'A1', 'm':'B1', ',':'C2', '.':'D2', '/':'E2',
         };
         this.status = {
-            grids: [{groupName: 'root', cursorPosition: 0, selectedPositions: []}],
+            grids: [
+                Object.assign({}, MusicEditorElement.DEFAULT_GRID_STATUS)
+            ],
             history: {
                 currentStep: 0,
                 undoList: [],
@@ -287,7 +289,7 @@ class MusicEditorElement extends HTMLElement {
     //     return this.player.getInstructions(this.grid.getGroupName())[this.gridStatus.cursorPosition];
     // }
 
-    // deleteInstructions(deletePositions) {
+    // deleteInstruction(deletePositions) {
     //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
     //     // deletePositions = deletePositions || this.gridStatus.selectedPositions;
     //     deletePositions.sort((a, b) => b - a);
@@ -300,16 +302,6 @@ class MusicEditorElement extends HTMLElement {
     //     this.gridSelect(null, [deletePositions[deletePositions.length-1]]);
     // }
 
-    gridFindInstruction(instruction) {
-        let grids = this.querySelectorAll('music-editor-grid');
-        for(let i=0; i<grids.length; i++) {
-            const instructionElm = grids[i].findInstruction(instruction);
-            if(instructionElm)
-                return instructionElm;
-        }
-        return null;
-    }
-
     // Edit song functions
 
     historyQueue(historyAction) {
@@ -319,13 +311,14 @@ class MusicEditorElement extends HTMLElement {
         this.status.history.undoList.push(historyAction);
         this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-        console.info("Sending history action: " + historyAction.step, historyAction);
-        this.webSocket
-            .send(JSON.stringify({
-                type: 'history:entry',
-                historyAction: historyAction,
-                path: this.getSongURL()
-            }))
+        // DISABLED FOR NOW
+        // console.info("Sending history action: " + historyAction.step, historyAction);
+        // this.webSocket
+        //     .send(JSON.stringify({
+        //         type: 'history:entry',
+        //         historyAction: historyAction,
+        //         path: this.getSongURL()
+        //     }))
     }
 
     historyUndo() {
@@ -336,18 +329,22 @@ class MusicEditorElement extends HTMLElement {
 
     }
 
-    insertInstructions(groupName, insertPosition, instructionsToAdd) {
-        if(typeof insertPosition === 'undefined')
-            insertPosition = this.player.getInstructions(groupName).length;
-        this.player.insertInstructions(groupName, insertPosition, instructionsToAdd);
+    insertInstructionAtTime(groupName, insertPosition, instructionToAdd) {
+
+    }
+
+    insertInstructions(groupName, insertIndexPosition, instructionsToAdd) {
+        if(typeof insertIndexPosition === 'undefined')
+            insertIndexPosition = this.player.getInstructions(groupName).length;
+        this.player.insertInstructions(groupName, insertIndexPosition, instructionsToAdd);
         const historyAction = {
             action: 'insert',
-            params: [groupName, insertPosition, instructionsToAdd]
+            params: [groupName, insertIndexPosition, instructionsToAdd]
         };
         this.historyQueue(historyAction);
         this.grid.render();
-        this.gridSelect(null, [insertPosition]);
-        return insertPosition;
+        this.gridSelect(null, [insertIndexPosition]);
+        return insertIndexPosition;
     }
 
     deleteInstructions(groupName, deletePositions) {
@@ -564,7 +561,7 @@ class MusicEditorElement extends HTMLElement {
                 this.player.insertInstructions(action.params[0], action.params[1], action.params[2]);
                 break;
             case 'delete':
-                this.player.deleteInstructions(action.params[0], action.params[1], action.params[2] || 1);
+                this.player.deleteInstruction(action.params[0], action.params[1], action.params[2] || 1);
                 break;
             case 'replace':
                 this.player.replaceInstruction(action.params[0], action.params[1], action.params[2], action.params[3]);
@@ -621,7 +618,6 @@ class MusicEditorElement extends HTMLElement {
         }
     }
 
-
     // deleteInstruction(groupName, deletePosition, deleteCount) {
     //     const deletedInstructions = this.player.replaceInstruction(groupName, deletePosition, deleteCount);
     //     const historyAction = {
@@ -633,6 +629,7 @@ class MusicEditorElement extends HTMLElement {
     //     this.grid.render();
     //     this.gridSelect(null, [deletePosition]);
     // }
+
 
     // replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd) {
     //     const deletedInstructions = this.player.replaceInstruction(groupName, replacePosition, replaceCount, instructionsToAdd);
@@ -646,10 +643,10 @@ class MusicEditorElement extends HTMLElement {
     //     this.gridSelect(null, [replacePosition]);
     // }
 
-
-
-
     // Rendering
+
+
+
 
     render() {
         const song = this.getSong();
@@ -689,6 +686,16 @@ class MusicEditorElement extends HTMLElement {
     }
 
     // Grid Commands
+
+    gridFindInstruction(instruction) {
+        let grids = this.querySelectorAll('music-editor-grid');
+        for(let i=0; i<grids.length; i++) {
+            const instructionElm = grids[i].findInstruction(instruction);
+            if(instructionElm)
+                return instructionElm;
+        }
+        return null;
+    }
 
     gridSelect(e, cursorPosition) {
         const inputProfile = this.profileInput(e);
@@ -730,12 +737,12 @@ class MusicEditorElement extends HTMLElement {
         if(existingGrid)
             this.status.grids.unshift(existingGrid);
         else
-            this.status.grids.unshift({
-                groupName: groupName,
-                parentInstruction: parentInstruction,
-                selectedPositions: [],
-                cursorPosition: 0
-            });
+            this.status.grids.unshift(
+                Object.assign({}, MusicEditorElement.DEFAULT_GRID_STATUS, {
+                    groupName: groupName,
+                    parentInstruction: parentInstruction,
+                })
+            );
         this.render();
     }
 
@@ -822,4 +829,10 @@ class MusicEditorElement extends HTMLElement {
     // Input
 
 }
+MusicEditorElement.DEFAULT_GRID_STATUS = {
+    groupName: 'root',
+    cursorPosition: 0,
+    selectedPositions: [],
+    maxPause: 1
+};
 customElements.define('music-editor', MusicEditorElement);

@@ -144,7 +144,7 @@ class MusicEditorGridElement extends HTMLElement {
                     let cursorInstruction = instructionList[cursorPosition];
                     switch (keyEvent) {
                         case 'Delete':
-                            this.editor.deleteInstructions(this.getGroupName(), this.editor.gridStatus.selectedPositions);
+                            this.editor.deleteInstruction(this.getGroupName(), this.editor.gridStatus.selectedPositions);
                             e.preventDefault();
                             // editor.render(true);
                             break;
@@ -304,59 +304,93 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     render() {
+        // TODO: REFACTOR gridstatus into editor grid only
         const gridStatus = this.editor.gridStatus;
         const groupName = gridStatus.groupName;
         const selectedPositions = gridStatus.selectedPositions;
         const cursorPosition = gridStatus.cursorPosition;
         const editor = this.editor;
-        const song = editor.getSong() || function() {
-            const song = {};
-            song.instructions = {};
-            song.instructions[groupName] = [];
-            return song;
-        }();
-        if(gridStatus.maxPause)
-            console.info("TODO: ", gridStatus, gridStatus.maxPause);
+        const song = editor.getSong();
+        if(!song)
+            return;
         // var pausesPerBeat = song.pausesPerBeat;
 
-        const beatsPerMinute = song.beatsPerMinute;
-        const beatsPerMeasure = song.beatsPerMeasure;
+        // const beatsPerMinute = song.beatsPerMinute;
+        // const beatsPerMeasure = song.beatsPerMeasure;
         const instructionList = song.instructions[groupName];
-        let odd = false, selectedRow = false;
 
+        let odd = false;
         let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
-        for(let position=0; position<instructionList.length; position++) {
-            const instruction = instructionList[position];
-            // const nextPause = instructionList.find((i, p) => i.duration > 0 && p > position);
+
+        const addInstructionHTML = (index, instruction, selectedInstruction, cursorInstruction) => {
             const noteCSS = [];
-            if(selectedPositions.indexOf(position) !== -1) {
-                selectedRow = true;
+            if(selectedInstruction)
                 noteCSS.push('selected');
-            }
 
-            if(cursorPosition === position) {
+            if(cursorInstruction)
                 noteCSS.push('cursor');
+
+            cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-index="${index}">`;
+            cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
+            if (typeof instruction.instrument !== 'undefined')
+                cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
+            if (typeof instruction.velocity !== 'undefined')
+                cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+            if (typeof instruction.duration !== 'undefined')
+                cellHTML += `<div class="grid-parameter duration">${editor.format(instruction.duration, 'duration')}</div>`;
+            cellHTML += `</div>`;
+        };
+
+        const addPauseHTML = (index, pauseInstruction) => {
+            if(typeof pauseInstruction.duration !== "number")
+                throw new console.error("Invalid Pause command: ", pauseInstruction);
+
+            const duration = pauseInstruction.duration;
+            const maxPause = gridStatus.maxPause;
+            for(let subPause=0; subPause<duration; subPause+=maxPause) {
+                let subDuration = maxPause;
+                if(subPause + maxPause > duration)
+                    subDuration = subPause + maxPause - duration;
+
+                // if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + pauseInstruction.pause) / beatsPerMeasure))
+                //     rowCSS.push('measure-end');
+
+                var rowCSS = (odd = !odd) ? ['odd'] : [];
+
+                const gridCSS = subDuration >= 1 ? 'duration-large'
+                    : (subDuration >= 1/4 ? 'duration-medium'
+                        : 'duration-small');
+                editorHTML +=
+                    `<div class="grid-row ${rowCSS.join(' ')}">`
+                    +   cellHTML
+                    +   `<div class="grid-cell grid-cell-new" data-position="${songPosition}">`
+                    +     `<div class="grid-parameter">+</div>`
+                    +   `</div>`
+                    +   `<div class="grid-cell-pause ${gridCSS}" data-index="${index}" data-position="${songPosition}" data-duration="${subDuration}">`
+                    +     `<div class="grid-parameter">${this.editor.format(subDuration, 'duration')}</div>`
+                    +   `</div>`
+                    + `</div>`;
+                cellHTML = '';
+
+                songPosition += subDuration;
             }
 
+        };
+
+        for(let index=0; index<instructionList.length; index++) {
+            const instruction = instructionList[index];
+            let selectedInstruction = false;
+            let cursorInstruction = cursorPosition === index;
+            if(selectedPositions.indexOf(index) !== -1) {
+                selectedInstruction = true;
+            }
 
             if (instruction.command[0] === '!') {
                 const functionName = instruction.command.substr(1);
                 switch (functionName) {
                     case 'pause':
-                        var pauseCSS = (odd = !odd) ? ['odd'] : [];
-                        if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + instruction.pause) / beatsPerMeasure))
-                            pauseCSS.push('measure-end');
-                        if(!instruction.duration)
-                            console.warn("Invalid Pause command: ", position, instruction);
-                        // lastPause = instruction.duration;
-                        songPosition += instruction.duration;
-
-                        if (selectedRow)
-                            pauseCSS.push('selected');
-
-                        addRowHTML.call(this, cellHTML, position, instruction.duration, pauseCSS);
-                        cellHTML = '';
-                        selectedRow = false;
+                        //songPosition += instruction.duration;
+                        addPauseHTML(index, instruction);
                         break;
 
                     default:
@@ -364,45 +398,13 @@ class MusicEditorGridElement extends HTMLElement {
                         break;
                 }
             } else {
-                cellHTML += `<div class="grid-cell grid-cell-note ${noteCSS.join(' ')}" data-position="${position}">`;
-                cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
-                if (typeof instruction.instrument !== 'undefined')
-                    cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
-                if (typeof instruction.velocity !== 'undefined')
-                    cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-                if (typeof instruction.duration !== 'undefined')
-                    cellHTML += `<div class="grid-parameter duration">${editor.format(instruction.duration, 'duration')}</div>`;
-                cellHTML += `</div>`;
+                addInstructionHTML(index, instruction, selectedInstruction, cursorInstruction);
             }
-
-
         }
-
-        // addRowHTML(cellHTML, instructionList.length);
 
         const currentScrollPosition = this.scrollTop || 0;
         this.innerHTML = editorHTML;
         this.scrollTop = currentScrollPosition;
-            // `<div class="editor-grid">`
-            // +   editorHTML
-            // + `</div>`;
-
-
-        function addRowHTML(cellHTML, position, pauseLength, rowCSS) {
-            const pauseCSS = pauseLength >= 1 ? 'duration-large'
-                : (pauseLength >= 1/4 ? 'duration-medium'
-                : 'duration-small');
-            editorHTML +=
-                `<div class="grid-row ${rowCSS.join(' ')}" data-position="${position}" data-pause="${pauseLength}" data-beats-per-minute="${beatsPerMinute}">`
-                +   cellHTML
-                +   `<div class="grid-cell grid-cell-new" data-position="${position}">`
-                +     `<div class="grid-parameter">+</div>`
-                +   `</div>`
-                +   `<div class="grid-cell-pause ${pauseCSS}" data-position="${position}" data-duration="${pauseLength}">`
-                +     `<div class="grid-parameter">${this.editor.format(pauseLength, 'duration')}</div>`
-                +   `</div>`
-                + `</div>`;
-        }
     }
 
     getGroupName() { return this.editor.gridStatus.groupName; }

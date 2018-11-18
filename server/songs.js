@@ -243,7 +243,7 @@ function generateDefaultSong(songPath) {
             "urlDependencies": ["/instrument/audiosource/instrument-buffersource.js"], // Dependencies
         }],
         "instructions": {
-            "root": [1,1,1,1]
+            "root": [4]
         }
     };
 }

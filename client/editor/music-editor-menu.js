@@ -67,7 +67,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     break;
 
                 case 'instruction:remove':
-                    this.editor.deleteInstructions(currentGroup, selectedPositions);
+                    this.editor.deleteInstruction(currentGroup, selectedPositions);
                     break;
 
                 case 'row:edit':
@@ -272,11 +272,16 @@ class MusicEditorMenuElement extends HTMLElement {
     }
 
     update(gridStatus) {
+
+        // TODO: REFACTOR gridstatus into editor grid only
         const instructionList = this.editor.player ? this.editor.player.getInstructions(gridStatus.groupName) : [];
         let combinedInstruction = null;
         for(let i=0; i<gridStatus.selectedPositions.length; i++) {
             const selectedPosition = gridStatus.selectedPositions[i];
+            if(!instructionList[selectedPosition])
+                throw new Error("Instruction not found at position " + selectedPosition + " in group " + gridStatus.groupName);
             const selectedInstruction = instructionList[selectedPosition];
+
             if(selectedInstruction.command[0] === '!')
                 continue;
 
@@ -554,7 +559,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         <label class="row-label row-label-command">Max Pause:
                             <select name="max-pause" title="Max Pause">
                                 <optgroup label="Max Pause">
-                                    ${this.renderEditorFormOptions('durations')}
+                                    ${this.renderEditorFormOptions('durations', (value) => value === gridStatus.maxPause)}
                                 </optgroup>
                             </select>
                         </label>
