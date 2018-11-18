@@ -26,15 +26,15 @@ class MusicEditorMenuElement extends HTMLElement {
         try {
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
-            const cursorPosition = this.editor.gridCursorPosition;
+            const cursorIndex = this.editor.grid.cursorIndex;
             const currentGroup = this.editor.gridCurrentGroup;
-            const selectedPositions = this.editor.gridSelectedPositions;
-            const selectedPausePositions = this.editor.gridSelectedPausePositions;
+            const selectedIndices = this.editor.grid.selectedIndices;
+            const selectedPauseIndices = this.editor.grid.selectedPauseIndices;
             const selectedRange = this.editor.gridSelectedRange;
 
             switch (command) {
                 case 'instruction:command':
-                    this.editor.replaceInstructionParams(currentGroup, cursorPosition, {
+                    this.editor.replaceInstructionParams(currentGroup, cursorIndex, {
                         command: form.command.value
                     });
                     break;
@@ -47,31 +47,31 @@ class MusicEditorMenuElement extends HTMLElement {
                     } else {
                         instrumentID = instrumentID === '' ? null : parseInt(instrumentID);
                     }
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
                         instrument: instrumentID
                     });
                     break;
 
                 case 'instruction:duration':
                     const duration = form.duration.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
                         duration: parseFloat(duration)
                     });
                     break;
 
                 case 'instruction:velocity':
                     const velocity = form.velocity.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedPositions, {
+                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
                         velocity: parseInt(velocity)
                     });
                     break;
 
                 case 'instruction:remove':
-                    this.editor.deleteInstruction(currentGroup, selectedPositions);
+                    this.editor.deleteInstruction(currentGroup, selectedIndices);
                     break;
 
                 case 'row:edit':
-                    this.editor.replaceInstructionParams(currentGroup, selectedPausePositions, {
+                    this.editor.replaceInstructionParams(currentGroup, selectedPauseIndices, {
                         command: '!pause',
                         duration: parseFloat(form.duration.value)
                     });
@@ -86,7 +86,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
                 case 'row:split':
                     const splitPercentage = prompt("Split row at what percentage? ", 50);
-                    this.editor.splitInstructionRows(currentGroup, selectedPausePositions, splitPercentage);
+                    this.editor.splitInstructionRows(currentGroup, selectedPauseIndices, splitPercentage);
                     break;
 
                 case 'group:edit':
@@ -124,7 +124,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     break;
 
                 case 'grid:max-pause':
-                    this.editor.gridStatus.maxPause = parseFloat(form['max-pause'].value);
+                    this.editor.grid.maxPause = parseFloat(form['max-pause'].value);
                     this.editor.grid.render();
                     break;
 
@@ -141,9 +141,9 @@ class MusicEditorMenuElement extends HTMLElement {
         if(e.defaultPrevented)
             return;
 
-        const cursorPosition = this.editor.gridCursorPosition;
-        const currentGroup = this.editor.gridCurrentGroup;
-        const instructionList = this.editor.gridInstructionList;
+        const cursorPosition = this.editor.grid.cursorPosition;
+        const currentGroup = this.editor.grid.groupName;
+        const instructionList = this.editor.grid.instructionList;
         const cursorInstruction = instructionList[cursorPosition];
 
         let targetClassList = e.target.classList;
@@ -271,62 +271,6 @@ class MusicEditorMenuElement extends HTMLElement {
         }
     }
 
-    update(gridStatus) {
-
-        // TODO: REFACTOR gridstatus into editor grid only
-        const instructionList = this.editor.player ? this.editor.player.getInstructions(gridStatus.groupName) : [];
-        let combinedInstruction = null;
-        for(let i=0; i<gridStatus.selectedPositions.length; i++) {
-            const selectedPosition = gridStatus.selectedPositions[i];
-            if(!instructionList[selectedPosition])
-                throw new Error("Instruction not found at position " + selectedPosition + " in group " + gridStatus.groupName);
-            const selectedInstruction = instructionList[selectedPosition];
-
-            if(selectedInstruction.command[0] === '!')
-                continue;
-
-            const nextPause = instructionList.find((i, p) => i.duration > 0 && p >= selectedPosition);
-            if(combinedInstruction === null) {
-                combinedInstruction = Object.assign({}, selectedInstruction);
-                if(nextPause) combinedInstruction.duration = nextPause.duration;
-            } else {
-                Object.keys(combinedInstruction).forEach(function(key, i) {
-                    if(selectedInstruction[key] !== combinedInstruction[key])
-                        delete combinedInstruction[key];
-                });
-                if(nextPause && nextPause.duration !== combinedInstruction.duration)
-                    delete combinedInstruction.duration;
-            }
-        }
-        // if(!combinedInstruction)
-        //     combinedInstruction = {command: 'C4'};
-
-// TODO: get position from status, not grid
-        let selectedPausePositions = this.editor.gridSelectedPausePositions;
-        // let selectedPauseDisabled = this.editor.grid.gridSelectedPausePositions().length === 0;
-
-        // Row Instructions
-        Array.prototype.slice.call(this.querySelectorAll('.fieldset-row'))
-            .forEach(fieldset => selectedPausePositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
-        Array.prototype.slice.call(this.querySelectorAll('.fieldset-instruction'))
-            .forEach(fieldset => this.editor.gridStatus.selectedPositions.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
-
-
-        if(combinedInstruction) {
-            // Note Instruction
-            this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command || '';
-            this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument || '';
-            this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity || '';
-            this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
-
-            // Row/Pause
-            this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
-        }
-
-        this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPausePositions.length > 1 ? 's' : '') + ":";
-        this.querySelector('.row-label-command').innerHTML = 'Command' + (gridStatus.selectedPositions.length > 1 ? 's' : '') + ":";
-    }
-
     renderEditorMenuLoadFromMemory() {
         const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
 //         console.log("Loading song list from memory: ", songGUIDs);
@@ -353,9 +297,69 @@ class MusicEditorMenuElement extends HTMLElement {
     `;
     }
 
-    render(gridStatus) {
-        gridStatus = gridStatus || this.editor.gridStatus;
+    update() {
 
+        const maxPause = this.editor.grid.maxPause;
+        const selectedIndices = this.editor.grid.selectedIndices;
+        const groupName = this.editor.grid.groupName;
+        // TODO: REFACTOR gridstatus into editor grid only
+        const instructionList = this.editor.player ? this.editor.player.getInstructions(groupName) : [];
+        let combinedInstruction = null;
+        for(let i=0; i<selectedIndices.length; i++) {
+            const selectedIndex = selectedIndices[i];
+            if(!instructionList[selectedIndex])
+                throw new Error("Instruction not found at index " + selectedIndex + " in group " + groupName);
+            const selectedInstruction = instructionList[selectedIndex];
+
+            if(selectedInstruction.command[0] === '!')
+                continue;
+
+            const nextPause = instructionList.find((i, p) => i.duration > 0 && p >= selectedIndex);
+            if(combinedInstruction === null) {
+                combinedInstruction = Object.assign({}, selectedInstruction);
+                if(nextPause) combinedInstruction.duration = nextPause.duration;
+            } else {
+                Object.keys(combinedInstruction).forEach(function(key, i) {
+                    if(selectedInstruction[key] !== combinedInstruction[key])
+                        delete combinedInstruction[key];
+                });
+                if(nextPause && nextPause.duration !== combinedInstruction.duration)
+                    delete combinedInstruction.duration;
+            }
+        }
+        // if(!combinedInstruction)
+        //     combinedInstruction = {command: 'C4'};
+
+        let selectedPauseIndices = this.editor.grid.selectedPauseIndices;
+        // let selectedPauseDisabled = this.editor.grid.gridSelectedPausePositions().length === 0;
+
+        // Row Instructions
+        Array.prototype.slice.call(this.querySelectorAll('.fieldset-row'))
+            .forEach(fieldset => selectedPauseIndices.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
+        Array.prototype.slice.call(this.querySelectorAll('.fieldset-instruction'))
+            .forEach(fieldset => selectedIndices.length === 0 ? fieldset.setAttribute('disabled', 'disabled') : fieldset.removeAttribute('disabled'));
+
+        Array.prototype.slice.call(this.querySelectorAll('button[name=groupName]'))
+            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
+
+        if(combinedInstruction) {
+            // Note Instruction
+            this.querySelector('form.form-instruction-command').command.value = combinedInstruction.command || '';
+            this.querySelector('form.form-instruction-instrument').instrument.value = combinedInstruction.instrument || '';
+            this.querySelector('form.form-instruction-velocity').velocity.value = combinedInstruction.velocity || '';
+            this.querySelector('form.form-instruction-duration').duration.value = combinedInstruction.duration || '';
+
+            // Row/Pause
+            this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
+        }
+
+        this.querySelector('form.form-grid-max-pause')['max-pause'].value = maxPause;
+
+        this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPauseIndices.length > 1 ? 's' : '') + ":";
+        this.querySelector('.row-label-command').innerHTML = 'Command' + (selectedIndices.length > 1 ? 's' : '') + ":";
+    }
+
+    render() {
         this.innerHTML =
             `<ul class="editor-menu">
                 <li>
@@ -544,7 +548,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     ${this.getEditorFormOptions('groups', (value, label, selected) =>
                     `&nbsp;<form class="form-group" data-command="group:edit">`
                     + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''}" >${label}</button>`
-                    + `</form>`, (value) => value === gridStatus.groupName)}
+                    + `</form>`)}
 
                     <form class="form-group" data-command="group:edit">
                         <button name="groupName" value=":new" class="new" title="Create new group">+</button>
@@ -555,11 +559,11 @@ class MusicEditorMenuElement extends HTMLElement {
     
                 
                 <form class="form-grid-max-pause" data-command="grid:max-pause" style="float: right;">
-                    <fieldset class="fieldset-row">
+                    <fieldset class="fieldset-song">
                         <label class="row-label row-label-command">Max Pause:
                             <select name="max-pause" title="Max Pause">
                                 <optgroup label="Max Pause">
-                                    ${this.renderEditorFormOptions('durations', (value) => value === gridStatus.maxPause)}
+                                    ${this.renderEditorFormOptions('durations')}
                                 </optgroup>
                             </select>
                         </label>
@@ -569,7 +573,7 @@ class MusicEditorMenuElement extends HTMLElement {
     
             </div>
         `;
-        this.update(gridStatus);
+        // this.update();
     }
 
 

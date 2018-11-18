@@ -19,9 +19,6 @@ class MusicEditorElement extends HTMLElement {
             'z':'C1', 'x':'D1', 'c':'E1', 'v':'F1', 'b':'G1', 'n':'A1', 'm':'B1', ',':'C2', '.':'D2', '/':'E2',
         };
         this.status = {
-            grids: [
-                Object.assign({}, MusicEditorElement.DEFAULT_GRID_STATUS)
-            ],
             history: {
                 currentStep: 0,
                 undoList: [],
@@ -84,36 +81,14 @@ class MusicEditorElement extends HTMLElement {
 
     get menu() { return this.querySelector('music-editor-menu'); }
 
-    get gridStatus() { return this.status.grids[0]; }
-    get gridCursorPosition() { return this.gridStatus.cursorPosition; }
-    get gridCurrentGroup() { return this.gridStatus.groupName; }
-    get gridInstructionList() { return this.player.getInstructions(this.gridCurrentGroup); }
-    get gridSelectedPositions() { return this.gridStatus.selectedPositions; }
-    get gridSelectedPausePositions() {
-        const instructionList = this.gridInstructionList;
-        const selectedPositions = this.gridSelectedPositions;
-        const selectedPausePositions = [];
-        for(let i=0; i<selectedPositions.length; i++) {
-            const selectedPosition = selectedPositions[i];
-            let nextPausePosition = instructionList.findIndex((i, p) => i.command === '!pause' && p >= selectedPosition);
-            if(nextPausePosition === -1) {
-                console.warn("no pauses follow selected instruction");
-                continue;
-            }
-            if(selectedPausePositions.indexOf(nextPausePosition) === -1)
-                selectedPausePositions.push(nextPausePosition);
-        }
-        return selectedPausePositions;
-    }
-
     get gridSelectedRange() {
-        const instructionList = this.gridInstructionList;
-        let selectedPositions = this.gridSelectedPositions;
-        selectedPositions = selectedPositions.concat().sort((a,b) => a - b);
+        const instructionList = this.grid.instructionList;
+        let selectedIndices = this.grid.selectedIndices;
+        selectedIndices = selectedIndices.concat().sort((a,b) => a - b);
 
-        let currentPosition = selectedPositions[0];
-        for(let i=0; i<selectedPositions.length; i++) {
-            if(currentPosition !== selectedPositions[i])
+        let currentPosition = selectedIndices[0];
+        for(let i=0; i<selectedIndices.length; i++) {
+            if(currentPosition !== selectedIndices[i])
                 return false;
             currentPosition++;
         }
@@ -122,7 +97,7 @@ class MusicEditorElement extends HTMLElement {
             && instructionList[currentPosition+1].command === '!pause') {
             currentPosition++;
         }
-        return [selectedPositions[0], currentPosition];
+        return [selectedIndices[0], currentPosition];
     }
     getAudioContext() { return this.player.getAudioContext(); }
     getSong() { return this.player ? this.player.getSong() : null; }
@@ -173,7 +148,7 @@ class MusicEditorElement extends HTMLElement {
                             //     const historyAction = json.historyActions[i];
                                 this.applyHistoryActions(json.historyActions, () => {
                                     this.render();
-                                    this.gridSelect(e, 0);
+                                    //this.gridSelect(e, 0);
                                     this.grid.focus();
                                 });
                             // }
@@ -269,7 +244,7 @@ class MusicEditorElement extends HTMLElement {
 
         this.player.loadSongData(songData);
         this.render();
-        this.gridSelect(null, 0);
+        //this.gridSelect(null, 0);
         console.info("Song loaded from memory: " + songGUID, songData);
     }
 
@@ -343,7 +318,7 @@ class MusicEditorElement extends HTMLElement {
         };
         this.historyQueue(historyAction);
         this.grid.render();
-        this.gridSelect(null, [insertIndexPosition]);
+        //this.gridSelect(null, [insertIndexPosition]);
         return insertIndexPosition;
     }
 
@@ -649,6 +624,7 @@ class MusicEditorElement extends HTMLElement {
 
 
     render() {
+        // TODO: render only once. each component handles it's own state
         const song = this.getSong();
         this.innerHTML = `
             <music-editor-menu></music-editor-menu>
@@ -695,40 +671,6 @@ class MusicEditorElement extends HTMLElement {
                 return instructionElm;
         }
         return null;
-    }
-
-    gridSelect(e, cursorPosition) {
-        const inputProfile = this.profileInput(e);
-        const gridStatus = this.gridStatus;
-        cursorPosition = parseInt(cursorPosition);
-        const lastCursorPosition = gridStatus.cursorPosition || 0;
-        gridStatus.cursorPosition = cursorPosition;
-
-        // Manage selected cells
-        if (inputProfile.gridClearSelected)
-            gridStatus.selectedPositions = [];
-        let selectedPositions = gridStatus.selectedPositions;
-
-        if(inputProfile.gridCompleteSelection) {
-            let low = lastCursorPosition < cursorPosition ? lastCursorPosition : cursorPosition;
-            let high = lastCursorPosition < cursorPosition ? cursorPosition : lastCursorPosition;
-            for(let i=low; i<high; i++)
-                if(selectedPositions.indexOf(i) === -1)
-                    selectedPositions.push(i);
-        } else {
-            const existingSelectedPosition = selectedPositions.indexOf(cursorPosition);
-            switch(inputProfile.gridToggleAction) {
-                case 'toggle':
-                    if(existingSelectedPosition > 0)    selectedPositions.splice(existingSelectedPosition, 1);
-                    else                                selectedPositions.push(cursorPosition);
-                    break;
-                case 'add':
-                    if(existingSelectedPosition === -1) selectedPositions.push(cursorPosition);
-                    break;
-            }
-        }
-        this.grid.updateCellSelection(gridStatus);
-        this.menu.update(gridStatus);
     }
 
     gridNavigate(groupName, parentInstruction) {
@@ -829,10 +771,4 @@ class MusicEditorElement extends HTMLElement {
     // Input
 
 }
-MusicEditorElement.DEFAULT_GRID_STATUS = {
-    groupName: 'root',
-    cursorPosition: 0,
-    selectedPositions: [],
-    maxPause: 1
-};
 customElements.define('music-editor', MusicEditorElement);
