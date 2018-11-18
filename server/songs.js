@@ -165,38 +165,50 @@ function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
 
     const entrySongPath = url.parse(songPath).pathname;
     const entryKeyPath = db.DB_PREFIX + entrySongPath + ":history";
-    const entryListeners = getListeners(entrySongPath);
-    db.lindex(entryKeyPath, -1, function(err, result) {
-        if(err)
+
+
+    db.lindex(entryKeyPath, -1, function(err, oldEntry) {
+        if (err)
             return sendError(ws, err);
+        const oldEntryJSON = JSON.parse(oldEntry);
+        let oldStep = oldEntryJSON ? oldEntryJSON.step : null;
 
-        // Check for step increment
-        const oldJSONEntry = JSON.parse(result);
-        if(!oldJSONEntry || jsonRequest.historyAction.step === oldJSONEntry.step + 1) {
-            // Step is incremented as expected
-            db.rpush(entryKeyPath, JSON.stringify(jsonRequest.historyAction));
+        if(oldStep !== null) {
+            for (let i = 0; i < jsonRequest.historyActions.length; i++) {
+                const historyAction = jsonRequest.historyActions[i];
+                if (historyAction.step === oldStep + 1) {
+                    oldStep++;
+                    // Step is incremented as expected
 
-            for(let i=0; i<entryListeners.length; i++) {
-                const listener = entryListeners[i];
-                if(listener === ws)
-                    continue;
-                if(!isActive(listener))
-                    continue;
-                listener.send(JSON.stringify({
-                    type: 'history:entry',
-                    historyActions: [jsonRequest.historyAction]
-                }));
+                    // console.info(`History Entry (${jsonRequest.historyAction.step}): ${entryKeyPath}`);
+                } else if (historyAction.step < oldEntryJSON.step + 1) {
+                    // Step is out of date
+                    sendError(ws, `Step is out of date: ${historyAction.step} < ${oldEntryJSON.step} + 1`);
+                } else {
+                    // Step is in the future
+                    sendError(ws, `Step is in the future: ${historyAction.step} > ${oldEntryJSON.step} + 1`);
+                }
             }
-            console.info(`History Entry (${jsonRequest.historyAction.step}): ${entryKeyPath}`);
-        } else if(jsonRequest.historyAction.step < oldJSONEntry.step + 1) {
-            // Step is out of date
-            sendError(ws, `Step is out of date: ${jsonRequest.historyAction.step} < ${oldJSONEntry.step} + 1`);
-        } else {
-            // Step is in the future
-            sendError(ws, `Step is in the future: ${jsonRequest.historyAction.step} > ${oldJSONEntry.step} + 1`);
+        }
+
+        for (let i = 0; i < jsonRequest.historyActions.length; i++) {
+            const historyAction = jsonRequest.historyActions[i];
+            db.rpush(entryKeyPath, JSON.stringify(historyAction));
+        }
+
+        const entryListeners = getListeners(entrySongPath);
+        for (let i = 0; i < entryListeners.length; i++) {
+            const listener = entryListeners[i];
+            if (listener === ws)
+                continue;
+            if (!isActive(listener))
+                continue;
+            listener.send(JSON.stringify({
+                type: 'history:entry',
+                historyActions: [jsonRequest.historyActions]
+            }));
         }
     });
-
 }
 
 function sendHistoricRecord(registerSongPath, ws) {

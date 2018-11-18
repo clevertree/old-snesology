@@ -262,21 +262,25 @@ class MusicEditorElement extends HTMLElement {
 
     // Edit songData functions
 
-    historyQueue(historyAction) {
-        // this.status.history.currentStep++;
-        // historyAction.step = this.status.history.currentStep;
+    historyQueue(historyActions) {
+        if(!Array.isArray(historyActions))
+            historyActions = [];
+        for(let i=0; i<historyActions.length; i++) {
+            const historyAction = historyActions[i];
+            this.status.history.currentStep++;
+            historyAction.step = this.status.history.currentStep;
+        }
         //
         // this.status.history.undoList.push(historyAction);
         // this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-        // DISABLED FOR NOW
-        // console.info("Sending history action: " + historyAction.step, historyAction);
-        // this.webSocket
-        //     .send(JSON.stringify({
-        //         type: 'history:entry',
-        //         historyAction: historyAction,
-        //         path: this.getSongURL()
-        //     }))
+        console.info("Sending history actions: ", historyActions);
+        this.webSocket
+            .send(JSON.stringify({
+                type: 'history:entry',
+                historyActions: historyActions,
+                path: this.getSongURL()
+            }))
     }
 
     historyUndo() {
