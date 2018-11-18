@@ -5,7 +5,7 @@ class MusicEditorInstrumentElement extends HTMLElement {
     }
 
     get id() { return parseInt(this.getAttribute('id')); }
-    get preset() { return this.editor.getSong().instruments[this.id]; }
+    get preset() { return this.editor.getSongData().instruments[this.id]; }
     // get instrument() { return this.editor.player.getInstrument(this.id);}
 
     connectedCallback() {

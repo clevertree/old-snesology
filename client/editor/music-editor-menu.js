@@ -10,7 +10,28 @@ class MusicEditorMenuElement extends HTMLElement {
         this.editor = null;
     }
 
-    get grid() { return this.editor.grid; } // Grid associated with menu
+    // get grid() { return this.editor.grid; } // Grid associated with menu
+    getInstructionFormValues() {
+
+        const formValues = {
+            instrument: this.editor.querySelector('form.form-instruction-instrument').instrument.value,
+            duration: this.editor.querySelector('form.form-instruction-duration').duration.value,
+            command: this.editor.querySelector('form.form-instruction-command').command.value,
+            velocity: this.editor.querySelector('form.form-instruction-velocity').velocity.value
+        };
+        let newInstruction = {
+            command: formValues.command,
+        };
+
+        if(formValues.instrument || formValues.instrument === 0)
+            newInstruction.instrument = parseInt(formValues.instrument);
+        if(formValues.duration)
+            newInstruction.duration = formValues.duration;
+        if(formValues.velocity || formValues.velocity === 0)
+            newInstruction.velocity = formValues.velocity;
+
+        return newInstruction;
+    }
 
     connectedCallback() {
         this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
@@ -21,16 +42,18 @@ class MusicEditorMenuElement extends HTMLElement {
         this.render();
     }
 
+
+
     onSubmit(e) {
         e.preventDefault();
         try {
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
             const cursorIndex = this.editor.grid.cursorIndex;
-            const currentGroup = this.editor.gridCurrentGroup;
+            const currentGroup = this.editor.grid.groupName;
             const selectedIndices = this.editor.grid.selectedIndices;
             const selectedPauseIndices = this.editor.grid.selectedPauseIndices;
-            const selectedRange = this.editor.gridSelectedRange;
+            const selectedRange = this.editor.grid.selectedRange;
 
             switch (command) {
                 case 'instruction:command':
@@ -100,26 +123,26 @@ class MusicEditorMenuElement extends HTMLElement {
                     }
                     break;
 
-                case 'song:edit':
-                    const song = this.editor.getSong();
-                    // song.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+                case 'songData:edit':
+                    const song = this.editor.getSongData();
+                    // songData.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
                     song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
                     song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
                     this.editor.render();
                     // this.editor.gridSelect(e, 0);
                     break;
 
-                case 'song:play':
+                case 'songData:play':
                     this.editor.player.play();
                     break;
-                case 'song:pause':
+                case 'songData:pause':
                     this.editor.player.pause();
                     break;
-                case 'song:playback':
+                case 'songData:playback':
                     console.log(e.target);
                     break;
 
-                case 'song:volume':
+                case 'songData:volume':
                     this.editor.player.setVolume(parseInt(form['volume'].value));
                     break;
 
@@ -201,7 +224,7 @@ class MusicEditorMenuElement extends HTMLElement {
                                     duration: 1
                                 }; // new instruction
                                 // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                                this.editor.insertInstructions(currentGroup, cursorPosition, newInstruction);
+                                this.editor.insertInstruction(currentGroup, cursorPosition, newInstruction);
                                 break;
 
                             case 'instruction:command':
@@ -271,32 +294,6 @@ class MusicEditorMenuElement extends HTMLElement {
         }
     }
 
-    renderEditorMenuLoadFromMemory() {
-        const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
-//         console.log("Loading song list from memory: ", songGUIDs);
-
-        let menuItemsHTML = '';
-        for(let i=0; i<songGUIDs.length; i++) {
-            const songGUID = songGUIDs[i];
-            let songDataString = localStorage.getItem('song:' + songGUID);
-            const song = JSON.parse(songDataString);
-            if(song) {
-                menuItemsHTML +=
-                    `<li>
-                    <a class="menu-item" data-command="load:memory" data-guid="${songGUID}">${song.name || "unnamed"}</a>
-                </li>`;
-            } else {
-                console.error("Song GUID not found: " + songGUID);
-            }
-        }
-
-        return `
-        <ul class="submenu">
-            ${menuItemsHTML}
-        </ul>
-    `;
-    }
-
     update() {
 
         const maxPause = this.editor.grid.maxPause;
@@ -357,6 +354,32 @@ class MusicEditorMenuElement extends HTMLElement {
 
         this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPauseIndices.length > 1 ? 's' : '') + ":";
         this.querySelector('.row-label-command').innerHTML = 'Command' + (selectedIndices.length > 1 ? 's' : '') + ":";
+    }
+
+    renderEditorMenuLoadFromMemory() {
+        const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
+//         console.log("Loading songData list from memory: ", songGUIDs);
+
+        let menuItemsHTML = '';
+        for(let i=0; i<songGUIDs.length; i++) {
+            const songGUID = songGUIDs[i];
+            let songDataString = localStorage.getItem('songData:' + songGUID);
+            const song = JSON.parse(songDataString);
+            if(song) {
+                menuItemsHTML +=
+                    `<li>
+                    <a class="menu-item" data-command="load:memory" data-guid="${songGUID}">${song.name || "unnamed"}</a>
+                </li>`;
+            } else {
+                console.error("Song GUID not found: " + songGUID);
+            }
+        }
+
+        return `
+        <ul class="submenu">
+            ${menuItemsHTML}
+        </ul>
+    `;
     }
 
     render() {
@@ -501,7 +524,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         <select name="instrument" title="Note Instrument">
                             <option value="">Instrument (Default)</option>
                             <optgroup label="Song Instruments">
-                                ${this.renderEditorFormOptions('song-instruments')}
+                                ${this.renderEditorFormOptions('songData-instruments')}
                             </optgroup>
                             <optgroup label="Loaded Instruments">
                                 ${this.renderEditorFormOptions('instruments-loaded')}
@@ -579,7 +602,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
 // <br/>
 // <label class="row-label">Group:</label>
-// <form class="form-song-bpm" data-command="song:edit">
+// <form class="form-songData-bpm" data-command="songData:edit">
 //         <select name="beats-per-minute" title="Beats per minute" disabled>
 // <optgroup label="Beats per minute">
 //         ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>
@@ -606,11 +629,11 @@ class MusicEditorMenuElement extends HTMLElement {
     getEditorFormOptions(optionType, callback, selectCallback) {
         let html = '';
         let options = [];
-        const songData = this.editor.getSong() || {};
+        const songData = this.editor.getSongData() || {};
 
         if(!selectCallback) selectCallback = function() { return null; };
         switch(optionType) {
-            case 'song-instruments':
+            case 'songData-instruments':
                 if(songData.instruments) {
                     const instrumentList = songData.instruments;
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
@@ -635,11 +658,11 @@ class MusicEditorMenuElement extends HTMLElement {
 
 
             case 'instruments-loaded':
-                if(document.instruments) {
-                    this.editor.findInstruments(function (instrument, path, origin) {
-                        options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
-                    });
-                }
+                // if(document.instruments) {
+                //     this.editor.findInstruments(function (instrument, path, origin) {
+                //         options.push(["add:" + origin + path, instrument.name + " (" + origin + path + ")"]);
+                //     });
+                // }
                 break;
 
             case 'command-frequencies':

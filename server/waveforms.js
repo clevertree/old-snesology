@@ -9,7 +9,7 @@ let app;
 module.exports = function(appInstance, router) {
     app = appInstance;
     // API Routes
-    // router.post('/song/*', httpSongsRequest);
+    // router.post('/songData/*', httpSongsRequest);
 
     // app.addWebSocketListener(handleWebSocketRequest);
 };

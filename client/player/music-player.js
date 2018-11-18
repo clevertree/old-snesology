@@ -6,7 +6,7 @@ class MusicPlayerElement extends HTMLElement {
     constructor() {
         super();
         this.audioContext = null;
-        this.song = null;
+        this.songData = {};
         this.loadedInstruments = [];
         this.seekLength = 4;
         this.seekPosition = 0;
@@ -19,8 +19,8 @@ class MusicPlayerElement extends HTMLElement {
     }
 
     getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
-    getSong() { return this.song; }
-    getStartingBeatsPerMinute() { return this.song.beatsPerMinute; }
+    getSongData() { return this.songData; }
+    getStartingBeatsPerMinute() { return this.songData.beatsPerMinute; }
     getVolumeGain() {
         if(!this.volumeGain) {
             const context = this.getAudioContext();
@@ -55,7 +55,7 @@ class MusicPlayerElement extends HTMLElement {
         songData.instruments = (songData.instruments || []);
         songData.instructions = (songData.instructions || {});
         songData.instructions[songData.root] = songData.instructions[songData.root] || [];
-        this.song = songData;
+        this.songData = songData;
         Object.keys(songData.instructions).map((groupName, i) =>
             this.processInstructions(groupName));
         // TODO check all groups were processed
@@ -79,7 +79,7 @@ class MusicPlayerElement extends HTMLElement {
     }
 
     processInstructions(groupName) {
-        const instructionList = this.song.instructions[groupName];
+        const instructionList = this.songData.instructions[groupName];
         if(!instructionList)
             throw new Error("Group instructions not found: " + groupName);
         // let pauseNotes = [];
@@ -99,7 +99,7 @@ class MusicPlayerElement extends HTMLElement {
                 return instruction;
             }(instruction);
         if (typeof instruction.instrument === 'string')
-            instruction.instrument = this.findInstrumentID(instruction.instrument, this.song.instruments);
+            instruction.instrument = this.findInstrumentID(instruction.instrument, this.songData.instruments);
         return instruction;
     }
 
@@ -110,7 +110,7 @@ class MusicPlayerElement extends HTMLElement {
 // //             console.log('Song loading:', songURL);
 //             loadJSON(songURL, function(err, songJSON) {
 //                 if(err)
-//                     throw new Error("Could not load song: " + err);
+//                     throw new Error("Could not load songData: " + err);
 //                 if(!songJSON)
 //                     throw new Error("Invalid JSON File: " + songURL);
 //
@@ -121,24 +121,24 @@ class MusicPlayerElement extends HTMLElement {
     findInstructionGroup(instruction) {
         if(typeof instruction !== 'object')
             throw new Error("Invalid instruction object");
-        for(let groupName in this.song.instructions) {
-            if(this.song.instructions.hasOwnProperty(groupName)) {
-                if(this.song.instructions[groupName].indexOf(instruction) !== -1)
+        for(let groupName in this.songData.instructions) {
+            if(this.songData.instructions.hasOwnProperty(groupName)) {
+                if(this.songData.instructions[groupName].indexOf(instruction) !== -1)
                     return groupName;
             }
         }
-        throw new Error("Instruction not found in song");
+        throw new Error("Instruction not found in songData");
     }
 
     getInstructions(groupName) {
-        let instructionList = this.song.instructions[groupName];
+        let instructionList = this.songData.instructions[groupName];
         if(!instructionList)
             throw new Error("Instruction groupName not found: " + groupName);
         return instructionList;
     }
 
     getInstructionPosition(instruction, groupName) {
-        const instructionList = this.song.instructions[groupName];
+        const instructionList = this.songData.instructions[groupName];
         const p = instructionList.indexOf(instruction);
         if(p === -1)
             throw new Error("Instruction not found in instruction list");
@@ -146,9 +146,9 @@ class MusicPlayerElement extends HTMLElement {
     }
 
     // getInstructionGroup(instruction) {
-    //     for(let groupName in this.song.instructions)
-    //         if(this.song.instructions.hasOwnProperty(groupName))
-    //             if(this.song.instructions[groupName].indexOf(instruction) !== -1)
+    //     for(let groupName in this.songData.instructions)
+    //         if(this.songData.instructions.hasOwnProperty(groupName))
+    //             if(this.songData.instructions[groupName].indexOf(instruction) !== -1)
     //                 return groupName;
     //     throw new Error("Instruction not found in any groupName");
     // }
@@ -181,7 +181,7 @@ class MusicPlayerElement extends HTMLElement {
             instrumentID = 0;
             // return;
         }
-        if(!this.song.instruments[instrumentID]) {
+        if(!this.songData.instruments[instrumentID]) {
             console.error(`Instrument ${instrumentID} is not loaded. Playback skipped. `);
             return;
         }
@@ -196,7 +196,7 @@ class MusicPlayerElement extends HTMLElement {
             frequency: noteFrequency,
             startTime: noteStartTime,
             duration: noteDuration,
-            instrumentPreset: this.song.instruments[instrumentID],
+            instrumentPreset: this.songData.instruments[instrumentID],
             instruction: instruction,
             // groupInstruction: stats.groupInstruction,
             stats: stats || {}
@@ -222,7 +222,7 @@ class MusicPlayerElement extends HTMLElement {
     playInstructions(instructionGroup, playbackPosition, playbackLength, currentTime) {
         playbackPosition = playbackPosition || 0;
         currentTime = currentTime || this.getAudioContext().currentTime;
-        // instructionList = instructionList || this.song.instructions;
+        // instructionList = instructionList || this.songData.instructions;
         return this.eachInstruction(instructionGroup, function(noteInstruction, groupStats) {
             const absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
             if(absolutePlaytime < playbackPosition)
@@ -276,7 +276,7 @@ class MusicPlayerElement extends HTMLElement {
 
                     } else if (instruction.command[0] === '@') {
                         let groupName = instruction.command.substr(1);
-                        let instructionGroupList = this.song.instructions[groupName];
+                        let instructionGroupList = this.songData.instructions[groupName];
                         if (!instructionGroupList)
                             throw new Error("Instruction groupName not found: " + groupName);
                         if(groupName === groupStats.currentGroup) { // TODO group stack
@@ -310,105 +310,6 @@ class MusicPlayerElement extends HTMLElement {
     }
 
 
-    // Edit Song
-
-
-
-    replaceInstruction(groupName, replacePosition, replaceCount, replaceInstructions) {
-        let instructionList = this.getInstructions(groupName);
-        if (instructionList.length < replacePosition)
-            throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
-
-        if(replaceInstructions)
-            return instructionList.splice(replacePosition, replaceCount, replaceInstructions);
-        return instructionList.splice(replacePosition, replaceCount);
-    }
-
-    insertInstructions(groupName, insertIndexPosition, insertInstructions) {
-        let instructionList = this.getInstructions(groupName);
-        if (instructionList.length < insertIndexPosition)
-            throw new Error("Insert position out of index: " + instructionList.length + " < " + insertIndexPosition + " for groupName: " + groupName);
-
-        if(!Array.isArray(insertInstructions))
-            insertInstructions = [insertInstructions];
-        for(let i=insertInstructions.length-1; i>=0; i--) // Insert backwards
-            instructionList.splice(insertIndexPosition, 0, insertInstructions[i]);
-    }
-
-    deleteInstruction(groupName, deleteIndexPosition, deleteCount) {
-        let instructionList = this.getInstructions(groupName);
-        if (instructionList.length < deleteIndexPosition)
-            throw new Error("Delete position out of index: " + instructionList.length + " < " + deleteIndexPosition + " for groupName: " + groupName);
-        return instructionList.splice(deleteIndexPosition, deleteCount);
-    }
-
-    replaceInstructionParams(groupName, replacePosition, replaceParams) {
-        let instructionList = this.getInstructions(groupName);
-        if (replacePosition === null || typeof replacePosition === "undefined")
-            throw new Error("Invalid replacePosition for groupName: " + groupName);
-        if (instructionList.length < replacePosition)
-            throw new Error("Replace position out of index: " + instructionList.length + " < " + replacePosition + " for groupName: " + groupName);
-
-        const instruction = instructionList[replacePosition];
-        const oldParams = {};
-        for(const paramName in replaceParams) {
-            if(replaceParams.hasOwnProperty(paramName)) {
-                if(replaceParams[paramName] === instruction[paramName])
-                    continue;
-                oldParams[paramName] = typeof instruction[paramName] !== 'undefined' ? instruction[paramName] : null;
-                if(replaceParams[paramName] === null)
-                    delete instruction[paramName];
-                else
-                    instruction[paramName] = replaceParams[paramName];
-            }
-        }
-        return oldParams;
-    }
-
-    addInstructionGroup(newGroupName, instructionList) {
-        const songData = this.getSong();
-        if(songData.instructions.hasOwnProperty(newGroupName))
-            throw new Error("New group already exists: " + newGroupName);
-        songData.instructions[newGroupName] = instructionList || [];
-        this.processInstructions(newGroupName);
-    }
-
-    removeInstructionGroup(removedGroupName) {
-        if(removedGroupName === 'root')
-            throw new Error("Cannot remove root instruction group, n00b");
-        const songData = this.getSong();
-        if(!songData.instructions.hasOwnProperty(removedGroupName))
-            throw new Error("Existing group not found: " + removedGroupName);
-
-        const removedGroupData = songData.instructions[removedGroupName];
-        delete songData.instructions[removedGroupName];
-        return removedGroupData;
-    }
-
-    renameInstructionGroup(oldGroupName, newGroupName) {
-        const songData = this.getSong();
-        if(!songData.instructions.hasOwnProperty(oldGroupName))
-            throw new Error("Existing group not found: " + oldGroupName);
-        if(songData.instructions.hasOwnProperty(newGroupName))
-            throw new Error("New group already exists: " + newGroupName);
-        const groupData = songData.instructions[oldGroupName];
-        delete songData.instructions[oldGroupName];
-        songData.instructions[newGroupName] = groupData;
-    }
-
-    // setInstruction(position, instruction, groupName) {
-    //     const instructionList = this.getInstructions(groupName);
-    //     if(instructionList.length < position)
-    //         throw new Error("Invalid instruction position: " + position + (groupName ? " for groupName: " + groupName : ''));
-    //     instructionList[position] = instruction;
-    // }
-
-    // swapInstructions(instruction1, instruction2, groupName) {
-    //     const p1 = this.getInstructionPosition(instruction1, groupName);
-    //     const p2 = this.getInstructionPosition(instruction2, groupName);
-    //     this.setInstruction(p2, instruction1);
-    //     this.setInstruction(p1, instruction2);
-    // }
 
     playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
         let instrument;
@@ -437,7 +338,7 @@ class MusicPlayerElement extends HTMLElement {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
 
-        const instrumentList = this.getSong().instruments;
+        const instrumentList = this.getSongData().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         const instrumentPreset = instrumentList[instrumentID];
@@ -453,7 +354,7 @@ class MusicPlayerElement extends HTMLElement {
     }
 
     initInstrument(instrumentID, onInitiated) {
-        const instrumentList = this.getSong().instruments;
+        const instrumentList = this.getSongData().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         const instrumentPreset = instrumentList[instrumentID];
@@ -483,7 +384,7 @@ class MusicPlayerElement extends HTMLElement {
     }
 
     addInstrument(url, instrumentConfig) {
-        const instrumentList = this.getSong().instruments;
+        const instrumentList = this.getSongData().instruments;
         const instrumentID = instrumentList.length;
 
         instrumentList[instrumentID] = Object.assign({
@@ -494,7 +395,7 @@ class MusicPlayerElement extends HTMLElement {
     }
 
     replaceInstrumentParams(instrumentID, replaceConfig, onInstrumentLoad) {
-        const instrumentList = this.getSong().instruments;
+        const instrumentList = this.getSongData().instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
 
@@ -522,12 +423,6 @@ class MusicPlayerElement extends HTMLElement {
     }
 
 
-    removeInstrument(instrumentID) {
-        const instrumentList = this.getSong().instruments;
-        if(!instrumentList[instrumentID])
-            throw new Error("Invalid instrument ID: " + instrumentID);
-        return instrumentList.splice(instrumentID, 1);
-    }
 
     // Playback
 
@@ -548,12 +443,12 @@ class MusicPlayerElement extends HTMLElement {
         this.playing = true;
         this.processPlayback();
 
-        this.dispatchEvent(new CustomEvent('song:start'));
+        this.dispatchEvent(new CustomEvent('songData:start'));
     }
 
     pause() {
         this.playing = false;
-        this.dispatchEvent(new CustomEvent('song:pause'));
+        this.dispatchEvent(new CustomEvent('songData:pause'));
     }
 
     processPlayback () {
@@ -569,7 +464,7 @@ class MusicPlayerElement extends HTMLElement {
         this.seekPosition = endTime;
 
         const totalPlayTime = this.playInstructions(
-            this.song.root || 'root',
+            this.songData.root || 'root',
             startTime,
             endTime,
             this.startTime
@@ -582,7 +477,7 @@ class MusicPlayerElement extends HTMLElement {
         if(currentTime < totalPlayTime) {
             console.log("Instructions playing:", this.seekPosition, this.seekLength, currentTime - this.startTime);
 
-            this.dispatchEvent(new CustomEvent('song:playback'));
+            this.dispatchEvent(new CustomEvent('songData:playback'));
             setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
         } else{
 
@@ -592,13 +487,13 @@ class MusicPlayerElement extends HTMLElement {
                 this.playing = false;
 
                 // Update UI
-                this.dispatchEvent(new CustomEvent('song:end'));
+                this.dispatchEvent(new CustomEvent('songData:end'));
             }.bind(this), totalPlayTime - currentTime)
         }
     }
 
     findInstrumentID(instrumentPath, songInstrumentList) {
-        songInstrumentList = songInstrumentList || this.song.instruments;
+        songInstrumentList = songInstrumentList || this.songData.instruments;
         for(let i=0; i<songInstrumentList.length; i++) {
             const instrument = songInstrumentList[i];
             if(instrument.path === instrumentPath)
@@ -610,7 +505,7 @@ class MusicPlayerElement extends HTMLElement {
     // getInstrumentPath(instrumentID) {
     //     if(typeof instrumentID !== "number")
     //         throw new Error("Invalid instrumentID");
-    //     let instrumentPreset = this.song.instruments[instrumentID];
+    //     let instrumentPreset = this.songData.instruments[instrumentID];
     //     if(!instrumentPreset)
     //         throw new Error("Invalid Instrument ID: " + instrumentID);
     //     if(!instrumentPreset.path)
@@ -686,19 +581,6 @@ class MusicPlayerElement extends HTMLElement {
         return newScriptElm;
     }
 
-    // static loadStylesheet(styleSheetPath) {
-    //     const scripts = document.head.querySelectorAll('link');
-    //     for(let i=0; i<scripts.length; i++) {
-    //         if(scripts[i].href === styleSheetPath) {
-    //             return scripts[i];
-    //         }
-    //     }
-    //     let newStyleSheetElm = document.createElement('link');
-    //     newStyleSheetElm.href = styleSheetPath;
-    //     newStyleSheetElm.rel = 'stylesheet';
-    //     document.head.appendChild(newStyleSheetElm);
-    //     return newStyleSheetElm;
-    // }
 }
 
 // Define custom elements

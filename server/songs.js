@@ -9,18 +9,18 @@ let app;
 module.exports = function(appInstance, router) {
     app = appInstance;
     // API Routes
-    router.post('/song/*', httpSongsRequest); // Update song files
+    router.post('/songData/*', httpSongsRequest); // Update songData files
 
     // No periods allowed in path!
     router.get('/editor/?', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/-]+).json/edit', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/-]+)/edit', httpEditRequest); // Render Editor
-    router.get('/song/:path([\\w/-]+).json/play', httpPlayRequest); // Render Editor
-    router.get('/song/:path([\\w/-]+)/play', httpPlayRequest); // Render Editor
-    router.get('/song/:path([\\w/-]+)', httpPlayRequest); // Render Editor
+    router.get('/songData/:path([\\w/-]+).json/edit', httpEditRequest); // Render Editor
+    router.get('/songData/:path([\\w/-]+)/edit', httpEditRequest); // Render Editor
+    router.get('/songData/:path([\\w/-]+).json/play', httpPlayRequest); // Render Editor
+    router.get('/songData/:path([\\w/-]+)/play', httpPlayRequest); // Render Editor
+    router.get('/songData/:path([\\w/-]+)', httpPlayRequest); // Render Editor
 
-    router.ws('/song/:path([\\w/-]+).json', handleWSRequest);
-    router.ws('/song/:path([\\w/-]+)', handleWSRequest);
+    router.ws('/songData/:path([\\w/-]+).json', handleWSRequest);
+    router.ws('/songData/:path([\\w/-]+)', handleWSRequest);
 
     // app.addWebSocketListener(handleWebSocketRequest);
 };
@@ -30,13 +30,13 @@ function httpEditRequest(req, res) {
     let songPath = req.query.src;
     if(typeof req.query.src === 'undefined') {
         const uuidv4 = require('uuid/v4');
-        songPath = '/song/share/' + uuidv4() + '.json';
+        songPath = '/songData/share/' + uuidv4() + '.json';
         return res.redirect('?src=' + songPath);
     }
     if(!songPath.endsWith('.json'))
         songPath += '.json';
     const absolutePath = path.resolve(BASE_DIR + '/' + songPath);
-    const songsDir = path.resolve(BASE_DIR + '/song');
+    const songsDir = path.resolve(BASE_DIR + '/songData');
     if(songsDir.indexOf(BASE_DIR) !== 0)
         throw new Error("Song path must exists within the songs directory");
 
@@ -55,7 +55,7 @@ function httpEditRequest(req, res) {
 
 }
 function httpPlayRequest(req, res) {
-    const songPath = '/song/' + req.params.path + '.json';
+    const songPath = '/songData/' + req.params.path + '.json';
     const absolutePath = path.resolve(BASE_DIR + '/' + songPath);
 
     console.log("Render player: ", absolutePath);
@@ -63,7 +63,7 @@ function httpPlayRequest(req, res) {
 
 // API Routes
 function httpSongsRequest(req, res) {
-    const songPath = path.resolve(BASE_DIR + '/song/' + req.params.path + '.json');
+    const songPath = path.resolve(BASE_DIR + '/songData/' + req.params.path + '.json');
 
     // const newSongBody = JSON.stringify(req.body);
     const oldSongBody = fs.readFileSync(songPath, 'utf8');
@@ -107,7 +107,7 @@ function getListeners(songPath) {
 function handleWSRequest(ws, req) {
     if(!req.params.path)
         throw new Error("Invalid path parameter");
-    let songPath = '/song/' + req.params.path.toLowerCase();
+    let songPath = '/songData/' + req.params.path.toLowerCase();
     if(!songPath.endsWith('.json'))
         songPath += '.json';
 
@@ -202,8 +202,8 @@ function handleWSHistoryEntry(ws, req, jsonRequest, songPath) {
 function sendHistoricRecord(registerSongPath, ws) {
     const db = app.redisClient;
     let songContent = null;
-    if(!registerSongPath.startsWith('/song/'))
-        throw new Error("Registration path must start with '/song/'");
+    if(!registerSongPath.startsWith('/songData/'))
+        throw new Error("Registration path must start with '/songData/'");
     if(!registerSongPath.endsWith('.json'))
         throw new Error("Registration path must end with '.json'");
     if(fs.existsSync(registerSongPath))

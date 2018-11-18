@@ -3,10 +3,10 @@
 (function() {
     const TITLE = "Editor Demo";
 
-    document.addEventListener('song:play', onPlay);
+    document.addEventListener('songData:play', onPlay);
 
     // Dependencies
-    loadScript('share/song-loader.js');
+    loadScript('share/songData-loader.js');
 
 
     function onPlay(e) {
@@ -18,7 +18,7 @@
 
 
         Util.waitForLoadingScripts(function() {
-            var editableSong = new Audio.SongManager('share/share/demo.song', TITLE);
+            var editableSong = new Audio.SongManager('share/share/demo.songData', TITLE);
             // editableSong.registerInstruments(
                 // Audio.instrument.iOscillatorSimple
             // );

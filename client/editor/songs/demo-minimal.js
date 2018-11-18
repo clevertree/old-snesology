@@ -1,7 +1,7 @@
 
 
 (function() {
-    document.addEventListener('song:play', onPlay);
+    document.addEventListener('songData:play', onPlay);
 
     // Constants
 
@@ -48,7 +48,7 @@
         startSong();
 
         // Update
-        document.dispatchEvent(new CustomEvent('song:playing', {
+        document.dispatchEvent(new CustomEvent('songData:playing', {
             detail: {
                 title: title,
                 position: 0,
