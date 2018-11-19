@@ -8,5 +8,11 @@ module.exports = {
         }],
         sf2ConvertExtra: [
         ]
+    },
+    mysql: {
+        database:   'snesology',
+        user:       'snesology',
+        password:   'snesology',
+        host:       'localhost',
     }
 };

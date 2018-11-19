@@ -56,8 +56,8 @@ class MusicPlayerElement extends HTMLElement {
         songData.instructions = (songData.instructions || {});
         songData.instructions[songData.root] = songData.instructions[songData.root] || [];
         this.songData = songData;
-        Object.keys(songData.instructions).map((groupName, i) =>
-            this.processInstructions(groupName));
+        // Object.keys(songData.instructions).map((groupName, i) =>
+        //     this.processInstructions(groupName));
         // TODO check all groups were processed
 
         let loadingInstruments = 0;
@@ -76,31 +76,6 @@ class MusicPlayerElement extends HTMLElement {
                 });
             }
         }
-    }
-
-    processInstructions(groupName) {
-        const instructionList = this.songData.instructions[groupName];
-        if(!instructionList)
-            throw new Error("Group instructions not found: " + groupName);
-        // let pauseNotes = [];
-        for (let i = 0; i < instructionList.length; i++)
-            instructionList[i] = this.processInstruction(instructionList[i]);
-    }
-
-    processInstruction(instruction) {
-        if (typeof instruction === 'number')
-            instruction = {command: '!pause', duration: instruction};
-        if (typeof instruction === 'string')
-            instruction = instruction.split(':');
-        if (Array.isArray(instruction))
-            instruction = function(args) {
-                const instruction = {command: args[0]};
-                if(args.length>1)   instruction.duration = args[1];
-                return instruction;
-            }(instruction);
-        if (typeof instruction.instrument === 'string')
-            instruction.instrument = this.findInstrumentID(instruction.instrument, this.songData.instruments);
-        return instruction;
     }
 
 

@@ -129,11 +129,11 @@ class MusicEditorElement extends HTMLElement {
                         case 'history:entry':
                             // for (let i = 0; i < json.historyActions.length; i++) {
                             //     const historyAction = json.historyActions[i];
-                                this.applyHistoryActions(json.historyActions, () => {
-                                    this.render();
-                                    //this.gridSelect(e, 0);
-                                    this.grid.focus();
-                                });
+                            const songModifier = new MusicEditorSongModifier(this.getSongData());
+                            songModifier.applyHistoryActions(json.historyActions);
+                            this.render();
+                            //this.gridSelect(e, 0);
+                            this.grid.focus();
                             // }
                             break;
 
@@ -725,38 +725,56 @@ class MusicEditorSongModifier {
         this.songData = songData;
     }
 
-    replaceDataPath(path, newData) {
-        const pathParts = path.split('.');
-        let target = this.songData, targetParent, targetPathPart = null;
-        for(let i=0; i<pathParts.length; i++) {
-            targetPathPart = pathParts[i];
-            if(/^\d+$/.test(targetPathPart))
-                targetPathPart = parseInt(targetPathPart);
-
-            targetParent = target;
-            target = target[targetPathPart];
+    applyHistoryActions(historyActions) {
+        for(let i=0; i<historyActions.length; i++) {
+            const historyAction = historyActions[i];
+            this.replaceDataPath(historyAction.path, historyAction.data)
         }
+        this.processAllInstructions();
+    }
 
+    replaceDataPath(path, newData) {
         let oldData = null;
-        if(newData) {
-            if(typeof targetPathPart === 'number' && targetParent.length < targetPathPart)
-                throw new Error(`Insert position out of index: ${targetParent.length} < ${targetPathPart} for path: ${path}`);
-            if(typeof targetParent[targetPathPart] !== "undefined")
-                oldData = targetParent[targetPathPart];
-            targetParent[targetPathPart] = newData
+        if(path === "*") {
+            Object.assign(this.songData, newData);
+
         } else {
-            if(typeof targetPathPart === 'number') {
-                targetParent.splice(targetPathPart, 1);
+            const pathParts = path.split('.');
+            let target = this.songData, targetParent, targetPathPart = null;
+            for(let i=0; i<pathParts.length; i++) {
+                targetPathPart = pathParts[i];
+                if(/^\d+$/.test(targetPathPart))
+                    targetPathPart = parseInt(targetPathPart);
+                if(typeof target[targetPathPart] === 'undefined')
+                    throw new Error("Path not found: " + path);
+                targetParent = target;
+                target = target[targetPathPart];
+            }
+            if(!targetParent)
+                throw new Error("Invalid path: " + path);
+
+            if(newData) {
+                if(typeof targetPathPart === 'number' && targetParent.length < targetPathPart)
+                    throw new Error(`Insert position out of index: ${targetParent.length} < ${targetPathPart} for path: ${path}`);
+                if(typeof targetParent[targetPathPart] !== "undefined")
+                    oldData = targetParent[targetPathPart];
+                targetParent[targetPathPart] = newData
             } else {
-                delete targetParent[targetPathPart];
+                if(typeof targetPathPart === 'number') {
+                    targetParent.splice(targetPathPart, 1);
+                } else {
+                    delete targetParent[targetPathPart];
+                }
             }
         }
 
-        return {
+        const historyAction = {
             path: path,
-            newData: newData,
-            oldData: oldData
+            data: newData
         };
+        if(oldData !== null)
+            historyAction['oldData'] = oldData;
+        return historyAction;
     }
 
     insertInstruction(groupName, insertIndex, insertInstruction) {
@@ -884,4 +902,28 @@ class MusicEditorSongModifier {
 
         return actionList;
     }
+
+    processAllInstructions() {
+        Object.keys(this.songData.instructions).map((groupName, i) => {
+            let instructionList = this.songData.instructions[groupName];
+            for (let i = 0; i < instructionList.length; i++)
+                instructionList[i] = this.processInstruction(instructionList[i]);
+        });
+    }
+
+
+    processInstruction(instruction) {
+        if (typeof instruction === 'number')
+            instruction = {command: '!pause', duration: instruction};
+        if (typeof instruction === 'string')
+            instruction = instruction.split(':');
+        if (Array.isArray(instruction))
+            instruction = function(args) {
+                const instruction = {command: args[0]};
+                if(args.length>1)   instruction.duration = args[1];
+                return instruction;
+            }(instruction);
+        return instruction;
+    }
+
 }

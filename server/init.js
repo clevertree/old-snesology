@@ -1,21 +1,49 @@
+// const fs = require('fs');
+// const path = require('path');
+
 const express = require('express');
 const bodyParser = require('body-parser');
+
 
 const app = express();
 require('express-ws')(app);
 
-const redis = require("redis");
-app.redisClient = redis.createClient();
-app.redisClient.on("error", function (err) {
-    console.log("Redis Error: " + err);
-});
-app.redisClient.DB_PREFIX = 'snesology.net/';
+// const redis = require("redis");
+// app.redisClient = redis.createClient();
+// app.redisClient.on("error", function (err) {
+//     console.log("Redis Error: " + err);
+// });
+// app.redisClient.DB_PREFIX = 'snesology.net/';
+
+
 
 // Configure app
 const config = (function() {
     try { return require('../config.js'); } catch (e) { return null; }
 })() || require('./config.sample.js');
 app.config = config;
+
+// Mysql
+const mysql = require('mysql');
+app.mysqlClient = mysql.createConnection(config.mysql);
+app.mysqlClient.on('error', function (err){
+    throw err;
+});
+app.mysqlClient.connect({}, (err) => {
+    if(err)
+        throw err;
+    // const sqlContent = fs.readFileSync(path.join(__dirname, './database.sql'), 'utf8');
+    // const sqlCommands = sqlContent.split(';');
+    // for(let i=0; i<sqlCommands.length; i++) {
+    //     const sqlCommand = sqlCommands[i].trim();
+    //     console.info("SQL: ", sqlCommand);
+    //     app.mysqlClient.query(sqlCommand, null, (error, results, fields) => {
+    //         if(error)
+    //             throw error;
+    //     });
+    // }
+});
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());

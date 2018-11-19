@@ -357,6 +357,7 @@ class MusicEditorMenuElement extends HTMLElement {
     }
 
     renderEditorMenuLoadFromMemory() {
+        return '';
         const songGUIDs = JSON.parse(localStorage.getItem('share-editor-saved-list') || '[]');
 //         console.log("Loading songData list from memory: ", songGUIDs);
 
