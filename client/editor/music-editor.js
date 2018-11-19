@@ -38,6 +38,10 @@ class MusicEditorElement extends HTMLElement {
         this.songData = null;
 
     }
+    get grid() { return this.querySelector('music-editor-grid'); }
+    get menu() { return this.querySelector('music-editor-menu'); }
+    get instruments() { return this.querySelectorAll(`music-editor-instrument`); }
+
     connectedCallback() {
         const playerElement = document.createElement('music-player');
         this.player = playerElement;
@@ -52,8 +56,8 @@ class MusicEditorElement extends HTMLElement {
         playerElement.addEventListener('instrument:initiated', (e) => {
             console.info("Instrument initialized: ", e.detail);
             // console.log("init", e);
-            this.querySelectorAll(`music-editor-instrument`)[e.detail.instrumentID].render();
-            this.render();
+            this.instruments[e.detail.instrumentID].render();
+            // this.render();
         });
 
         if ("WebSocket" in window) {
@@ -79,8 +83,6 @@ class MusicEditorElement extends HTMLElement {
         this.render();
 
     }
-    get grid() { return this.querySelector('music-editor-grid'); }
-    get menu() { return this.querySelector('music-editor-menu'); }
 
     getAudioContext() { return this.player.getAudioContext(); }
     getSongData() { return this.songData || this.player.getSongData(); }
@@ -248,7 +250,7 @@ class MusicEditorElement extends HTMLElement {
     //     return this.player.getInstructions(this.grid.getGroupName())[this.gridStatus.cursorPosition];
     // }
 
-    // deleteInstruction(deletePositions) {
+    // deleteInstructionAtIndex(deletePositions) {
     //     const instructionList = this.player.getInstructions(this.grid.getGroupName());
     //     // deletePositions = deletePositions || this.gridStatus.selectedPositions;
     //     deletePositions.sort((a, b) => b - a);
@@ -292,22 +294,27 @@ class MusicEditorElement extends HTMLElement {
 
     }
 
-    insertInstructionAtTime(groupName, insertPosition, instructionToAdd) {
-        throw new Error("TODO");
+    insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
+        const songModifier = new MusicEditorSongModifier(this.getSongData());
+        const historyActions = songModifier.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
+        this.historyQueue(historyActions);
+        this.grid.render();
+        // this.grid.selectIndices(insertIndex, [insertIndex]);
+        // return insertIndex;
     }
 
-    insertInstruction(groupName, insertIndex, instructionToAdd) {
+    insertInstructionAtIndex(groupName, insertIndex, instructionToAdd) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.insertInstruction(groupName, insertIndex, instructionToAdd);
+        const historyAction = songModifier.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
         this.historyQueue(historyAction);
         this.grid.render();
         this.grid.selectIndices(insertIndex, [insertIndex]);
         return insertIndex;
     }
 
-    deleteInstruction(groupName, deleteIndex) {
+    deleteInstructionAtIndex(groupName, deleteIndex) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.deleteInstruction(groupName, deleteIndex);
+        const historyAction = songModifier.deleteInstructionAtIndex(groupName, deleteIndex);
         this.historyQueue(historyAction);
         this.grid.render();
         this.grid.selectIndices(deleteIndex);
@@ -348,7 +355,7 @@ class MusicEditorElement extends HTMLElement {
     //             command: '!pause',
     //             duration: split[1] * splitPauseDuration
     //         };
-    //         this.player.insertInstruction(groupName, splitPausePosition+1, newPauseInstruction);
+    //         this.player.insertInstructionAtIndex(groupName, splitPausePosition+1, newPauseInstruction);
     //         historyActions.params.push({
     //             action: 'insert',
     //             params: [groupName, splitPausePosition+1, newPauseInstruction]
@@ -549,175 +556,6 @@ class MusicEditorElement extends HTMLElement {
         }
     }
 
-
-
-    modifySongData(action, params) {
-        const songData = this.getSongData();
-        console.info("Modifying Song Data: ", action, params);
-        params = [].slice.call(params);
-
-        // this.status.history.undoList.push(action);
-        // this.status.history.undoPosition = this.status.history.undoList.length-1;
-        // if(typeof action.step !== "undefined")
-        //     this.status.history.currentStep = action.step;
-
-        let returnValues = null;
-        switch (action) {
-            case 'insert':
-                returnValues = ((groupName, insertIndex, insertInstruction) => {
-                    if(!insertInstruction) throw new Error("Invalid insert instruction");
-                    let instructionList = songData.instructions[groupName];
-                    if (instructionList.length < insertIndex)
-                        throw new Error("Insert position out of index: " + instructionList.length + " < " + insertIndex + " for groupName: " + groupName);
-
-                    instructionList.splice(insertIndex, 0, insertInstruction);
-                }).call(this, params);
-                break;
-
-            case 'delete':
-                returnValues = ((groupName, deleteIndex) => {
-                    let instructionList = songData.instructions[groupName];
-                    if (instructionList.length < deleteIndex)
-                        throw new Error("Delete position out of index: " + instructionList.length + " < " + deleteIndex + " for groupName: " + groupName);
-                    return instructionList.splice(deleteIndex, 1);
-                }).call(this, params);
-                break;
-
-            case 'replace':
-                returnValues = ((groupName, replaceIndex, replaceInstruction) => {
-                    if(!replaceInstruction) throw new Error("Invalid replace instruction");
-                    let instructionList = songData.instructions[groupName];
-                    if (instructionList.length < replaceIndex)
-                        throw new Error("Replace position out of index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
-
-                    return instructionList.splice(replaceIndex, 1, replaceInstruction);
-                }).call(this, params);
-                break;
-
-            case 'params':
-                returnValues = ((groupName, replaceIndex, replaceParams) => {
-                    let instructionList = songData.instructions[groupName];
-                    if (instructionList.length < replaceIndex)
-                        throw new Error("Replace position out of index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
-
-                    const instruction = instructionList[replaceIndex];
-                    const oldParams = {};
-                    for(const paramName in replaceParams) {
-                        if(replaceParams.hasOwnProperty(paramName)) {
-                            if(replaceParams[paramName] === instruction[paramName])
-                                continue;
-                            oldParams[paramName] = typeof instruction[paramName] !== 'undefined' ? instruction[paramName] : null;
-                            if(replaceParams[paramName] === null)
-                                delete instruction[paramName];
-                            else
-                                instruction[paramName] = replaceParams[paramName];
-                        }
-                    }
-                    return oldParams;
-                }).call(this, params);
-                break;
-
-            case 'group-add':
-                returnValues = ((newGroupName, instructionList) => {
-                    if(songData.instructions.hasOwnProperty(newGroupName))
-                        throw new Error("New group already exists: " + newGroupName);
-                    songData.instructions[newGroupName] = instructionList || [];
-                    // this.processInstructions(newGroupName); // TODO: process all instructions on change
-
-                }).call(this, params);
-                break;
-
-            case 'group-remove':
-                returnValues = ((removeGroupName) => {
-                    if(removeGroupName === 'root')
-                        throw new Error("Cannot remove root instruction group, n00b");
-                    if(!songData.instructions.hasOwnProperty(removeGroupName))
-                        throw new Error("Existing group not found: " + removeGroupName);
-
-                    const removedGroupData = songData.instructions[removeGroupName];
-                    delete songData.instructions[removeGroupName];
-                    return removedGroupData;
-                }).call(this, params);
-                break;
-
-            case 'group-rename':
-                returnValues = ((oldGroupName, newGroupName) => {
-                    if(oldGroupName === 'root')
-                        throw new Error("Cannot rename root instruction group, n00b");
-                    if(!songData.instructions.hasOwnProperty(oldGroupName))
-                        throw new Error("Existing group not found: " + oldGroupName);
-                    if(songData.instructions.hasOwnProperty(newGroupName))
-                        throw new Error("New group already exists: " + newGroupName);
-                    const groupData = songData.instructions[oldGroupName];
-                    delete songData.instructions[oldGroupName];
-                    songData.instructions[newGroupName] = groupData;
-                }).call(this, params);
-                break;
-
-            case 'instrument-add':
-                returnValues = ((url, instrumentConfig) => {
-                    const instrumentList = songData.instruments;
-                    const instrumentID = instrumentList.length;
-
-                    instrumentList[instrumentID] = Object.assign({
-                        url: url
-                    }, instrumentConfig || {});
-                    return instrumentID;
-                    // TODO: init all instruments on change;
-                }).call(this, params);
-                break;
-
-            case 'instrument-remove':
-                returnValues = ((instrumentID) => {
-                    const instrumentList = songData.instruments;
-                    if(!instrumentList[instrumentID])
-                        throw new Error("Invalid instrument ID: " + instrumentID);
-                    return instrumentList.splice(instrumentID, 1);
-                }).call(this, params);
-                break;
-
-            case 'instrument-params':
-                returnValues = ((instrumentID, replaceConfig) => {
-                    const instrumentList = songData.instruments;
-                    if(!instrumentList[instrumentID])
-                        throw new Error("Invalid instrument ID: " + instrumentID);
-
-                    const presetData = instrumentList[instrumentID];
-                    const newPresetConfig = Object.assign({}, presetData);
-
-                    const oldParams = {};
-                    for(const paramName in replaceConfig) {
-                        if(replaceConfig.hasOwnProperty(paramName)) {
-                            if(replaceConfig[paramName] === newPresetConfig[paramName])
-                                continue;
-                            oldParams[paramName] = typeof newPresetConfig[paramName] !== 'undefined' ? newPresetConfig[paramName] : null;
-                            if(replaceConfig[paramName] === null)
-                                delete newPresetConfig[paramName];
-                            else
-                                newPresetConfig[paramName] = replaceConfig[paramName];
-                        }
-                    }
-
-                    instrumentList[instrumentID] = newPresetConfig;
-                    // TODO: init all instruments on change;
-                    // this.initInstrument(instrumentID, onInstrumentLoad);
-
-                    // this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
-                    return oldParams;
-                }).call(this, params);
-                break;
-
-            default:
-                throw new Error("Unrecognized history action: " + action.action);
-        }
-        const historyEntry = {
-            action: action,
-            params: params,
-        };
-        if(typeof returnValues !== 'undefined')
-            historyEntry.return = returnValues;
-        return historyEntry
-    }
 }
 customElements.define('music-editor', MusicEditorElement);
 
@@ -778,19 +616,75 @@ class MusicEditorSongModifier {
         return historyAction;
     }
 
-    insertInstruction(groupName, insertIndex, insertInstruction) {
+    insertInstructionAtPosition(groupName, insertPosition, insertInstruction) {
+        if(!insertInstruction)
+            throw new Error("Invalid insert instruction");
+        let instructionList = this.songData.instructions[groupName];
+        const historyActions = [];
+
+        let groupPosition = 0, lastPauseIndex = null;
+        for(let i=0; i<instructionList.length; i++) {
+            const instruction = instructionList[i];
+            if(instruction.command === '!pause') {
+                groupPosition += instruction.duration;
+
+                if(groupPosition >= insertPosition) {
+
+                    if(groupPosition === insertPosition) {
+                        // Pause Position equals insert position, append after
+
+                        let lastInsertPosition = i;
+                        // Search for last insert position
+                        for(lastInsertPosition=i; lastInsertPosition<instructionList.length; lastInsertPosition++)
+                            if(instructionList[i].command === '!pause')
+                                break;
+
+                        return this.insertInstructionAtIndex(groupName, lastInsertPosition, insertInstruction);
+                    }
+
+                    // Pause Position is before insert position, split the pause
+                    return this.splitPauseInstruction(groupName, i, groupPosition - insertPosition, insertInstruction);
+                }
+            }
+
+        }
+
+        // Insert after all pauses, create a new pause-
+        if(lastPauseIndex === null) {
+            if(instructionList[instructionList.length - 1].command === '!pause') {
+                lastPauseIndex = instructionList.length - 1;
+            } else {
+                historyActions.push(this.insertInstructionAtIndex(groupName, instructionList.length, {
+
+                }))
+            }
+        }
+
+        // return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}`, replaceInstruction);
+    }
+
+    splitPauseInstruction(groupName, pauseIndex, splitDuration, insertInstruction) {
+        let instructionList = this.songData.instructions[groupName];
+        const pauseInstruction = instructionList[pauseIndex];
+        if(pauseInstruction.command !== '!pause')
+            throw new Error("Invalid Pause Instruction at : " + pauseIndex);
+
+    }
+
+
+    insertInstructionAtIndex(groupName, insertIndex, insertInstruction) {
         if(!insertInstruction)
             throw new Error("Invalid insert instruction");
         return this.replaceDataPath(`instructions.${groupName}.${insertIndex}`, insertInstruction);
     }
 
 
-    deleteInstruction(groupName, deleteIndex) {
+    deleteInstructionAtIndex(groupName, deleteIndex) {
         return this.replaceDataPath(`instructions.${groupName}.${deleteIndex}`);
     }
 
 
-    replaceInstruction(groupName, replaceIndex, replaceInstruction) {
+    replaceInstructionAtIndex(groupName, replaceIndex, replaceInstruction) {
         if(!replaceInstruction)
             throw new Error("Invalid replace instruction");
         let instructionList = this.songData.instructions[groupName];

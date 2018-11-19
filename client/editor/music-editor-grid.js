@@ -238,31 +238,31 @@ class MusicEditorGridElement extends HTMLElement {
                     let cursorInstruction = instructionList[cursorIndex];
                     switch (keyEvent) {
                         case 'Delete':
-                            this.editor.deleteInstruction(this.groupName, this.selectedPositions);
+                            this.editor.deleteInstructionAtIndex(this.groupName, this.selectedIndices);
                             e.preventDefault();
                             // editor.render(true);
                             break;
                         case 'Escape':
                         case 'Backspace':
-                            this.editor.grid.navigatePop();
-                            this.editor.grid.selectIndices(0);
-                            this.editor.grid.focus();
+                            this.navigatePop();
+                            this.selectIndices(0);
+                            this.focus();
                             e.preventDefault();
                             break;
                         case 'Enter':
                             if (keydownCellElm.classList.contains('grid-cell-new')) {
                                 let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
                                 let newInstruction = this.editor.menu.getInstructionFormValues();
-                                this.insertInstructionAtTime(newInstruction, insertPosition);
+                                let insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 this.render();
-                                this.editor.grid.selectIndices(insertPosition);
+                                this.selectIndices(insertIndex);
                             }
 
                             if (cursorInstruction.command[0] === '@') {
                                 const groupName = cursorInstruction.command.substr(1);
-                                this.editor.grid.navigate(groupName, cursorInstruction);
-                                //this.editor.gridSelect(e, 0);
-                                //this.editor.grid.focus();
+                                this.navigate(groupName, cursorInstruction);
+                                //thisSelect(e, 0);
+                                //this.focus();
                             } else {
                                 this.editor.playInstruction(cursorInstruction);
                             }
@@ -322,9 +322,9 @@ class MusicEditorGridElement extends HTMLElement {
                             if (keydownCellElm.classList.contains('grid-cell-new')) {
                                 let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
                                 let newInstruction = this.editor.menu.getInstructionFormValues();
-                                this.insertInstructionAtTime(newInstruction, insertPosition);
+                                this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 this.render();
-                                this.editor.grid.selectIndices(insertPosition);
+                                this.selectIndices(insertPosition);
                             }
 
                             this.replaceInstructionParams(cursorIndex, {
@@ -441,15 +441,15 @@ class MusicEditorGridElement extends HTMLElement {
         });
     }
 
-    insertInstructions(instruction, insertIndex) {
-        return this.editor.insertInstruction(this.groupName, insertIndex, instruction);
+    insertInstructionAtIndex(instruction, insertIndex) {
+        return this.editor.insertInstructionAtIndex(this.groupName, insertIndex, instruction);
     }
-    insertInstructionAtTime(instruction, insertTimePosition) {
-        return this.editor.insertInstructionAtTime(this.groupName, insertTimePosition, instruction);
+    insertInstructionAtPosition(instruction, insertTimePosition) {
+        return this.editor.insertInstructionAtPosition(this.groupName, insertTimePosition, instruction);
     }
 
-    deleteInstruction(deletePosition) {
-        return this.editor.deleteInstruction(this.groupName, deletePosition, 1);
+    deleteInstructionAtIndex(deletePosition) {
+        return this.editor.deleteInstructionAtIndex(this.groupName, deletePosition, 1);
     }
 
     replaceInstructionParams(replacePositions, replaceParams) {

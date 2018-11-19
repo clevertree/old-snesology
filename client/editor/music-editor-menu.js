@@ -90,7 +90,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     break;
 
                 case 'instruction:remove':
-                    this.editor.deleteInstruction(currentGroup, selectedIndices);
+                    this.editor.deleteInstructionAtIndex(currentGroup, selectedIndices);
                     break;
 
                 case 'row:edit':
@@ -224,7 +224,7 @@ class MusicEditorMenuElement extends HTMLElement {
                                     duration: 1
                                 }; // new instruction
                                 // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                                this.editor.insertInstruction(currentGroup, cursorPosition, newInstruction);
+                                this.editor.insertInstructionAtIndex(currentGroup, cursorPosition, newInstruction);
                                 break;
 
                             case 'instruction:command':
