@@ -3,17 +3,16 @@ class BufferSourceInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
     get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/chiptune/snes/ffvi/ffvi.library.json'; }
 
-    constructor() {
+    constructor(config, audioContext) {
         super();
         if(!BufferSourceInstrument.NEW_COUNTER)
             BufferSourceInstrument.NEW_COUNTER = 1;
         if(!BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL)
             BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL = null;
-    }
-
-    setConfig(config, audioContext) {
 
         // this.id = instrumentID;
+        if(!config)
+            config = {};
         if(!config.name)
             config.name = this.constructor.name + BufferSourceInstrument.NEW_COUNTER++;
         if(!config.samples)
@@ -23,8 +22,27 @@ class BufferSourceInstrument extends HTMLElement {
         this.config = config;            // TODO: validate config
         this.buffers = [];
 
-        for(let i=0; i<config.samples.length; i++) {
-            const sampleConfig = config.samples[i];
+        this.initSamples(audioContext);
+
+        // Sample Library
+        this.loadSampleLibrary(BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {
+            if(!this.config.preset && this.config.samples.length === 0) {
+                const defaultPreset = Object.keys(this.library.instruments)[0];
+                if(defaultPreset) {
+                    console.info("Loading default preset: " + defaultPreset);
+                    Object.assign(this.config, this.loadPresetConfig(defaultPreset));
+                    this.initSamples(audioContext); // TODO: inefficient reload?
+                    // this.setConfig(newConfig, audioContext);
+                } else {
+                    console.warn("No default presets found");
+                }
+            }
+        });
+    }
+
+    initSamples(audioContext) {
+        for(let i=0; i<this.config.samples.length; i++) {
+            const sampleConfig = this.config.samples[i];
             if(!sampleConfig.url)
                 throw new Error("Sample config is missing url");
             this.loadAudioSample(audioContext, sampleConfig.url, (err, audioBuffer) => {
@@ -33,22 +51,7 @@ class BufferSourceInstrument extends HTMLElement {
                 this.buffers[i] = audioBuffer;
             })
         }
-
-        // Sample Library
-        this.loadSampleLibrary(BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {
-            if(!this.config.preset && this.config.samples.length === 0) {
-                const defaultPreset = Object.keys(this.library.instruments)[0];
-                if(defaultPreset) {
-                    console.info("Loading default preset: " + defaultPreset);
-                    const newConfig = Object.assign({}, this.config, this.loadPresetConfig(defaultPreset));
-                    this.setConfig(newConfig, audioContext);
-                } else {
-                    console.warn("No default presets found");
-                }
-            }
-        });
     }
-
 
     play(destination, frequency, startTime, duration) {
 

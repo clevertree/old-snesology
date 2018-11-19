@@ -3,7 +3,7 @@
 (function() {
     const TITLE = "Editor Demo";
 
-    document.addEventListener('songData:play', onPlay);
+    document.addEventListener('song:play', onPlay);
 
     // Dependencies
     loadScript('share/songData-loader.js');

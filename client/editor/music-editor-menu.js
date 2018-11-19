@@ -123,7 +123,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     }
                     break;
 
-                case 'songData:edit':
+                case 'song:edit':
                     const song = this.editor.getSongData();
                     // songData.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
                     song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
@@ -132,17 +132,17 @@ class MusicEditorMenuElement extends HTMLElement {
                     // this.editor.gridSelect(e, 0);
                     break;
 
-                case 'songData:play':
+                case 'song:play':
                     this.editor.player.play();
                     break;
-                case 'songData:pause':
+                case 'song:pause':
                     this.editor.player.pause();
                     break;
-                case 'songData:playback':
+                case 'song:playback':
                     console.log(e.target);
                     break;
 
-                case 'songData:volume':
+                case 'song:volume':
                     this.editor.player.setVolume(parseInt(form['volume'].value));
                     break;
 
@@ -364,7 +364,7 @@ class MusicEditorMenuElement extends HTMLElement {
         let menuItemsHTML = '';
         for(let i=0; i<songGUIDs.length; i++) {
             const songGUID = songGUIDs[i];
-            let songDataString = localStorage.getItem('songData:' + songGUID);
+            let songDataString = localStorage.getItem('song:' + songGUID);
             const song = JSON.parse(songDataString);
             if(song) {
                 menuItemsHTML +=
@@ -603,7 +603,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
 // <br/>
 // <label class="row-label">Group:</label>
-// <form class="form-songData-bpm" data-command="songData:edit">
+// <form class="form-songData-bpm" data-command="song:edit">
 //         <select name="beats-per-minute" title="Beats per minute" disabled>
 // <optgroup label="Beats per minute">
 //         ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>

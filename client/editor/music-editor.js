@@ -44,14 +44,15 @@ class MusicEditorElement extends HTMLElement {
         const onSongEvent = this.onSongEvent.bind(this);
         playerElement.addEventListener('note:end', onSongEvent);
         playerElement.addEventListener('note:start', onSongEvent);
-        playerElement.addEventListener('songData:start', onSongEvent);
-        playerElement.addEventListener('songData:playback', onSongEvent);
-        playerElement.addEventListener('songData:end', onSongEvent);
-        playerElement.addEventListener('songData:pause', onSongEvent);
+        playerElement.addEventListener('song:start', onSongEvent);
+        playerElement.addEventListener('song:playback', onSongEvent);
+        playerElement.addEventListener('song:end', onSongEvent);
+        playerElement.addEventListener('song:pause', onSongEvent);
         this.songData = this.player.getSongData();
-        playerElement.addEventListener('instruments:initialized', (e) => {
+        playerElement.addEventListener('instrument:initiated', (e) => {
+            console.info("Instrument initialized: ", e.detail);
             // console.log("init", e);
-
+            this.querySelectorAll(`music-editor-instrument`)[e.detail.instrumentID].render();
             this.render();
         });
 
@@ -79,7 +80,6 @@ class MusicEditorElement extends HTMLElement {
 
     }
     get grid() { return this.querySelector('music-editor-grid'); }
-
     get menu() { return this.querySelector('music-editor-menu'); }
 
     getAudioContext() { return this.player.getAudioContext(); }
@@ -131,6 +131,7 @@ class MusicEditorElement extends HTMLElement {
                             //     const historyAction = json.historyActions[i];
                             const songModifier = new MusicEditorSongModifier(this.getSongData());
                             songModifier.applyHistoryActions(json.historyActions);
+                            this.player.initAllInstruments();
                             this.render();
                             //this.gridSelect(e, 0);
                             this.grid.focus();
@@ -197,8 +198,8 @@ class MusicEditorElement extends HTMLElement {
         const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
         if(songList.indexOf(song.url) === -1)
             songList.push(song.url);
-        console.log("Saving songData: ", song, songList);
-        localStorage.setItem('songData:' + song.url, JSON.stringify(song));
+        console.log("Saving song: ", song, songList);
+        localStorage.setItem('song:' + song.url, JSON.stringify(song));
         localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
         this.menu.render();
         // this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
@@ -218,7 +219,7 @@ class MusicEditorElement extends HTMLElement {
     }
 
     loadSongFromMemory(songGUID) {
-        let songDataString = localStorage.getItem('songData:' + songGUID);
+        let songDataString = localStorage.getItem('song:' + songGUID);
         if(!songDataString)
             throw new Error("Song Data not found for guid: " + songGUID);
         let songData = JSON.parse(songDataString);
@@ -538,11 +539,11 @@ class MusicEditorElement extends HTMLElement {
                 }
                 break;
 
-            case 'songData:start':
+            case 'song:start':
                 this.classList.add('playing');
                 break;
-            case 'songData:end':
-            case 'songData:pause':
+            case 'song:end':
+            case 'song:pause':
                 this.classList.remove('playing');
                 break;
         }

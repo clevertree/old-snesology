@@ -85,7 +85,7 @@ class MusicPlayerElement extends HTMLElement {
 // //             console.log('Song loading:', songURL);
 //             loadJSON(songURL, function(err, songJSON) {
 //                 if(err)
-//                     throw new Error("Could not load songData: " + err);
+//                     throw new Error("Could not load song: " + err);
 //                 if(!songJSON)
 //                     throw new Error("Invalid JSON File: " + songURL);
 //
@@ -322,7 +322,7 @@ class MusicPlayerElement extends HTMLElement {
         const elementName = url.pathname.substring(url.pathname.lastIndexOf('/')+1).split('.')[0];
 
         const instrumentClass = customElements.get(elementName);
-        const instance = new instrumentClass();
+        const instance = new instrumentClass(instrumentPreset, this.getAudioContext());
 
         this.loadedInstruments[instrumentID] = instance;
         return instance;
@@ -336,8 +336,17 @@ class MusicPlayerElement extends HTMLElement {
         const final = () => {
             MusicPlayerElement.loadScript(instrumentPreset.url, () => {
                 const instance = this.getInstrument(instrumentID);
-                if(instance.setConfig)
-                    instance.setConfig(instrumentPreset, this.getAudioContext());
+                // if(instance.setConfig)
+                //     instance.setConfig(instrumentPreset, this.getAudioContext());
+
+                this.dispatchEvent(new CustomEvent('instrument:initiated', {
+                    detail: {
+                        instrumentID: instrumentID,
+                        instance: instance
+                    },
+                    bubbles: true
+                }));
+
                 onInitiated && onInitiated(instance);
             });
         };
@@ -355,6 +364,23 @@ class MusicPlayerElement extends HTMLElement {
             next();
         } else {
             final();
+        }
+    }
+
+    initAllInstruments(onInitiated) {
+        const instrumentList = this.getSongData().instruments;
+        let initCount = 0;
+        for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
+            initCount++;
+            this.initInstrument(instrumentID, () => {
+                initCount--;
+                if(initCount === 0) {
+                    this.dispatchEvent(new CustomEvent('instruments:initiated', {
+                        bubbles: true
+                    }));
+                    onInitiated && onInitiated();
+                }
+            })
         }
     }
 
@@ -418,12 +444,12 @@ class MusicPlayerElement extends HTMLElement {
         this.playing = true;
         this.processPlayback();
 
-        this.dispatchEvent(new CustomEvent('songData:start'));
+        this.dispatchEvent(new CustomEvent('song:start'));
     }
 
     pause() {
         this.playing = false;
-        this.dispatchEvent(new CustomEvent('songData:pause'));
+        this.dispatchEvent(new CustomEvent('song:pause'));
     }
 
     processPlayback () {
@@ -452,7 +478,7 @@ class MusicPlayerElement extends HTMLElement {
         if(currentTime < totalPlayTime) {
             console.log("Instructions playing:", this.seekPosition, this.seekLength, currentTime - this.startTime);
 
-            this.dispatchEvent(new CustomEvent('songData:playback'));
+            this.dispatchEvent(new CustomEvent('song:playback'));
             setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
         } else{
 
@@ -462,7 +488,7 @@ class MusicPlayerElement extends HTMLElement {
                 this.playing = false;
 
                 // Update UI
-                this.dispatchEvent(new CustomEvent('songData:end'));
+                this.dispatchEvent(new CustomEvent('song:end'));
             }.bind(this), totalPlayTime - currentTime)
         }
     }
