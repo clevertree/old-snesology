@@ -112,7 +112,7 @@ class MusicPlayerElement extends HTMLElement {
         return instructionList;
     }
 
-    getInstructionPosition(instruction, groupName) {
+    getInstructionIndex(instruction, groupName) {
         const instructionList = this.songData.instructions[groupName];
         const p = instructionList.indexOf(instruction);
         if(p === -1)

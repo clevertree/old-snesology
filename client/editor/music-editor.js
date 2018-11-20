@@ -46,10 +46,7 @@ class MusicEditorElement extends HTMLElement {
         const playerElement = document.createElement('music-player');
         this.player = playerElement;
         const onSongEvent = this.onSongEvent.bind(this);
-        playerElement.addEventListener('note:end', onSongEvent);
-        playerElement.addEventListener('note:start', onSongEvent);
         playerElement.addEventListener('song:start', onSongEvent);
-        playerElement.addEventListener('song:playback', onSongEvent);
         playerElement.addEventListener('song:end', onSongEvent);
         playerElement.addEventListener('song:pause', onSongEvent);
         this.songData = this.player.getSongData();
@@ -515,39 +512,7 @@ class MusicEditorElement extends HTMLElement {
     // Playback
 
     onSongEvent(e) {
-        // console.log("onSongEvent", e);
-        const detail = e.detail || {stats:{}};
-        const instructionElm = detail.instruction ? this.grid.findInstruction(detail.instruction) : null;
-        const groupElm = detail.groupInstruction ? this.grid.findInstruction(detail.groupInstruction) : null;
-        // var groupPlayActive = groupElm ? parseInt(groupElm.getAttribute('data-play-active')||0) : 0;
         switch(e.type) {
-            case 'note:start':
-                if(instructionElm) {
-                    instructionElm.classList.add('playing');
-                    instructionElm.parentNode.classList.add('playing');
-                    // console.log("show", instructionElm);
-                }
-                if(groupElm) {
-                    groupElm.classList.add('playing');
-                    groupElm.parentNode.classList.add('playing');
-                    // groupElm.setAttribute('data-play-active', groupPlayActive+1);
-                }
-                break;
-            case 'note:end':
-                if(instructionElm) {
-                    instructionElm.classList.remove('playing');
-                    instructionElm.parentNode.classList.remove('playing');
-                    // console.log("hide", instructionElm);
-                }
-                if(groupElm) {
-                    // if(groupPlayActive <= 1) {
-                        groupElm.classList.remove('playing');
-                        groupElm.parentNode.classList.remove('playing');
-                    // }
-                    // groupElm.setAttribute('data-play-active', groupPlayActive-1);
-                }
-                break;
-
             case 'song:start':
                 this.classList.add('playing');
                 break;

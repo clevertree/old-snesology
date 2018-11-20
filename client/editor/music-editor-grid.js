@@ -101,6 +101,17 @@ class MusicEditorGridElement extends HTMLElement {
         this.addEventListener('mousedown', this.onInput);
         this.addEventListener('mouseup', this.onInput);
         this.addEventListener('longpress', this.onInput);
+
+        if(this.editor.player) {
+            const onSongEvent = this.onSongEvent.bind(this);
+            this.editor.player.addEventListener('note:end', onSongEvent);
+            this.editor.player.addEventListener('note:start', onSongEvent);
+            this.editor.player.addEventListener('song:start', onSongEvent);
+            this.editor.player.addEventListener('song:playback', onSongEvent);
+            this.editor.player.addEventListener('song:end', onSongEvent);
+            this.editor.player.addEventListener('song:pause', onSongEvent);
+        }
+
         this.render();
     }
 
@@ -399,6 +410,51 @@ class MusicEditorGridElement extends HTMLElement {
 
     }
 
+
+    onSongEvent(e) {
+        // console.log("onSongEvent", e);
+        const detail = e.detail || {stats:{}};
+        const instructionElm = detail.instruction ? this.findInstruction(detail.instruction) : null;
+        const groupElm = detail.groupInstruction ? this.findInstruction(detail.groupInstruction) : null;
+        // var groupPlayActive = groupElm ? parseInt(groupElm.getAttribute('data-play-active')||0) : 0;
+        switch(e.type) {
+            case 'note:start':
+                if(instructionElm) {
+                    instructionElm.classList.add('playing');
+                    instructionElm.parentNode.classList.add('playing');
+                    // console.log("show", instructionElm);
+                }
+                if(groupElm) {
+                    groupElm.classList.add('playing');
+                    groupElm.parentNode.classList.add('playing');
+                    // groupElm.setAttribute('data-play-active', groupPlayActive+1);
+                }
+                break;
+            case 'note:end':
+                if(instructionElm) {
+                    instructionElm.classList.remove('playing');
+                    instructionElm.parentNode.classList.remove('playing');
+                    // console.log("hide", instructionElm);
+                }
+                if(groupElm) {
+                    // if(groupPlayActive <= 1) {
+                    groupElm.classList.remove('playing');
+                    groupElm.parentNode.classList.remove('playing');
+                    // }
+                    // groupElm.setAttribute('data-play-active', groupPlayActive-1);
+                }
+                break;
+
+            case 'song:start':
+                this.classList.add('playing');
+                break;
+            case 'song:end':
+            case 'song:pause':
+                this.classList.remove('playing');
+                break;
+        }
+    }
+
     findInstruction(instruction) {
         let grids = this.querySelectorAll('music-editor-grid');
         for(let i=0; i<grids.length; i++) {
@@ -521,16 +577,12 @@ class MusicEditorGridElement extends HTMLElement {
         let instructionGroup = this.editor.player.findInstructionGroup(instruction);
         if(instructionGroup !== this.groupName)
             return null;
-        let position = this.editor.player.getInstructionPosition(instruction, instructionGroup);
-        return this.findDataElement(position);
+        let index = this.editor.player.getInstructionIndex(instruction, instructionGroup);
+        return this.findDataElement(index);
     }
 
-    findDataElement(instrumentPosition) {
-        let gridDataElms = this.querySelectorAll('.grid-cell');
-        for(let i=0; i<gridDataElms.length; i++)
-            if(parseInt(gridDataElms[i].getAttribute('data-position')) === instrumentPosition)
-                return gridDataElms[i];
-        return null;
+    findDataElement(instructionIndex) {
+        return this.querySelector(`.grid-cell[data-index='${instructionIndex}'`);
     }
 }
 customElements.define('music-editor-grid', MusicEditorGridElement);
