@@ -297,9 +297,10 @@ class MusicEditorElement extends HTMLElement {
 
     insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
+        const insertIndex = songModifier.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
+        return insertIndex;
         // this.grid.selectIndices(insertIndex, [insertIndex]);
         // return insertIndex;
     }

@@ -74,8 +74,8 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     get selectedRange() {
-        const instructionList = this.grid.instructionList;
-        let selectedIndices = this.grid.selectedIndices;
+        const instructionList = this.instructionList;
+        let selectedIndices = this.selectedIndices;
         selectedIndices = selectedIndices.concat().sort((a,b) => a - b);
 
         let currentPosition = selectedIndices[0];
@@ -324,9 +324,10 @@ class MusicEditorGridElement extends HTMLElement {
                                 let newInstruction = this.editor.menu.getInstructionFormValues();
                                 newInstruction.command = this.editor.keyboardLayout[e.key];
 
-                                this.insertInstructionAtPosition(newInstruction, insertPosition);
+                                const insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 this.render();
-                                this.selectIndices(insertPosition);
+                                this.selectIndices(insertIndex);
+                                cursorInstruction = instructionList[insertIndex];
                             } else {
                                 this.replaceInstructionParams(cursorIndex, {
                                     command: this.editor.keyboardLayout[e.key]
