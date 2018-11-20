@@ -48,7 +48,7 @@ function httpEditRequest(req, res) {
         if (err) {
             return console.log(err);
         }
-        var result = data.replace(/{\$src}/g, songPath);
+        var result = data.replace(/\${src}/g, songPath);
         res.set('Content-Type', 'text/html');
         res.send(result);
     });
@@ -163,14 +163,11 @@ function handleWSHistoryEntry(ws, req, jsonRequest, songUUID) {
     const db = app.mysqlClient;
     if(!jsonRequest.type)
         throw new Error("Missing 'type' field");
-    if(!req.params.path)
-        throw new Error("Missing 'path' param");
-
 
     let SQL = `
 SELECT * FROM song_history sh
 LEFT JOIN song s on s.id = sh.song_id 
-WHERE s.path = ? 
+WHERE s.uuid = ? 
 ORDER BY sh.step DESC
 LIMIT 1`;
     db.query(SQL, [songUUID], (error, songHistoryResults, fields) => {
@@ -201,18 +198,20 @@ LIMIT 1`;
 
         for (let i = 0; i < jsonRequest.historyActions.length; i++) {
             const historyAction = jsonRequest.historyActions[i];
+            const step = historyAction.step;
+            delete historyAction.step;
             let SQL = `
 INSERT INTO song_history 
-SET step = ?, action = ?, song_id = ?`;
+SET step = ?, action = ?, song_id = (SELECT s.id FROM song s WHERE s.uuid = ?)`;
             db.query(SQL,
-                [historyAction.step, historyAction.action, songHistoryResults[0].song_id],
+                [step, JSON.stringify(historyAction), songUUID],
                 (error, results, fields) => {
                 if (error)
                     throw error;
             });
         }
 
-        const entryListeners = getListeners(entrySongPath);
+        const entryListeners = getListeners(songUUID);
         for (let i = 0; i < entryListeners.length; i++) {
             const listener = entryListeners[i];
             if (listener === ws)
@@ -293,17 +292,20 @@ function sendSongRevision(songUUID, ws) {
 SELECT sh.* FROM song_history sh
 LEFT JOIN song s on s.id = sh.song_id 
 WHERE s.uuid = ? 
-ORDER BY sh.step DESC`;
+ORDER BY sh.step ASC`;
     db.query(SQL, [songUUID], (error, songHistoryResults, fields) => {
         if (error)
             throw error;
 
         const historyActions = [{
-            path: '*',
-            data: songContent
+            action: 'reset',
+            data: songContent,
+            step: 0
         }];
         for(let i=0; i<songHistoryResults.length; i++) {
-            historyActions.push(JSON.parse(songHistoryResults[i]));
+            const historyAction = JSON.parse(songHistoryResults[i].action);
+            historyAction.step = songHistoryResults[i].step;
+            historyActions.push(historyAction);
         }
 
         ws.send(JSON.stringify({
@@ -324,7 +326,10 @@ function generateDefaultSong(uuid) {
             "urlDependencies": ["/instrument/audiosource/instrument-buffersource.js"], // Dependencies
         }],
         "instructions": {
-            "root": [4]
+            "root": [{
+                command: '!pause',
+                duration: 8
+            }]
         }
     };
 }

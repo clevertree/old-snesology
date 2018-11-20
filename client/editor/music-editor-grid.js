@@ -322,14 +322,17 @@ class MusicEditorGridElement extends HTMLElement {
                             if (keydownCellElm.classList.contains('grid-cell-new')) {
                                 let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
                                 let newInstruction = this.editor.menu.getInstructionFormValues();
+                                newInstruction.command = this.editor.keyboardLayout[e.key];
+
                                 this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 this.render();
                                 this.selectIndices(insertPosition);
+                            } else {
+                                this.replaceInstructionParams(cursorIndex, {
+                                    command: this.editor.keyboardLayout[e.key]
+                                });
                             }
 
-                            this.replaceInstructionParams(cursorIndex, {
-                                command: this.editor.keyboardLayout[e.key]
-                            });
                             this.render();
                             this.focus();
                             this.editor.playInstruction(cursorInstruction);
@@ -484,16 +487,18 @@ class MusicEditorGridElement extends HTMLElement {
 
         this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
             .forEach(elm => elm.classList.remove('selected'));
-        for(let i=0; i<selectedIndices.length; i++) {
-            const selectedIndex = selectedIndices[i];
-            const selectedCell = this.querySelector(`.grid-cell[data-index='${selectedIndex}']`);
-            // if(selectedCell.classList.contains('grid-cell-new'))
-            //     continue;
-            if (!selectedCell)
-                throw new Error("Invalid selected cell index: " + selectedIndex);
-            selectedCell.classList.add('selected');
-            selectedCell.parentNode.classList.toggle('selected',
-                selectedCell.parentNode.querySelectorAll('.selected').length > 0);
+        if(selectedIndices) {
+            for (let i = 0; i < selectedIndices.length; i++) {
+                const selectedIndex = selectedIndices[i];
+                const selectedCell = this.querySelector(`.grid-cell[data-index='${selectedIndex}']`);
+                // if(selectedCell.classList.contains('grid-cell-new'))
+                //     continue;
+                if (!selectedCell)
+                    throw new Error("Invalid selected cell index: " + selectedIndex);
+                selectedCell.classList.add('selected');
+                selectedCell.parentNode.classList.toggle('selected',
+                    selectedCell.parentNode.querySelectorAll('.selected').length > 0);
+            }
         }
 
         this.scrollToCursor();

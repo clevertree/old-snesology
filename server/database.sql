@@ -15,6 +15,7 @@ CREATE TABLE `song_history` (
   `action` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `song_id` int(11) DEFAULT NULL,
   KEY `fk_song_id_idx` (`song_id`),
+  UNIQUE KEY `in_song_id_step` (`step`,`song_id`),
   CONSTRAINT `fk_song_id` FOREIGN KEY (`song_id`) REFERENCES `song` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
