@@ -8,25 +8,26 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-        <link href="client/assets/site.css" rel="stylesheet" />
-        <link href="client/assets/theme/minimal.css" rel="stylesheet" />
+        <link href="assets/site.css" rel="stylesheet" />
+        <link href="assets/theme/minimal.css" rel="stylesheet" />
 
         <link href='https://fonts.googleapis.com/css?family=VT323' rel='stylesheet'>
         <link rel="manifest" href="manifest.json">
 
-        <script src="client/assets/site.js"></script>
+        <script src="assets/site.js"></script>
 
         <script>
             // Support older browsers
             window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
         </script>
 
-        <script src="client/player/music-player.js" ></script>
-        <script src="client/editor/music-editor.js" ></script>
-        <script src="client/editor/music-editor-menu.js" ></script>
-        <script src="client/editor/music-editor-grid.js" ></script>
-        <script src="client/editor/music-editor-instrument.js" ></script>
-        <link href="client/editor/music-editor.css" rel="stylesheet" />
+        <script src="player/music-player.js" ></script>
+        <script src="editor/music-editor.js" ></script>
+        <script src="editor/music-editor-menu.js" ></script>
+        <script src="editor/music-editor-grid.js" ></script>
+        <script src="editor/music-editor-instrument.js" ></script>
+        <script src="editor/music-editor-song-modifier.js" ></script>
+        <link href="editor/music-editor.css" rel="stylesheet" />
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 var editor = document.querySelector('music-editor');

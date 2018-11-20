@@ -40,6 +40,7 @@ class MusicEditorMenuElement extends HTMLElement {
         this.addEventListener('submit', this.onSubmit);
 
         this.render();
+        setTimeout(() => this.update(), 5);
     }
 
 
@@ -350,7 +351,7 @@ class MusicEditorMenuElement extends HTMLElement {
             this.querySelector('form.form-row-duration').duration.value = combinedInstruction.duration;
         }
 
-        this.querySelector('form.form-grid-max-pause')['max-pause'].value = maxPause;
+        this.querySelector('form.form-grid-max-pause select[name=max-pause]').value = maxPause;
 
         this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPauseIndices.length > 1 ? 's' : '') + ":";
         this.querySelector('.row-label-command').innerHTML = 'Command' + (selectedIndices.length > 1 ? 's' : '') + ":";
