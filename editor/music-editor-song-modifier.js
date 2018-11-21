@@ -107,7 +107,7 @@ class MusicEditorSongModifier {
         let oldData = null;
         const pathInfo = this.findDataPath(path);
 
-        if(newData) {
+        if(typeof newData !== "undefined") {
             if(typeof pathInfo.key === 'number' && pathInfo.parent.length < pathInfo.key)
                 throw new Error(`Replace position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
             if(typeof pathInfo.parent[pathInfo.key] !== "undefined")
@@ -137,11 +137,10 @@ class MusicEditorSongModifier {
         for(let i=0; i<instructionList.length; i++) {
             const instruction = instructionList[i];
             if(instruction.command === '!pause') {
-                groupPosition += instruction.duration;
 
-                if(groupPosition >= insertPosition) {
+                if(groupPosition + instruction.duration >= insertPosition) {
 
-                    if(groupPosition === insertPosition) {
+                    if(groupPosition + instruction.duration === insertPosition) {
                         // Pause Position equals insert position, append after
 
                         let lastInsertPosition = i;
@@ -155,8 +154,9 @@ class MusicEditorSongModifier {
                     }
 
                     // Pause Position is before insert position, split the pause
-                    return this.splitPauseInstruction(groupName, i, groupPosition - insertPosition, insertInstruction);
+                    return this.splitPauseInstruction(groupName, i,insertPosition - groupPosition , insertInstruction);
                 }
+                groupPosition += instruction.duration;
             }
         }
 
@@ -189,7 +189,7 @@ class MusicEditorSongModifier {
             duration: splitDuration2
         });
 
-        return pauseIndex;
+        return pauseIndex - 1; // we want the instruction, not the pause
     }
 
 
@@ -350,3 +350,6 @@ class MusicEditorSongModifier {
     }
 
 }
+
+if(typeof module !== "undefined")
+    module.exports = MusicEditorSongModifier;

@@ -125,55 +125,72 @@ class SongServer {
             throw new Error("Invalid uuid parameter");
         const uuid = jsonRequest.uuid.toLowerCase();
 
-        this.getSongEntry(uuid, (songEntry) => {
+        this.getOrCreateSongEntry(uuid, (songEntry) => {
 
-            let lastStep = songEntry[0] ? songEntry[0].last_step : null;
+            let lastStep = songEntry.last_step || 0;
+            for (let i = 0; i < jsonRequest.historyActions.length; i++) {
+                const historyAction = jsonRequest.historyActions[i];
+                if (historyAction.step === lastStep + 1) {
+                    lastStep++;
+                    // Step is incremented as expected
+                    // console.info(`History Entry (${jsonRequest.historyAction.step}): ${entryKeyPath}`);
 
-            if(lastStep !== null) {
-                for (let i = 0; i < jsonRequest.historyActions.length; i++) {
-                    const historyAction = jsonRequest.historyActions[i];
-                    if (historyAction.step === lastStep + 1) {
-                        lastStep++;
-                        // Step is incremented as expected
-                        // console.info(`History Entry (${jsonRequest.historyAction.step}): ${entryKeyPath}`);
+                } else if (historyAction.step < lastStep + 1) {
+                    // Step is out of date
+                    this.sendError(ws, `Step is out of date: ${historyAction.step} < ${lastStep} + 1`);
 
-                    } else if (historyAction.step < lastStep + 1) {
-                        // Step is out of date
-                        this.sendError(ws, `Step is out of date: ${historyAction.step} < ${lastStep} + 1`);
-
-                    } else {
-                        // Step is in the future
-                        this.sendError(ws, `Step is in the future: ${historyAction.step} > ${lastStep} + 1`);
-                    }
+                } else {
+                    // Step is in the future
+                    this.sendError(ws, `Step is in the future: ${historyAction.step} > ${lastStep} + 1`);
                 }
             }
 
-            for (let i = 0; i < jsonRequest.historyActions.length; i++) {
-                const historyAction = jsonRequest.historyActions[i];
-                const step = historyAction.step;
-                delete historyAction.step;
-                let SQL = `INSERT INTO song_history 
-                            SET step = ?, action = ?, song_id = (SELECT s.id FROM song s WHERE s.uuid = ?)`;
-                this.db.query(SQL,
-                    [step, JSON.stringify(historyAction), uuid],
-                    (error, results, fields) => {
-                        if (error)
-                            throw error;
-                    });
-            }
+            this.getSongContent(uuid, (songContentEntry) => {
+                const songContent = songContentEntry && songContentEntry.content ? JSON.parse(songContentEntry.content) : this.generateDefaultSong(uuid);
+                const MusicEditorSongModifier = require('../../editor/music-editor-song-modifier');
+                const songManipulator = new MusicEditorSongModifier(songContent);
 
-            const entryListeners = this.getListeners(uuid);
-            for (let i = 0; i < entryListeners.length; i++) {
-                const listener = entryListeners[i];
-                if (listener === ws)
-                    continue;
-                if (!this.isActive(listener))
-                    continue;
-                listener.send(JSON.stringify({
-                    type: 'history:entry',
-                    historyActions: [jsonRequest.historyActions]
-                }));
-            }
+                songManipulator.applyHistoryActions(jsonRequest.historyActions);
+
+                // Insert Modified Content
+                let SQL = `REPLACE INTO song_content 
+                            SET created=UTC_TIMESTAMP(), 
+                                updated=UTC_TIMESTAMP(), 
+                                step = ?, 
+                                content = ?, 
+                                type = ?, 
+                                song_id = (SELECT s.id FROM song s WHERE s.uuid = ?)`;
+                this.db.query(SQL, [lastStep, JSON.stringify(songContent), 'live', uuid], (err) => {if(err) throw err});
+
+                // Insert Historic steps
+                for (let i = 0; i < jsonRequest.historyActions.length; i++) {
+                    const historyAction = jsonRequest.historyActions[i];
+                    const step = historyAction.step;
+                    delete historyAction.step;
+                    let SQL = `INSERT INTO song_history 
+                            SET step = ?, action = ?, song_id = (SELECT s.id FROM song s WHERE s.uuid = ?)`;
+                    this.db.query(SQL,
+                        [step, JSON.stringify(historyAction), uuid],
+                        (error, results, fields) => {
+                            if (error)
+                                throw error;
+                        });
+                }
+
+                const entryListeners = this.getListeners(uuid);
+                for (let i = 0; i < entryListeners.length; i++) {
+                    const listener = entryListeners[i];
+                    if (listener === ws)
+                        continue;
+                    if (!this.isActive(listener))
+                        continue;
+                    listener.send(JSON.stringify({
+                        type: 'history:entry',
+                        historyActions: [jsonRequest.historyActions]
+                    }));
+                }
+            });
+
         });
 
     }
@@ -216,11 +233,9 @@ class SongServer {
 
     getSongContent(uuid, callback) {
         let SQL = `
-    SELECT s.*, 
-           (SELECT sh.step from song_history sh WHERE sh.song_id = s.id ORDER BY sh.step DESC LIMIT 1) as last_step,
-           (SELECT sc.content from song_content sc WHERE sc.song_id = s.id and sh.type = 'published' ORDER BY sh.id DESC LIMIT 1) as content_published,
-           (SELECT sc.content from song_content sc WHERE sc.song_id = s.id and sh.type = 'live' ORDER BY sh.id DESC LIMIT 1) as content_live
-    FROM song s              
+    SELECT sc.*
+    FROM song_content sc
+    LEFT JOIN song s on s.id = sc.song_id
     WHERE s.uuid = ?`;
         this.db.query(SQL, [uuid], (error, songResults, fields) => {
             if (error)

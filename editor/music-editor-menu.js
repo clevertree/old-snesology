@@ -47,7 +47,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
     onSubmit(e) {
         e.preventDefault();
-        try {
+        // try {
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
             const cursorIndex = this.editor.grid.cursorIndex;
@@ -156,9 +156,9 @@ class MusicEditorMenuElement extends HTMLElement {
                     console.warn("Unhandled " + e.type + ": ", command);
                     break;
             }
-        } catch (e) {
-            this.editor.onError(e);
-        }
+        // } catch (e) {
+        //     this.editor.onError(e);
+        // }
     }
 
     onInput(e) {

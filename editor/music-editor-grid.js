@@ -60,6 +60,7 @@ class MusicEditorGridElement extends HTMLElement {
     get nextRowCell() {
         let currentCell = this.cursorCell;
         const thisRow = currentCell.parentNode;
+        throw new Error("inf todo");
         while(currentCell && currentCell.parentNode === thisRow)
             currentCell = this.nextCell;
         return currentCell;
@@ -155,7 +156,7 @@ class MusicEditorGridElement extends HTMLElement {
 
         const addPauseHTML = (index, pauseInstruction) => {
             if(typeof pauseInstruction.duration !== "number")
-                throw new console.error("Invalid Pause command: ", pauseInstruction);
+                throw console.error(`Invalid Pause command: (${index})`, pauseInstruction);
 
             const duration = pauseInstruction.duration;
             for(let subPause=0; subPause<duration; subPause+=maxPause) {

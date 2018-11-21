@@ -22,15 +22,14 @@ CREATE TABLE `song_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `song_content` (
-  `id` INT NOT NULL AUTO_INCREMENT,
   `song_id` INT NULL,
   `content` JSON NULL,
   `type` ENUM('live', 'published') NULL,
-  `created` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated` TIMESTAMP NULL,
+  `created` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated` DATETIME NULL,
   `step` SMALLINT(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `fk_song_content_song_id_idx` (`song_id` ASC),
+  KEY `fk_song_content_song_id_idx` (`song_id` ASC),
+  UNIQUE KEY `unique_song_content_type` (`song_id` ASC, `type` ASC),
   CONSTRAINT `fk_song_content_song_id`
   FOREIGN KEY (`song_id`)
   REFERENCES `song` (`id`)

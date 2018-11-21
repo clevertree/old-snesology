@@ -185,7 +185,7 @@ music-editor-grid .grid-cell-pause.duration-large {
 }
 music-editor-grid .grid-cell-pause.duration-medium {
     color: #050;
-    font-size: small;
+    /* font-size: small; */
 }
 music-editor-grid .grid-cell-pause.duration-small {
     color: #050;
