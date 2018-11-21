@@ -57,11 +57,7 @@ class MusicEditorElement extends HTMLElement {
             // this.render();
         });
 
-        if ("WebSocket" in window) {
-            this.initWebSocket();
-        } else {
-            console.warn("WebSocket is not supported by your Browser!");
-        }
+        this.initWebSocket();
         // this.render(); // Render after player element is loaded
 
 
@@ -84,11 +80,22 @@ class MusicEditorElement extends HTMLElement {
     getAudioContext() { return this.player.getAudioContext(); }
     getSongData() { return this.songData || this.player.getSongData(); }
 
-    getSongURL() { return this.getAttribute('src');}
+    get uuid() { return this.getAttribute('uuid');}
+    loadSongUUID(uuid) {
+        this.setAttribute('uuid', uuid);
+        this.initWebSocket();
+    }
 
-    initWebSocket(url) {
-        url = url || new URL(this.getSongURL(), document.location) || location;
-        const wsURL = (url+'').replace(/^http/i, 'ws');
+    initWebSocket() {
+        if (!("WebSocket" in window)) {
+            console.warn("WebSocket is not supported by your Browser!");
+            return;
+        }
+        if(this.webSocket) {
+            this.webSocket.close();
+            this.webSocket = null;
+        }
+        const wsURL = window.origin.replace(/^http/i, 'ws') + '/editor';
         const ws = new WebSocket(wsURL);
         const onWebSocketEvent = this.onWebSocketEvent.bind(this);
         ws.addEventListener('open', onWebSocketEvent);
@@ -102,12 +109,12 @@ class MusicEditorElement extends HTMLElement {
         switch(e.type) {
             case 'open':
                 this.webSocketAttempts = 0;
-                // this.webSocket
-                //     .send(JSON.stringify({
-                //         type: 'history:register',
-                //         path: this.getSongURL()
-                        // historyStep:
-                    // }));
+                if(this.uuid)
+                    this.webSocket
+                        .send(JSON.stringify({
+                            type: 'history:register',
+                            uuid: this.uuid
+                        }));
                 // e.target.send("WELCOME");
                 break;
 
@@ -244,7 +251,7 @@ class MusicEditorElement extends HTMLElement {
             .send(JSON.stringify({
                 type: 'history:entry',
                 historyActions: historyActions,
-                path: this.getSongURL()
+                uuid: this.uuid
             }))
     }
 

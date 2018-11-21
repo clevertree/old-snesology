@@ -12,7 +12,7 @@ const BASE_DIR = path.resolve(path.dirname(__dirname));
 
 // Init
 let app;
-module.exports = function(appInstance, router) {
+module.exports = function(appInstance) {
     app = appInstance;
 
     buildSampleLibraries();
