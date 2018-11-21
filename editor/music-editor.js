@@ -278,7 +278,7 @@ class MusicEditorElement extends HTMLElement {
         songModifier.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
-        this.grid.selectIndices(insertIndex, [insertIndex]);
+        // this.grid.selectIndices(insertIndex, [insertIndex]);
         return insertIndex;
     }
 
@@ -287,62 +287,61 @@ class MusicEditorElement extends HTMLElement {
         songModifier.deleteInstructionAtIndex(groupName, deleteIndex);
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
-        this.grid.selectIndices(deleteIndex);
-        return historyAction.return;
+        // this.grid.selectIndices(deleteIndex);
+        // return null;
     }
 
     replaceInstructionParams(groupName, replaceIndex, replaceParams) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyActions = songModifier.replaceInstructionParams(groupName, replaceIndex, replaceParams);
+        const oldParams = songModifier.replaceInstructionParams(groupName, replaceIndex, replaceParams);
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
-        this.grid.selectIndices(replaceIndex, [replaceIndex]);
-        return historyActions[0].return;
+        // this.grid.selectIndices(replaceIndex, [replaceIndex]);
+        return oldParams;
     }
 
     addInstructionGroup(newGroupName, instructionList) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.addInstructionGroup(newGroupName, instructionList);
-        this.historyQueue(historyAction);
+        songModifier.addInstructionGroup(newGroupName, instructionList);
+        this.historyQueue(songModifier.clearHistoryActions());
         this.grid.navigate(newGroupName);
     }
 
     removeInstructionGroup(removedGroupName) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.removeInstructionGroup(removedGroupName);
-        this.historyQueue(historyAction);
+        songModifier.removeInstructionGroup(removedGroupName);
+        this.historyQueue(songModifier.clearHistoryActions());
         this.grid.navigatePop();
     }
 
     renameInstructionGroup(oldGroupName, newGroupName) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.renameInstructionGroup(oldGroupName, newGroupName);
-        this.historyQueue(historyAction);
+        songModifier.renameInstructionGroup(oldGroupName, newGroupName);
+        this.historyQueue(songModifier.clearHistoryActions());
         this.grid.navigate(newGroupName);
     }
 
     addInstrument(config) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.addInstrument(config);
-        this.historyQueue(historyAction);
+        const instrumentID = songModifier.addInstrument(config);
+        this.historyQueue(songModifier.clearHistoryActions());
         this.render(); // TODO: render only instruments
-        return historyAction.return;
+        return instrumentID;
     }
 
     removeInstrument(instrumentID) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.removeInstrument(instrumentID);
-        this.historyQueue(historyAction);
+        songModifier.removeInstrument(instrumentID);
+        this.historyQueue(songModifier.clearHistoryActions());
         this.render(); // TODO: render only instruments
-        return historyAction.return;
     }
 
     replaceInstrumentParams(instrumentID, replaceConfig) {
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const historyAction = songModifier.replaceInstrumentParams(instrumentID, replaceConfig);
-        this.historyQueue(historyAction);
+        const oldParams = songModifier.replaceInstrumentParams(instrumentID, replaceConfig);
+        this.historyQueue(songModifier.clearHistoryActions());
         this.render(); // TODO: render only instruments
-        return historyAction.return;
+        return oldParams;
     }
 
     // Rendering

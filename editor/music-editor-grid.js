@@ -58,20 +58,21 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     get nextRowCell() {
-        let currentCell = this.cursorCell;
-        const thisRow = currentCell.parentNode;
-        throw new Error("inf todo");
-        while(currentCell && currentCell.parentNode === thisRow)
-            currentCell = this.nextCell;
-        return currentCell;
+        const cellList = this.querySelectorAll('.grid-cell');
+        const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        for(let i=currentIndex;i<cellList.length;i++)
+            if(cellList[i].parentNode !== cellList[currentIndex].parentNode)
+                return cellList[i];
+        return null;
     }
 
     get previousRowCell() {
-        let currentCell = this.cursorCell;
-        const thisRow = currentCell.parentNode;
-        while(currentCell && currentCell.parentNode === thisRow)
-            currentCell = this.previousCell;
-        return currentCell;
+        const cellList = this.querySelectorAll('.grid-cell');
+        const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        for(let i=currentIndex;i>=0;i--)
+            if(cellList[i].parentNode !== cellList[currentIndex].parentNode)
+                return cellList[i];
+        return null;
     }
 
     get selectedRange() {
@@ -509,12 +510,12 @@ class MusicEditorGridElement extends HTMLElement {
         return this.editor.insertInstructionAtPosition(this.groupName, insertTimePosition, instruction);
     }
 
-    deleteInstructionAtIndex(deletePosition) {
-        return this.editor.deleteInstructionAtIndex(this.groupName, deletePosition, 1);
+    deleteInstructionAtIndex(deleteIndex) {
+        return this.editor.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
     }
 
-    replaceInstructionParams(replacePositions, replaceParams) {
-        return this.editor.replaceInstructionParams(this.groupName, replacePositions, replaceParams);
+    replaceInstructionParams(replaceIndex, replaceParams) {
+        return this.editor.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
     }
 
 
