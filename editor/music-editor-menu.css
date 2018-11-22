@@ -4,7 +4,7 @@ music-editor-menu {
     display: block;
 }
 
-music-editor .editor-menu {
+music-editor-menu .editor-menu {
     display: block;
     /* border: 1px solid grey; */
     background-color: #BBB;
@@ -13,21 +13,21 @@ music-editor .editor-menu {
     margin: 0 0;
 }
 
-music-editor .editor-menu hr {
+music-editor-menu .editor-menu hr {
     margin: 4px 0;
     border: 1px #666 solid;
 }
 
-music-editor .editor-menu li {
+music-editor-menu .editor-menu li {
     list-style-type: none;
 }
 
-music-editor .editor-menu > li {
+music-editor-menu .editor-menu > li {
     /*float: left;*/
     display: inline-block;
 }
 
-music-editor .menu-section-title {
+music-editor-menu .menu-section-title {
     text-align: center;
     display: block;
     /* font-weight: bold; */
@@ -38,12 +38,12 @@ music-editor .menu-section-title {
     /* text-decoration: underline; */
 }
 
-music-editor .menu-item > .key {
+music-editor-menu .menu-item > .key {
     /*font-weight: bold;*/
     text-decoration: underline;
 }
 
-music-editor .menu-item {
+music-editor-menu .menu-item {
     vertical-align: top;
     display: inline-block;
     padding: 3px 8px;
@@ -52,20 +52,20 @@ music-editor .menu-item {
     white-space: nowrap;
     position: relative;
 }
-music-editor .submenu .menu-item {
+music-editor-menu .submenu .menu-item {
     min-width: 128px;
 }
 
-music-editor .menu-item > * {
+music-editor-menu .menu-item > * {
     white-space: nowrap;
 }
 
-music-editor .menu-item.disabled {
+music-editor-menu .menu-item.disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-music-editor .submenu {
+music-editor-menu .submenu {
     display: none;
     border: 1px solid grey;
     background-color: #BBB;
@@ -81,10 +81,10 @@ music-editor .submenu {
     /* min-width: 200px; */
 }
 
-/*music-editor .menu-item:hover + .submenu,*/
-/*music-editor .submenu:hover,*/
-music-editor .menu-item.open + .submenu,
-music-editor .submenu.open {
+/*music-editor-menu .menu-item:hover + .submenu,*/
+/*music-editor-menu .submenu:hover,*/
+music-editor-menu .menu-item.open + .submenu,
+music-editor-menu .submenu.open {
     /* display: block; */
     display: inline-block;
     white-space: nowrap;
@@ -94,32 +94,32 @@ music-editor .submenu.open {
     /*transition: max-height 2s;*/
     z-index: 98;
 }
-music-editor .submenu:hover,
-music-editor .menu-item:hover + .submenu {
+music-editor-menu .submenu:hover,
+music-editor-menu .menu-item:hover + .submenu {
     z-index: 99;
 }
-music-editor .menu-item:hover {
+music-editor-menu .menu-item:hover {
     background-color: #AAA;
 }
-music-editor .menu-item.open {
+music-editor-menu .menu-item.open {
     background-color: #99C;
 }
-music-editor .menu-item:active {
+music-editor-menu .menu-item:active {
     background-color: #888;
 }
 
-music-editor .submenu-pointer {
+music-editor-menu .submenu-pointer {
     /* float: right; */
     position:  absolute;
     right: 4px;
 }
-music-editor .submenu-pointer:after {
+music-editor-menu .submenu-pointer:after {
     content: '➤';
 }
 
 /** Context Menu **/
 
-music-editor .editor-context-menu {
+music-editor-menu .editor-context-menu {
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
@@ -127,35 +127,13 @@ music-editor .editor-context-menu {
     display: none;
     z-index: 99;
 }
-music-editor .editor-context-menu.open {
+music-editor-menu .editor-context-menu.open {
     display: block;
 }
 
-/** Form **/
 
 
-music-editor input[type='range'] {
-    -webkit-appearance: none;
-    background-color: #AAA;
-    border-radius: 15px;
-    height: 12px;
-}
-
-music-editor input[type='range']::-webkit-slider-thumb {
-    vertical-align: middle;
-    -webkit-appearance: none;
-    background-color: #444;
-    width: 16px;
-    height: 16px;
-    border-radius: 16px;
-}
-
-music-editor .editor-forms {
-    padding: 2px 0px;
-    color: black;
-}
-
-music-editor .editor-forms form {
+music-editor-menu form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
     /* margin: 0px 0; */
@@ -163,13 +141,13 @@ music-editor .editor-forms form {
     padding-top: 2px;
     display: inline-block;
 }
-music-editor .editor-forms .form-group-selection > form {
+music-editor-menu .form-group-selection > form {
     float: left;
     padding: 0px 2px 3px 0px;
 }
 
 
-music-editor .editor-forms label.row-label {
+music-editor-menu label.row-label {
     display: inline-block;
     min-width: 61px;
     text-align: right;
@@ -177,18 +155,10 @@ music-editor .editor-forms label.row-label {
     font-weight: bold;
 }
 
-music-editor .editor-forms form.hidden {
+music-editor-menu form.hidden {
     display: none;
 }
 
-music-editor .editor-forms select,
-music-editor .editor-forms button {
-    border-radius: 5px;
-    border: 1px outset;
-    background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
-    max-width: 87px;
-    cursor: pointer;
-}
 
 music-editor-menu form.form-instruction-instrument select[name=instrument] {
     max-width: 88px;
@@ -199,16 +169,16 @@ music-editor-menu form.form-instruction-command select[name=frequency] {
 music-editor-menu form.form-instruction-duration select[name=duration] {
     max-width: 75px;
 }
-music-editor-menu form.form-instruction-velocity music-editor .editor-forms select[name=velocity] {
+music-editor-menu form.form-instruction-velocity music-editor-menu select[name=velocity] {
     max-width: 71px;
 }
 
-music-editor .editor-forms input[name=volume] {
+music-editor-menu input[name=volume] {
     max-width: 71px;
     /* max-height: 10px; */
 }
 
-music-editor .editor-forms div.volume-container {
+music-editor-menu div.volume-container {
     /* border: 1px solid #AAA; */
     /* border-radius: 6px; */
     /* max-height: 15px; */
@@ -218,28 +188,28 @@ music-editor:not(.playing) form.form-song-pause { display: none; }
 music-editor.playing form.form-song-play { display: none; }
 music-editor:not(.paused) form.form-song-resume { display: none; }
 
-music-editor .editor-forms select:disabled,
-music-editor .editor-forms button:disabled {
+music-editor-menu select:disabled,
+music-editor-menu button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
 }
 
-music-editor .editor-forms button.selected {
+music-editor-menu button.selected {
     /* border: 1px inset; */
     font-weight: bold;
     box-shadow: #333 1px 1px 4px;
 }
 
-music-editor .editor-forms .form-group-selection form.form-group > button {
+music-editor-menu .form-group-selection form.form-group > button {
     font-size: smaller;
     padding: 0px 3px 2px 2px;
     min-width: 18px;
     border-radius: 2px;
 }
-music-editor .editor-forms .form-group-selection form.form-group > button.new {
+music-editor-menu .form-group-selection form.form-group > button.new {
     color: #444;
 }
-music-editor .editor-forms .form-separator {
+music-editor-menu .form-separator {
     height: 0px;
     margin: 0;
 }

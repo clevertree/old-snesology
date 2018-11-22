@@ -112,31 +112,26 @@ class BufferSourceInstrument extends HTMLElement {
     }
 
     render() {
-        // this.lastEditorContainer = editorContainer;
-        // const instrumentID = editorContainer.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
             <form class="instrument-editor">
-                <fieldset>
-                    <legend>${this.config.name} (${this.constructor.name})</legend>
-                    <label class="buffersource-preset">
-                        Preset:
-                        <select name="preset" title="Load Preset">
-                            ${this.library ? 
-                                `<optgroup label="${this.library.name || 'Unnamed Library'}">` +
-                                Object.keys(this.library.instruments).map((presetName) => {
-                                    const instrumentConfig = this.library.instruments[presetName];
-                                    let title = presetName || instrumentConfig.title;
-                                    if(presetName.endsWith('.library.json'))
-                                        title = "Library: " + title.replace('.library.json', '');
-                                    const selected = presetName === this.config.preset ? ` selected="selected"` : '';
-                                    return `<option value="${presetName}" ${selected}>${title}</option>`;
-                                }).join("\n")
-                                + `</optgroup>`
-                            : null}
-                        </select>
-                    </label>
-                </fieldset>
+                <label>
+                    Preset:
+                    <select name="preset" title="Load Preset">
+                        ${this.library ? 
+                            `<optgroup label="${this.library.name || 'Unnamed Library'}">` +
+                            Object.keys(this.library.instruments).map((presetName) => {
+                                const instrumentConfig = this.library.instruments[presetName];
+                                let title = presetName || instrumentConfig.title;
+                                if(presetName.endsWith('.library.json'))
+                                    title = "Library: " + title.replace('.library.json', '');
+                                const selected = presetName === this.config.preset ? ` selected="selected"` : '';
+                                return `<option value="${presetName}" ${selected}>${title}</option>`;
+                            }).join("\n")
+                            + `</optgroup>`
+                        : null}
+                    </select>
+                </label>
             </form>
         `;
 

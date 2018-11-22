@@ -180,6 +180,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     } else {
                         console.info("Add instrument canceled");
                     }
+                    this.fieldAddInstrumentInstrument.value = '';
                     break;
 
                 default:
@@ -514,7 +515,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     </form>
                     <form class="form-song-volume" data-command="song:volume">
                         <div class="volume-container">
-                            <input name="volume" type="range" min="1" max="100" value="${this.editor.player ? this.editor.player.getVolumeGain().gain.value*100 : 0}">
+                            <input name="volume" type="range" min="1" max="100" value="${this.editor.player ? this.editor.player.getVolumeGain().gain.value*100 : 0}" class="themed">
                         </div>
                     </form>
                     <form class="form-song-info" data-command="song:info">

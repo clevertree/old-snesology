@@ -309,15 +309,18 @@ class MusicPlayerElement extends HTMLElement {
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
     }
 
+    getInstrumentConfig(instrumentID) {
+        const instrumentList = this.getSongData().instruments;
+        if(!instrumentList[instrumentID])
+            throw new Error("Instrument ID not found: " + instrumentID);
+        return instrumentList[instrumentID];
+    }
+
     getInstrument(instrumentID) {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
 
-        const instrumentList = this.getSongData().instruments;
-        if(!instrumentList[instrumentID])
-            throw new Error("Instrument ID not found: " + instrumentID);
-        const instrumentPreset = instrumentList[instrumentID];
-
+        const instrumentPreset = this.getInstrumentConfig(instrumentID);
         const url = new URL(instrumentPreset.url, document.location);
         const elementName = url.pathname.substring(url.pathname.lastIndexOf('/')+1).split('.')[0];
 
@@ -564,7 +567,9 @@ class MusicPlayerElement extends HTMLElement {
             if(scripts[i].src.endsWith(scriptPath)) {
                 if(scripts[i].loaded === false) {
                     scripts[i].onloads.push(onLoaded);
+                    // console.info("Queueing callback: ", scriptPath);
                 } else {
+                    // console.info("Calling callback directly: ", scriptPath);
                     onLoaded();
                 }
                 return scripts[i];
@@ -575,11 +580,13 @@ class MusicPlayerElement extends HTMLElement {
         newScriptElm.onloads = [onLoaded];
         newScriptElm.loaded = false;
         newScriptElm.onload = function(e) {
-            newScriptElm.loaded = true;
-            for(let i=0; i<newScriptElm.onloads.length; i++)
-                newScriptElm.onloads[i](e);
-        };
+            this.loaded = true;
+            // console.info("Executing callback: ", scriptPath, this.onloads);
+            for(let i=0; i<this.onloads.length; i++)
+                this.onloads[i](e);
+        }.bind(newScriptElm);
         document.head.appendChild(newScriptElm);
+        // console.info("Including Script: ", scriptPath);
         return newScriptElm;
     }
 

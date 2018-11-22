@@ -1,0 +1,26 @@
+
+
+music-editor-instrument {
+    display: block;
+}
+
+music-editor-instrument .instrument-editor {
+
+}
+
+music-editor-instrument legend.header {
+    /* text-align: center; */
+    font-size: xx-small;
+    font-weight: bold;
+    background: linear-gradient(to bottom, #FFF 40%,#dddddd 100%);
+    border-radius: 2px;
+}
+
+music-editor-instrument form {
+    /* border: 1px solid #333; */
+    /* background-color: #CCC; */
+    /* margin: 0px 0; */
+    /* padding: 1px 2px 1px 0px; */
+    padding-top: 2px;
+    display: inline-block;
+}

@@ -1,7 +1,7 @@
 
 class OscillatorInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
-    get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/chiptune/snes/ffvi/ffvi.library.json'; }
+    get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/audiosource/sample/3rdparty/mohayonao.library.json'; }
 
     constructor(config, audioContext) {
         super();
@@ -64,29 +64,36 @@ class OscillatorInstrument extends HTMLElement {
 
     }
 
+    connectedCallback() {
+        this.addEventListener('change', this.onSubmit);
+        // this.addEventListener('input', this.onSubmit);
+        this.addEventListener('submit', this.onSubmit);
+
+        this.render();
+    }
+
     render() {
-        // const instrumentID = this.parentNode.id < 10 ? "0" + editorContainer.id : "" + editorContainer.id;
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
-            <form class="instrument-editor">
-                <fieldset>
-                    <legend>${this.config.name} (${this.constructor.name})</legend>
-                    <label class="oscillator-type">Type:
-                        <select name="type" title="Wave Type">
-                            ${OscillatorInstrument.BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
-                        </select>
-                    </label>
-                    <label class="oscillator-custom-url" ${this.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
-                        <select name="customURL" title="Custom Periodic Wave">
-                            <option value="${this.config.customURL}">${this.periodicWaveName}</option>
-                            ${this.presetHTML}
-                            <option value="${this.DEFAULT_SAMPLE_LIBRARY_URL}">More Samples...</option>
-                        </select>
-                    </label>
-                    <label class="oscillator-detune">Detune:
-                        <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" />
-                    </label>
-                </fieldset>
+            <form class="oscillator-type">
+                <label>Type:
+                    <select name="type" title="Wave Type">
+                        ${OscillatorInstrument.BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                    </select>
+                </label>
+                <label class="oscillator-custom-url" ${this.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
+                    <select name="customURL" title="Custom Periodic Wave">
+                        <option value="${this.config.customURL}">${this.periodicWaveName}</option>
+                        ${this.presetHTML}
+                        <option value="${this.DEFAULT_SAMPLE_LIBRARY_URL}">More Samples...</option>
+                    </select>
+                </label>
+            </form>
+            
+            <form class="oscillator-detune">
+                <label>Detune:
+                    <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" class="themed"/>
+                </label>
             </form>
         `;
 

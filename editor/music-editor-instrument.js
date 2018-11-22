@@ -2,6 +2,11 @@ class MusicEditorInstrumentElement extends HTMLElement {
     constructor() {
         super();
         this.editor = null;
+
+        // Include assets
+        const INCLUDE_CSS = "editor/music-editor-instrument.css";
+        if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
+            document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
 
     get id() { return parseInt(this.getAttribute('id')); }
@@ -55,25 +60,35 @@ class MusicEditorInstrumentElement extends HTMLElement {
     }
 
     render() {
+        const instrumentIDHTML = ((id) => (id < 10 ? "0" : "") + id + ": ")(this.id);
+
+        // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
+
         if(this.editor.player.isInstrumentLoaded(this.id)) {
             try {
                 const instrument = this.editor.player.getInstrument(this.id);
+                const instrumentPreset = this.editor.player.getInstrumentConfig(this.id);
+                const instrumentName = instrumentPreset.name
+                    ? `${instrumentPreset.name} (${instrument.constructor.name})`
+                    : instrument.constructor.name;
+
+                    this.innerHTML = `<legend class="header">${instrumentIDHTML}${instrumentName}</legend>`
                 if (instrument instanceof HTMLElement) {
-                    this.innerHTML = '';
                     this.appendChild(instrument);
                 } else if (instrument.render) {
                     const renderedHTML = instrument.render(this);
                     if(renderedHTML)
-                        this.innerHTML = renderedHTML;
+                        this.innerHTML += renderedHTML;
                 } else {
                     throw new Error("No Renderer");
                 }
 
             } catch (e) {
-                this.innerHTML = e;
+                this.innerHTML = `<legend class="header">${instrumentIDHTML} Error: ${e.message}</legend>`
+                this.innerHTML += e.stack;
             }
         } else {
-            this.innerHTML = "Loading ...";
+            this.innerHTML = `<legend class="header">${instrumentIDHTML} Loading...</legend>`
         }
     }
 }
