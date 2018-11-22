@@ -15,8 +15,6 @@ class MusicEditorGridElement extends HTMLElement {
             throw new Error("Group instructions not found: " + groupName);
         return song.instructions[groupName];
     }
-    get maxPause() { return parseFloat(this.getAttribute('data-max-pause')) || 1; }
-    set maxPause(duration) { this.setAttribute('data-max-pause', duration); }
 
     get selectedCells() { return this.querySelectorAll('.grid-cell-instruction.selected'); }
     get cursorCell() { return this.querySelector('.grid-cell.cursor'); }
@@ -115,6 +113,7 @@ class MusicEditorGridElement extends HTMLElement {
         }
 
         this.render();
+        this.editor.menu.update();
     }
 
     render() {
@@ -126,7 +125,7 @@ class MusicEditorGridElement extends HTMLElement {
 
         const selectedIndices = this.selectedIndices;
         const cursorIndex = this.cursorIndex;
-        const maxPause = this.maxPause;
+        const gridDuration = parseFloat(this.editor.menu.fieldRenderDuration.value);
         // var pausesPerBeat = songData.pausesPerBeat;
 
         // const beatsPerMinute = songData.beatsPerMinute;
@@ -160,10 +159,10 @@ class MusicEditorGridElement extends HTMLElement {
                 throw console.error(`Invalid Pause command: (${index})`, pauseInstruction);
 
             const duration = pauseInstruction.duration;
-            for(let subPause=0; subPause<duration; subPause+=maxPause) {
-                let subDuration = maxPause;
-                if(subPause + maxPause > duration)
-                    subDuration = subPause + maxPause - duration;
+            for(let subPause=0; subPause<duration; subPause+=gridDuration) {
+                let subDuration = gridDuration;
+                if(subPause + gridDuration > duration)
+                    subDuration = subPause + gridDuration - duration;
 
                 // if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + pauseInstruction.pause) / beatsPerMeasure))
                 //     rowCSS.push('measure-end');
@@ -499,7 +498,7 @@ class MusicEditorGridElement extends HTMLElement {
             throw new Error("TODO: Insert new pause");
         }
         this.replaceInstructionParams(lastIndex, {
-            duration: lastInstruction.duration + this.maxPause
+            duration: lastInstruction.duration + this.editor.menu.fieldRenderDuration.value
         });
     }
 

@@ -37,6 +37,10 @@ class MusicEditorElement extends HTMLElement {
         this.webSocketAttempts = 0;
         this.songData = null;
 
+        // Include assets
+        const INCLUDE_CSS = "editor/music-editor.css";
+        if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
+            document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
     get grid() { return this.querySelector('music-editor-grid'); }
     get menu() { return this.querySelector('music-editor-menu'); }
@@ -84,6 +88,7 @@ class MusicEditorElement extends HTMLElement {
     loadSongUUID(uuid) {
         this.setAttribute('uuid', uuid);
         this.initWebSocket();
+        // TODO: or load manually
     }
 
     initWebSocket() {
@@ -354,8 +359,7 @@ class MusicEditorElement extends HTMLElement {
             <music-editor-menu></music-editor-menu>
             <music-editor-grid tabindex="1"></music-editor-grid>
             ${song ? song.instruments.map((instrument, id) => 
-                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
-        `;
+                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}`;
     }
 
 

@@ -236,8 +236,7 @@ class MusicEditorSongModifier {
         for(const paramName in replaceParams) {
             if(replaceParams.hasOwnProperty(paramName)) {
                 const paramValue = replaceParams[paramName];
-                const oldData = this.replaceInstructionParam(groupName, replaceIndex, paramName, paramValue)
-                    .oldData;
+                const oldData = this.replaceInstructionParam(groupName, replaceIndex, paramName, paramValue);
                 if(typeof oldData !== "undefined")
                     oldParams[paramName] = oldData;
             }
