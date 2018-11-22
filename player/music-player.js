@@ -562,10 +562,10 @@ class MusicPlayerElement extends HTMLElement {
         const scripts = document.head.querySelectorAll('script');
         for(let i=0; i<scripts.length; i++) {
             if(scripts[i].src.endsWith(scriptPath)) {
-                if(scripts[i].loaded) {
-                    onLoaded();
-                } else {
+                if(scripts[i].loaded === false) {
                     scripts[i].onloads.push(onLoaded);
+                } else {
+                    onLoaded();
                 }
                 return scripts[i];
             }
@@ -573,6 +573,7 @@ class MusicPlayerElement extends HTMLElement {
         const newScriptElm = document.createElement('script');
         newScriptElm.src = scriptPath;
         newScriptElm.onloads = [onLoaded];
+        newScriptElm.loaded = false;
         newScriptElm.onload = function(e) {
             newScriptElm.loaded = true;
             for(let i=0; i<newScriptElm.onloads.length; i++)

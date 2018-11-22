@@ -331,6 +331,7 @@ class MusicEditorElement extends HTMLElement {
         const instrumentID = songModifier.addInstrument(config);
         this.historyQueue(songModifier.clearHistoryActions());
         this.render(); // TODO: render only instruments
+        this.player.initInstrument(instrumentID);
         return instrumentID;
     }
 

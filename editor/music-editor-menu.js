@@ -15,17 +15,17 @@ class MusicEditorMenuElement extends HTMLElement {
             document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
 
-    get fieldInstructionInstrument() { return this.querySelector('form-instruction-instrument select[name=instrument]'); }
-    get fieldInstructionDuration() { return this.querySelector('form-instruction-duration select[name=duration]'); }
-    get fieldInstructionCommand() { return this.querySelector('form-instruction-command select[name=command]'); }
-    get fieldInstructionVelocity() { return this.querySelector('form-instruction-velocity select[name=velocity]'); }
+    get fieldInstructionInstrument() { return this.querySelector('form.form-instruction-instrument select[name=instrument]'); }
+    get fieldInstructionDuration() { return this.querySelector('form.form-instruction-duration select[name=duration]'); }
+    get fieldInstructionCommand() { return this.querySelector('form.form-instruction-command select[name=command]'); }
+    get fieldInstructionVelocity() { return this.querySelector('form.form-instruction-velocity select[name=velocity]'); }
 
-    get fieldRowDuration() { return this.querySelector('form-row-duration select[name=duration]'); }
+    get fieldRowDuration() { return this.querySelector('form.form-row-duration select[name=duration]'); }
 
-    get fieldRenderDuration() { return this.querySelector('form-render-duration select[name=duration]'); }
-    get fieldRenderInstrument() { return this.querySelector('form-render-instrument select[name=instrument]'); }
+    get fieldRenderDuration() { return this.querySelector('form.form-render-duration select[name=duration]'); }
+    get fieldRenderInstrument() { return this.querySelector('form.form-render-instrument select[name=instrument]'); }
 
-    get fieldAddInstrumentInstrument() { return this.querySelector('form-add-instrument select[name=instrument]'); }
+    get fieldAddInstrumentInstrument() { return this.querySelector('form.form-add-instrument select[name=instrument]'); }
 
     // get grid() { return this.editor.grid; } // Grid associated with menu
     getInstructionFormValues() {
@@ -173,9 +173,13 @@ class MusicEditorMenuElement extends HTMLElement {
                     break;
 
                 case 'instruction:add-instrument':
-                    const addInstrumentID = this.fieldInstructionCommand
-                    instrumentID = this.editor.addInstrument(instrumentID);
-                    this.editor.grid.render();
+                    const instrumentURL = this.fieldAddInstrumentInstrument.value;
+                    if(confirm(`Add Instrument to Song?\nURL: ${instrumentURL}`)) {
+                        this.editor.addInstrument(instrumentURL);
+                        this.editor.render();
+                    } else {
+                        console.info("Add instrument canceled");
+                    }
                     break;
 
                 default:
@@ -323,7 +327,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
     update() {
 
-        const gridDuration = this.fieldRenderDuration.value || 1;
+        // const gridDuration = this.fieldRenderDuration.value || 1;
         const selectedIndices = this.editor.grid.selectedIndices;
         const groupName = this.editor.grid.groupName;
         // TODO: REFACTOR gridstatus into editor grid only
@@ -381,17 +385,17 @@ class MusicEditorMenuElement extends HTMLElement {
 
         if(combinedInstruction) {
             // Note Instruction
-            this.fieldInstructionCommand.value = combinedInstruction.command || '';
-            this.fieldInstructionInstrument.value = combinedInstruction.instrument || '';
-            this.fieldInstructionVelocity.value = combinedInstruction.velocity || '';
-            this.fieldInstructionDuration.value = combinedInstruction.duration || '';
+            this.fieldInstructionCommand.value = combinedInstruction.command;
+            this.fieldInstructionInstrument.value = combinedInstruction.instrument;
+            this.fieldInstructionVelocity.value = combinedInstruction.velocity;
+            this.fieldInstructionDuration.value = combinedInstruction.duration;
         }
         if(combinedPauseInstruction) {
             // Row/Pause
             this.fieldRowDuration.value = combinedPauseInstruction.duration;
         }
 
-        this.fieldRenderDuration.value = gridDuration;
+        // this.fieldRenderDuration.value = gridDuration;
 
         // this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPauseIndices.length > 1 ? 's' : '') + ":";
         // this.querySelector('.row-label-command').innerHTML = 'Command' + (selectedIndices.length > 1 ? 's' : '') + ":";
@@ -556,9 +560,6 @@ class MusicEditorMenuElement extends HTMLElement {
                                 <option value="">Instrument (Default)</option>
                                 <optgroup label="Song Instruments">
                                     ${this.renderEditorFormOptions('instruments-songs')}
-                                </optgroup>
-                                <optgroup label="Available Instruments">
-                                    ${this.renderEditorFormOptions('instruments-available')}
                                 </optgroup>
                             </select>
                         </fieldset>
@@ -736,7 +737,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     Object.keys(instrumentLibrary.index).forEach((path) => {
                         let pathConfig = instrumentLibrary.index[path];
                         if (typeof pathConfig !== 'object') pathConfig = {title: pathConfig};
-                        options.push(["add:" + instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")"]);
+                        options.push([instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")"]);
                     });
                 }
                 break;
