@@ -74,6 +74,24 @@ class MusicEditorMenuElement extends HTMLElement {
             const selectedRange = this.editor.grid.selectedRange;
 
             switch (command) {
+
+                case 'instruction:insert':
+                    throw 'todo';
+                    // let newInstruction = this.editor.menu.getInstructionFormValues();
+                    // // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
+                    // this.editor.insertInstructionAtIndex(currentGroup, cursorIndex, newInstruction);
+
+
+                    let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
+                    let newInstruction = this.editor.menu.getInstructionFormValues();
+                    newInstruction.command = this.editor.keyboardLayout[e.key];
+
+                    const insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
+                    this.render();
+                    this.selectIndices(insertIndex);
+
+                    break;
+
                 case 'instruction:command':
                     this.editor.replaceInstructionParams(currentGroup, cursorIndex, {
                         command: form.command.value
@@ -166,7 +184,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     this.editor.grid.render();
                     break;
 
-                case 'instruction:add-instrument':
+                case 'song:add-instrument':
                     const instrumentURL = this.fieldAddInstrumentInstrument.value;
                     if(confirm(`Add Instrument to Song?\nURL: ${instrumentURL}`)) {
                         this.editor.addInstrument(instrumentURL);
@@ -497,7 +515,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
                 <div class="form-section">
                     <legend>Add New Instrument</legend>
-                    <form class="form-add-instrument" data-command="instruction:add-instrument">
+                    <form class="form-add-instrument" data-command="song:add-instrument">
                         <fieldset class="fieldset-add-instrument">
                             <select name="instrument" class="themed">
                                 <option value="">Select Instrument</option>

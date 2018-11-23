@@ -503,7 +503,7 @@ class MusicEditorGridElement extends HTMLElement {
             throw new Error("TODO: Insert new pause");
         }
         this.replaceInstructionParams(lastIndex, {
-            duration: lastInstruction.duration + this.editor.menu.fieldRenderDuration.value
+            duration: lastInstruction.duration + parseFloat(this.editor.menu.fieldRenderDuration.value)
         });
     }
 
