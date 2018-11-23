@@ -35,7 +35,7 @@ class MusicEditorElement extends HTMLElement {
         };
         this.webSocket = null;
         this.webSocketAttempts = 0;
-        this.songData = null;
+        // this.songData = null;
 
         // Include assets
         const INCLUDE_CSS = "editor/music-editor.css";
@@ -53,16 +53,23 @@ class MusicEditorElement extends HTMLElement {
         playerElement.addEventListener('song:start', onSongEvent);
         playerElement.addEventListener('song:end', onSongEvent);
         playerElement.addEventListener('song:pause', onSongEvent);
-        this.songData = this.player.getSongData();
+        // this.songData = this.player.getSongData();
         playerElement.addEventListener('instrument:initiated', (e) => {
             console.info("Instrument initialized: ", e.detail);
             // console.log("init", e);
-            this.instruments[e.detail.instrumentID].render();
-            this.menu.render(); // Update instrument list
-            // this.render();
+            const instrumentElm = this.instruments[e.detail.instrumentID];
+            if(instrumentElm) {
+                instrumentElm.render();
+                this.menu.render(); // Update instrument list
+                // this.render();
+            } else {
+                console.warn("Instrument elm not found. Re-rendering editor");
+                this.render(); // Update instrument list
+            }
         });
 
-        this.initWebSocket();
+        if(this.uuid)
+            this.initWebSocket();
         // this.render(); // Render after player element is loaded
 
 
@@ -83,7 +90,7 @@ class MusicEditorElement extends HTMLElement {
     }
 
     getAudioContext() { return this.player.getAudioContext(); }
-    getSongData() { return this.songData || this.player.getSongData(); }
+    getSongData() { return this.player.getSongData(); }
 
     get uuid() { return this.getAttribute('uuid');}
     loadSongUUID(uuid) {
@@ -239,6 +246,11 @@ class MusicEditorElement extends HTMLElement {
         console.info("Song loaded from memory: " + songGUID, songData);
     }
 
+    loadSongData(songData) {
+        const modifier = new MusicEditorSongModifier(songData);
+        modifier.processAllInstructions();
+        this.player.loadSongData(songData);
+    }
 
     historyQueue(historyActions) {
         if(!Array.isArray(historyActions))
@@ -252,13 +264,15 @@ class MusicEditorElement extends HTMLElement {
         // this.status.history.undoList.push(historyAction);
         // this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-        console.info("Sending history actions: ", historyActions);
-        this.webSocket
-            .send(JSON.stringify({
-                type: 'history:entry',
-                historyActions: historyActions,
-                uuid: this.uuid
-            }))
+        if(this.uuid) {
+            console.info("Sending history actions: ", historyActions);
+            this.webSocket
+                .send(JSON.stringify({
+                    type: 'history:entry',
+                    historyActions: historyActions,
+                    uuid: this.uuid
+                }))
+        }
     }
 
     historyUndo() {
@@ -269,7 +283,23 @@ class MusicEditorElement extends HTMLElement {
 
     }
 
+    processInstruction(instruction) {
+        if(typeof instruction.instrument !== 'undefined') {
+            const instance = this.editor.player.getInstrument(instruction.instrument);
+            if (instance.getFrequencyAliases) {
+                const aliases = instance.getFrequencyAliases();
+                Object.keys(aliases).forEach((key) => {
+                    if (aliases[key] === instruction.command)
+                        instruction.command -= key
+                });
+            }
+        }
+    }
+
+
     insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
+        this.processInstruction(instructionToAdd);
+
         const songModifier = new MusicEditorSongModifier(this.getSongData());
         const insertIndex = songModifier.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
         this.historyQueue(songModifier.clearHistoryActions());
@@ -280,6 +310,8 @@ class MusicEditorElement extends HTMLElement {
     }
 
     insertInstructionAtIndex(groupName, insertIndex, instructionToAdd) {
+        this.processInstruction(instructionToAdd);
+
         const songModifier = new MusicEditorSongModifier(this.getSongData());
         songModifier.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
         this.historyQueue(songModifier.clearHistoryActions());

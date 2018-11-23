@@ -1,3 +1,6 @@
+
+
+
 DROP SCHEMA `snesology`;
 CREATE SCHEMA IF NOT EXISTS `snesology`;
 USE `snesology`;
@@ -38,3 +41,7 @@ CREATE TABLE `song_content` (
 
 
 SET foreign_key_checks = 1;
+
+
+CREATE USER 'snesology'@'localhost' IDENTIFIED BY 'snesology';
+GRANT ALL ON snesology.* TO 'snesology'@'localhost';

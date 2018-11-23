@@ -28,7 +28,7 @@ class MusicEditorSongModifier {
                     break;
             }
         }
-        this.historyActions = [];-
+        this.historyActions = [];
         this.processAllInstructions();
     }
 
@@ -143,14 +143,14 @@ class MusicEditorSongModifier {
                     if(groupPosition + instruction.duration === insertPosition) {
                         // Pause Position equals insert position, append after
 
-                        let lastInsertPosition = i;
+                        let lastInsertIndex;
                         // Search for last insert position
-                        for(lastInsertPosition=i; lastInsertPosition<instructionList.length; lastInsertPosition++)
-                            if(instructionList[i].command === '!pause')
+                        for(lastInsertIndex=i+1; lastInsertIndex<instructionList.length; lastInsertIndex++)
+                            if(instructionList[lastInsertIndex].command === '!pause')
                                 break;
 
-                        this.insertInstructionAtIndex(groupName, lastInsertPosition, insertInstruction);
-                        return lastInsertPosition;
+                        this.insertInstructionAtIndex(groupName, lastInsertIndex, insertInstruction);
+                        return lastInsertIndex;
                     }
 
                     // Pause Position is before insert position, split the pause
@@ -219,6 +219,8 @@ class MusicEditorSongModifier {
 
     replaceInstructionParam(groupName, replaceIndex, paramName, paramValue) {
         let instructionList = this.songData.instructions[groupName];
+        if(!Number.isInteger(replaceIndex))
+            throw new Error("Invalid Index: " + typeof replaceIndex);
         if (!instructionList[replaceIndex])
             throw new Error("Failed to replace param. Old instruction not found at index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
 

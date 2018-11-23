@@ -67,7 +67,7 @@ class MusicEditorMenuElement extends HTMLElement {
         // try {
             const form = e.target.form || e.target;
             const command = form.getAttribute('data-command');
-            const cursorIndex = this.editor.grid.cursorIndex;
+            const cursorPosition = this.editor.grid.cursorPosition;
             const currentGroup = this.editor.grid.groupName;
             const selectedIndices = this.editor.grid.selectedIndices;
             const selectedPauseIndices = this.editor.grid.selectedPauseIndices;
@@ -76,24 +76,16 @@ class MusicEditorMenuElement extends HTMLElement {
             switch (command) {
 
                 case 'instruction:insert':
-                    throw 'todo';
-                    // let newInstruction = this.editor.menu.getInstructionFormValues();
-                    // // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                    // this.editor.insertInstructionAtIndex(currentGroup, cursorIndex, newInstruction);
-
-
-                    let insertPosition = parseInt(keydownCellElm.getAttribute('data-position'));
                     let newInstruction = this.editor.menu.getInstructionFormValues();
-                    newInstruction.command = this.editor.keyboardLayout[e.key];
-
-                    const insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
+                    // newInstruction.command = this.editor.keyboardLayout[e.key];
+                    const insertIndex = this.insertInstructionAtPosition(newInstruction, cursorPosition);
                     this.render();
                     this.selectIndices(insertIndex);
 
                     break;
 
                 case 'instruction:command':
-                    this.editor.replaceInstructionParams(currentGroup, cursorIndex, {
+                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
                         command: form.command.value
                     });
                     break;
@@ -208,7 +200,7 @@ class MusicEditorMenuElement extends HTMLElement {
         if(e.defaultPrevented)
             return;
 
-        const cursorIndex = this.editor.grid.cursorIndex;
+        const cursorIndex = this.editor.grid.cursorPosition;
         const currentGroup = this.editor.grid.groupName;
         const instructionList = this.editor.grid.instructionList;
         const cursorInstruction = instructionList[cursorIndex];
@@ -341,7 +333,7 @@ class MusicEditorMenuElement extends HTMLElement {
     update() {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
-        const cursorIndex = this.editor.grid.cursorIndex;
+        const cursorIndex = this.editor.grid.cursorPosition;
         const selectedIndices = this.editor.grid.selectedIndices;
         const groupName = this.editor.grid.groupName;
         const instructionList = this.editor.player ? this.editor.player.getInstructions(groupName) : [];
