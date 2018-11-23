@@ -295,9 +295,9 @@ class MusicPlayerElement extends HTMLElement {
             return null;
         }
 
-        if(instrument.getNamedFrequency)
-            noteFrequency = instrument.getNamedFrequency(noteFrequency);
-        noteFrequency = this.getInstructionFrequency(noteFrequency);
+        // if(instrument.getNamedFrequency)
+        //     noteFrequency = instrument.getNamedFrequency(noteFrequency);
+        // noteFrequency = this.getInstructionFrequency(noteFrequency);
 
         const context = this.getAudioContext();
         const destination = this.getVolumeGain();
@@ -521,32 +521,6 @@ class MusicPlayerElement extends HTMLElement {
         return !!this.loadedInstruments[instrumentID];
     }
 
-    getInstructionFrequency (command) {
-        if(Number(command) === command && command % 1 !== 0)
-            return command;
-        const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
-        let octave,
-            keyNumber;
-
-        if (command.length === 3) {
-            octave = command.charAt(2);
-        } else {
-            octave = command.charAt(1);
-        }
-
-        keyNumber = instructions.indexOf(command.slice(0, -1));
-
-        if (keyNumber < 3) {
-            keyNumber = keyNumber + 12 + ((octave - 1) * 12) + 1;
-        } else {
-            keyNumber = keyNumber + ((octave - 1) * 12) + 1;
-        }
-
-        // console.log("Instruction: ", instruction, octave, keyNumber);
-
-        // Return frequency of instruction
-        return 440 * Math.pow(2, (keyNumber- 49) / 12);
-    }
     // Input
 
     onInput(e) {

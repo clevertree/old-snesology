@@ -53,7 +53,8 @@ class BufferSourceInstrument extends HTMLElement {
         }
     }
 
-    play(destination, frequency, startTime, duration) {
+    play(destination, commandFrequency, startTime, duration) {
+        const frequencyValue = this.getCommandFrequency(commandFrequency);
 
         // Loop through samples
         const sources = [];
@@ -61,9 +62,9 @@ class BufferSourceInstrument extends HTMLElement {
             const sampleConfig = this.config.samples[i];
 
             // Filter sample playback
-            if(sampleConfig.keyLow > frequency)
+            if(sampleConfig.keyLow > frequencyValue)
                 continue;
-            if(sampleConfig.keyHigh && sampleConfig.keyHigh < frequency)
+            if(sampleConfig.keyHigh && sampleConfig.keyHigh < frequencyValue)
                 continue;
 
 
@@ -71,7 +72,7 @@ class BufferSourceInstrument extends HTMLElement {
                 return console.error("Sample not loaded: " + sampleConfig.url);
             const buffer = this.buffers[i];
 
-            const playbackRate = frequency / sampleConfig.keyRoot || 440;
+            const playbackRate = frequencyValue / sampleConfig.keyRoot || 440;
             const source = this.playBuffer(buffer, sampleConfig.loop, playbackRate, destination, startTime, duration);
             if(source)
                 sources.push(sources);
@@ -183,7 +184,7 @@ class BufferSourceInstrument extends HTMLElement {
                     presetConfig.samples[sampleName],
                     this.library.samples[sampleName]);
             sampleConfig.url = new URL(urlPrefix + sampleConfig.url, BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL) + '';
-            sampleConfig.keyRoot = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyRoot);
+            sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
             if(typeof sampleConfig.keyRange !== "undefined") {
                 let pair = sampleConfig.keyRange;
                 if(typeof pair === 'string')
@@ -193,9 +194,9 @@ class BufferSourceInstrument extends HTMLElement {
                 delete sampleConfig.keyRange;
             }
             if(typeof sampleConfig.keyLow !== "undefined")
-                sampleConfig.keyLow = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyLow);
+                sampleConfig.keyLow = this.getCommandFrequency(sampleConfig.keyLow);
             if(typeof sampleConfig.keyHigh !== "undefined")
-                sampleConfig.keyHigh = BufferSourceInstrument.getCommandFrequency(sampleConfig.keyHigh);
+                sampleConfig.keyHigh = this.getCommandFrequency(sampleConfig.keyHigh);
             newConfig.samples.push(sampleConfig);
         });
 
@@ -257,14 +258,19 @@ class BufferSourceInstrument extends HTMLElement {
 
     getFrequencyAliases() {
         return {
-            'kick': 'C4',
-            'snare': 'D4',
+            'kick': 'C1',
+            'snare': 'D1',
         };
     }
 
-    static getCommandFrequency (command) {
+    getCommandFrequency (command) {
         if(Number(command) === command && command % 1 !== 0)
             return command;
+
+        const aliases = this.getFrequencyAliases();
+        if(typeof aliases[command] !== "undefined")
+            command = aliases[command];
+
         const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
         let octave = command.length === 3 ? command.charAt(2) : command.charAt(1),
             keyNumber = instructions.indexOf(command.slice(0, -1));

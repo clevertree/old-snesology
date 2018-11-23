@@ -40,9 +40,11 @@ class OscillatorInstrument extends HTMLElement {
         this.loadSampleLibrary(OscillatorInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL);
     }
 
-    play(destination, frequency, startTime, duration) {
+    play(destination, commandFrequency, startTime, duration) {
+        const frequencyValue = this.getCommandFrequency(commandFrequency);
+
         const osc = destination.context.createOscillator();   // instantiate an oscillator
-        osc.frequency.value = frequency;    // set Frequency (hz)
+        osc.frequency.value = frequencyValue;    // set Frequency (hz)
         if(typeof this.config.detune !== "undefined")
             osc.detune.value = this.config.detune;
 
@@ -189,12 +191,27 @@ class OscillatorInstrument extends HTMLElement {
     //     console.info("Validate: ", config, form);
     // }
 
-
     getFrequencyAliases() {
         return {
-            'kick': 'C4',
-            'snare': 'D4',
+            // 'kick': 'C4',
+            // 'snare': 'D4',
         };
+    }
+
+    getCommandFrequency (command) {
+        if(Number(command) === command && command % 1 !== 0)
+            return command;
+
+        const aliases = this.getFrequencyAliases();
+        if(typeof aliases[command] !== "undefined")
+            command = aliases[command];
+
+        const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+        let octave = command.length === 3 ? command.charAt(2) : command.charAt(1),
+            keyNumber = instructions.indexOf(command.slice(0, -1));
+        if (keyNumber < 3)  keyNumber = keyNumber + 12 + ((octave - 1) * 12) + 1;
+        else                keyNumber = keyNumber + ((octave - 1) * 12) + 1;
+        return 440 * Math.pow(2, (keyNumber- 49) / 12);
     }
 }
 
