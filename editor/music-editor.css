@@ -1,0 +1,42 @@
+music-editor {
+    /* color: #FFF; */
+    background-color: #DDD;
+    display: block;
+    /* font-size: 14px; */
+    /* line-height: 16px; */
+    font-family: monospace;
+    position: relative;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+}
+
+
+/** Form Inputs **/
+
+
+music-editor select.themed,
+music-editor button.themed {
+    border-radius: 5px;
+    border: 1px outset;
+    background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
+    max-width: 87px;
+    cursor: pointer;
+}
+
+music-editor input.themed[type='range'] {
+    -webkit-appearance: none;
+    background-color: #AAA;
+    border-radius: 15px;
+    height: 12px;
+}
+
+music-editor input.themed[type='range']::-webkit-slider-thumb {
+    vertical-align: middle;
+    -webkit-appearance: none;
+    background-color: #444;
+    width: 16px;
+    height: 16px;
+    border-radius: 16px;
+}
