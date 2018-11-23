@@ -1,19 +1,33 @@
 
 
 music-editor-instrument {
-    display: block;
+    position: relative;
+    vertical-align: middle;
+    display: inline-block;
+    /* float: left; */
+    margin: -- 0px 2px 4px;
+    padding: 3px;
+    border: 1px outset;
 }
 
-music-editor-instrument .instrument-editor {
-
-}
-
-music-editor-instrument legend.header {
-    /* text-align: center; */
-    font-size: xx-small;
+music-editor-instrument button.remove-instrument {
+    width: 16px;
+    height: 18px;
+    padding: 0px;
+    margin: -1px -2px 0px 3px;
+    border: 1px outset;
+    border-radius: 4px;
+    color: darkred;
     font-weight: bold;
-    background: linear-gradient(to bottom, #FFF 40%,#dddddd 100%);
-    border-radius: 2px;
+}
+
+music-editor-instrument > legend {
+    /* text-align: center; */
+    font-size: small;
+    font-weight: bold;
+    background: linear-gradient(to bottom, #FFF 60%,#dddddd 100%);
+    border-radius: 6px;
+    padding-left: 5px;
 }
 
 music-editor-instrument form {
@@ -23,4 +37,12 @@ music-editor-instrument form {
     /* padding: 1px 2px 1px 0px; */
     padding-top: 2px;
     display: inline-block;
+}
+
+music-editor-instrument form > legend {
+    /* text-align: center; */
+    font-size: x-small;
+    font-weight: bold;
+    background: linear-gradient(to bottom, #FFF 40%,#dddddd 100%);
+    border-radius: 2px;
 }

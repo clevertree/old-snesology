@@ -16,8 +16,8 @@ music-editor {
 /** Form Inputs **/
 
 
-music-editor select,
-music-editor button {
+music-editor select.themed,
+music-editor button.themed {
     border-radius: 5px;
     border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */

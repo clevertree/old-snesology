@@ -62,6 +62,8 @@ class MusicEditorInstrumentElement extends HTMLElement {
     render() {
         const instrumentIDHTML = ((id) => (id < 10 ? "0" : "") + id + ": ")(this.id);
 
+        const buttonHTML = `<button class="remove-instrument">x</button>`;
+
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
 
         if(this.editor.player.isInstrumentLoaded(this.id)) {
@@ -72,7 +74,8 @@ class MusicEditorInstrumentElement extends HTMLElement {
                     ? `${instrumentPreset.name} (${instrument.constructor.name})`
                     : instrument.constructor.name;
 
-                    this.innerHTML = `<legend class="header">${instrumentIDHTML}${instrumentName}</legend>`
+                this.innerHTML = `<legend>${instrumentIDHTML}${instrumentName}${buttonHTML}</legend>`;
+
                 if (instrument instanceof HTMLElement) {
                     this.appendChild(instrument);
                 } else if (instrument.render) {
@@ -84,12 +87,13 @@ class MusicEditorInstrumentElement extends HTMLElement {
                 }
 
             } catch (e) {
-                this.innerHTML = `<legend class="header">${instrumentIDHTML} Error: ${e.message}</legend>`
+                this.innerHTML = `<legend>${instrumentIDHTML} Error: ${e.message}${buttonHTML}</legend>`;
                 this.innerHTML += e.stack;
             }
         } else {
-            this.innerHTML = `<legend class="header">${instrumentIDHTML} Loading...</legend>`
+            this.innerHTML = `<legend>${instrumentIDHTML} Loading...${buttonHTML}</legend>`;
         }
+
     }
 }
 customElements.define('music-editor-instrument', MusicEditorInstrumentElement);

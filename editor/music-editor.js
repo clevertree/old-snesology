@@ -58,6 +58,7 @@ class MusicEditorElement extends HTMLElement {
             console.info("Instrument initialized: ", e.detail);
             // console.log("init", e);
             this.instruments[e.detail.instrumentID].render();
+            this.menu.render(); // Update instrument list
             // this.render();
         });
 
@@ -296,9 +297,16 @@ class MusicEditorElement extends HTMLElement {
         // return null;
     }
 
-    replaceInstructionParams(groupName, replaceIndex, replaceParams) {
+    replaceInstructionParams(groupName, replaceIndices, replaceParams) {
+        if(!Array.isArray(replaceIndices))
+            replaceIndices = [replaceIndices];
         const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const oldParams = songModifier.replaceInstructionParams(groupName, replaceIndex, replaceParams);
+
+        // TODO: if new instrument does not support custom frequencies, remove them before changing the instrument.
+
+        const oldParams = [];
+        for(let i=0;i<replaceIndices.length; i++)
+            oldParams.push(songModifier.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
         // this.grid.selectIndices(replaceIndex, [replaceIndex]);
@@ -360,7 +368,8 @@ class MusicEditorElement extends HTMLElement {
             <music-editor-menu></music-editor-menu>
             <music-editor-grid tabindex="1"></music-editor-grid>
             ${song ? song.instruments.map((instrument, id) => 
-                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}`;
+                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
+            <br style="clear: both;"/>`;
     }
 
 

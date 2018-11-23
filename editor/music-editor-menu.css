@@ -1,7 +1,7 @@
 
 /** Menu **/
 music-editor-menu {
-    display: block;
+    /* display: block; */
 }
 
 music-editor-menu .editor-menu {
@@ -231,7 +231,7 @@ music-editor-menu div.form-section {
 music-editor-menu div.form-section legend {
     margin: 0px 0 0px 0;
     /* text-align: center; */
-    font-size: xx-small;
+    font-size: x-small;
     font-weight: bold;
     background: linear-gradient(to bottom, #FFF 40%,#dddddd 100%);
     border-radius: 2px;

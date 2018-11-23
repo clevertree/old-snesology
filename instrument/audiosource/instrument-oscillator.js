@@ -76,13 +76,14 @@ class OscillatorInstrument extends HTMLElement {
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
             <form class="oscillator-type">
-                <label>Type:
-                    <select name="type" title="Wave Type">
-                        ${OscillatorInstrument.BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>${type}</option>`).join('')}
+                <legend>Type</legend>
+                <label>
+                    <select name="type" class="themed" title="Wave Type">
+                        ${OscillatorInstrument.BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>Type: ${type}</option>`).join('')}
                     </select>
                 </label>
                 <label class="oscillator-custom-url" ${this.config.type !== 'custom' ? 'style="display: none;"' : ''}>Custom:
-                    <select name="customURL" title="Custom Periodic Wave">
+                    <select name="customURL" class="themed" title="Custom Periodic Wave">
                         <option value="${this.config.customURL}">${this.periodicWaveName}</option>
                         ${this.presetHTML}
                         <option value="${this.DEFAULT_SAMPLE_LIBRARY_URL}">More Samples...</option>
@@ -91,7 +92,8 @@ class OscillatorInstrument extends HTMLElement {
             </form>
             
             <form class="oscillator-detune">
-                <label>Detune:
+                <legend>Detune</legend>
+                <label>
                     <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" class="themed"/>
                 </label>
             </form>
@@ -188,14 +190,11 @@ class OscillatorInstrument extends HTMLElement {
     // }
 
 
-    getNamedFrequency(frequencyName) {
-        switch (frequencyName) {
-            case 'kick':
-                return 'C4';
-            case 'snare':
-                return 'D4';
-        }
-        return frequencyName;
+    getFrequencyAliases() {
+        return {
+            'kick': 'C4',
+            'snare': 'D4',
+        };
     }
 }
 

@@ -115,9 +115,9 @@ class BufferSourceInstrument extends HTMLElement {
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
             <form class="instrument-editor">
+                <legend>Preset</legend>
                 <label>
-                    Preset:
-                    <select name="preset" title="Load Preset">
+                    <select name="preset" title="Load Preset" class="themed">
                         ${this.library ? 
                             `<optgroup label="${this.library.name || 'Unnamed Library'}">` +
                             Object.keys(this.library.instruments).map((presetName) => {
@@ -252,6 +252,14 @@ class BufferSourceInstrument extends HTMLElement {
         };
         xhr.send();
 
+    }
+
+
+    getFrequencyAliases() {
+        return {
+            'kick': 'C4',
+            'snare': 'D4',
+        };
     }
 
     static getCommandFrequency (command) {
