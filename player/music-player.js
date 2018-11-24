@@ -343,10 +343,7 @@ class MusicPlayerElement extends HTMLElement {
                 //     instance.setConfig(instrumentPreset, this.getAudioContext());
 
                 this.dispatchEvent(new CustomEvent('instrument:initiated', {
-                    detail: {
-                        instrumentID: instrumentID,
-                        instance: instance
-                    },
+                    detail: instance,
                     bubbles: true
                 }));
 
@@ -521,6 +518,10 @@ class MusicPlayerElement extends HTMLElement {
         return !!this.loadedInstruments[instrumentID];
     }
 
+    getLoadedInstruments() {
+        return this.loadedInstruments;
+    }
+
     // Input
 
     onInput(e) {
@@ -553,13 +554,18 @@ class MusicPlayerElement extends HTMLElement {
         newScriptElm.src = scriptPath;
         newScriptElm.onloads = [onLoaded];
         newScriptElm.loaded = false;
-        newScriptElm.onload = function(e) {
+        const onLoadCallback = function(e) {
+            if(this.loaded === true)
+                return;
             this.loaded = true;
             // console.info("Executing callback: ", scriptPath, this.onloads);
             for(let i=0; i<this.onloads.length; i++)
                 this.onloads[i](e);
         }.bind(newScriptElm);
+
+        newScriptElm.onload = onLoadCallback;
         document.head.appendChild(newScriptElm);
+        setTimeout(onLoadCallback, 1000);
         // console.info("Including Script: ", scriptPath);
         return newScriptElm;
     }

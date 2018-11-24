@@ -304,7 +304,7 @@ class MusicEditorSongModifier {
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
 
-        return this.replaceDataPath(`instrument.${instrumentID}.${paramName}`, paramValue)
+        return this.replaceDataPath(`instruments.${instrumentID}.${paramName}`, paramValue)
             .oldData;
     }
 

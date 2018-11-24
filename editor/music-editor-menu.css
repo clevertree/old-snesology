@@ -138,6 +138,7 @@ music-editor-menu form {
     /* background-color: #CCC; */
     /* margin: 0px 0; */
     /* padding: 1px 2px 1px 0px; */
+    /* padding: 0px; */
     padding-top: 2px;
     display: inline-block;
 }
@@ -218,8 +219,11 @@ music-editor-menu fieldset{
     border: 0px;
     padding: 0 0;
     margin: 0 0;
+    display: inline-block;
 }
-
+music-editor-menu fieldset.hide-on-disabled[disabled] {
+    display: none;
+}
 
 music-editor-menu div.form-section {
     /* border: 1px outset #ffffff8a; */
@@ -263,4 +267,12 @@ music-editor-menu form.form-add-instrument {
 }
 music-editor-menu form.form-add-instrument select[name=instrument] {
     min-width: 129px;
+}
+
+
+music-editor-menu:not(.show-modify-instruction-controls) .form-section-modify-instruction {
+    display: none;
+}
+music-editor-menu:not(.show-new-instruction-controls) .form-section-new-instruction {
+    display: none;
 }

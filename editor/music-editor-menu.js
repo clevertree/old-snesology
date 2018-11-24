@@ -15,10 +15,12 @@ class MusicEditorMenuElement extends HTMLElement {
             document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
 
-    get fieldInstructionInstrument() { return this.querySelector('form.form-instruction-instrument select[name=instrument]'); }
-    get fieldInstructionDuration() { return this.querySelector('form.form-instruction-duration select[name=duration]'); }
-    get fieldInstructionCommand() { return this.querySelector('form.form-instruction-command select[name=command]'); }
-    get fieldInstructionVelocity() { return this.querySelector('form.form-instruction-velocity select[name=velocity]'); }
+    get fieldInsertInstructionCommand() { return this.querySelector('form.form-instruction-insert select[name=command]'); }
+
+    get fieldModifyInstructionInstrument() { return this.querySelector('form.form-instruction-instrument select[name=instrument]'); }
+    get fieldModifyInstructionDuration() { return this.querySelector('form.form-instruction-duration select[name=duration]'); }
+    get fieldModifyInstructionCommand() { return this.querySelector('form.form-instruction-command select[name=command]'); }
+    get fieldModifyInstructionVelocity() { return this.querySelector('form.form-instruction-velocity select[name=velocity]'); }
 
     get fieldRowDuration() { return this.querySelector('form.form-row-duration select[name=duration]'); }
 
@@ -29,12 +31,11 @@ class MusicEditorMenuElement extends HTMLElement {
 
     // get grid() { return this.editor.grid; } // Grid associated with menu
     getInstructionFormValues() {
-
         const formValues = {
-            instrument: this.fieldInstructionInstrument.value,
-            duration: this.fieldInstructionDuration.value,
-            command: this.fieldInstructionCommand.value,
-            velocity: this.fieldInstructionVelocity.value
+            instrument: this.fieldModifyInstructionInstrument.value,
+            duration: this.fieldModifyInstructionDuration.value,
+            command: this.fieldModifyInstructionCommand.value,
+            velocity: this.fieldModifyInstructionVelocity.value
         };
         let newInstruction = {
             command: formValues.command,
@@ -44,8 +45,8 @@ class MusicEditorMenuElement extends HTMLElement {
             newInstruction.instrument = parseInt(formValues.instrument);
         if(formValues.duration)
             newInstruction.duration = formValues.duration;
-        if(formValues.velocity || formValues.velocity === 0)
-            newInstruction.velocity = formValues.velocity;
+        if(formValues.velocity !== "100")
+            newInstruction.velocity = parseInt(formValues.velocity);
 
         return newInstruction;
     }
@@ -76,12 +77,14 @@ class MusicEditorMenuElement extends HTMLElement {
             switch (command) {
 
                 case 'instruction:insert':
-                    let newInstruction = this.editor.menu.getInstructionFormValues();
+                    const newInstruction = {
+                        command: this.fieldInsertInstructionCommand.value,
+                        duration: parseFloat(this.fieldModifyInstructionDuration.value),
+                    };
+                    if(this.fieldModifyInstructionInstrument.value)
+                        newInstruction['instrument'] = this.fieldModifyInstructionInstrument.value;
                     // newInstruction.command = this.editor.keyboardLayout[e.key];
-                    const insertIndex = this.insertInstructionAtPosition(newInstruction, cursorPosition);
-                    this.render();
-                    this.selectIndices(insertIndex);
-
+                    this.editor.insertInstructionAtPosition(currentGroup, cursorPosition, newInstruction);
                     break;
 
                 case 'instruction:command':
@@ -361,6 +364,8 @@ class MusicEditorMenuElement extends HTMLElement {
                 });
             }
         }
+        if(instrumentList.length === 0)
+            instrumentList = [0];
 
         // Row Instructions
 
@@ -369,15 +374,10 @@ class MusicEditorMenuElement extends HTMLElement {
             .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
 
         // Instruction Forms
-        this.querySelectorAll('.fieldset-selected-instruction, .fieldset-cursor-instruction, .fieldset-selected-row')
-            .forEach(fieldset => fieldset.setAttribute('disabled', 'disabled'));
+        // this.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
+        //     .forEach(fieldset => fieldset.classList.add('hidden'));
 
-        this.querySelector('form.form-instruction-insert').style.display='none';
-        this.querySelector('form.form-instruction-remove').style.display='none';
-
-
-        const instructionCommandOptGroup = this.fieldInstructionCommand.querySelector('.instrument-frequencies');
-        instructionCommandOptGroup.innerHTML = '';
+        let instructionCommandOptGroupHTML = '';
         for(let i=0; i<instrumentList.length; i++) {
             const instrumentID = instrumentList[i];
             if(this.editor.player.isInstrumentLoaded(instrumentID)) {
@@ -385,28 +385,51 @@ class MusicEditorMenuElement extends HTMLElement {
                 if(instance.getFrequencyAliases) {
                     const aliases = instance.getFrequencyAliases();
                     Object.keys(aliases).forEach((aliasName) =>
-                        instructionCommandOptGroup.innerHTML += `<option value="${aliasName}">${aliasName}</option>`);
+                        instructionCommandOptGroupHTML += `<option value="${aliasName}">${aliasName}</option>`);
                 }
             }
         }
+        this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroupHTML;
+        this.fieldModifyInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroupHTML;
 
+        // this.fieldModifyInstructionCommand.value = 'C4';
+        this.fieldModifyInstructionInstrument.value = instrumentList[0] || 0;
+        this.fieldModifyInstructionInstrument.value = '0';
+        this.fieldModifyInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
+        this.fieldModifyInstructionVelocity.value = 100;
+
+        this.classList.remove('show-new-instruction-controls');
+        this.classList.remove('show-modify-instruction-controls');
         if(combinedInstruction) {
             // Note Instruction
-            this.fieldInstructionCommand.value = combinedInstruction.command;
-            this.fieldInstructionInstrument.value = combinedInstruction.instrument;
-            this.fieldInstructionVelocity.value = combinedInstruction.velocity;
-            this.fieldInstructionDuration.value = combinedInstruction.duration;
-            this.querySelectorAll('.fieldset-selected-instruction')
-                .forEach(fieldset => fieldset.removeAttribute('disabled'));
-            this.querySelector('form.form-instruction-remove').style.display='';
+            this.fieldModifyInstructionCommand.value = combinedInstruction.command;
+            if(this.fieldModifyInstructionCommand.value === '' && combinedInstruction.command !== '') {
+                instructionCommandOptGroupHTML += `<option value="${combinedInstruction.command}">${combinedInstruction.command}</option>`;
+                this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroupHTML;
+                this.fieldModifyInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroupHTML;
+                this.fieldModifyInstructionCommand.value = combinedInstruction.command;
+                if(this.fieldModifyInstructionCommand.value === '' && combinedInstruction.command !== '')
+                    console.warn("Instrument was not found", this.fieldModifyInstructionCommand);
+            }
+
+            this.fieldModifyInstructionInstrument.value = combinedInstruction.instrument;
+            this.fieldModifyInstructionVelocity.value = combinedInstruction.velocity;
+            this.fieldModifyInstructionDuration.value = combinedInstruction.duration;
+            this.classList.add('show-modify-instruction-controls');
+            // this.querySelectorAll('.form-section-modify-instruction')
+            //     .forEach(fieldset => fieldset.classList.remove('hidden'));
 
         } else if(cursorIndex !== null) {
-            this.querySelectorAll('.fieldset-cursor-instruction')
-                .forEach(fieldset => fieldset.removeAttribute('disabled'));
-            this.querySelector('form.form-instruction-insert').style.display='';
+
+            this.classList.add('show-new-instruction-controls');
+            // this.querySelectorAll('.form-section-new-instruction')
+            //     .forEach(fieldset => fieldset.classList.remove('hidden'));
         }
+
         // this.querySelector('.row-label-row').innerHTML = 'Row' + (selectedPauseIndices.length > 1 ? 's' : '') + ":";
         // this.querySelector('.row-label-command').innerHTML = 'Command' + (selectedIndices.length > 1 ? 's' : '') + ":";
+        this.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
+
     }
 
     render() {
@@ -519,11 +542,11 @@ class MusicEditorMenuElement extends HTMLElement {
     
                 <br style="clear: both;"/>
      
-                <div class="form-section">
-                    <legend>Command</legend>
-                    <form class="form-instruction-command" data-command="instruction:command">
-                        <fieldset class="fieldset-selected-instruction fieldset-cursor-instruction">
-                            <select name="command" title="Command" class="themed">
+                <div class="form-section form-section-new-instruction">
+                    <legend>Insert Instruction</legend>
+                    <form class="form-instruction-insert" data-command="instruction:insert">
+                        <fieldset class="fieldset-selected-instruction fieldset-new-instruction">
+                            <select name="command" title="Command" class="themed" required="required">
                                 <option value="">Command (Choose)</option>
                                 <optgroup label="Custom Frequencies" class="instrument-frequencies">
                                 </optgroup>
@@ -535,55 +558,69 @@ class MusicEditorMenuElement extends HTMLElement {
                                 </optgroup>
                             </select>
                         </fieldset>
-                    </form>
-                    <form class="form-instruction-remove" data-command="instruction:remove">
-                        <fieldset class="fieldset-selected-instruction">
-                            <button name="remove" class="themed">-</button>
-                        </fieldset>
-                    </form>
-                    <form class="form-instruction-insert" data-command="instruction:insert">
-                        <fieldset class="fieldset-cursor-instruction">
+                        <fieldset>
                             <button name="insert" class="themed">+</button>
                         </fieldset>
                     </form>
                 </div>
-                <div class="form-section">
+                <div class="form-section form-section-modify-instruction">
+                    <legend>Instruction<span class="multiple-count-text"></span></legend>
+                    <form class="form-instruction-remove" data-command="instruction:remove">
+                        <fieldset>
+                            <button name="remove" class="themed">Delete</button>
+                        </fieldset>
+                    </form>
+                </div>
+                
+     
+                <div class="form-section form-section-modify-instruction">
+                    <legend>Command</legend>
+                    <form class="form-instruction-command" data-command="instruction:command">
+                        <select name="command" title="Command" class="themed" required="required">
+                            <option value="">Command (Choose)</option>
+                            <optgroup label="Custom Frequencies" class="instrument-frequencies">
+                            </optgroup>
+                            <optgroup label="Frequencies">
+                                ${this.renderEditorFormOptions('command-frequencies')}
+                            </optgroup>
+                            <optgroup label="Group Execute">
+                                ${this.renderEditorFormOptions('command-group-execute')}
+                            </optgroup>
+                        </select>
+                    </form>
+                </div>
+                           
+                <div class="form-section form-section-modify-instruction">
                     <legend>Instrument</legend>
                     <form class="form-instruction-instrument" data-command="instruction:instrument">
-                        <fieldset class="fieldset-selected-instruction">
-                            <select name="instrument" title="Note Instrument" class="themed">
-                                <option value="">Instrument (Default)</option>
-                                <optgroup label="Song Instruments">
-                                    ${this.renderEditorFormOptions('instruments-songs')}
-                                </optgroup>
-                            </select>
-                        </fieldset>
+                        <select name="instrument" title="Note Instrument" class="themed">
+                            <option value="">Instrument (Default)</option>
+                            <optgroup label="Song Instruments">
+                                ${this.renderEditorFormOptions('instruments-songs')}
+                            </optgroup>
+                        </select>
                     </form>
                 </div>
-                <div class="form-section">
+                <div class="form-section form-section-modify-instruction">
                     <legend>Duration</legend>
                     <form class="form-instruction-duration" data-command="instruction:duration">
-                        <fieldset class="fieldset-selected-instruction">
-                            <select name="duration" title="Note Duration" class="themed">
-                                <optgroup label="Note Duration">
-                                    <option value="">Duration (Default)</option>
-                                    ${this.renderEditorFormOptions('durations')}
-                                </optgroup>
-                            </select>
-                        </fieldset>
+                        <select name="duration" title="Note Duration" class="themed">
+                            <optgroup label="Note Duration">
+                                <option value="">Duration (Default)</option>
+                                ${this.renderEditorFormOptions('durations')}
+                            </optgroup>
+                        </select>
                     </form>
                 </div>
-                <div class="form-section">
+                <div class="form-section form-section-modify-instruction">
                     <legend>Velocity</legend>
                     <form class="form-instruction-velocity" data-command="instruction:velocity">
-                        <fieldset class="fieldset-selected-instruction">
-                            <select name="velocity" title="Note Velocity" class="themed">
-                                <optgroup label="Velocity">
-                                    <option value="">Velocity (Default)</option>
-                                    ${this.renderEditorFormOptions('velocities')}
-                                </optgroup>
-                            </select>
-                        </fieldset>
+                        <select name="velocity" title="Note Velocity" class="themed">
+                            <optgroup label="Velocity">
+                                <option value="">Velocity (Default)</option>
+                                ${this.renderEditorFormOptions('velocities')}
+                            </optgroup>
+                        </select>
                     </form>
                 </div>
                 

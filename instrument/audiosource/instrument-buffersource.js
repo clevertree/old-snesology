@@ -16,40 +16,57 @@ class BufferSourceInstrument extends HTMLElement {
         if(!config.name)
             config.name = this.constructor.name + BufferSourceInstrument.NEW_COUNTER++;
         if(!config.samples)
-            config.samples = [];
+            config.samples = {};
         // if(!config.preset)
         //     config.preset = {};
         this.config = config;            // TODO: validate config
-        this.buffers = [];
+        this.buffers = {};
 
         this.initSamples(audioContext);
 
         // Sample Library
         this.loadSampleLibrary(BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {
-            if(!this.config.preset && this.config.samples.length === 0) {
-                const defaultPreset = Object.keys(this.library.instruments)[0];
-                if(defaultPreset) {
-                    console.info("Loading default preset: " + defaultPreset);
-                    Object.assign(this.config, this.loadPresetConfig(defaultPreset));
-                    this.initSamples(audioContext); // TODO: inefficient reload?
-                    // this.setConfig(newConfig, audioContext);
-                } else {
-                    console.warn("No default presets found");
-                }
+            let loadPreset = this.config.preset;
+            if(!loadPreset && Object.keys(this.config.samples).length === 0)
+                loadPreset = Object.keys(this.library.instruments)[0];
+            if(loadPreset) {
+                console.info("Loading default preset: " + loadPreset);
+                Object.assign(this.config, this.loadPresetConfig(loadPreset));
+                this.initSamples(audioContext); // TODO: inefficient reload?
+                // this.setConfig(newConfig, audioContext);
+
+                this.dispatchEvent(new CustomEvent('instrument:initiated', {
+                    detail: this,
+                    bubbles: true
+                }));
+
+                // console.warn("No default presets found");
             }
         });
     }
 
+    connectedCallback() {
+        // this.editor = this.closest('music-editor'); // Don't rely on this !!!
+        this.addEventListener('change', this.onSubmit);
+        // this.addEventListener('input', this.onSubmit);
+        this.addEventListener('submit', this.onSubmit);
+
+
+        this.render();
+    }
+
     initSamples(audioContext) {
-        for(let i=0; i<this.config.samples.length; i++) {
-            const sampleConfig = this.config.samples[i];
-            if(!sampleConfig.url)
-                throw new Error("Sample config is missing url");
-            this.loadAudioSample(audioContext, sampleConfig.url, (err, audioBuffer) => {
-                if(err)
-                    throw new err;
-                this.buffers[i] = audioBuffer;
-            })
+        for(let sampleName in this.config.samples) {
+            if (this.config.samples.hasOwnProperty(sampleName)) {
+                const sampleConfig = this.config.samples[sampleName];
+                if (!sampleConfig.url)
+                    throw new Error("Sample config is missing url");
+                this.loadAudioSample(audioContext, sampleConfig.url, (err, audioBuffer) => {
+                    if (err)
+                        throw new err;
+                    this.buffers[sampleName] = audioBuffer;
+                })
+            }
         }
     }
 
@@ -58,24 +75,26 @@ class BufferSourceInstrument extends HTMLElement {
 
         // Loop through samples
         const sources = [];
-        for(let i=0; i<this.config.samples.length; i++) {
-            const sampleConfig = this.config.samples[i];
+        for(let sampleName in this.config.samples) {
+            if(this.config.samples.hasOwnProperty(sampleName)) {
+                const sampleConfig = this.config.samples[sampleName];
 
-            // Filter sample playback
-            if(sampleConfig.keyLow > frequencyValue)
-                continue;
-            if(sampleConfig.keyHigh && sampleConfig.keyHigh < frequencyValue)
-                continue;
+                // Filter sample playback
+                if (sampleConfig.keyLow > frequencyValue)
+                    continue;
+                if (sampleConfig.keyHigh && sampleConfig.keyHigh < frequencyValue)
+                    continue;
 
 
-            if(typeof this.buffers[i] === 'undefined')
-                return console.error("Sample not loaded: " + sampleConfig.url);
-            const buffer = this.buffers[i];
+                if (typeof this.buffers[sampleName] === 'undefined')
+                    return console.error("Sample not loaded: " + sampleConfig.url);
+                const buffer = this.buffers[sampleName];
 
-            const playbackRate = frequencyValue / sampleConfig.keyRoot || 440;
-            const source = this.playBuffer(buffer, sampleConfig.loop, playbackRate, destination, startTime, duration);
-            if(source)
-                sources.push(sources);
+                const playbackRate = frequencyValue / sampleConfig.keyRoot || 440;
+                const source = this.playBuffer(buffer, sampleConfig.loop, playbackRate, destination, startTime, duration);
+                if (source)
+                    sources.push(sources);
+            }
         }
 
         return sources;
@@ -100,16 +119,6 @@ class BufferSourceInstrument extends HTMLElement {
         }
         source.connect(destination);
         return source;
-    }
-
-    connectedCallback() {
-        // this.editor = this.closest('music-editor'); // Don't rely on this !!!
-        this.addEventListener('change', this.onSubmit);
-        // this.addEventListener('input', this.onSubmit);
-        this.addEventListener('submit', this.onSubmit);
-
-
-        this.render();
     }
 
     render() {
@@ -175,7 +184,7 @@ class BufferSourceInstrument extends HTMLElement {
         const urlPrefix = this.library.urlPrefix || '';
         const newConfig = Object.assign({}, this.config);
         newConfig.preset = presetName;
-        newConfig.samples = [];
+        newConfig.samples = {};
         const presetConfig = this.library.instruments[presetName];
         // Object.assign(newConfig, presetConfig);
         Object.keys(presetConfig.samples).forEach((sampleName) => {
@@ -185,6 +194,7 @@ class BufferSourceInstrument extends HTMLElement {
                     this.library.samples[sampleName]);
             sampleConfig.url = new URL(urlPrefix + sampleConfig.url, BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL) + '';
             sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
+
             if(typeof sampleConfig.keyRange !== "undefined") {
                 let pair = sampleConfig.keyRange;
                 if(typeof pair === 'string')
@@ -197,7 +207,7 @@ class BufferSourceInstrument extends HTMLElement {
                 sampleConfig.keyLow = this.getCommandFrequency(sampleConfig.keyLow);
             if(typeof sampleConfig.keyHigh !== "undefined")
                 sampleConfig.keyHigh = this.getCommandFrequency(sampleConfig.keyHigh);
-            newConfig.samples.push(sampleConfig);
+            newConfig.samples[sampleName] = sampleConfig;
         });
 
         return newConfig;
@@ -257,10 +267,23 @@ class BufferSourceInstrument extends HTMLElement {
 
 
     getFrequencyAliases() {
-        return {
-            'kick': 'C1',
-            'snare': 'D1',
+        const aliases = {
+            // 'kick': 'C1',
+            // 'snare': 'D1',
         };
+        for(let sampleName in this.config.samples) {
+            if (this.config.samples.hasOwnProperty(sampleName)) {
+                const sampleConfig = this.config.samples[sampleName];
+                if(sampleConfig.keyAlias)
+                    aliases[sampleName] = sampleConfig.keyAlias;
+            }
+        }
+        return aliases;
+
+        // return {
+        //     'kick': 'C1',
+        //     'snare': 'D1',
+        // };
     }
 
     getCommandFrequency (command) {

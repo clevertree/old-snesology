@@ -127,6 +127,8 @@ class MusicEditorGridElement extends HTMLElement {
         let cellList = this.querySelectorAll('.grid-cell');
         const cursorIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         const selectedIndices = this.selectedIndices;
+        if(selectedIndices.length === 0)
+            selectedIndices.push(cursorIndex);
 
         // const cursorIndex = this.cursorPosition;
         const gridDuration = parseFloat(this.editor.menu.fieldRenderDuration.value);
@@ -147,7 +149,7 @@ class MusicEditorGridElement extends HTMLElement {
             // if(cursorInstruction)
             //     noteCSS.push('cursor');
 
-            cellHTML += `<div class="grid-cell grid-cell-instruction-" data-index="${index}">`;
+            cellHTML += `<div class="grid-cell grid-cell-instruction" data-index="${index}">`;
             cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
             if (typeof instruction.instrument !== 'undefined')
                 cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
@@ -357,7 +359,7 @@ class MusicEditorGridElement extends HTMLElement {
                             this.render();
                             this.focus();
                             for(let i=0; i<selectedIndices.length; i++)
-                                this.editor.playInstruction(instructionList[i]);
+                                this.editor.playInstruction(instructionList[selectedIndices[i]]);
 
                             // editor.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
