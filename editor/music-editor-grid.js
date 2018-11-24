@@ -271,7 +271,7 @@ class MusicEditorGridElement extends HTMLElement {
                             break;
                         case 'Enter':
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
-                                let newInstruction = this.editor.menu.getInstructionFormValues();
+                                let newInstruction = this.editor.menu.getInstructionFormValues(true);
                                 let insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorPosition);
                                 this.render();
                                 this.selectIndices(insertIndex);
@@ -343,7 +343,7 @@ class MusicEditorGridElement extends HTMLElement {
                             let newCommand = this.editor.keyboardLayout[e.key];
 
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
-                                let newInstruction = this.editor.menu.getInstructionFormValues();
+                                let newInstruction = this.editor.menu.getInstructionFormValues(true);
                                 newInstruction.command = newCommand;
 
                                 const insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorPosition);

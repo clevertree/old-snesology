@@ -270,9 +270,9 @@ music-editor-menu form.form-add-instrument select[name=instrument] {
 }
 
 
-music-editor-menu:not(.show-modify-instruction-controls) .form-section-modify-instruction {
+music-editor-menu:not(.show-modify-instruction-controls) .show-on-modify-instruction {
     display: none;
 }
-music-editor-menu:not(.show-new-instruction-controls) .form-section-new-instruction {
+music-editor-menu:not(.show-insert-instruction-controls) .show-on-insert-instruction {
     display: none;
 }
