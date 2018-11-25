@@ -63,6 +63,8 @@ class MusicEditorElement extends HTMLElement {
         this.addEventListener('song:end', this.onSongEvent);
         this.addEventListener('song:pause', this.onSongEvent);
         this.addEventListener('instrument:initiated', this.onSongEvent);
+        document.addEventListener('instrument:loaded', this.onSongEvent);
+
         // this.songData = this.player.getSongData();
         // const onInstrumentEvent = this.onInstrumentEvent.bind(this);
         // playerElement.addEventListener('instrument:initiated', onInstrumentEvent);
@@ -485,6 +487,9 @@ class MusicEditorElement extends HTMLElement {
             case 'song:end':
             case 'song:pause':
                 this.classList.remove('playing');
+                break;
+            case 'instrument:loaded':
+                console.info("TODO: instrument loading", e.detail);
                 break;
             case 'instrument:initiated':
                 // console.info("Instrument initialized: ", e.detail);

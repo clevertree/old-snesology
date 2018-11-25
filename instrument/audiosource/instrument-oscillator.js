@@ -232,7 +232,6 @@ class OscillatorInstrument extends HTMLElement {
     // }}));
     // document.instruments[URL_ORIGIN]['/instrument/oscillator/simple.js#doubledetune'] = iOscillatorDoubleDetune;
 
-customElements.define('instrument-oscillator', OscillatorInstrument);
 
 OscillatorInstrument.BUILD_IN_TYPES = [
     'sine', 'square', 'sawtooth', 'triangle', 'custom'
@@ -242,3 +241,8 @@ OscillatorInstrument.DEFAULT_PERIODIC_WAVE = {
     real: new Float32Array([0, 1]),
     imag: new Float32Array([1, 0])
 };
+
+customElements.define('instrument-oscillator', OscillatorInstrument);
+document.dispatchEvent(new CustomEvent('instrument:loaded', {
+    detail: OscillatorInstrument
+}));

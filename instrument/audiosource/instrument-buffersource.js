@@ -304,3 +304,6 @@ class BufferSourceInstrument extends HTMLElement {
 }
 
 customElements.define('instrument-buffersource', BufferSourceInstrument);
+document.dispatchEvent(new CustomEvent('instrument:loaded', {
+    detail: BufferSourceInstrument
+}));
