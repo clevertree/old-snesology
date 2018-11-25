@@ -36,22 +36,16 @@ class MusicEditorMenuElement extends HTMLElement {
             // this.fieldInsertInstructionCommand.focus();
             return false;
         }
-        const formValues = {
-            instrument: this.fieldInstructionInstrument.value,
-            duration: this.fieldInstructionDuration.value,
-            command: isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value,
-            velocity: this.fieldInstructionVelocity.value
-        };
         let newInstruction = {
-            command: formValues.command,
+            command: isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value
         };
 
-        if(formValues.instrument || formValues.instrument === 0)
-            newInstruction.instrument = parseInt(formValues.instrument);
-        if(formValues.duration)
-            newInstruction.duration = formValues.duration;
-        if(formValues.velocity !== "100")
-            newInstruction.velocity = parseInt(formValues.velocity);
+        if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
+            newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
+        if(this.fieldInstructionDuration.value)
+            newInstruction.duration = this.fieldInstructionDuration.value;
+        if(this.fieldInstructionVelocity.value && this.fieldInstructionVelocity.value !== "100")
+            newInstruction.velocity = parseInt(this.fieldInstructionVelocity.value);
 
         return newInstruction;
     }
