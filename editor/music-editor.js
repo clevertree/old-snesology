@@ -63,7 +63,7 @@ class MusicEditorElement extends HTMLElement {
         this.addEventListener('song:end', this.onSongEvent);
         this.addEventListener('song:pause', this.onSongEvent);
         this.addEventListener('instrument:initiated', this.onSongEvent);
-        document.addEventListener('instrument:loaded', this.onSongEvent);
+        document.addEventListener('instrument:instance', this.onSongEvent.bind(this));
 
         // this.songData = this.player.getSongData();
         // const onInstrumentEvent = this.onInstrumentEvent.bind(this);
@@ -489,13 +489,16 @@ class MusicEditorElement extends HTMLElement {
                 this.classList.remove('playing');
                 break;
             case 'instrument:loaded':
-                console.info("TODO: instrument loading", e.detail);
+                console.info("TODO: load instrument instances", e.detail);
                 break;
             case 'instrument:initiated':
+                this.menu.render(); // Update instrument list
+                break;
+            case 'instrument:instance':
                 // console.info("Instrument initialized: ", e.detail);
-                const instance = e.detail;
-                const instrumentID = this.player.getLoadedInstruments().indexOf(instance);
-                if(instrumentID !== -1 && this.instruments[instrumentID]) {
+                // const instance = e.detail.instance;
+                const instrumentID = e.detail.instrumentID;
+                if(this.instruments[instrumentID]) {
                     this.instruments[instrumentID].render();
                     this.menu.render(); // Update instrument list
                     // this.render();

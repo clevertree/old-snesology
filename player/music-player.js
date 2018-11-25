@@ -36,6 +36,7 @@ class MusicPlayerElement extends HTMLElement {
         this.addEventListener('keydown', this.onInput);
         this.addEventListener('keyup', this.onInput);
         this.addEventListener('click', this.onInput);
+        document.addEventListener('instrument:loaded', this.onSongEvent.bind(this));
 
         // if(this.getSongURL())
         //     this.loadSongFromURL(this.getSongURL());
@@ -43,6 +44,21 @@ class MusicPlayerElement extends HTMLElement {
         if(!this.getAttribute('tabindex'))
             this.setAttribute('tabindex', '1');
 
+    }
+
+    onSongEvent(e) {
+        switch(e.type) {
+            case 'song:start':
+                this.classList.add('playing');
+                break;
+            case 'song:end':
+            case 'song:pause':
+                this.classList.remove('playing');
+                break;
+            case 'instrument:loaded':
+                this.initAllInstruments();
+                break;
+        }
     }
 
     // getSongURL() { return this.getAttribute('src');}
@@ -66,14 +82,16 @@ class MusicPlayerElement extends HTMLElement {
         } else {
             for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
                 loadingInstruments++;
-                this.initInstrument(instrumentID, (instance) => {
-                    loadingInstruments--;
-                    if(loadingInstruments === 0) {
-                        this.dispatchEvent(new CustomEvent('instruments:initialized', {
-                            bubbles: true
-                        }));
-                    }
-                });
+                this.initInstrument(instrumentID);
+
+            //      , (instance) => {
+            //         loadingInstruments--;
+            //         if(loadingInstruments === 0) {
+            //             this.dispatchEvent(new CustomEvent('instruments:initialized', {
+            //                 bubbles: true
+            //             }));
+            //         }
+            //     }
             }
         }
     }
@@ -319,70 +337,37 @@ class MusicPlayerElement extends HTMLElement {
     getInstrument(instrumentID) {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
+        throw new Error("Instrument not yet loaded: ", elementName);
+    }
 
+    initInstrument(instrumentID) {
         const instrumentPreset = this.getInstrumentConfig(instrumentID);
         const url = new URL(instrumentPreset.url, document.location);
         const elementName = url.pathname.substring(url.pathname.lastIndexOf('/')+1).split('.')[0];
 
         const instrumentClass = customElements.get(elementName);
-        const instance = new instrumentClass(instrumentPreset, this.getAudioContext());
-
-        this.loadedInstruments[instrumentID] = instance;
-        return instance;
-    }
-
-    initInstrument(instrumentID, onInitiated) {
-        const instrumentList = this.getSongData().instruments;
-        if(!instrumentList[instrumentID])
-            throw new Error("Instrument ID not found: " + instrumentID);
-        const instrumentPreset = instrumentList[instrumentID];
-
-        // TODO: dependencies causing probs
-        const final = () => {
-            MusicPlayerElement.loadScript(instrumentPreset.url, () => {
-                const instance = this.getInstrument(instrumentID);
-                // if(instance.setConfig)
-                //     instance.setConfig(instrumentPreset, this.getAudioContext());
-
-                this.dispatchEvent(new CustomEvent('instrument:initiated', {
-                    detail: instance,
-                    bubbles: true
+        if(instrumentClass) {
+            if(!this.loadedInstruments[instrumentID]) {
+                const instance = new instrumentClass(instrumentPreset, this.getAudioContext());
+                this.loadedInstruments[instrumentID] = instance;
+                document.dispatchEvent(new CustomEvent('instrument:instance', {
+                    detail: {
+                        instance: instance,
+                        instrumentID: instrumentID
+                    }
                 }));
-
-                onInitiated && onInitiated(instance);
-            });
-        };
-        if(instrumentPreset.urlDependencies) {
-            const urlDependencies = instrumentPreset.urlDependencies.slice();
-            const next = () => {
-                if(urlDependencies.length === 0) {
-                    final();
-
-                } else {
-                    const nextURL = urlDependencies.pop();
-                    MusicPlayerElement.loadScript(nextURL, next);
-                }
-            };
-            next();
+            }
         } else {
-            final();
+
+            MusicPlayerElement.loadScript(instrumentPreset.url); // , () => {
         }
+
     }
 
-    initAllInstruments(onInitiated) {
+    initAllInstruments() {
         const instrumentList = this.getSongData().instruments;
-        let initCount = 0;
         for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
-            initCount++;
-            this.initInstrument(instrumentID, () => {
-                initCount--;
-                if(initCount === 0) {
-                    this.dispatchEvent(new CustomEvent('instruments:initiated', {
-                        bubbles: true
-                    }));
-                    onInitiated && onInitiated();
-                }
-            })
+            this.initInstrument(instrumentID);
         }
     }
 
@@ -395,34 +380,6 @@ class MusicPlayerElement extends HTMLElement {
         }, instrumentConfig || {});
         this.initInstrument(instrumentID);
         return instrumentID;
-    }
-
-    replaceInstrumentParams(instrumentID, replaceConfig, onInstrumentLoad) {
-        const instrumentList = this.getSongData().instruments;
-        if(!instrumentList[instrumentID])
-            throw new Error("Invalid instrument ID: " + instrumentID);
-
-        const presetData = instrumentList[instrumentID];
-        const newPresetConfig = Object.assign({}, presetData);
-
-        const oldParams = {};
-        for(const paramName in replaceConfig) {
-            if(replaceConfig.hasOwnProperty(paramName)) {
-                if(replaceConfig[paramName] === newPresetConfig[paramName])
-                    continue;
-                oldParams[paramName] = typeof newPresetConfig[paramName] !== 'undefined' ? newPresetConfig[paramName] : null;
-                if(replaceConfig[paramName] === null)
-                    delete newPresetConfig[paramName];
-                else
-                    newPresetConfig[paramName] = replaceConfig[paramName];
-            }
-        }
-
-        instrumentList[instrumentID] = newPresetConfig;
-        this.initInstrument(instrumentID, onInstrumentLoad);
-
-        // this.loadedInstruments[instrumentID] = instance;            // Replace instrument with new settings
-        return oldParams;
     }
 
 
