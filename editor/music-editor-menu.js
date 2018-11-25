@@ -26,11 +26,16 @@ class MusicEditorMenuElement extends HTMLElement {
 
     get fieldRenderDuration() { return this.querySelector('form.form-render-duration select[name=duration]'); }
     get fieldRenderInstrument() { return this.querySelector('form.form-render-instrument select[name=instrument]'); }
+    get fieldRenderOctave() { return this.querySelector('form.form-render-octave select[name=octave]'); }
 
     get fieldAddInstrumentInstrument() { return this.querySelector('form.form-add-instrument select[name=instrument]'); }
 
     // get grid() { return this.editor.grid; } // Grid associated with menu
     getInstructionFormValues(isNewInstruction) {
+        if(isNewInstruction && this.fieldInsertInstructionCommand.value === '') {
+            // this.fieldInsertInstructionCommand.focus();
+            return false;
+        }
         const formValues = {
             instrument: this.fieldInstructionInstrument.value,
             duration: this.fieldInstructionDuration.value,
@@ -136,10 +141,6 @@ class MusicEditorMenuElement extends HTMLElement {
                     this.editor.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
                     break;
 
-                case 'row:split':
-                    const splitPercentage = prompt("Split row at what percentage? ", 50);
-                    this.editor.splitInstructionRows(currentGroup, selectedPauseIndices, splitPercentage);
-                    break;
 
                 case 'group:edit':
                     if (form.groupName.value === ':new') {
@@ -296,11 +297,6 @@ class MusicEditorMenuElement extends HTMLElement {
                                 else                    console.error("Set instruction velocity canceled");
                                 break;
 
-                            case 'row:split':
-                                const splitPercentage = prompt("Split row at what percentage? ", 50);
-                                this.editor.splitInstructionRows(currentGroup, this.editor.gridSelectedPausePositions, splitPercentage);
-                                break;
-
                             default:
                                 throw new Error("Unknown menu command: " + dataCommand);
                         }
@@ -344,7 +340,7 @@ class MusicEditorMenuElement extends HTMLElement {
         const selectedIndices = this.editor.grid.selectedIndices;
         const groupName = this.editor.grid.groupName;
         const instructionList = this.editor.player ? this.editor.player.getInstructions(groupName) : [];
-        let combinedInstruction = null, instrumentList = [];
+        let combinedInstruction = null; //, instrumentList = [];
         for(let i=0; i<selectedIndices.length; i++) {
             const selectedIndex = selectedIndices[i];
             if(!instructionList[selectedIndex])
@@ -354,9 +350,9 @@ class MusicEditorMenuElement extends HTMLElement {
             if(selectedInstruction.command[0] === '!')
                 continue;
 
-            if(typeof selectedInstruction.instrument !== "undefined")
-                if(instrumentList.indexOf(selectedInstruction.instrument) === -1)
-                    instrumentList.push(selectedInstruction.instrument);
+            // if(typeof selectedInstruction.instrument !== "undefined")
+            //     if(instrumentList.indexOf(selectedInstruction.instrument) === -1)
+            //         instrumentList.push(selectedInstruction.instrument);
 
             if(combinedInstruction === null) {
                 combinedInstruction = Object.assign({}, selectedInstruction);
@@ -368,8 +364,8 @@ class MusicEditorMenuElement extends HTMLElement {
                 });
             }
         }
-        if(instrumentList.length === 0)
-            instrumentList = [0];
+        // if(instrumentList.length === 0)
+            // instrumentList = [0];
 
         // Row Instructions
 
@@ -381,41 +377,20 @@ class MusicEditorMenuElement extends HTMLElement {
         // this.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
         //     .forEach(fieldset => fieldset.classList.add('hidden'));
 
-        const instructionCommandOptGroup = this.fieldInstructionCommand.querySelector('.instrument-frequencies');
-
-        instructionCommandOptGroup.innerHTML = '';
-        for(let i=0; i<instrumentList.length; i++) {
-            const instrumentID = instrumentList[i];
-            if(this.editor.player.isInstrumentLoaded(instrumentID)) {
-                const instance = this.editor.player.getInstrument(instrumentID);
-                if(instance.getFrequencyAliases) {
-                    const aliases = instance.getFrequencyAliases();
-                    Object.keys(aliases).forEach((aliasName) =>
-                        instructionCommandOptGroup.innerHTML += `<option value="${aliasName}">${aliasName}</option>`);
-                }
-            }
-        }
 
         // this.fieldInstructionCommand.value = 'C4';
-        this.fieldInstructionInstrument.value = instrumentList[0] || 0;
+        // this.fieldInstructionInstrument.value = instrumentList[0] || 0;
         this.fieldInstructionInstrument.value = '0';
         this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
-        this.fieldInstructionVelocity.value = 100;
+        // this.fieldInstructionVelocity.value = 100;
 
         this.classList.remove('show-insert-instruction-controls');
         this.classList.remove('show-modify-instruction-controls');
         if(combinedInstruction) {
             // Note Instruction
             this.fieldInstructionCommand.value = combinedInstruction.command;
-            if(this.fieldInstructionCommand.value === '' && combinedInstruction.command !== '') {
-                instructionCommandOptGroup.innerHTML += `<option value="${combinedInstruction.command}">${combinedInstruction.command}</option>`;
-                this.fieldInstructionCommand.value = combinedInstruction.command;
-                if(this.fieldInstructionCommand.value === '' && combinedInstruction.command !== '')
-                    console.warn("Instrument was not found", this.fieldInstructionCommand);
-            }
-
             this.fieldInstructionInstrument.value = combinedInstruction.instrument;
-            this.fieldInstructionVelocity.value = combinedInstruction.velocity;
+            this.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
             this.fieldInstructionDuration.value = combinedInstruction.duration;
             this.classList.add('show-modify-instruction-controls');
 
@@ -424,9 +399,11 @@ class MusicEditorMenuElement extends HTMLElement {
             this.classList.add('show-insert-instruction-controls');
         }
 
-        const oldInsertCommand = this.fieldInsertInstructionCommand.value;
-        this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
-        this.fieldInsertInstructionCommand.value = oldInsertCommand;
+        // const oldInsertCommand = this.fieldInsertInstructionCommand.value;
+        // this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
+        // this.fieldInsertInstructionCommand.value = oldInsertCommand;
+        // if(!this.fieldInsertInstructionCommand.value)
+        //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
 
         this.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
 
@@ -469,7 +446,6 @@ class MusicEditorMenuElement extends HTMLElement {
                 <li>
                     <a class="menu-item"><span class="key">R</span>ow</a>
                     <ul class="submenu submenu:pause">
-                        <li><a class="menu-item" data-command="row:split"><span class="key">S</span>plit Pause</a></li>
                         <li><a class="menu-item" data-command="row:remove"><span class="key">R</span>emove Row</a></li>
                     </ul>
                 </li>
@@ -524,70 +500,59 @@ class MusicEditorMenuElement extends HTMLElement {
                     <form class="form-song-info" data-command="song:info">
                         <button name="info" class="themed" disabled>Info</button>
                     </form>
-                    
-                    <br/>
                 </div>
-
+                
                 <div class="form-section">
                     <legend>Add New Instrument</legend>
                     <form class="form-add-instrument" data-command="song:add-instrument">
-                        <fieldset class="fieldset-add-instrument">
-                            <select name="instrument" class="themed">
-                                <option value="">Select Instrument</option>
-                                ${this.renderEditorFormOptions('instruments-available')}
-                            </select>
-                        </fieldset>
+                        <select name="instrument" class="themed">
+                            <option value="">Select Instrument</option>
+                            ${this.renderEditorFormOptions('instruments-available')}
+                        </select>
                     </form>
-                </div>                
+                </div>                     
     
                 <br style="clear: both;"/>
      
                 <div class="form-section show-on-insert-instruction">
                     <legend>Insert Instruction</legend>
                     <form class="form-instruction-insert" data-command="instruction:insert">
-                        <fieldset>
-                            <select name="command" title="Instruction Command" class="themed" required="required">
-                                <option value="">Command (Choose)</option>
-                                <optgroup label="Custom Frequencies" class="instrument-frequencies">
-                                </optgroup>
-                                <optgroup label="Frequencies">
-                                    ${this.renderEditorFormOptions('command-frequencies')}
-                                </optgroup>
-                                <optgroup label="Group Execute">
-                                    ${this.renderEditorFormOptions('command-group-execute')}
-                                </optgroup>
-                            </select>
-                        </fieldset>
-                        <fieldset class="">
-                            <button name="insert" class="themed" title="Insert Instruction">+</button>
-                        </fieldset>
+                        <select name="command" title="Instruction Command" class="themed" required="required">
+                            <optgroup label="Custom Frequencies" class="instrument-frequencies">
+                                ${this.renderEditorFormOptions('command-instrument-frequencies')}
+                            </optgroup>
+                            <optgroup label="Frequencies">
+                                ${this.renderEditorFormOptions('command-frequencies')}
+                            </optgroup>
+                            <optgroup label="Group Execute">
+                                ${this.renderEditorFormOptions('command-group-execute')}
+                            </optgroup>
+                        </select>
+                        <button name="insert" class="themed" title="Insert Instruction">+</button>
                     </form>
                 </div>
-                           
+                
                 <div class="form-section show-on-modify-instruction">
                     <legend>Modify Instruction</legend>
                     <form class="form-instruction-command" data-command="instruction:command">
-                        <fieldset>
-                            <select name="command" title="Instruction Command" class="themed" required="required">
-                                <option value="">Command (Choose)</option>
-                                <optgroup label="Custom Frequencies" class="instrument-frequencies">
-                                </optgroup>
-                                <optgroup label="Frequencies">
-                                    ${this.renderEditorFormOptions('command-frequencies')}
-                                </optgroup>
-                                <optgroup label="Group Execute">
-                                    ${this.renderEditorFormOptions('command-group-execute')}
-                                </optgroup>
-                            </select>
-                        </fieldset>
+                        <select name="command" title="Instruction Command" class="themed" required="required">
+                            <option value="">Command (Choose)</option>
+                            <optgroup label="Custom Frequencies" class="instrument-frequencies">
+                                ${this.renderEditorFormOptions('command-instrument-frequencies')}
+                            </optgroup>
+                            <optgroup label="Frequencies">
+                                ${this.renderEditorFormOptions('command-frequencies')}
+                            </optgroup>
+                            <optgroup label="Group Execute">
+                                ${this.renderEditorFormOptions('command-group-execute')}
+                            </optgroup>
+                        </select>
                     </form>
                     <form class="form-instruction-remove" data-command="instruction:remove">
-                        <fieldset class="">
-                            <button name="remove" class="themed" title="Remove Instruction">-</button>
-                        </fieldset>
+                        <button name="remove" class="themed" title="Remove Instruction">-</button>
                     </form>
                 </div>
-                           
+                
                 <div class="form-section">
                     <legend>Instrument</legend>
                     <form class="form-instruction-instrument" data-command="instruction:instrument">
@@ -599,6 +564,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         </select>
                     </form>
                 </div>
+                
                 <div class="form-section">
                     <legend>Duration</legend>
                     <form class="form-instruction-duration" data-command="instruction:duration">
@@ -610,6 +576,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         </select>
                     </form>
                 </div>
+                
                 <div class="form-section">
                     <legend>Velocity</legend>
                     <form class="form-instruction-velocity" data-command="instruction:velocity">
@@ -622,23 +589,16 @@ class MusicEditorMenuElement extends HTMLElement {
                     </form>
                 </div>
                 
-                
                 <div class="form-section">
                     <legend>Modify Row</legend>
                     <form class="form-row-insert" data-command="row:insert">
-                        <fieldset class="fieldset-selected-row" disabled>
-                            <button name="insert" disabled="disabled" class="themed">+</button>
-                        </fieldset>
+                        <button name="insert" disabled="disabled" class="themed">+</button>
                     </form>
                     <form class="form-row-remove" data-command="row:remove">
-                        <fieldset class="fieldset-selected-row" disabled="disabled">
-                            <button name="remove" disabled="disabled" class="themed">-</button>
-                        </fieldset>
+                        <button name="remove" disabled="disabled" class="themed">-</button>
                     </form>
                     <form class="form-row-duplicate" data-command="row:duplicate">
-                        <fieldset class="fieldset-selected-row">
-                            <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>
-                        </fieldset>
+                        <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>
                     </form>
                 </div>                
 
@@ -646,11 +606,21 @@ class MusicEditorMenuElement extends HTMLElement {
                 
                 
                 <div class="form-section">
+                    <legend>Octave</legend>
+                    <form class="form-render-octave">
+                        <select name="octave" class="themed">
+                            <option value="">Select Octave</option>
+                            ${this.renderEditorFormOptions('command-frequency-octaves')}
+                        </select>
+                    </form>
+                </div>     
+                
+                <div class="form-section">
                     <legend>Render Group</legend>
                     ${this.getEditorFormOptions('groups', (value, label, selected) =>
-                `<form class="form-group" data-command="group:edit">`
-                + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''} themed" >${label}</button>`
-                + `</form>`)}
+                        `<form class="form-group" data-command="group:edit">`
+                        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''} themed" >${label}</button>`
+                        + `</form>`)}
                     
                     <form class="form-group" data-command="group:edit">
                         <button name="groupName" value=":new" class="new themed" title="Create new group">+</button>
@@ -658,36 +628,31 @@ class MusicEditorMenuElement extends HTMLElement {
                     
                 </div>
                 
-                
                 <div class="form-section">
                     <legend>Render Duration</legend>
                     <form class="form-render-duration" data-command="grid:duration">
-                        <fieldset class="fieldset-song">
-                            <label class="row-label">
-                                <select name="duration" title="Render Duration" class="themed">
-                                    <option value="1.0">Default (1B)</option>
-                                    <optgroup label="Render Duration">
-                                        ${this.renderEditorFormOptions('durations')}
-                                    </optgroup>
-                                </select>
-                            </label>
-                        </fieldset>
+                        <label class="row-label">
+                            <select name="duration" title="Render Duration" class="themed">
+                                <option value="1.0">Default (1B)</option>
+                                <optgroup label="Render Duration">
+                                    ${this.renderEditorFormOptions('durations')}
+                                </optgroup>
+                            </select>
+                        </label>
                     </form>
                 </div>
-
+                
                 <div class="form-section">
                     <legend>Filter By Instrument</legend>                    
                     <form class="form-render-instrument" data-command="grid:instrument">
-                        <fieldset class="fieldset-song">
-                            <label class="row-label">
-                                <select name="instrument" class="themed"->
-                                    <option value="">Show All (Default)</option>
-                                    <optgroup label="Filter By">
-                                        ${this.renderEditorFormOptions('instruments-songs')}
-                                    </optgroup>
-                                </select>
-                            </label>
-                        </fieldset>
+                        <label class="row-label">
+                            <select name="instrument" class="themed"->
+                                <option value="">Show All (Default)</option>
+                                <optgroup label="Filter By">
+                                    ${this.renderEditorFormOptions('instruments-songs')}
+                                </optgroup>
+                            </select>
+                        </label>
                     </form>
                 </div>
     
@@ -782,6 +747,20 @@ class MusicEditorMenuElement extends HTMLElement {
                 break;
 
 
+            case 'command-instrument-frequencies':
+
+                for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
+                    if(this.editor.player.isInstrumentLoaded(instrumentID)) {
+                        const instance = this.editor.player.getInstrument(instrumentID);
+                        if(instance.getFrequencyAliases) {
+                            const aliases = instance.getFrequencyAliases();
+                            Object.keys(aliases).forEach((aliasName) =>
+                                options.push([aliasName, aliasName]));
+                        }
+                    }
+                }
+                break;
+
             case 'command-frequencies':
             case 'frequencies':
                 const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
@@ -790,6 +769,12 @@ class MusicEditorMenuElement extends HTMLElement {
                         const instruction = instructions[j] + i;
                         options.push([instruction, instruction]);
                     }
+                }
+                break;
+
+            case 'command-frequency-octaves':
+                for(let oi=1; oi<=7; oi+=1) {
+                    options.push([oi, 'Octave ' + oi]);
                 }
                 break;
 
@@ -824,7 +809,7 @@ class MusicEditorMenuElement extends HTMLElement {
                 break;
 
             case 'beats-per-minute':
-                for(let vi=40; vi<=300; vi+=10) {
+                for(let vi=40; vi<=300; oi+=10) {
                     options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`]);
                 }
                 break;

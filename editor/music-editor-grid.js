@@ -25,22 +25,8 @@ class MusicEditorGridElement extends HTMLElement {
     get cursorCell() { return this.querySelector('.grid-cell.cursor'); }
     get cursorPosition() { const cell = this.cursorCell; return cell ? parseInt(cell.parentNode.getAttribute('data-position')) : null; }
     get selectedIndices() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
-    get selectedPauseIndices() {
-        const instructionList = this.instructionList;
-        const selectedIndices = this.selectedIndices;
-        const selectedPausePositions = [];
-        for(let i=0; i<selectedIndices.length; i++) {
-            const selectedPosition = selectedIndices[i];
-            let nextPausePosition = instructionList.findIndex((i, p) => i.command === '!pause' && p >= selectedPosition);
-            if(nextPausePosition === -1) {
-                console.warn("no pauses follow selected instruction");
-                continue;
-            }
-            if(selectedPausePositions.indexOf(nextPausePosition) === -1)
-                selectedPausePositions.push(nextPausePosition);
-        }
-        return selectedPausePositions;
-    }
+    get selectedRows() { return this.querySelectorAll('.grid-row.selected'); }
+    get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
 
     get nextCell() {
         const cellList = this.querySelectorAll('.grid-cell');
@@ -179,7 +165,7 @@ class MusicEditorGridElement extends HTMLElement {
                 //     : (subDuration >= 1/4 ? 'duration-medium'
                 //         : 'duration-small');
                 editorHTML +=
-                    `<div class="grid-row ${rowCSS.join(' ')}" data-position="${songPosition}">`
+                    `<div class="grid-row ${rowCSS.join(' ')}" data-index="${index}" data-position="${songPosition}">`
                     +   cellHTML
                     +   `<div class="grid-cell grid-cell-new">`
                     +     `<div class="grid-parameter">+</div>`
@@ -247,7 +233,7 @@ class MusicEditorGridElement extends HTMLElement {
                 case 'keydown':
 
                     let keyEvent = e.key;
-                    if (this.editor.keyboardLayout[e.key])
+                    if (this.editor.getKeyboardCommand(e.key))
                         keyEvent = 'PlayFrequency';
                     if (keyEvent === 'Enter' && e.altKey)
                         keyEvent = 'ContextMenu';
@@ -258,20 +244,23 @@ class MusicEditorGridElement extends HTMLElement {
                     const instructionList = this.editor.player.getInstructions(this.groupName);
                     switch (keyEvent) {
                         case 'Delete':
-                            this.editor.deleteInstructionAtIndex(this.groupName, selectedIndices);
                             e.preventDefault();
+                            this.editor.deleteInstructionAtIndex(this.groupName, selectedIndices);
                             // editor.render(true);
                             break;
                         case 'Escape':
                         case 'Backspace':
+                            e.preventDefault();
                             this.navigatePop();
                             this.selectIndices(0);
                             this.focus();
-                            e.preventDefault();
                             break;
                         case 'Enter':
+                            e.preventDefault();
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.menu.getInstructionFormValues(true);
+                                if(!newInstruction)
+                                    return console.info("Insert canceled");
                                 let insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorPosition);
                                 this.render();
                                 this.selectIndices(insertIndex);
@@ -286,7 +275,6 @@ class MusicEditorGridElement extends HTMLElement {
                             for(let i=0; i<selectedIndices.length; i++)
                                 this.editor.playInstruction(instructionList[i]);
                             // }
-                            e.preventDefault();
                             break;
 
                         case 'Play':
@@ -340,7 +328,7 @@ class MusicEditorGridElement extends HTMLElement {
                             break;
 
                         case 'PlayFrequency':
-                            let newCommand = this.editor.keyboardLayout[e.key];
+                            let newCommand = this.editor.getKeyboardCommand(e.key);
 
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.menu.getInstructionFormValues(true);
@@ -376,7 +364,7 @@ class MusicEditorGridElement extends HTMLElement {
                     if (cellElm.classList.contains('grid-parameter'))
                         cellElm = cellElm.parentNode;
                     if (cellElm.classList.contains('grid-row'))
-                        cellElm = cellElm.firstElementChild;
+                        cellElm = cellElm.lastElementChild;
                     if (!cellElm.classList.contains('grid-cell'))
                         cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
                     if(!cellElm)
@@ -536,12 +524,9 @@ class MusicEditorGridElement extends HTMLElement {
 
         this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
             .forEach(elm => elm.classList.remove('selected'));
-        if(cursorCell.classList.contains('grid-cell-instruction')) {
+        if(cursorCell.classList.contains('grid-cell-instruction'))
             cursorCell.classList.add('selected');
-            cursorCell.parentNode.classList.toggle('selected',
-                cursorCell.parentNode.querySelectorAll('.selected').length > 0);
-        }
-
+        cursorCell.parentNode.classList.add('selected');
         this.editor.menu.update();
     }
 
@@ -565,8 +550,7 @@ class MusicEditorGridElement extends HTMLElement {
                 if (!selectedCell)
                     throw new Error("Invalid selected cell index: " + selectedIndex);
                 selectedCell.classList.add('selected');
-                selectedCell.parentNode.classList.toggle('selected',
-                    selectedCell.parentNode.querySelectorAll('.selected').length > 0);
+                selectedCell.parentNode.classList.add('selected');
             }
         }
 

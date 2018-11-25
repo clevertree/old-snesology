@@ -161,17 +161,23 @@ music-editor-menu form.hidden {
 }
 
 
-music-editor-menu form.form-instruction-instrument select[name=instrument] {
+music-editor-menu form.form-instruction-instrument select[name=instrument]:not(:hover) {
     max-width: 88px;
 }
 music-editor-menu form.form-instruction-command select[name=frequency] {
     max-width: 42px;
 }
+music-editor-menu form.form-instruction-command select[name=command] {
+    max-width: 88px;
+}
 music-editor-menu form.form-instruction-duration select[name=duration] {
     max-width: 75px;
 }
-music-editor-menu form.form-instruction-velocity music-editor-menu select[name=velocity] {
+music-editor-menu form.form-instruction-velocity select[name=velocity] {
     max-width: 71px;
+}
+music-editor-menu form.form-render-octave select[name=octave] {
+    max-width: 61px;
 }
 
 music-editor-menu input[name=volume] {
@@ -228,8 +234,9 @@ music-editor-menu fieldset.hide-on-disabled[disabled] {
 music-editor-menu div.form-section {
     /* border: 1px outset #ffffff8a; */
     padding: 3px 8px 2px 2px;
-    /* display: inline-block; */
-    float: left;
+    display: inline-block;
+    vertical-align: middle;
+    /* float: left; */
 }
 
 music-editor-menu div.form-section legend {
@@ -252,9 +259,6 @@ music-editor-menu form.form-render-duration select[name=duration] {
 }
 
 
-music-editor-menu form.form-render-instrument {
-    padding-left: 4px;
-}
 music-editor-menu form.form-render-instrument select[name=instrument] {
     min-width: 135px;
 }
@@ -262,9 +266,6 @@ music-editor-menu form.form-render-instrument select[name=instrument] {
 /** Add Instrument Form **/
 
 
-music-editor-menu form.form-add-instrument {
-    padding-left: 4px;
-}
 music-editor-menu form.form-add-instrument select[name=instrument] {
     min-width: 129px;
 }

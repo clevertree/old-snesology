@@ -46,6 +46,16 @@ class MusicEditorElement extends HTMLElement {
     get menu() { return this.querySelector('music-editor-menu'); }
     get instruments() { return this.querySelectorAll(`music-editor-instrument`); }
 
+    getKeyboardCommand(key) {
+        if(typeof this.keyboardLayout[key] === 'undefined')
+            return null;
+        const octave = parseInt(this.menu.fieldRenderOctave.value) || 1;
+        let command = this.keyboardLayout[key];
+        command = command.replace('2', octave+1);
+        command = command.replace('1', octave);
+        return command;
+    }
+
     connectedCallback() {
         const playerElement = document.createElement('music-player');
         this.player = playerElement;
@@ -482,7 +492,7 @@ class MusicEditorElement extends HTMLElement {
                 const instrumentID = this.player.getLoadedInstruments().indexOf(instance);
                 if(instrumentID !== -1 && this.instruments[instrumentID]) {
                     this.instruments[instrumentID].render();
-                    this.menu.update(); // Update instrument list
+                    this.menu.render(); // Update instrument list
                     // this.render();
                 } else {
                     console.warn("Instrument elm not found. Re-rendering editor");
