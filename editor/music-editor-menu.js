@@ -44,8 +44,9 @@ class MusicEditorMenuElement extends HTMLElement {
             newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
         if(this.fieldInstructionDuration.value)
             newInstruction.duration = this.fieldInstructionDuration.value;
-        if(this.fieldInstructionVelocity.value && this.fieldInstructionVelocity.value !== "100")
-            newInstruction.velocity = parseInt(this.fieldInstructionVelocity.value);
+        const velocityValue = parseInt(this.fieldInstructionVelocity.value);
+        if(velocityValue && velocityValue !== 100)
+            newInstruction.velocity = velocityValue;
 
         return newInstruction;
     }
@@ -91,30 +92,22 @@ class MusicEditorMenuElement extends HTMLElement {
                         this.fieldInstructionCommand.focus();
                         return;
                     }
-                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
-                        command: this.fieldInstructionCommand.value
-                    });
+                    this.editor.replaceInstructionParam(currentGroup, selectedIndices, 'command', this.fieldInstructionCommand.value);
                     break;
 
                 case 'instruction:instrument':
                     let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
-                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
-                        instrument: instrumentID
-                    });
+                    this.editor.replaceInstructionParam(currentGroup, selectedIndices, 'instrument', instrumentID);
                     break;
 
                 case 'instruction:duration':
                     const duration = form.duration.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
-                        duration: parseFloat(duration)
-                    });
+                    this.editor.replaceInstructionParam(currentGroup, selectedIndices, 'duration', duration);
                     break;
 
                 case 'instruction:velocity':
-                    const velocity = form.velocity.value || null;
-                    this.editor.replaceInstructionParams(currentGroup, selectedIndices, {
-                        velocity: parseInt(velocity)
-                    });
+                    const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
+                    this.editor.replaceInstructionParam(currentGroup, selectedIndices, 'velocity', velocity);
                     break;
 
                 case 'instruction:remove':
@@ -365,7 +358,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
         // Group Buttons
         this.querySelectorAll('button[name=groupName]')
-            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
+            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') !== groupName));
 
         // Instruction Forms
         // this.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
@@ -374,7 +367,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
         // this.fieldInstructionCommand.value = 'C4';
         // this.fieldInstructionInstrument.value = instrumentList[0] || 0;
-        this.fieldInstructionInstrument.value = '0';
+        // this.fieldInstructionInstrument.value = '0';
         this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
         // this.fieldInstructionVelocity.value = 100;
 
@@ -392,6 +385,11 @@ class MusicEditorMenuElement extends HTMLElement {
 
             this.classList.add('show-insert-instruction-controls');
         }
+
+        this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
+            option.classList.toggle('hidden', this.fieldInstructionInstrument.value === option.getAttribute('data-instrument')));
+        this.fieldInsertInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
+            option.classList.toggle('hidden', this.fieldInstructionInstrument.value === option.getAttribute('data-instrument')));
 
         // const oldInsertCommand = this.fieldInsertInstructionCommand.value;
         // this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
@@ -702,20 +700,18 @@ class MusicEditorMenuElement extends HTMLElement {
 // </form>
 
     renderEditorFormOptions(optionType, selectCallback) {
-        let optionHTML = '';
-        this.getEditorFormOptions(optionType, function (value, label, selected) {
-            optionHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`;
-        }, selectCallback);
-        return optionHTML;
+        let optionsHTML = '';
+        this.getEditorFormOptions(optionType, function (value, label, html) {
+            const selected = selectCallback ? selectCallback(value) : false;
+            optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
+        });
+        return optionsHTML;
     }
 
 
-    getEditorFormOptions(optionType, callback, selectCallback) {
-        let html = '';
-        let options = [];
+    getEditorFormOptions(optionType, callback) {
         const songData = this.editor.getSongData() || {};
 
-        if(!selectCallback) selectCallback = function() { return null; };
         switch(optionType) {
             case 'instruments-songs':
                 if(songData.instruments) {
@@ -723,8 +719,8 @@ class MusicEditorMenuElement extends HTMLElement {
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
                         const instrumentInfo = instrumentList[instrumentID];
                         // const instrument = this.editor.player.getInstrument(instrumentID);
-                        options.push([instrumentID, this.editor.format(instrumentID, 'instrument')
-                        + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop())]);
+                        callback(instrumentID, this.editor.format(instrumentID, 'instrument')
+                        + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));
                     }
                 }
                 break;
@@ -735,21 +731,19 @@ class MusicEditorMenuElement extends HTMLElement {
                     Object.keys(instrumentLibrary.index).forEach((path) => {
                         let pathConfig = instrumentLibrary.index[path];
                         if (typeof pathConfig !== 'object') pathConfig = {title: pathConfig};
-                        options.push([instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")"]);
+                        callback(instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")");
                     });
                 }
                 break;
 
-
             case 'command-instrument-frequencies':
-
                 for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
                     if(this.editor.player.isInstrumentLoaded(instrumentID)) {
                         const instance = this.editor.player.getInstrument(instrumentID);
                         if(instance.getFrequencyAliases) {
                             const aliases = instance.getFrequencyAliases();
                             Object.keys(aliases).forEach((aliasName) =>
-                                options.push([aliasName, aliasName]));
+                                callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
                         }
                     }
                 }
@@ -761,77 +755,61 @@ class MusicEditorMenuElement extends HTMLElement {
                 for(let i=1; i<=6; i++) {
                     for(let j=0; j<instructions.length; j++) {
                         const instruction = instructions[j] + i;
-                        options.push([instruction, instruction]);
+                        callback(instruction, instruction);
                     }
                 }
                 break;
 
             case 'command-frequency-octaves':
                 for(let oi=1; oi<=7; oi+=1) {
-                    options.push([oi, 'Octave ' + oi]);
+                    callback(oi, 'Octave ' + oi);
                 }
                 break;
 
             case 'velocities':
-                // options.push([null, 'Velocity (Default)']);
+                // callback(null, 'Velocity (Default)');
                 for(let vi=100; vi>=0; vi-=10) {
-                    options.push([vi, vi]);
+                    callback(vi, vi);
                 }
                 break;
 
             case 'durations':
-                options = [
-                    [1/64, '1/64'],
-                    [1/32, '1/32'],
-                    [1/16, '1/16'],
-                    [1/8,  '1/8'],
-                    [1/4,  '1/4'],
-                    [1/2,  '1/2'],
-                    // [1.0,  '1B'],
-                    // [2.0,  '2B'],
-                    // [4.0,  '4B'],
-                    // [8.0,  '8B'],
-                ];
+                callback(1/64, '1/64');
+                callback(1/32, '1/32');
+                callback(1/16, '1/16');
+                callback(1/8,  '1/8');
+                callback(1/4,  '1/4');
+                callback(1/2,  '1/2');
                 for(let i=1; i<=16; i++)
-                    options.push([i, i+'B']);
+                    callback(i, i+'B');
                 break;
 
             case 'beats-per-measure':
                 for(let vi=1; vi<=12; vi++) {
-                    options.push([vi, vi + ` beat${vi>1?'s':''} per measure`]);
+                    callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
                 }
                 break;
 
             case 'beats-per-minute':
-                for(let vi=40; vi<=300; oi+=10) {
-                    options.push([vi, vi+ ` beat${vi>1?'s':''} per minute`]);
+                for(let vi=40; vi<=300; vi+=10) {
+                    callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
                 }
                 break;
 
             case 'groups':
-                options = [];
                 if(songData.instructions)
                     Object.keys(songData.instructions).forEach(function(key, i) {
-                        options.push([key, key]);
+                        callback(key, key);
                     });
                 break;
 
             case 'command-group-execute':
-                options = [];
                 if(songData.instructions)
                     Object.keys(songData.instructions).forEach(function(key, i) {
-                        options.push(['@' + key, '@' + key]);
+                        callback('@' + key, '@' + key);
                     });
                 break;
         }
-
-        for (let oi=0; oi<options.length; oi++) {
-            const value = options[oi][0];
-            const label = options[oi][1] || value;
-            const selected = selectCallback(value, oi, label);
-            html += callback.call(this, value, label, selected);
-        }
-        return html;
     }
 
     // Menu

@@ -156,9 +156,11 @@ music-editor-menu label.row-label {
     font-weight: bold;
 }
 
+music-editor-menu option.hidden,
 music-editor-menu form.hidden {
     display: none;
 }
+
 
 
 music-editor-menu form.form-instruction-instrument select[name=instrument]:not(:hover) {

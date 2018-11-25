@@ -265,7 +265,7 @@ class MusicEditorElement extends HTMLElement {
         // this.status.history.undoList.push(historyAction);
         // this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-        if(this.uuid) {
+        if(historyActions.length > 0 && this.uuid) {
             console.info("Sending history actions: ", historyActions);
             this.webSocket
                 .send(JSON.stringify({
@@ -347,6 +347,26 @@ class MusicEditorElement extends HTMLElement {
             if(typeof replaceParams.command !== 'undefined' && typeof replaceInstruction.instrument !== 'undefined')
                 replaceParams.command = this.getCommandAlias(replaceInstruction.instrument, replaceParams.command);
             oldParams.push(songModifier.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
+        }
+        this.historyQueue(songModifier.clearHistoryActions());
+        this.grid.render();
+        // this.grid.selectIndices(replaceIndex, [replaceIndex]);
+        return oldParams;
+    }
+
+    replaceInstructionParam(groupName, replaceIndices, paramName, paramValue) {
+        if(!Array.isArray(replaceIndices))
+            replaceIndices = [replaceIndices];
+        const songModifier = new MusicEditorSongModifier(this.getSongData());
+
+        // TODO: if new instrument does not support custom frequencies, remove them before changing the instrument.
+
+        const oldParams = [];
+        for(let i=0;i<replaceIndices.length; i++) {
+            const replaceInstruction = songModifier.songData.instructions[groupName][replaceIndices[i]];
+            if(paramName === 'command')
+                paramValue = this.getCommandAlias(replaceInstruction.instrument, paramValue);
+            oldParams.push(songModifier.replaceInstructionParam(groupName, replaceIndices[i], paramName, paramValue));
         }
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();

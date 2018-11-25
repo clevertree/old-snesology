@@ -87,12 +87,16 @@ class MusicEditorSongModifier {
     deleteDataPath(path) {
         const pathInfo = this.findDataPath(path);
 
-        if(typeof pathInfo.key !== 'number')
-            throw new Error("Delete action requires numeric key");
-        if(pathInfo.parent.length < pathInfo.key)
-            throw new Error(`Delete position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+        // if(typeof pathInfo.key !== 'number')
+        //     throw new Error("Delete action requires numeric key");
         const oldData = pathInfo.parent[pathInfo.key];
-        pathInfo.parent.splice(pathInfo.key, 1);
+        if(typeof pathInfo.key === 'number') {
+            if(pathInfo.parent.length < pathInfo.key)
+                throw new Error(`Delete position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+            pathInfo.parent.splice(pathInfo.key, 1);
+        } else {
+            delete pathInfo.parent[pathInfo.key];
+        }
 
         const historyAction = {
             action: 'delete',
@@ -224,6 +228,9 @@ class MusicEditorSongModifier {
         if (!instructionList[replaceIndex])
             throw new Error("Failed to replace param. Old instruction not found at index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
 
+        if(paramValue === null)
+            return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
+                .oldData;
         return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`, paramValue)
             .oldData;
     }
