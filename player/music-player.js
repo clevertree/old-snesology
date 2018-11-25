@@ -336,6 +336,8 @@ class MusicPlayerElement extends HTMLElement {
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         const instrumentPreset = instrumentList[instrumentID];
+
+        // TODO: dependencies causing probs
         const final = () => {
             MusicPlayerElement.loadScript(instrumentPreset.url, () => {
                 const instance = this.getInstrument(instrumentID);
