@@ -609,9 +609,9 @@ class MusicEditorMenuElement extends HTMLElement {
                 
                 <div class="form-section">
                     <legend>Render Group</legend>
-                    ${this.getEditorFormOptions('groups', (value, label, selected) =>
+                    ${this.getEditorFormOptions('groups', (value, label) =>
                         `<form class="form-group" data-command="group:edit">`
-                        + `<button name="groupName" value="${value}" class="${selected ? `selected` : ''} themed" >${label}</button>`
+                        + `<button name="groupName" value="${value}" class="themed" >${label}</button>`
                         + `</form>`)}
                     
                     <form class="form-group" data-command="group:edit">
@@ -710,6 +710,7 @@ class MusicEditorMenuElement extends HTMLElement {
 
 
     getEditorFormOptions(optionType, callback) {
+        let optionsHTML = '';
         const songData = this.editor.getSongData() || {};
 
         switch(optionType) {
@@ -719,7 +720,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
                         const instrumentInfo = instrumentList[instrumentID];
                         // const instrument = this.editor.player.getInstrument(instrumentID);
-                        callback(instrumentID, this.editor.format(instrumentID, 'instrument')
+                        optionsHTML += callback(instrumentID, this.editor.format(instrumentID, 'instrument')
                         + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));
                     }
                 }
@@ -731,7 +732,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     Object.keys(instrumentLibrary.index).forEach((path) => {
                         let pathConfig = instrumentLibrary.index[path];
                         if (typeof pathConfig !== 'object') pathConfig = {title: pathConfig};
-                        callback(instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")");
+                        optionsHTML += callback(instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")");
                     });
                 }
                 break;
@@ -743,7 +744,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         if(instance.getFrequencyAliases) {
                             const aliases = instance.getFrequencyAliases();
                             Object.keys(aliases).forEach((aliasName) =>
-                                callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
+                                optionsHTML += callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
                         }
                     }
                 }
@@ -755,61 +756,62 @@ class MusicEditorMenuElement extends HTMLElement {
                 for(let i=1; i<=6; i++) {
                     for(let j=0; j<instructions.length; j++) {
                         const instruction = instructions[j] + i;
-                        callback(instruction, instruction);
+                        optionsHTML += callback(instruction, instruction);
                     }
                 }
                 break;
 
             case 'command-frequency-octaves':
                 for(let oi=1; oi<=7; oi+=1) {
-                    callback(oi, 'Octave ' + oi);
+                    optionsHTML += callback(oi, 'Octave ' + oi);
                 }
                 break;
 
             case 'velocities':
-                // callback(null, 'Velocity (Default)');
+                // optionsHTML += callback(null, 'Velocity (Default)');
                 for(let vi=100; vi>=0; vi-=10) {
-                    callback(vi, vi);
+                    optionsHTML += callback(vi, vi);
                 }
                 break;
 
             case 'durations':
-                callback(1/64, '1/64');
-                callback(1/32, '1/32');
-                callback(1/16, '1/16');
-                callback(1/8,  '1/8');
-                callback(1/4,  '1/4');
-                callback(1/2,  '1/2');
+                optionsHTML += callback(1/64, '1/64');
+                optionsHTML += callback(1/32, '1/32');
+                optionsHTML += callback(1/16, '1/16');
+                optionsHTML += callback(1/8,  '1/8');
+                optionsHTML += callback(1/4,  '1/4');
+                optionsHTML += callback(1/2,  '1/2');
                 for(let i=1; i<=16; i++)
-                    callback(i, i+'B');
+                    optionsHTML += callback(i, i+'B');
                 break;
 
             case 'beats-per-measure':
                 for(let vi=1; vi<=12; vi++) {
-                    callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
+                    optionsHTML += callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
                 }
                 break;
 
             case 'beats-per-minute':
                 for(let vi=40; vi<=300; vi+=10) {
-                    callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
+                    optionsHTML += callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
                 }
                 break;
 
             case 'groups':
                 if(songData.instructions)
                     Object.keys(songData.instructions).forEach(function(key, i) {
-                        callback(key, key);
+                        optionsHTML += callback(key, key);
                     });
                 break;
 
             case 'command-group-execute':
                 if(songData.instructions)
                     Object.keys(songData.instructions).forEach(function(key, i) {
-                        callback('@' + key, '@' + key);
+                        optionsHTML += callback('@' + key, '@' + key);
                     });
                 break;
         }
+        return optionsHTML;
     }
 
     // Menu
