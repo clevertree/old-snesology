@@ -387,9 +387,9 @@ class MusicEditorMenuElement extends HTMLElement {
         }
 
         this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
-            option.classList.toggle('hidden', this.fieldInstructionInstrument.value === option.getAttribute('data-instrument')));
+            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
         this.fieldInsertInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
-            option.classList.toggle('hidden', this.fieldInstructionInstrument.value === option.getAttribute('data-instrument')));
+            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
 
         // const oldInsertCommand = this.fieldInsertInstructionCommand.value;
         // this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
