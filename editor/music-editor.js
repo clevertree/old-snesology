@@ -35,7 +35,7 @@ class MusicEditorElement extends HTMLElement {
         };
         this.webSocket = null;
         this.webSocketAttempts = 0;
-        this.songData = null;
+        // this.songData = null;
 
         // Include assets
         const INCLUDE_CSS = "editor/music-editor.css";
@@ -46,23 +46,31 @@ class MusicEditorElement extends HTMLElement {
     get menu() { return this.querySelector('music-editor-menu'); }
     get instruments() { return this.querySelectorAll(`music-editor-instrument`); }
 
+    getKeyboardCommand(key) {
+        if(typeof this.keyboardLayout[key] === 'undefined')
+            return null;
+        const octave = parseInt(this.menu.fieldRenderOctave.value) || 1;
+        let command = this.keyboardLayout[key];
+        command = command.replace('2', octave+1);
+        command = command.replace('1', octave);
+        return command;
+    }
+
     connectedCallback() {
         const playerElement = document.createElement('music-player');
         this.player = playerElement;
-        const onSongEvent = this.onSongEvent.bind(this);
-        playerElement.addEventListener('song:start', onSongEvent);
-        playerElement.addEventListener('song:end', onSongEvent);
-        playerElement.addEventListener('song:pause', onSongEvent);
-        this.songData = this.player.getSongData();
-        playerElement.addEventListener('instrument:initiated', (e) => {
-            console.info("Instrument initialized: ", e.detail);
-            // console.log("init", e);
-            this.instruments[e.detail.instrumentID].render();
-            this.menu.render(); // Update instrument list
-            // this.render();
-        });
+        this.addEventListener('song:start', this.onSongEvent);
+        this.addEventListener('song:end', this.onSongEvent);
+        this.addEventListener('song:pause', this.onSongEvent);
+        this.addEventListener('instrument:initiated', this.onSongEvent);
+        document.addEventListener('instrument:instance', this.onSongEvent.bind(this));
 
-        this.initWebSocket();
+        // this.songData = this.player.getSongData();
+        // const onInstrumentEvent = this.onInstrumentEvent.bind(this);
+        // playerElement.addEventListener('instrument:initiated', onInstrumentEvent);
+
+        if(this.uuid)
+            this.initWebSocket();
         // this.render(); // Render after player element is loaded
 
 
@@ -83,7 +91,7 @@ class MusicEditorElement extends HTMLElement {
     }
 
     getAudioContext() { return this.player.getAudioContext(); }
-    getSongData() { return this.songData || this.player.getSongData(); }
+    getSongData() { return this.player.getSongData(); }
 
     get uuid() { return this.getAttribute('uuid');}
     loadSongUUID(uuid) {
@@ -239,6 +247,11 @@ class MusicEditorElement extends HTMLElement {
         console.info("Song loaded from memory: " + songGUID, songData);
     }
 
+    loadSongData(songData) {
+        const modifier = new MusicEditorSongModifier(songData);
+        modifier.processAllInstructions();
+        this.player.loadSongData(songData);
+    }
 
     historyQueue(historyActions) {
         if(!Array.isArray(historyActions))
@@ -252,13 +265,15 @@ class MusicEditorElement extends HTMLElement {
         // this.status.history.undoList.push(historyAction);
         // this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-        console.info("Sending history actions: ", historyActions);
-        this.webSocket
-            .send(JSON.stringify({
-                type: 'history:entry',
-                historyActions: historyActions,
-                uuid: this.uuid
-            }))
+        if(historyActions.length > 0 && this.uuid) {
+            console.info("Sending history actions: ", historyActions);
+            this.webSocket
+                .send(JSON.stringify({
+                    type: 'history:entry',
+                    historyActions: historyActions,
+                    uuid: this.uuid
+                }))
+        }
     }
 
     historyUndo() {
@@ -269,17 +284,39 @@ class MusicEditorElement extends HTMLElement {
 
     }
 
+    processInstruction(instruction) {
+        if(!instruction.command || instruction.command[0] === '!')
+            return;
+        instruction.command = this.getCommandAlias(instruction.instrument || 0, instruction.command);
+    }
+
+    getCommandAlias(instrumentID, command) {
+        const instance = this.player.getInstrument(instrumentID);
+        if (instance.getFrequencyAliases) {
+            const aliases = instance.getFrequencyAliases();
+            Object.keys(aliases).forEach((key) => {
+                if (aliases[key] === command)
+                    command = key;
+            });
+        }
+        return command;
+    }
+
     insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
+        this.processInstruction(instructionToAdd);
+
         const songModifier = new MusicEditorSongModifier(this.getSongData());
         const insertIndex = songModifier.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
+        this.grid.selectIndices(insertIndex, [insertIndex]);
         return insertIndex;
-        // this.grid.selectIndices(insertIndex, [insertIndex]);
         // return insertIndex;
     }
 
     insertInstructionAtIndex(groupName, insertIndex, instructionToAdd) {
+        this.processInstruction(instructionToAdd);
+
         const songModifier = new MusicEditorSongModifier(this.getSongData());
         songModifier.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
         this.historyQueue(songModifier.clearHistoryActions());
@@ -305,8 +342,32 @@ class MusicEditorElement extends HTMLElement {
         // TODO: if new instrument does not support custom frequencies, remove them before changing the instrument.
 
         const oldParams = [];
-        for(let i=0;i<replaceIndices.length; i++)
+        for(let i=0;i<replaceIndices.length; i++) {
+            const replaceInstruction = songModifier.songData.instructions[groupName][replaceIndices[i]];
+            if(typeof replaceParams.command !== 'undefined' && typeof replaceInstruction.instrument !== 'undefined')
+                replaceParams.command = this.getCommandAlias(replaceInstruction.instrument, replaceParams.command);
             oldParams.push(songModifier.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
+        }
+        this.historyQueue(songModifier.clearHistoryActions());
+        this.grid.render();
+        // this.grid.selectIndices(replaceIndex, [replaceIndex]);
+        return oldParams;
+    }
+
+    replaceInstructionParam(groupName, replaceIndices, paramName, paramValue) {
+        if(!Array.isArray(replaceIndices))
+            replaceIndices = [replaceIndices];
+        const songModifier = new MusicEditorSongModifier(this.getSongData());
+
+        // TODO: if new instrument does not support custom frequencies, remove them before changing the instrument.
+
+        const oldParams = [];
+        for(let i=0;i<replaceIndices.length; i++) {
+            const replaceInstruction = songModifier.songData.instructions[groupName][replaceIndices[i]];
+            if(paramName === 'command')
+                paramValue = this.getCommandAlias(replaceInstruction.instrument, paramValue);
+            oldParams.push(songModifier.replaceInstructionParam(groupName, replaceIndices[i], paramName, paramValue));
+        }
         this.historyQueue(songModifier.clearHistoryActions());
         this.grid.render();
         // this.grid.selectIndices(replaceIndex, [replaceIndex]);
@@ -370,6 +431,7 @@ class MusicEditorElement extends HTMLElement {
             ${song ? song.instruments.map((instrument, id) => 
                 `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
             <br style="clear: both;"/>`;
+        this.appendChild(this.player);
     }
 
 
@@ -445,6 +507,25 @@ class MusicEditorElement extends HTMLElement {
             case 'song:end':
             case 'song:pause':
                 this.classList.remove('playing');
+                break;
+            case 'instrument:loaded':
+                console.info("TODO: load instrument instances", e.detail);
+                break;
+            case 'instrument:initiated':
+                this.menu.render(); // Update instrument list
+                break;
+            case 'instrument:instance':
+                // console.info("Instrument initialized: ", e.detail);
+                // const instance = e.detail.instance;
+                const instrumentID = e.detail.instrumentID;
+                if(this.instruments[instrumentID]) {
+                    this.instruments[instrumentID].render();
+                    this.menu.render(); // Update instrument list
+                    // this.render();
+                } else {
+                    console.warn("Instrument elm not found. Re-rendering editor");
+                    this.render(); // Update instrument list
+                }
                 break;
         }
     }

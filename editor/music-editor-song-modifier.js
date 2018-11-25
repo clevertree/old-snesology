@@ -28,7 +28,7 @@ class MusicEditorSongModifier {
                     break;
             }
         }
-        this.historyActions = [];-
+        this.historyActions = [];
         this.processAllInstructions();
     }
 
@@ -87,12 +87,16 @@ class MusicEditorSongModifier {
     deleteDataPath(path) {
         const pathInfo = this.findDataPath(path);
 
-        if(typeof pathInfo.key !== 'number')
-            throw new Error("Delete action requires numeric key");
-        if(pathInfo.parent.length < pathInfo.key)
-            throw new Error(`Delete position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+        // if(typeof pathInfo.key !== 'number')
+        //     throw new Error("Delete action requires numeric key");
         const oldData = pathInfo.parent[pathInfo.key];
-        pathInfo.parent.splice(pathInfo.key, 1);
+        if(typeof pathInfo.key === 'number') {
+            if(pathInfo.parent.length < pathInfo.key)
+                throw new Error(`Delete position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+            pathInfo.parent.splice(pathInfo.key, 1);
+        } else {
+            delete pathInfo.parent[pathInfo.key];
+        }
 
         const historyAction = {
             action: 'delete',
@@ -143,14 +147,14 @@ class MusicEditorSongModifier {
                     if(groupPosition + instruction.duration === insertPosition) {
                         // Pause Position equals insert position, append after
 
-                        let lastInsertPosition = i;
+                        let lastInsertIndex;
                         // Search for last insert position
-                        for(lastInsertPosition=i; lastInsertPosition<instructionList.length; lastInsertPosition++)
-                            if(instructionList[i].command === '!pause')
+                        for(lastInsertIndex=i+1; lastInsertIndex<instructionList.length; lastInsertIndex++)
+                            if(instructionList[lastInsertIndex].command === '!pause')
                                 break;
 
-                        this.insertInstructionAtIndex(groupName, lastInsertPosition, insertInstruction);
-                        return lastInsertPosition;
+                        this.insertInstructionAtIndex(groupName, lastInsertIndex, insertInstruction);
+                        return lastInsertIndex;
                     }
 
                     // Pause Position is before insert position, split the pause
@@ -219,9 +223,14 @@ class MusicEditorSongModifier {
 
     replaceInstructionParam(groupName, replaceIndex, paramName, paramValue) {
         let instructionList = this.songData.instructions[groupName];
+        if(!Number.isInteger(replaceIndex))
+            throw new Error("Invalid Index: " + typeof replaceIndex);
         if (!instructionList[replaceIndex])
             throw new Error("Failed to replace param. Old instruction not found at index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
 
+        if(paramValue === null)
+            return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
+                .oldData;
         return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`, paramValue)
             .oldData;
     }
@@ -302,7 +311,7 @@ class MusicEditorSongModifier {
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
 
-        return this.replaceDataPath(`instrument.${instrumentID}.${paramName}`, paramValue)
+        return this.replaceDataPath(`instruments.${instrumentID}.${paramName}`, paramValue)
             .oldData;
     }
 

@@ -6,8 +6,7 @@
     "audiosource/instrument-buffersource.js": "Simple AudioBuffer",
 
     "chiptune/snes/ffvi/instrument-ffvi.js": {
-      "title": "Final Fantasy VI Instrument",
-      "urlDependencies": ["/instrument/audiosource/instrument-buffersource.js"]
+      "title": "Final Fantasy VI Instrument"
     }
   }
 }

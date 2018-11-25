@@ -21,7 +21,8 @@ music-editor button.themed {
     border-radius: 5px;
     border: 1px outset;
     background: linear-gradient(#FFF, #DDD); /* Standard syntax (must be last) */
-    max-width: 87px;
+    max-width: 200px;
+    transition: max-width 0.3s;
     cursor: pointer;
 }
 
