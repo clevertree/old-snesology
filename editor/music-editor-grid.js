@@ -108,20 +108,13 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     render() {
-        // const groupName = this.groupName || 'root';
-        // Get cell positions, not instrument indices
         let cellList = this.querySelectorAll('.grid-cell');
         const cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         const selectedIndices = this.selectedIndices;
-        // if(selectedIndices.length === 0)
-        //     selectedIndices.push(cursorCellIndex);
+        let instrumentFilter = this.editor.menu.fieldRenderInstrument.value === "" ? null : parseInt(this.editor.menu.fieldRenderInstrument.value);
 
-        // const cursorIndex = this.cursorPosition;
         const gridDuration = parseFloat(this.editor.menu.fieldRenderDuration.value);
-        // var pausesPerBeat = songData.pausesPerBeat;
 
-        // const beatsPerMinute = songData.beatsPerMinute;
-        // const beatsPerMeasure = songData.beatsPerMeasure;
         const instructionList = this.instructionList;
 
         let odd = false;
@@ -189,6 +182,7 @@ class MusicEditorGridElement extends HTMLElement {
                     case 'pause':
                         //songPosition += instruction.duration;
                         addPauseHTML(index, instruction);
+                        // TODO: skip pauses with no instructions?
                         break;
 
                     default:
@@ -196,7 +190,8 @@ class MusicEditorGridElement extends HTMLElement {
                         break;
                 }
             } else {
-                addInstructionHTML(index, instruction, selectedInstruction);
+                if(instrumentFilter === null || instrumentFilter === (instruction.instrument || 0))
+                    addInstructionHTML(index, instruction, selectedInstruction);
             }
         }
 
