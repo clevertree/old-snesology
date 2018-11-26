@@ -23,7 +23,7 @@ class MusicEditorGridElement extends HTMLElement {
 
     get selectedCells() { return this.querySelectorAll('.grid-cell-instruction.selected'); }
     get cursorCell() { return this.querySelector('.grid-cell.cursor'); }
-    get cursorPosition() { const cell = this.cursorCell; return cell ? parseInt(cell.parentNode.getAttribute('data-position')) : null; }
+    get cursorPosition() { const cell = this.cursorCell; return cell ? parseFloat(cell.parentNode.getAttribute('data-position')) : null; }
     get selectedIndices() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
     get selectedRows() { return this.querySelectorAll('.grid-row.selected'); }
     get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
@@ -111,10 +111,10 @@ class MusicEditorGridElement extends HTMLElement {
         // const groupName = this.groupName || 'root';
         // Get cell positions, not instrument indices
         let cellList = this.querySelectorAll('.grid-cell');
-        const cursorIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        const cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         const selectedIndices = this.selectedIndices;
-        if(selectedIndices.length === 0)
-            selectedIndices.push(cursorIndex);
+        // if(selectedIndices.length === 0)
+        //     selectedIndices.push(cursorCellIndex);
 
         // const cursorIndex = this.cursorPosition;
         const gridDuration = parseFloat(this.editor.menu.fieldRenderDuration.value);
@@ -127,15 +127,9 @@ class MusicEditorGridElement extends HTMLElement {
         let odd = false;
         let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
 
-        const addInstructionHTML = (index, instruction, selectedInstruction, cursorInstruction) => {
-            const noteCSS = [];
-            // if(selectedInstruction)
-            //     noteCSS.push('selected');
-
-            // if(cursorInstruction)
-            //     noteCSS.push('cursor');
-
-            cellHTML += `<div class="grid-cell grid-cell-instruction" data-index="${index}">`;
+        const addInstructionHTML = (index, instruction, selectedInstruction) => {
+            const selectedClass = selectedInstruction ? ' selected' : '';
+            cellHTML += `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">`;
             cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
             if (typeof instruction.instrument !== 'undefined')
                 cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
@@ -170,9 +164,9 @@ class MusicEditorGridElement extends HTMLElement {
                     +   `<div class="grid-cell grid-cell-new">`
                     +     `<div class="grid-parameter">+</div>`
                     +   `</div>`
-                    // +   `<div class="grid-cell-pause ${gridCSS}">`
-                    // +     `<div class="grid-parameter">${this.editor.format(subDuration, 'duration')}</div>`
-                    // +   `</div>`
+                    +   `<div class="grid-cell-pause">`
+                    +     `<div class="grid-parameter">${this.editor.format(duration, 'duration')}</div>`
+                    +   `</div>`
                     + `</div>`;
                 cellHTML = '';
 
@@ -184,7 +178,7 @@ class MusicEditorGridElement extends HTMLElement {
         for(let index=0; index<instructionList.length; index++) {
             const instruction = instructionList[index];
             let selectedInstruction = false;
-            let cursorInstruction = cursorIndex === index;
+            // let cursorInstruction = cursorCellIndex === index;
             if(selectedIndices.indexOf(index) !== -1) {
                 selectedInstruction = true;
             }
@@ -202,7 +196,7 @@ class MusicEditorGridElement extends HTMLElement {
                         break;
                 }
             } else {
-                addInstructionHTML(index, instruction, selectedInstruction, cursorInstruction);
+                addInstructionHTML(index, instruction, selectedInstruction);
             }
         }
 
@@ -211,11 +205,11 @@ class MusicEditorGridElement extends HTMLElement {
         this.scrollTop = currentScrollPosition;
 
         cellList = this.querySelectorAll('.grid-cell');
-        for(let i=0; i<selectedIndices.length; i++)
-            if(cellList[selectedIndices[i]])
-                cellList[selectedIndices[i]].classList.add('selected');
-        if(cellList[cursorIndex])
-            cellList[cursorIndex].classList.add('cursor');
+        // for(let i=0; i<selectedIndices.length; i++)
+        //     if(cellList[selectedIndices[i]])
+        //         cellList[selectedIndices[i]].classList.add('selected');
+        if(cellList[cursorCellIndex])
+            cellList[cursorCellIndex].classList.add('cursor');
     }
 
     onInput(e) {
@@ -342,6 +336,7 @@ class MusicEditorGridElement extends HTMLElement {
                                 this.replaceInstructionParams(this.selectedIndices, {
                                     command: newCommand
                                 });
+                                this.selectIndices(this.selectedIndices[0], this.selectedIndices);
                             }
 
                             this.render();

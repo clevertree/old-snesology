@@ -305,13 +305,7 @@ class MusicPlayerElement extends HTMLElement {
 
 
     playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity) {
-        let instrument;
-        try {
-            instrument = this.getInstrument(instrumentID);
-        } catch (e) {
-            console.warn("Error playing instrument: " + e);
-            return null;
-        }
+        let instrument = this.getInstrument(instrumentID);
 
         // if(instrument.getNamedFrequency)
         //     noteFrequency = instrument.getNamedFrequency(noteFrequency);
@@ -337,7 +331,7 @@ class MusicPlayerElement extends HTMLElement {
     getInstrument(instrumentID) {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
-        throw new Error("Instrument not yet loaded: ", elementName);
+        throw new Error("Instrument not yet loaded: ", instrumentID);
     }
 
     initInstrument(instrumentID) {
