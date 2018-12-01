@@ -1,5 +1,21 @@
 # SNESology
 
+## Installation
+
+`$ cd [snesology]`
+
+`$ npm install`
+
+## Install MySQL
+
+`$ mysqldump server/database.sql`
+
+## Run Local Server
+
+`$ node server/server.js`
+
+
+
 ## Project Introduction
 
 The SNESology Project allows anyone with a web browser to compose and share original music based on the _Super Nintendo Entertainment System_ Sound chip, and other consoles too!
