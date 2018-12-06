@@ -15,12 +15,20 @@
 }
 .theme-minimal > header .logo {
     background: url(logo/logo-header.png) no-repeat;
-    width: 524px;
-    height: 121px;
     margin: 0px auto;
+    background-size: 100% auto;
+    width: 80vw;
+    height: 19vw;
     /* margin: 0.3em 1em; */
     /*float: left;*/
     /* float: right; */
+}
+@media only screen and (min-width: 600px) {
+    .theme-minimal > header .logo {
+        width: 524px;
+        height: 121px;
+        /* height: 22vw; */
+    }
 }
 
 .theme-minimal > header > .logo-container {
@@ -48,7 +56,9 @@
     margin: 0 auto;
     padding: 0;
     overflow: hidden;
-    display: table;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     width: 85%;
 }
 .theme-minimal > nav > ul > li {
@@ -142,7 +152,7 @@
 @media only screen and (min-width: 600px) {
     .theme-minimal ul.flex-list {
         display: flex;
-        flex-wrap: wrap;-
+        flex-wrap: wrap;
         justify-content: center;
     }
 }
