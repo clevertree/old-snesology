@@ -7,14 +7,8 @@
         <meta name="keywords" CONTENT="snesology, c64, nes, snes, sega, psx, chip, game, music, relay, open-source, subscribe">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
-        <link href="assets/site.css" rel="stylesheet" />
-        <link href="assets/theme/minimal.css" rel="stylesheet" />
-
+        <link href="theme/minimal/minimal.css" rel="stylesheet" />
         <link href='https://fonts.googleapis.com/css?family=VT323' rel='stylesheet'>
-        <link rel="manifest" href="manifest.json">
-
-        <script src="assets/site.js"></script>
 
         <script>
             // Support older browsers
@@ -38,24 +32,33 @@
         </script>
     </head>
     <body class='theme-minimal'>
+
         <header>
-            <a href="">
-                <div class="logo center"></div>
-            </a>
+            <div class="logo"></div>
         </header>
 
-        <article class="themed">
+        <nav>
+            <ul>
+                <li><a class="selected" href=".">Home</a></li>
+                <li><a href="https://www.facebook.com/SNESology/#about.html">About SNESology</a></li>
+                <li><a href="https://www.facebook.com/SNESology/#mission.html">Resources</a></li>
+                <li><a href="https://www.facebook.com/SNESology/#help.html">Contribute</a></li>
+                <li><a href="https://github.com/clevertree/snesology#contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
 
-            <section class="themed">
+        <article>
+
+            <section>
                 <h2>SNESology Demo</h2>
                 <p>
-                    This is a (very) early demo of the <a href="editor">SNESology Song Editor</a> editing a <a href="editor?src=/song/public">public song share</a>.
-                    Start your own public sharable song <a href="editor">here</a>.
+                    This is a (very) early demo of the <a href="editor.html">SNESology Song Editor</a> editing a <a href="editor?src=/song/public">public song share</a>.
+                    Start your own public sharable song <a href="editor.html">here</a>.
                 </p>
                 <music-editor uuid="public"></music-editor>
             </section>
 
-            <section class="themed">
+            <section class="odd">
                 <h2 id="project">Project Introduction</h2>
                 <p>The SNESology Project allows anyone with a web browser
                     to compose and share original music based on the <em>Super Nintendo Entertainment System</em> Sound chip, and other consoles too!
@@ -81,7 +84,7 @@
                 </p>
             </section>
 
-            <section class="themed">
+            <section>
                 <h3 id="about">About</h3>
                 <p>The SNESology Project is a non-profit,
                     <a href="https://github.com/clevertree/snesology/" target="_blank">open source</a>
@@ -91,7 +94,7 @@
         </article>
 
         <footer>
-            <a class="created-by" target='_blank' href='https://github.com/clevertree/snesology'>Created by CleverTree</a>
+            <a class="created-by" target='_blank' href='https://github.com/clevertree/snesology/'>Created by CleverTree</a>
         </footer>
     </body>
 </html>

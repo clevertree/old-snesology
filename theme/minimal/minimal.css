@@ -1,0 +1,184 @@
+/** Theme: Minimal **/
+.theme-minimal {
+    max-width: 800px;
+    margin: 0 auto;
+
+    background-color: #111;
+    /*background: #b5b6e4 url(texture/default.background.png) no-repeat fixed center;*/
+
+    font-family: 'Advent Pro', monospace;
+    font-size: 16px;
+}
+
+.theme-minimal > header {
+    padding: 0.5em;
+}
+.theme-minimal > header > .logo {
+    background: url(logo/logo-header.png) no-repeat;
+    width: 524px;
+    height: 121px;
+    margin: 0px auto;
+    /* margin: 0.3em 1em; */
+    /*float: left;*/
+    /* float: right; */
+}
+
+.theme-minimal > header > .logo-container {
+    max-width: 570px;
+    margin: 0 auto;
+}
+
+.theme-minimal .logo-text {
+    display: block;
+    font-size: 3em;
+    font-weight: bold;
+    margin: 0.3em 1em;
+    text-decoration: none;
+    color: rgb(255, 246, 212);
+}
+
+
+/** Navigation **/
+
+.theme-minimal > nav {
+    background-color: #333333;
+}
+.theme-minimal > nav > ul {
+    list-style-type: none;
+    margin: 0 auto;
+    padding: 0;
+    overflow: hidden;
+    display: table;
+    width: 85%;
+}
+.theme-minimal > nav > ul > li {
+    display: table-cell;
+    text-align: center;
+}
+
+.theme-minimal > nav > ul > li a {
+    font-weight: bold;
+    font-size: 18px;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    text-decoration: none;
+}
+
+.theme-minimal > nav > ul > li a:hover {
+    background-color: #111111;
+}
+
+
+
+
+/** Page Articles **/
+.theme-minimal > article {
+    padding: 0 0;
+    /* background: #908a99; */
+}
+
+.theme-minimal > article > section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1em;
+    background: #ddd;
+}
+
+.theme-minimal > article > section.odd {
+    background: #bbb;
+}
+
+
+/** Page Headings **/
+.theme-minimal section > h1 {
+    font-size: 2.5em;
+    margin: 6px 0px;
+    color: rgb(0, 101, 169);
+    font-weight: bold;
+    margin-top: 0px;
+}
+
+.theme-minimal section > h2 {
+    font-size: x-large;
+    margin-top: 0px;
+    /*     padding: 0 0.5em; */;
+}
+
+.theme-minimal section > h3 {
+    font-size:larger;
+    margin-left: .5em;
+    margin-top: 0px;
+}
+
+/** Paragraphs **/
+.theme-minimal section > p {
+    text-align: justify;
+    text-indent: 1.5em;
+    max-width: 960px;
+    margin: 1em auto;
+    line-height: 20px;
+}
+
+
+.theme-minimal section > p > img {
+    float: right;
+    max-width: 400px;
+    margin-left: 2em;
+}
+
+/** Flex List **/
+
+.theme-minimal ul.flex-list {
+    list-style: none;
+    padding: 0 0;
+    margin: 0 0;
+    text-align: center;
+}
+@media only screen and (min-width: 600px) {
+    .theme-minimal ul.flex-list {
+        display: flex;
+        flex-wrap: wrap;-
+        justify-content: center;
+    }
+}
+
+.theme-minimal ul.flex-list > li {
+    /*min-width: 100px;*/
+    /*max-width: 50%;*/
+    flex-grow: 1;
+    flex-basis: 0;
+}
+.theme-minimal ul.flex-list > li > img {
+    max-width: 90%;
+    max-height: 200px;
+}
+.theme-minimal ul.flex-list > li > p {
+    padding: 0 1em;
+}
+
+
+/** Images **/
+
+.theme-minimal img.box-shadow {
+    box-shadow:  3px 2px 8px #444;
+}
+/** Footer **/
+
+.theme-minimal > footer {
+     text-align: center;
+     /* margin-top: 100px; */
+      padding: 2em 1em;
+     color: #fff6d4;
+}
+
+.theme-minimal > footer a {
+    color: #fff6d4;
+    text-decoration: none;
+    text-transform: lowercase;
+    background-color: rgba(81, 81, 81, 0.5);
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
