@@ -13,7 +13,7 @@
 .theme-minimal > header {
     padding: 0.5em;
 }
-.theme-minimal > header > .logo {
+.theme-minimal > header .logo {
     background: url(logo/logo-header.png) no-repeat;
     width: 524px;
     height: 121px;
@@ -83,10 +83,13 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 1em;
+}
+
+.theme-minimal > article > section:nth-child(even) {
     background: #ddd;
 }
 
-.theme-minimal > article > section.odd {
+.theme-minimal > article > section:nth-child(odd) {
     background: #bbb;
 }
 
