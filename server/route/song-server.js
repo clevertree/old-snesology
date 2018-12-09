@@ -3,7 +3,7 @@ const path = require('path');
 const url = require('url');
 const express = require('express');
 
-const BASE_DIR = path.resolve(path.dirname(__dirname));
+const BASE_DIR = path.resolve(path.dirname(path.dirname(__dirname)));
 
 // Init
 module.exports = function(app) {
@@ -20,34 +20,24 @@ class SongServer {
         const router = express.Router(null);
 
         // router.post('/song/*', this.httpSongsRequest.bind(this)); // Update songData files
-        router.get('/edit/:uuid([\\w/-]+)', this.httpEditRequest.bind(this)); // Render Editor
-        router.get('/play/:uuid([\\w/-]+)', this.httpPlayRequest.bind(this)); // Render Editor
+        router.get('/editor/new', this.httpNewEditRequest.bind(this)); // Render Editor
+        // router.get('/editor/?', this.httpNewEditRequest.bind(this)); // Render Editor
+        // router.get('/editor/:uuid([\\w/-]+)', this.httpEditRequest.bind(this)); // Render Editor
+        router.get('/player/:uuid([\\w/-]+)', this.httpPlayRequest.bind(this)); // Render Editor
 
-        router.ws('/editor', this.handleWSRequest.bind(this));
+        router.ws('/editor/:uuid([\\w/-]+)', this.handleWSRequest.bind(this));
         app.use('/', router);        // Register Routes
 
         // app.addWebSocketListener(handleWebSocketRequest);
     }
 
-    httpEditRequest(req, res) {
-
-        let uuid = req.query.uuid;
-        if(typeof req.query.uuid === 'undefined') {
-            const uuidv4 = require('uuid/v4');
-            uuid = uuidv4();
-            return res.redirect('/edit/' + uuid);
-        }
-
-        fs.readFile(BASE_DIR + "/editor.html", 'utf8', function (err,data) {
-            if (err) {
-                return console.log(err);
-            }
-            var result = data.replace(/\${uuid}/g, uuid);
-            res.set('Content-Type', 'text/html');
-            res.send(result);
-        });
-
+    httpNewEditRequest(req, res) {
+        const uuidv4 = require('uuid/v4');
+        const uuid = uuidv4();
+        return res.redirect('/editor/?uuid=' + uuid);
     }
+
+
     httpPlayRequest(req, res) {
         const songPath = '/song/' + req.params.path + '.json';
         const absolutePath = path.resolve(BASE_DIR + '/' + songPath);
@@ -64,21 +54,29 @@ class SongServer {
 
 
     handleWSRequest(ws, req) {
+        let uuid = req.params.uuid;
+        if(!uuid)
+            throw new Error("Invalid UUID");
+
+        const registerListeners = this.getListeners(uuid);
+        if (registerListeners.indexOf(ws) !== -1)
+            throw new Error("Websocket is already registered to " + uuid);
+        registerListeners.push(ws);
 
         ws.on('message', (msg) => {
             try {
                 if (msg[0] === '{') {
                     const jsonRequest = JSON.parse(msg);
-                    if(!jsonRequest.type)
+                    if (!jsonRequest.type)
                         throw new Error("Missing 'type' field");
 
-                    switch(jsonRequest.type) {
-                        case 'history:register':
-                            this.handleWSRegisterEntry(ws, req, jsonRequest);
-                            break;
+                    switch (jsonRequest.type) {
+                        // case 'history:register':
+                        //     this.handleWSRegisterEntry(ws, req, jsonRequest);
+                        //     break;
 
                         case 'history:entry':
-                            this.handleWSHistoryEntry(ws, req, jsonRequest);
+                            this.handleWSHistoryEntry(uuid, ws, req, jsonRequest);
                             break;
 
                         case 'error':
@@ -98,6 +96,20 @@ class SongServer {
                 return this.sendError(ws, e);
             }
         });
+
+        // Send history
+        this.getOrCreateSongEntry(uuid, (songEntry) => {
+            // Send Song Revision
+            this.sendSongRevision(ws, songEntry.uuid);
+        })
+
+        // ws.on('open', () => {
+        //     // Send history
+        //     this.getOrCreateSongEntry(uuid, (songEntry) => {
+        //         // Send Song Revision
+        //         this.sendSongRevision(ws, songEntry.uuid);
+        //     })
+        // });
     }
 
     handleWSRegisterEntry(ws, req, jsonRequest) {
@@ -120,11 +132,7 @@ class SongServer {
         })
     }
 
-    handleWSHistoryEntry(ws, req, jsonRequest) {
-        if(!jsonRequest.uuid)
-            throw new Error("Invalid uuid parameter");
-        const uuid = jsonRequest.uuid.toLowerCase();
-
+    handleWSHistoryEntry(uuid, ws, req, jsonRequest) {
         this.getOrCreateSongEntry(uuid, (songEntry) => {
 
             let lastStep = songEntry.last_step || 0;
@@ -324,9 +332,9 @@ class SongServer {
 
     generateDefaultSong(uuid) {
         return {
-            "name": "New Song",
+            "title": `New Song (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`,
             "uuid": uuid, // "https://snesology.net/song/share/" + UUID + ".json",
-            "version": "v0.0.3",
+            "version": "0.0.1",
             "description": "New Song",
             "instruments": [{
                 "url": "/instrument/chiptune/snes/ffvi/instrument-ffvi.js", // Default instrument
@@ -361,6 +369,28 @@ class SongServer {
 }
 
 
+// httpNewEditRequest(req, res) {
+//     const uuidv4 = require('uuid/v4');
+//     const uuid = uuidv4();
+//     return res.redirect('/edit3or/' + uuid);
+// }
+
+// httpEditRequest(req, res) {
+//     let uuid = req.params.uuid;
+//     if(!uuid)
+//         throw new Error("Invalid uuid");
+//
+//
+//     const editorPath = path.resolve(BASE_DIR + "/editor.html");
+//     fs.readFile(editorPath, 'utf8', function (err,data) {
+//         if (err) {
+//             return console.log(err);
+//         }
+//         var result = data.replace(/\${uuid}/g, uuid);
+//         res.set('Content-Type', 'text/html');
+//         res.send(result);
+//     });
+// }
 // httpSongsRequest(req, res) {
 //     const songPath = path.resolve(BASE_DIR + '/song/' + req.params.path + '.json');
 //

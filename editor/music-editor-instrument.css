@@ -1,11 +1,21 @@
+music-editor-instrument-list form.form-add-instrument > legend {
 
+}
 
+music-editor-instrument-list form.form-add-instrument {
+    position: relative;
+    vertical-align: middle;
+    /* float: left; */
+    margin: 0px 2px 4px;
+    padding: 3px;
+    border: 1px outset;
+}
 music-editor-instrument {
     position: relative;
     vertical-align: middle;
     display: inline-block;
     /* float: left; */
-    margin: -- 0px 2px 4px;
+    margin: 0px 2px 4px;
     padding: 3px;
     border: 1px outset;
 }
@@ -23,11 +33,11 @@ music-editor-instrument button.remove-instrument {
 
 music-editor-instrument > legend {
     /* text-align: center; */
-    font-size: small;
-    font-weight: bold;
-    background: linear-gradient(to bottom, #FFF 60%,#dddddd 100%);
-    border-radius: 6px;
-    padding-left: 5px;
+    /* font-size: small; */
+    /* font-weight: bold; */
+    /* background: linear-gradient(to bottom, #FFF 60%,#dddddd 100%); */
+    /* border-radius: 6px; */
+    /* padding-left: 5px; */
 }
 
 music-editor-instrument form {

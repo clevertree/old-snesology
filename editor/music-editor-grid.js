@@ -1,13 +1,14 @@
+
+((INCLUDE_CSS) => {
+    if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
+        document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
+})("editor/music-editor-grid.css");
+
 class MusicEditorGridElement extends HTMLElement {
     constructor() {
         super();
         this.longPressTimeout = null;
         this.editor = null;
-
-        // Include assets
-        const INCLUDE_CSS = "editor/music-editor-grid.css";
-        if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
-            document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
 
     // Can't select pauses!

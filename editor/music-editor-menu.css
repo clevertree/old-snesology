@@ -1,9 +1,5 @@
 
-/** Menu **/
-music-editor-menu {
-    /* display: block; */
-}
-
+/** Drop Down Menu **/
 music-editor-menu .editor-menu {
     display: block;
     /* border: 1px solid grey; */
@@ -27,22 +23,14 @@ music-editor-menu .editor-menu > li {
     display: inline-block;
 }
 
-music-editor-menu .menu-section-title {
-    text-align: center;
-    display: block;
-    /* font-weight: bold; */
-    font-size: 0.7em;
-    padding: 3px 18px;
-    white-space: nowrap;
-    /* border-bottom: 1px solid #AAA; */
-    /* text-decoration: underline; */
-}
 
 music-editor-menu .menu-item > .key {
     /*font-weight: bold;*/
     text-decoration: underline;
 }
 
+music-editor-menu .editor-menu > li > a,
+music-editor-menu .sub-menu > li > a,
 music-editor-menu .menu-item {
     vertical-align: top;
     display: inline-block;
@@ -52,20 +40,20 @@ music-editor-menu .menu-item {
     white-space: nowrap;
     position: relative;
 }
-music-editor-menu .submenu .menu-item {
+music-editor-menu .sub-menu > li {
     min-width: 128px;
 }
 
-music-editor-menu .menu-item > * {
+music-editor-menu .sub-menu > li > * {
     white-space: nowrap;
 }
 
-music-editor-menu .menu-item.disabled {
+music-editor-menu .disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-music-editor-menu .submenu {
+music-editor-menu .sub-menu {
     display: none;
     border: 1px solid grey;
     background-color: #BBB;
@@ -83,8 +71,9 @@ music-editor-menu .submenu {
 
 /*music-editor-menu .menu-item:hover + .submenu,*/
 /*music-editor-menu .submenu:hover,*/
-music-editor-menu .menu-item.open + .submenu,
-music-editor-menu .submenu.open {
+music-editor-menu .editor-menu > li:hover > .sub-menu,
+music-editor-menu .sub-menu > li:hover > .sub-menu,
+music-editor-menu .sub-menu.open {
     /* display: block; */
     display: inline-block;
     white-space: nowrap;
@@ -94,28 +83,18 @@ music-editor-menu .submenu.open {
     /*transition: max-height 2s;*/
     z-index: 98;
 }
-music-editor-menu .submenu:hover,
-music-editor-menu .menu-item:hover + .submenu {
-    z-index: 99;
-}
-music-editor-menu .menu-item:hover {
+
+music-editor-menu .sub-menu > li:hover {
     background-color: #AAA;
 }
-music-editor-menu .menu-item.open {
+music-editor-menu .sub-menu > li.open {
     background-color: #99C;
 }
-music-editor-menu .menu-item:active {
+music-editor-menu .sub-menu > li:active {
     background-color: #888;
 }
 
-music-editor-menu .submenu-pointer {
-    /* float: right; */
-    position:  absolute;
-    right: 4px;
-}
-music-editor-menu .submenu-pointer:after {
-    content: '➤';
-}
+
 
 /** Context Menu **/
 
@@ -130,7 +109,6 @@ music-editor-menu .editor-context-menu {
 music-editor-menu .editor-context-menu.open {
     display: block;
 }
-
 
 
 music-editor-menu form {
@@ -159,27 +137,6 @@ music-editor-menu label.row-label {
 music-editor-menu option.hidden,
 music-editor-menu form.hidden {
     display: none;
-}
-
-
-
-music-editor-menu form.form-instruction-instrument select[name=instrument]:not(:hover) {
-    max-width: 88px;
-}
-music-editor-menu form.form-instruction-command select[name=frequency] {
-    max-width: 42px;
-}
-music-editor-menu form.form-instruction-command select[name=command] {
-    max-width: 88px;
-}
-music-editor-menu form.form-instruction-duration select[name=duration] {
-    max-width: 75px;
-}
-music-editor-menu form.form-instruction-velocity select[name=velocity] {
-    max-width: 71px;
-}
-music-editor-menu form.form-render-octave select[name=octave] {
-    max-width: 61px;
 }
 
 music-editor-menu input[name=volume] {
@@ -242,35 +199,11 @@ music-editor-menu div.form-section {
 }
 
 music-editor-menu div.form-section legend {
-    margin: 0px 0 0px 0;
-    /* text-align: center; */
-    font-size: x-small;
+}
+music-editor-menu div.form-section:hover legend {
     font-weight: bold;
-    background: linear-gradient(to bottom, #FFF 40%,#dddddd 100%);
-    border-radius: 2px;
 }
 
-/** Grid Render Forms **/
-
-music-editor-menu form.form-render-duration {
-    padding-right: 4px;
-    float: right;
-}
-music-editor-menu form.form-render-duration select[name=duration] {
-    min-width: 96px;
-}
-
-
-music-editor-menu form.form-render-instrument select[name=instrument] {
-    min-width: 135px;
-}
-
-/** Add Instrument Form **/
-
-
-music-editor-menu form.form-add-instrument select[name=instrument] {
-    min-width: 129px;
-}
 
 
 music-editor-menu:not(.show-modify-instruction-controls) .show-on-modify-instruction {
@@ -279,3 +212,43 @@ music-editor-menu:not(.show-modify-instruction-controls) .show-on-modify-instruc
 music-editor-menu:not(.show-insert-instruction-controls) .show-on-insert-instruction {
     display: none;
 }
+
+
+/** Form Inputs **/
+
+
+
+music-editor-menu input[type=text],
+music-editor-menu select,
+music-editor-menu button{
+     max-width: 200px;
+}
+
+
+/** Song Info Form **/
+
+music-editor-menu form.form-song-version input[name=version] {max-width: 64px;}
+music-editor-menu form.form-song-title input[name=title] {width: 160px;}
+
+/** Add Instrument Form **/
+
+music-editor-menu form.form-add-instrument select[name=instrument] { min-width: 129px; }
+
+
+/** Modify Instruction Forms **/
+
+music-editor-menu form.form-instruction-instrument select[name=instrument] {max-width: 91px;}
+music-editor-menu form.form-instruction-command select[name=frequency] { max-width: 42px; }
+music-editor-menu form.form-instruction-command select[name=command] { max-width: 88px; }
+music-editor-menu form.form-instruction-duration select[name=duration] {max-width: 80px;}
+music-editor-menu form.form-instruction-velocity select[name=velocity] {max-width: 78px;}
+
+/** Grid Render Forms **/
+
+music-editor-menu form.form-render-duration {
+    padding-right: 4px;
+    float: right;
+}
+music-editor-menu form.form-render-duration select[name=duration] { min-width: 96px; }
+music-editor-menu form.form-render-octave select[name=octave] { max-width: 61px; }
+music-editor-menu form.form-render-instrument select[name=instrument] { min-width: 135px; }

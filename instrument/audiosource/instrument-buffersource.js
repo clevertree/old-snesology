@@ -125,7 +125,7 @@ class BufferSourceInstrument extends HTMLElement {
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
             <form class="instrument-editor">
-                <legend>Preset</legend>
+                <legend class="themed">Preset</legend>
                 <label>
                     <select name="preset" title="Load Preset" class="themed">
                         ${this.library ? 

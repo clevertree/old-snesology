@@ -508,59 +508,13 @@ class MusicPlayerElement extends HTMLElement {
             document.head.appendChild(newScriptElm);
             return newScriptElm;
         }
-        if(foundScriptElm.getAttribute('loaded') === '1')
-            onLoaded();
-        else
-            foundScriptElm.addEventListener('load', onLoaded);
-        return foundScriptElm;
-        // newScriptElm.setAttribute('loaded', '0');
-        // const onLoadCallback = function(e) {
-        //     if(this.getAttribute('loaded') === '1')
-        //         return;
-        //     this.setAttribute('loaded', '1');
-        //     // console.info("Executing callback: ", scriptPath, this.onloads);
-        //     for(let i=0; i<this.onloads.length; i++)
-        //         this.onloads[i](e);
-        // }.bind(newScriptElm);
-        //
-        // newScriptElm.onload = onLoadCallback;
-        // setTimeout(onLoadCallback, 1000);
-        // // console.info("Including Script: ", scriptPath);
-        // return newScriptElm;
-    }
-
-    static loadScript2(scriptPath, onLoaded) {
-        const scripts = document.head.querySelectorAll('script');
-        for(let i=0; i<scripts.length; i++) {
-            if(scripts[i].src.endsWith(scriptPath)) {
-                if(scripts[i].loaded === false) {
-                    scripts[i].onloads.push(onLoaded);
-                    // console.info("Queueing callback: ", scriptPath);
-                } else {
-                    // console.info("Calling callback directly: ", scriptPath);
-                    onLoaded();
-                }
-                return scripts[i];
-            }
+        if(onLoaded) {
+            if (foundScriptElm.getAttribute('loaded') === '1')
+                onLoaded();
+            else
+                foundScriptElm.addEventListener('load', onLoaded);
         }
-        const newScriptElm = document.createElement('script');
-        newScriptElm.src = scriptPath;
-        newScriptElm.onloads = [onLoaded];
-        newScriptElm.loaded = false;
-        const onLoadCallback = function(e) {
-            if(this.loaded === true)
-                return;
-            this.loaded = true;
-            // console.info("Executing callback: ", scriptPath, this.onloads);
-            for(let i=0; i<this.onloads.length; i++)
-                this.onloads[i](e);
-        }.bind(newScriptElm);
-
-        newScriptElm.onload = onLoadCallback;
-        document.head.appendChild(newScriptElm);
-        setTimeout(onLoadCallback, 1000);
-        // console.info("Including Script: ", scriptPath);
-        return newScriptElm;
+        return foundScriptElm;
     }
 
 }

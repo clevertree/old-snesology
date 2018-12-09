@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <base href="../" />
+        <title>SNESology</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="keywords" CONTENT="clevertree, snesology, snes, game, music, relay, open-source, subscribe">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="theme/minimal/minimal.css" rel="stylesheet" />
+        <link href='https://fonts.googleapis.com/css?family=VT323' rel='stylesheet'>
+
+        <script>
+            // Support older browsers
+            window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
+        </script>
+
+        <script src="player/music-player.js" ></script>
+        <script src="editor/music-editor.js" ></script>
+        <script src="editor/music-editor-menu.js" ></script>
+        <script src="editor/music-editor-grid.js" ></script>
+        <script src="editor/music-editor-instrument.js" ></script>
+        <script src="editor/music-editor-song-modifier.js" ></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var url = new URL(document.location);
+                const uuid = url.searchParams.get("uuid");
+                if(!uuid) {
+                    document.location.href = 'editor/new';
+
+                } else {
+                    setTimeout(function() {
+                        var editor = document.querySelector('music-editor');
+                        editor.grid.focus();
+                        window.addEventListener('error', function(e) {
+                            editor.onError(e);
+                        });
+                        editor.loadSongUUID(uuid);
+                    }, 200);
+                }
+            });
+        </script>
+    </head>
+    <body class='theme-minimal'>
+        <header>
+            <div class="logo"></div>
+        </header>
+        <nav>
+            <ul>
+                <li><a class="selected" href=".">Home</a></li>
+            </ul>
+        </nav>
+        <music-editor></music-editor>
+        <footer>
+            <a class="created-by" target='_blank' href='https://github.com/clevertree/snesology/'>Created by CleverTree</a>
+        </footer>
+    </body>
+</html>

@@ -78,7 +78,7 @@ class OscillatorInstrument extends HTMLElement {
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
             <form class="oscillator-type">
-                <legend>Type</legend>
+                <legend class="themed">Type</legend>
                 <label>
                     <select name="type" class="themed" title="Wave Type">
                         ${OscillatorInstrument.BUILD_IN_TYPES.map(type => `<option ${this.config.type === type ? 'selected="selected"' : ''}>Type: ${type}</option>`).join('')}
@@ -94,7 +94,7 @@ class OscillatorInstrument extends HTMLElement {
             </form>
             
             <form class="oscillator-detune">
-                <legend>Detune</legend>
+                <legend class="themed">Detune</legend>
                 <label>
                     <input name="detune" type="range" min="-100" max="100" value="${this.config.detune}" class="themed"/>
                 </label>

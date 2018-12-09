@@ -1,4 +1,9 @@
 
+((INCLUDE_CSS) => {
+    if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
+        document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
+})("editor/music-editor.css");
+
 /**
  * Editor requires a modern browser
  * One groups displays at a time. Columns imply simultaneous instructions.
@@ -36,11 +41,6 @@ class MusicEditorElement extends HTMLElement {
         this.webSocket = null;
         this.webSocketAttempts = 0;
         // this.songData = null;
-
-        // Include assets
-        const INCLUDE_CSS = "editor/music-editor.css";
-        if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
-            document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
     get grid() { return this.querySelector('music-editor-grid'); }
     get menu() { return this.querySelector('music-editor-menu'); }
@@ -69,8 +69,8 @@ class MusicEditorElement extends HTMLElement {
         // const onInstrumentEvent = this.onInstrumentEvent.bind(this);
         // playerElement.addEventListener('instrument:initiated', onInstrumentEvent);
 
-        if(this.uuid)
-            this.initWebSocket();
+        // if(this.uuid)
+        //     this.initWebSocket(this.uuid);
         // this.render(); // Render after player element is loaded
 
 
@@ -93,14 +93,9 @@ class MusicEditorElement extends HTMLElement {
     getAudioContext() { return this.player.getAudioContext(); }
     getSongData() { return this.player.getSongData(); }
 
-    get uuid() { return this.getAttribute('uuid');}
-    loadSongUUID(uuid) {
-        this.setAttribute('uuid', uuid);
-        this.initWebSocket();
-        // TODO: or load manually
-    }
 
-    initWebSocket() {
+    initWebSocket(uuid) {
+        if(!uuid) uuid = null;
         if (!("WebSocket" in window)) {
             console.warn("WebSocket is not supported by your Browser!");
             return;
@@ -109,7 +104,7 @@ class MusicEditorElement extends HTMLElement {
             this.webSocket.close();
             this.webSocket = null;
         }
-        const wsURL = window.origin.replace(/^http/i, 'ws') + '/editor';
+        const wsURL = window.origin.replace(/^http/i, 'ws') + '/editor/' + (uuid || '');
         const ws = new WebSocket(wsURL);
         const onWebSocketEvent = this.onWebSocketEvent.bind(this);
         ws.addEventListener('open', onWebSocketEvent);
@@ -122,13 +117,19 @@ class MusicEditorElement extends HTMLElement {
         // console.info("WS " + e.type, e);
         switch(e.type) {
             case 'open':
-                this.webSocketAttempts = 0;
-                if(this.uuid)
-                    this.webSocket
-                        .send(JSON.stringify({
-                            type: 'history:register',
-                            uuid: this.uuid
-                        }));
+                // this.webSocketAttempts = 0;
+                // if(this.uuid)
+                //     this.webSocket
+                //         .send(JSON.stringify({
+                //             type: 'register',
+                //             uuid: this.uuid
+                //         }));
+                // else
+                //     this.webSocket
+                //         .send(JSON.stringify({
+                //             type: 'history:register',
+                //             uuid: this.uuid
+                //         }));
                 // e.target.send("WELCOME");
                 break;
 
@@ -156,6 +157,13 @@ class MusicEditorElement extends HTMLElement {
                             this.render();
                             //this.gridSelect(e, 0);
                             this.grid.focus();
+
+                            const songUUID = songModifier.songData.uuid;
+                            if(songUUID) {
+                                const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-recent-uuid') || '{}');
+                                songRecentUUIDs[songModifier.songData.uuid] = songModifier.songData.title || `Untitled`;
+                                localStorage.setItem('editor-recent-uuid', JSON.stringify(songRecentUUIDs));
+                            }
                             // }
                             break;
 
@@ -207,6 +215,18 @@ class MusicEditorElement extends HTMLElement {
                 console.error("Unhandled " + e.type, e);
         }
     }
+
+    loadSongUUID(uuid) {
+        this.setAttribute('uuid', uuid);
+        this.initWebSocket(uuid);
+
+        const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-recent-uuid') || '{}');
+        if(typeof songRecentUUIDs[uuid] === 'undefined') {
+            songRecentUUIDs[uuid] = `New Song (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`;
+            localStorage.setItem('editor-recent-uuid', JSON.stringify(songRecentUUIDs));
+        }
+    }
+
 
     saveSongToMemory() {
         const song = this.getSongData();
@@ -265,13 +285,13 @@ class MusicEditorElement extends HTMLElement {
         // this.status.history.undoList.push(historyAction);
         // this.status.history.undoPosition = this.status.history.undoList.length-1;
 
-        if(historyActions.length > 0 && this.uuid) {
+        if(this.webSocket && historyActions.length > 0) {
             console.info("Sending history actions: ", historyActions);
             this.webSocket
                 .send(JSON.stringify({
                     type: 'history:entry',
                     historyActions: historyActions,
-                    uuid: this.uuid
+                    // uuid: this.uuid
                 }))
         }
     }
@@ -300,6 +320,15 @@ class MusicEditorElement extends HTMLElement {
             });
         }
         return command;
+    }
+
+    setSongTitle(newSongTitle) { return this.setSongField('title', newSongTitle); }
+    setSongVersion(newSongTitle) { return this.setSongField('version', newSongTitle); }
+
+    setSongField(fieldName, fieldValue) {
+        const songModifier = new MusicEditorSongModifier(this.getSongData());
+        songModifier.replaceDataPath(fieldName, fieldValue);
+        this.historyQueue(songModifier.clearHistoryActions());
     }
 
     insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
@@ -424,13 +453,10 @@ class MusicEditorElement extends HTMLElement {
 
     render() {
         // TODO: render only once. each component handles it's own state
-        const song = this.getSongData();
         this.innerHTML = `
             <music-editor-menu></music-editor-menu>
             <music-editor-grid tabindex="1"></music-editor-grid>
-            ${song ? song.instruments.map((instrument, id) => 
-                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
-            <br style="clear: both;"/>`;
+            <music-editor-instrument-list></music-editor-instrument-list>`;
         this.appendChild(this.player);
     }
 
@@ -528,6 +554,142 @@ class MusicEditorElement extends HTMLElement {
                 }
                 break;
         }
+    }
+
+    /** Form Options **/
+
+    getEditorFormOptions(optionType, callback) {
+        let optionsHTML = '';
+        const songData = this.getSongData() || {};
+
+        switch(optionType) {
+            case 'recent-uuid':
+            case 'local-uuid':
+                const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-' + optionType) || '{}');
+                for(const songRecentUUID in songRecentUUIDs)
+                    if(songRecentUUIDs.hasOwnProperty(songRecentUUID))
+                        optionsHTML += callback(songRecentUUID, songRecentUUIDs[songRecentUUID]);
+                break;
+
+            case 'instruments-songs':
+                if(songData.instruments) {
+                    const instrumentList = songData.instruments;
+                    for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
+                        const instrumentInfo = instrumentList[instrumentID];
+                        // const instrument = this.player.getInstrument(instrumentID);
+                        optionsHTML += callback(instrumentID, this.format(instrumentID, 'instrument')
+                            + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));
+                    }
+                }
+                break;
+
+            case 'instruments-available':
+                if(this.status.instrumentLibrary) {
+                    const instrumentLibrary = this.status.instrumentLibrary;
+                    Object.keys(instrumentLibrary.index).forEach((path) => {
+                        let pathConfig = instrumentLibrary.index[path];
+                        if (typeof pathConfig !== 'object') pathConfig = {title: pathConfig};
+                        optionsHTML += callback(instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")");
+                    });
+                }
+                break;
+
+            case 'command-instrument-frequencies':
+                for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
+                    if(this.player.isInstrumentLoaded(instrumentID)) {
+                        const instance = this.player.getInstrument(instrumentID);
+                        if(instance.getFrequencyAliases) {
+                            const aliases = instance.getFrequencyAliases();
+                            Object.keys(aliases).forEach((aliasName) =>
+                                optionsHTML += callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
+                        }
+                    }
+                }
+                break;
+
+            case 'command-frequencies':
+            case 'frequencies':
+                const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+                for(let i=1; i<=6; i++) {
+                    for(let j=0; j<instructions.length; j++) {
+                        const instruction = instructions[j] + i;
+                        optionsHTML += callback(instruction, instruction);
+                    }
+                }
+                break;
+
+            case 'command-frequency-octaves':
+                for(let oi=1; oi<=7; oi+=1) {
+                    optionsHTML += callback(oi, 'Octave ' + oi);
+                }
+                break;
+
+            case 'velocities':
+                // optionsHTML += callback(null, 'Velocity (Default)');
+                for(let vi=100; vi>=0; vi-=10) {
+                    optionsHTML += callback(vi, vi);
+                }
+                break;
+
+            case 'durations':
+                optionsHTML += callback(1/64, '1/64');
+                optionsHTML += callback(1/32, '1/32');
+                optionsHTML += callback(1/16, '1/16');
+                optionsHTML += callback(1/8,  '1/8');
+                optionsHTML += callback(1/4,  '1/4');
+                optionsHTML += callback(1/2,  '1/2');
+                for(let i=1; i<=16; i++)
+                    optionsHTML += callback(i, i+'B');
+                break;
+
+            case 'beats-per-measure':
+                for(let vi=1; vi<=12; vi++) {
+                    optionsHTML += callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
+                }
+                break;
+
+            case 'beats-per-minute':
+                for(let vi=40; vi<=300; vi+=10) {
+                    optionsHTML += callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
+                }
+                break;
+
+            case 'groups':
+                if(songData.instructions)
+                    Object.keys(songData.instructions).forEach(function(key, i) {
+                        optionsHTML += callback(key, key);
+                    });
+                break;
+
+            case 'command-group-execute':
+                if(songData.instructions)
+                    Object.keys(songData.instructions).forEach(function(key, i) {
+                        optionsHTML += callback('@' + key, '@' + key);
+                    });
+                break;
+        }
+        return optionsHTML;
+    }
+
+
+
+
+    renderEditorMenuLinks(optionType, selectCallback) {
+        let optionsHTML = '';
+        this.getEditorFormOptions(optionType, function (value, label, html) {
+            const selected = selectCallback ? selectCallback(value) : false;
+            optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
+        });
+        return optionsHTML;
+    }
+
+    renderEditorFormOptions(optionType, selectCallback) {
+        let optionsHTML = '';
+        this.getEditorFormOptions(optionType, function (value, label, html) {
+            const selected = selectCallback ? selectCallback(value) : false;
+            optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
+        });
+        return optionsHTML;
     }
 
 }

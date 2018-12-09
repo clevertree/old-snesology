@@ -1,12 +1,14 @@
+// Include assets
+
+((INCLUDE_CSS) => {
+    if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
+        document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
+})("editor/music-editor-instrument.css");
+
 class MusicEditorInstrumentElement extends HTMLElement {
     constructor() {
         super();
         this.editor = null;
-
-        // Include assets
-        const INCLUDE_CSS = "editor/music-editor-instrument.css";
-        if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
-            document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
     }
 
     get id() { return parseInt(this.getAttribute('id')); }
@@ -74,7 +76,7 @@ class MusicEditorInstrumentElement extends HTMLElement {
                     ? `${instrumentPreset.name} (${instrument.constructor.name})`
                     : instrument.constructor.name;
 
-                this.innerHTML = `<legend>${instrumentIDHTML}${instrumentName}${buttonHTML}</legend>`;
+                this.innerHTML = `<legend class="themed">${instrumentIDHTML}${instrumentName}${buttonHTML}</legend>`;
 
                 if (instrument instanceof HTMLElement) {
                     this.appendChild(instrument);
@@ -87,14 +89,47 @@ class MusicEditorInstrumentElement extends HTMLElement {
                 }
 
             } catch (e) {
-                this.innerHTML = `<legend>${instrumentIDHTML} Error: ${e.message}${buttonHTML}</legend>`;
+                this.innerHTML = `<legend class="themed">${instrumentIDHTML} Error: ${e.message}${buttonHTML}</legend>`;
                 this.innerHTML += e.stack;
             }
         } else {
-            this.innerHTML = `<legend>${instrumentIDHTML} Loading...${buttonHTML}</legend>`;
+            this.innerHTML = `<legend class="themed">${instrumentIDHTML} Loading...${buttonHTML}</legend>`;
         }
 
     }
 }
+
+class MusicEditorInstrumentListElement extends HTMLElement {
+    constructor() {
+        super();
+        this.editor = null;
+    }
+
+    connectedCallback() {
+        this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
+        this.render();
+        this.addEventListener('submit', this.editor.menu.onSubmit.bind(this.editor.menu));
+        this.addEventListener('change', this.editor.menu.onSubmit.bind(this.editor.menu));
+    }
+
+    render() {
+        const song = this.editor.getSongData();
+        this.innerHTML = `
+            
+            <form class="form-add-instrument" data-command="song:add-instrument">
+                <select name="instrumentURL" class="themed">
+                    <option value="">Add New Instrument</option>
+                    ${this.editor.renderEditorFormOptions('instruments-available')}
+                </select>
+            </form>
+            ${song ? song.instruments.map((instrument, id) =>
+                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
+            
+            `;
+
+
+    }
+}
 customElements.define('music-editor-instrument', MusicEditorInstrumentElement);
+customElements.define('music-editor-instrument-list', MusicEditorInstrumentListElement);
 
