@@ -77,9 +77,9 @@ class MusicEditorInstrumentElement extends HTMLElement {
                     : instrument.constructor.name;
 
                 this.innerHTML =
-                    `<legend>
+                    `<legend class="input-theme">
                         <form class="form-instrument-name">
-                            <label class="input-theme">${instrumentIDHTML}
+                            <label>${instrumentIDHTML}
                                 <input name="name" type="text" value="${instrumentName}" />
                             </label>
                             <button class="remove-instrument">x</button>

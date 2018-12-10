@@ -73,6 +73,8 @@ music-editor-menu .sub-menu {
 /*music-editor-menu .submenu:hover,*/
 music-editor-menu .editor-menu > li:hover > .sub-menu,
 music-editor-menu .sub-menu > li:hover > .sub-menu,
+music-editor-menu a.open + .sub-menu,
+music-editor-menu a:focus + .sub-menu,
 music-editor-menu .sub-menu.open {
     /* display: block; */
     display: inline-block;

@@ -153,7 +153,14 @@ body.theme-minimal {
 .theme-minimal button {
     font-family: monospace;
     font-size: small;
-    font-weight: bold;
+    /* font-weight: bold; */
+}
+
+.theme-minimal .input-theme:hover,
+.theme-minimal input:hover,
+.theme-minimal select:hover,
+.theme-minimal button:hover {
+     font-weight: bold;
 }
 
 .theme-minimal input[type=text].themed,

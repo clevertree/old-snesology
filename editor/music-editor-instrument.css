@@ -16,7 +16,7 @@ music-editor-instrument {
     /* float: left; */
     /*min-height: 60px;*/
     margin: 2px;
-    padding: 3px;
+    padding: 0px 2px 2px 2px;
     border: 1px outset;
 }
 
@@ -27,26 +27,33 @@ music-editor-instrument form.form-instrument-name input[name=name] {
     min-width: 28em;
 }
 
-
-music-editor-instrument form {
-    padding-top: 2px;
+music-editor-instrument form.form-instrument-name > label.label-instrument-name{
+    margin: 5px 0px 1px 6px;
     display: inline-block;
+    /* margin: 0 0; */
+    /* border: 0px; */
+    /* min-width: 28em; */
+}
+
+music-editor-instrument > legend {
+    margin: 3px 0px 3px 0px;
+    display: inline-block;
+    background: linear-gradient(to right, #bfbfbf 0%,#dddddd 92%);
+    border-radius: 4px;
 }
 
 music-editor-instrument:hover {
-    background-color: #CDC;
+    background-color: #CCC;
 }
 music-editor-instrument form.form-instrument-name input[name=name]:not(:hover) {
     background-color: #0000;
 }
 
 music-editor-instrument form.form-instrument-name button.remove-instrument {
-    width: 16px;
-    height: 18px;
-    padding: 0px;
-    margin: -1px -2px 0px 3px;
+    /* text-align: center; */
+    padding: 0px 6px 1px 6px;
+    /* margin: 0px 0px 1px 0px; */
     border: 1px outset;
     border-radius: 4px;
     color: darkred;
-    font-weight: bold;
 }

@@ -355,7 +355,7 @@ class MusicEditorGridElement extends HTMLElement {
                     if (cellElm.classList.contains('grid-parameter'))
                         cellElm = cellElm.parentNode;
                     if (cellElm.classList.contains('grid-row'))
-                        cellElm = cellElm.lastElementChild;
+                        cellElm = cellElm.childNodes[cellElm.childNodes.length-2];
                     if (!cellElm.classList.contains('grid-cell'))
                         cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
                     if(!cellElm)

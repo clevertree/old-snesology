@@ -218,8 +218,8 @@ class MusicEditorMenuElement extends HTMLElement {
             case 'mousedown':
                 const dataCommand = e.target.getAttribute('data-command');
                 if(dataCommand) {
-                    let menuItem = e.target;
-                    console.log("Menu " + e.type, menuItem);
+                    // let menuItem = e.target;
+                    // console.log("Menu " + e.type, menuItem);
                     e.preventDefault();
                     switch(dataCommand) {
 
@@ -287,29 +287,33 @@ class MusicEditorMenuElement extends HTMLElement {
                             else                    console.error("Set instruction velocity canceled");
                             break;
 
+                        case 'menu:toggle':
+                            // this.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
+                            // e.target.classList.toggle('open');
+                            break;
                         default:
                             console.warn("Unknown menu command: " + dataCommand);
                     }
                     this.closeMenu();
                     return;
 
-                    if(menuItem.nextElementSibling
-                        && menuItem.nextElementSibling.classList.contains('submenu')) {
-                        const submenu = menuItem.nextElementSibling;
-                        if(submenu.getAttribute('data-submenu-content')) {
-                            const targetClass = submenu.getAttribute('data-submenu-content');
-                            submenu.innerHTML = this.getElementsByClassName(targetClass)[0].innerHTML;
-                        }
-                        // let subMenu = menuItem.nextElementSibling;
-                        const isOpen = menuItem.classList.contains('open');
-                        this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
-                        let parentMenuItem = menuItem;
-                        while(parentMenuItem && parentMenuItem.classList.contains('menu-item')) {
-                            parentMenuItem.classList.toggle('open', !isOpen);
-                            parentMenuItem = parentMenuItem.parentNode.parentNode.previousElementSibling;
-                        }
-                        return;
-                    }
+                    // if(menuItem.nextElementSibling
+                    //     && menuItem.nextElementSibling.classList.contains('submenu')) {
+                    //     const submenu = menuItem.nextElementSibling;
+                    //     if(submenu.getAttribute('data-submenu-content')) {
+                    //         const targetClass = submenu.getAttribute('data-submenu-content');
+                    //         submenu.innerHTML = this.getElementsByClassName(targetClass)[0].innerHTML;
+                    //     }
+                    //     // let subMenu = menuItem.nextElementSibling;
+                    //     const isOpen = menuItem.classList.contains('open');
+                    //     this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
+                    //     let parentMenuItem = menuItem;
+                    //     while(parentMenuItem && parentMenuItem.classList.contains('menu-item')) {
+                    //         parentMenuItem.classList.toggle('open', !isOpen);
+                    //         parentMenuItem = parentMenuItem.parentNode.parentNode.previousElementSibling;
+                    //     }
+                    //     return;
+                    // }
 
                     console.warn("Unhandled menu click", e);
                     break;
@@ -407,10 +411,11 @@ class MusicEditorMenuElement extends HTMLElement {
     render() {
         const player = this.editor.player;
         const songData = player.getSongData();
+        let tabIndex = 2;
         this.innerHTML =
             `<ul class="editor-menu">
                 <li>
-                    <a data-command="menu:toggle"><span class="key">F</span>ile</a>
+                    <a tabindex="${tabIndex++}"><span class="key">F</span>ile</a>
                     <ul class="sub-menu">
                         <li>
                             <a data-command="menu:toggle">Open from memory &#9658;</a>
@@ -432,7 +437,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     </ul>
                 </li>
                 <li>
-                    <a><span class="key">C</span>md</a>
+                    <a tabindex="${tabIndex++}"><span class="key">C</span>md</a>
                     <ul class="sub-menu submenu:command">
                         <li><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
                         <li><a data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
@@ -444,13 +449,13 @@ class MusicEditorMenuElement extends HTMLElement {
                     </ul>
                 </li>
                 <li>
-                    <a><span class="key">R</span>ow</a>
+                    <a tabindex="${tabIndex++}"><span class="key">R</span>ow</a>
                     <ul class="sub-menu submenu:pause">
                         <li><a data-command="row:remove"><span class="key">R</span>emove Row</a></li>
                     </ul>
                 </li>
                 <li>
-                    <a><span class="key">G</span>roup</a>
+                    <a tabindex="${tabIndex++}"><span class="key">G</span>roup</a>
                     <ul class="sub-menu submenu:group">
                         <li><a data-command="group:add"><span class="key">I</span>nsert Group</a></li>
                         <li><a data-command="group:remove"><span class="key">R</span>emove Group</a></li>
@@ -458,25 +463,25 @@ class MusicEditorMenuElement extends HTMLElement {
                     </ul>
                 </li>
                 <li>
-                    <a><span class="key">I</span>nstrument</a>
+                    <a tabindex="${tabIndex++}"><span class="key">I</span>nstrument</a>
                     <ul class="sub-menu submenu:instrument">
                         <li><a data-command="instrument:add">Add <span class="key">N</span>ew Instrument</a></li>
                     </ul>
                 </li>
-                <li><a class="disabled"><span class="key">P</span>ublish</a></li>
+                <li><a class="disabled" tabindex="${tabIndex++}"><span class="key">P</span>ublish</a></li>
             </ul>
             <ul class="editor-context-menu submenu">
                 <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
                 <li>
-                    <a><span class="key">N</span>ote<span class="sub-menu-pointer"></span></a>
+                    <a data-command="menu:toggle"><span class="key">N</span>ote<span class="sub-menu-pointer"></span></a>
                     <ul class="sub-menu" data-submenu-content="submenu:command"></ul>
                 </li>
                 <li>
-                    <a><span class="key">R</span>ow<span class="sub-menu-pointer"></span></a>
+                    <a data-command="menu:toggle"><span class="key">R</span>ow<span class="sub-menu-pointer"></span></a>
                     <ul class="sub-menu" data-submenu-content="submenu:pause"></ul>
                 </li>
                 <li>
-                    <a><span class="key">G</span>roup <span class="sub-menu-pointer"></span></a>
+                    <a data-command="menu:toggle"><span class="key">G</span>roup <span class="sub-menu-pointer"></span></a>
                     <ul class="sub-menu" data-submenu-content="submenu:group"></ul>
                 </li>
             </ul>
@@ -718,7 +723,7 @@ class MusicEditorMenuElement extends HTMLElement {
         let target = e.target;
         let x = e.clientX, y = e.clientY;
 
-        this.querySelectorAll('.menu-item.open').forEach(elm => elm.classList.remove('open'));
+        this.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
         // this.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
         const contextMenu = this.querySelector('.editor-context-menu');
         // console.info("Context menu", contextMenu);
