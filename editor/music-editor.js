@@ -69,9 +69,9 @@ class MusicEditorElement extends HTMLElement {
         // const onInstrumentEvent = this.onInstrumentEvent.bind(this);
         // playerElement.addEventListener('instrument:initiated', onInstrumentEvent);
 
-        // if(this.uuid)
-        //     this.initWebSocket(this.uuid);
-        // this.render(); // Render after player element is loaded
+        if(this.getAttribute('uuid'))
+            this.initWebSocket(this.getAttribute('uuid'));
+        // this.re-nder(); // Render after player element is loaded
 
 
         const xhr = new XMLHttpRequest();
