@@ -76,7 +76,15 @@ class MusicEditorInstrumentElement extends HTMLElement {
                     ? `${instrumentPreset.name} (${instrument.constructor.name})`
                     : instrument.constructor.name;
 
-                this.innerHTML = `<legend class="themed">${instrumentIDHTML}${instrumentName}${buttonHTML}</legend>`;
+                this.innerHTML =
+                    `<legend>
+                        <form class="form-instrument-name">
+                            <label class="input-theme">${instrumentIDHTML}
+                                <input name="name" type="text" value="${instrumentName}" />
+                            </label>
+                            <button class="remove-instrument">x</button>
+                        </form>
+                    </legend>`;
 
                 if (instrument instanceof HTMLElement) {
                     this.appendChild(instrument);
@@ -114,16 +122,16 @@ class MusicEditorInstrumentListElement extends HTMLElement {
 
     render() {
         const song = this.editor.getSongData();
-        this.innerHTML = `
+        this.innerHTML =
+            (song ? song.instruments.map((instrument, id) =>
+                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null)
             
-            <form class="form-add-instrument" data-command="song:add-instrument">
+             + `<form class="form-add-instrument" data-command="song:add-instrument">
                 <select name="instrumentURL" class="themed">
                     <option value="">Add New Instrument</option>
                     ${this.editor.renderEditorFormOptions('instruments-available')}
                 </select>
             </form>
-            ${song ? song.instruments.map((instrument, id) =>
-                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null}
             
             `;
 

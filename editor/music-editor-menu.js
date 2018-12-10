@@ -176,7 +176,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     } else {
                         console.info("Add instrument canceled");
                     }
-                    this.fieldAddInstrumentInstrument.value = '';
+//                     this.fieldAddInstrumentInstrument.value = '';
                     break;
 
                 case 'song:set-title':

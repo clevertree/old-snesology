@@ -147,14 +147,20 @@ body.theme-minimal {
 
 /** Form Inputs **/
 
+.theme-minimal .input-theme,
+.theme-minimal input,
+.theme-minimal select,
+.theme-minimal button {
+    font-family: monospace;
+    font-size: small;
+    font-weight: bold;
+}
+
 .theme-minimal input[type=text].themed,
 .theme-minimal select.themed,
 .theme-minimal button.themed {
     transition: max-width 0.3s;
     border: 1px inset;
-    font-family: monospace;
-    font-size: small;
-    font-weight: bold;
 }
 
 .theme-minimal input[type=text].themed {
@@ -199,6 +205,9 @@ body.theme-minimal {
     padding: 1px 0px 0px 3px;
 }
 
+.theme-minimal *:hover > legend.themed {
+    font-weight: bold;
+}
 
 /** Flex List **/
 

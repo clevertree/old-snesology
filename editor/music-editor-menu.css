@@ -198,13 +198,6 @@ music-editor-menu div.form-section {
     /* float: left; */
 }
 
-music-editor-menu div.form-section legend {
-}
-music-editor-menu div.form-section:hover legend {
-    font-weight: bold;
-}
-
-
 
 music-editor-menu:not(.show-modify-instruction-controls) .show-on-modify-instruction {
     display: none;

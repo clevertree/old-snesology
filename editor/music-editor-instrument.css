@@ -1,26 +1,46 @@
-music-editor-instrument-list form.form-add-instrument > legend {
 
+
+/** Instrument List **/
+
+music-editor-instrument-list > form.form-add-instrument > select[name=instrumentURL] {
+    max-width: 144px;
 }
 
-music-editor-instrument-list form.form-add-instrument {
-    position: relative;
-    vertical-align: middle;
-    /* float: left; */
-    margin: 0px 2px 4px;
-    padding: 3px;
-    border: 1px outset;
-}
+/** Instrument Container **/
+
+music-editor-instrument-list > form.form-add-instrument,
 music-editor-instrument {
     position: relative;
-    vertical-align: middle;
+    vertical-align: top;
     display: inline-block;
     /* float: left; */
-    margin: 0px 2px 4px;
+    /*min-height: 60px;*/
+    margin: 2px;
     padding: 3px;
     border: 1px outset;
 }
 
-music-editor-instrument button.remove-instrument {
+music-editor-instrument form.form-instrument-name input[name=name] {
+    padding: 1px;
+    margin: 0 0;
+    border: 0px;
+    min-width: 28em;
+}
+
+
+music-editor-instrument form {
+    padding-top: 2px;
+    display: inline-block;
+}
+
+music-editor-instrument:hover {
+    background-color: #CDC;
+}
+music-editor-instrument form.form-instrument-name input[name=name]:not(:hover) {
+    background-color: #0000;
+}
+
+music-editor-instrument form.form-instrument-name button.remove-instrument {
     width: 16px;
     height: 18px;
     padding: 0px;
@@ -29,30 +49,4 @@ music-editor-instrument button.remove-instrument {
     border-radius: 4px;
     color: darkred;
     font-weight: bold;
-}
-
-music-editor-instrument > legend {
-    /* text-align: center; */
-    /* font-size: small; */
-    /* font-weight: bold; */
-    /* background: linear-gradient(to bottom, #FFF 60%,#dddddd 100%); */
-    /* border-radius: 6px; */
-    /* padding-left: 5px; */
-}
-
-music-editor-instrument form {
-    /* border: 1px solid #333; */
-    /* background-color: #CCC; */
-    /* margin: 0px 0; */
-    /* padding: 1px 2px 1px 0px; */
-    padding-top: 2px;
-    display: inline-block;
-}
-
-music-editor-instrument form > legend {
-    /* text-align: center; */
-    font-size: x-small;
-    font-weight: bold;
-    background: linear-gradient(to bottom, #FFF 40%,#dddddd 100%);
-    border-radius: 2px;
 }
