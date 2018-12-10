@@ -22,7 +22,7 @@ class BufferSourceInstrument extends HTMLElement {
         this.config = config;            // TODO: validate config
         this.buffers = {};
 
-        this.initSamples(audioContext);
+        this.initSamples(audioContext); // TODO: instruments recieve audiosource only after user gesture-
 
         // Sample Library
         this.loadSampleLibrary(BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {

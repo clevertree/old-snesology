@@ -232,7 +232,7 @@ class MusicEditorMenuElement extends HTMLElement {
                     </form>
                     <form class="form-song-volume submit-on-change" data-command="song:volume">
                         <div class="volume-container">
-                            <input name="volume" type="range" min="1" max="100" value="${player ? player.getVolumeGain().gain.value*100 : 0}" class="themed">
+                            <input name="volume" type="range" min="1" max="100" value="${player ? player.getVolume() : 0}" class="themed">
                         </div>
                     </form>
                 </div>

@@ -12,9 +12,9 @@ class MusicPlayerElement extends HTMLElement {
         this.seekPosition = 0;
         this.volumeGain = null;
         this.playing = false;
-        this.config = {
-            volume: 0.3
-        };
+        // this.config = {
+        //     volume: 0.3
+        // };
         this.loadSongData({});
     }
 
@@ -25,13 +25,26 @@ class MusicPlayerElement extends HTMLElement {
         if(!this.volumeGain) {
             const context = this.getAudioContext();
             let gain = context.createGain();
-            gain.gain.value = this.config.volume;
+            gain.gain.value = MusicPlayerElement.DEFAULT_VOLUME;
             gain.connect(context.destination);
             this.volumeGain = gain;
         }
         return this.volumeGain;
     }
 
+    getVolume () {
+        if(this.volumeGain) {
+            return this.volumeGain.gain.value * 100;
+        }
+        return MusicPlayerElement.DEFAULT_VOLUME * 100;
+    }
+    setVolume (volume) {
+        const gain = this.getVolumeGain();
+        if(gain.gain.value !== volume) {
+            gain.gain.value = volume / 100;
+            console.info("Setting volume: ", volume);
+        }
+    }
     connectedCallback() {
         this.addEventListener('keydown', this.onInput);
         this.addEventListener('keyup', this.onInput);
@@ -380,13 +393,6 @@ class MusicPlayerElement extends HTMLElement {
 
     // Playback
 
-    setVolume (volume) {
-        const gain = this.getVolumeGain();
-        if(gain.gain.value !== volume) {
-            gain.gain.value = volume / 100;
-            console.info("Setting volume: ", volume);
-        }
-    }
 
     play (seekPosition) {
         this.seekPosition = seekPosition || 0;
@@ -518,6 +524,7 @@ class MusicPlayerElement extends HTMLElement {
     }
 
 }
+MusicPlayerElement.DEFAULT_VOLUME = 0.3;
 
 // Define custom elements
 customElements.define('music-player', MusicPlayerElement);
