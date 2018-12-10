@@ -158,8 +158,11 @@ class SongServer {
                 const MusicEditorSongModifier = require('../../editor/music-editor-song-modifier');
                 const songManipulator = new MusicEditorSongModifier(songContent);
 
-                songManipulator.applyHistoryActions(jsonRequest.historyActions);
-
+                try {
+                    songManipulator.applyHistoryActions(jsonRequest.historyActions);
+                } catch (e) {
+                    return this.sendError(ws, e);
+                }
                 // Insert Modified Content
                 let SQL = `REPLACE INTO song_content 
                             SET created=UTC_TIMESTAMP(), 
@@ -181,7 +184,7 @@ class SongServer {
                         [step, JSON.stringify(historyAction), uuid],
                         (error, results, fields) => {
                             if (error)
-                                throw error;
+                                return this.sendError(ws, error);
                         });
                 }
 
@@ -220,7 +223,7 @@ class SongServer {
                     ORDER BY sh.step ASC`;
         this.db.query(SQL, [songUUID], (error, songHistoryResults, fields) => {
             if (error)
-                throw error;
+                return this.sendError(ws, error);
             callback(songHistoryResults);
         });
     }

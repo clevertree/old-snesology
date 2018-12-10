@@ -66,6 +66,8 @@ class MusicEditorSongModifier {
     }
 
     insertDataPath(path, newData) {
+        newData = MusicEditorSongModifier.sanitizeInput(newData, path);
+
         const pathInfo = this.findDataPath(path);
 
         if(typeof pathInfo.key !== 'number')
@@ -108,6 +110,8 @@ class MusicEditorSongModifier {
     }
 
     replaceDataPath(path, newData) {
+        newData = MusicEditorSongModifier.sanitizeInput(newData, path);
+
         let oldData = null;
         const pathInfo = this.findDataPath(path);
 
@@ -342,6 +346,43 @@ class MusicEditorSongModifier {
         });
     }
 
+    static sanitizeInput(value, path) {
+        if(Array.isArray(value)) {
+            for(let i=0; i<value.length; i++)
+                MusicEditorSongModifier.sanitizeInput(value[i], path + `.${i}`);
+            return value;
+        }
+        if(typeof value === 'object') {
+            for(const key in value)
+                if(value.hasOwnProperty(key))
+                    MusicEditorSongModifier.sanitizeInput(value[key], path + `.${key}`);
+            return value;
+        }
+
+        if(typeof require !== 'undefined') {
+            var Filter = require('bad-words'),
+                filter = new Filter();
+            if(filter.isProfane(value))
+                throw new Error("Swear words are forbidden");
+            value = filter.clean(value);
+        }
+
+        var ESC_MAP = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        let regex = /[&<>'"]/g;
+        // if(false) {
+        //     regex = /[&<>]/g;
+        // }
+
+        return value.replace(regex, function(c) {
+            return ESC_MAP[c];
+        });
+    }
 
     static processInstruction(instruction) {
         if (typeof instruction === 'number')

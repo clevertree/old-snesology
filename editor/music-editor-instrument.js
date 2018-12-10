@@ -116,8 +116,7 @@ class MusicEditorInstrumentListElement extends HTMLElement {
     connectedCallback() {
         this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
         this.render();
-        this.addEventListener('submit', this.editor.menu.onSubmit.bind(this.editor.menu));
-        this.addEventListener('change', this.editor.menu.onSubmit.bind(this.editor.menu));
+        this.addEventListener('change', (e) => e.target.form.submit());
     }
 
     render() {

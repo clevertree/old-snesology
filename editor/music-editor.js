@@ -46,32 +46,24 @@ class MusicEditorElement extends HTMLElement {
     get menu() { return this.querySelector('music-editor-menu'); }
     get instruments() { return this.querySelectorAll(`music-editor-instrument`); }
 
-    getKeyboardCommand(key) {
-        if(typeof this.keyboardLayout[key] === 'undefined')
-            return null;
-        const octave = parseInt(this.menu.fieldRenderOctave.value) || 1;
-        let command = this.keyboardLayout[key];
-        command = command.replace('2', octave+1);
-        command = command.replace('1', octave);
-        return command;
-    }
-
     connectedCallback() {
-        const playerElement = document.createElement('music-player');
-        this.player = playerElement;
+        
         this.addEventListener('song:start', this.onSongEvent);
         this.addEventListener('song:end', this.onSongEvent);
         this.addEventListener('song:pause', this.onSongEvent);
         this.addEventListener('instrument:initiated', this.onSongEvent);
         document.addEventListener('instrument:instance', this.onSongEvent.bind(this));
 
+
+        this.player = document.createElement('music-player');
         // this.songData = this.player.getSongData();
         // const onInstrumentEvent = this.onInstrumentEvent.bind(this);
         // playerElement.addEventListener('instrument:initiated', onInstrumentEvent);
 
-        if(this.getAttribute('uuid'))
-            this.initWebSocket(this.getAttribute('uuid'));
-        // this.re-nder(); // Render after player element is loaded
+        const uuid = this.getAttribute('uuid');
+        if(uuid)
+            this.initWebSocket(uuid);
+        // this.render(); // Render after player element is loaded
 
 
         const xhr = new XMLHttpRequest();
@@ -85,14 +77,313 @@ class MusicEditorElement extends HTMLElement {
         };
         xhr.send();
 
-        this.addEventListener('keydown', this.onInput);
+        this.addEventListener('submit', this.onSubmit);
+        this.addEventListener('change', this.onSubmit);
+        this.addEventListener('blur', this.onSubmit);
+        // this.addEventListener('keydown', this.onInput);
+        this.addEventListener('mousedown', this.onInput);
         this.render();
 
     }
+    onError(err) {
+        console.error(err);
+        if(this.webSocket)
+            this.webSocket
+                .send(JSON.stringify({
+                    type: 'error',
+                    message: err.message || err,
+                    stack: err.stack
+                }));
+    }
 
-    getAudioContext() { return this.player.getAudioContext(); }
-    getSongData() { return this.player.getSongData(); }
+    // Input
 
+    // profileInput(e) {
+    //     e = e || {};
+    //     return {
+    //         gridClearSelected: !e.ctrlKey && !e.shiftKey,
+    //         gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
+    //         gridCompleteSelection: e.shiftKey
+    //     };
+    // }
+
+    onInput(e) {
+        // console.info(e.type, e);
+        if(e.defaultPrevented)
+            return;
+
+        // let targetClassList = e.target.classList;
+        switch(e.type) {
+            // case 'keydown':
+            //     switch(e.key) {
+            //         case 'Tab': break;
+            //         case ' ': this.player.play(); e.preventDefault(); break;
+            //         case 'Escape': this.grid.focus(); break;
+            //         default:
+            //     }
+            //     break;
+
+            case 'mousedown':
+                const dataCommand = e.target.getAttribute('data-command');
+                if(dataCommand) {
+                    this.onMenu(e);
+
+                    // if(menuItem.nextElementSibling
+                    //     && menuItem.nextElementSibling.classList.contains('submenu')) {
+                    //     const submenu = menuItem.nextElementSibling;
+                    //     if(submenu.getAttribute('data-submenu-content')) {
+                    //         const targetClass = submenu.getAttribute('data-submenu-content');
+                    //         submenu.innerHTML = this.getElementsByClassName(targetClass)[0].innerHTML;
+                    //     }
+                    //     // let subMenu = menuItem.nextElementSibling;
+                    //     const isOpen = menuItem.classList.contains('open');
+                    //     this.querySelectorAll('.menu-item.open,.submenu.open').forEach(elm => elm.classList.remove('open'));
+                    //     let parentMenuItem = menuItem;
+                    //     while(parentMenuItem && parentMenuItem.classList.contains('menu-item')) {
+                    //         parentMenuItem.classList.toggle('open', !isOpen);
+                    //         parentMenuItem = parentMenuItem.parentNode.parentNode.previousElementSibling;
+                    //     }
+                    //     return;
+                    // }
+                }
+                this.menu.closeMenu();
+                break;
+
+            default:
+                console.error("Unhandled " + e.type, e);
+        }
+    }
+
+    onSubmit(e) {
+        let form = e.target;
+        switch(e.type) {
+            case 'change':
+            case 'blur':
+                form = e.target.form;
+                if(!form || !form.classList.contains('submit-on-' + e.type))
+                    return;
+                break;
+        }
+        e.preventDefault();
+        // try {
+        const command = form.getAttribute('data-command');
+        const cursorPosition = this.grid.cursorPosition;
+        const currentGroup = this.grid.groupName;
+        const selectedIndices = this.grid.selectedIndices;
+        const selectedPauseIndices = this.grid.selectedPauseIndices;
+        const selectedRange = this.grid.selectedRange;
+
+        switch (command) {
+
+            case 'instruction:insert':
+                const newInstruction = {
+                    command: form.command.value,
+                    duration: parseFloat(form['duration'].value),
+                };
+                if(form['duration'].value)
+                    newInstruction['instrument'] = parseInt(form['duration'].value);
+                // newInstruction.command = this.keyboardLayout[e.key];
+                this.insertInstructionAtPosition(currentGroup, cursorPosition, newInstruction);
+                break;
+
+            case 'instruction:command':
+                if(form['command'].value === '') {
+                    form['command'].focus();
+                    return;
+                }
+                this.replaceInstructionParam(currentGroup, selectedIndices, 'command', form['command'].value);
+                break;
+
+            case 'instruction:instrument':
+                let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
+                this.replaceInstructionParam(currentGroup, selectedIndices, 'instrument', instrumentID);
+                break;
+
+            case 'instruction:duration':
+                const duration = form.duration.value || null;
+                this.replaceInstructionParam(currentGroup, selectedIndices, 'duration', duration);
+                break;
+
+            case 'instruction:velocity':
+                const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
+                this.replaceInstructionParam(currentGroup, selectedIndices, 'velocity', velocity);
+                break;
+
+            case 'instruction:remove':
+                this.deleteInstructionAtIndex(currentGroup, selectedIndices);
+                break;
+
+            case 'row:edit':
+                this.replaceInstructionParams(currentGroup, selectedPauseIndices, {
+                    command: '!pause',
+                    duration: parseFloat(form.duration.value)
+                });
+                // this.gridSelect([instruction]);
+                break;
+
+            case 'row:duplicate':
+                if (!selectedRange)
+                    throw new Error("No selected range");
+                this.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
+                break;
+
+
+            case 'group:edit':
+                if (form.groupName.value === ':new') {
+                    let newGroupName = this.generateInstructionGroupName(currentGroup);
+                    newGroupName = prompt("Create new instruction group?", newGroupName);
+                    if (newGroupName) this.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                    else console.error("Create instruction group canceled");
+                } else {
+                    this.gridNavigate(form.groupName.value);
+                }
+                break;
+
+            case 'song:edit':
+                const song = this.getSongData();
+                // songData.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
+                song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
+                song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
+                this.render();
+                // this.gridSelect(e, 0);
+                break;
+
+            case 'song:play':
+                this.player.play();
+                break;
+            case 'song:pause':
+                this.player.pause();
+                break;
+            case 'song:playback':
+                console.log(e.target);
+                break;
+
+            case 'song:volume':
+                this.player.setVolume(parseInt(form['volume'].value));
+                break;
+
+            case 'grid:duration':
+                this.grid.render();
+                break;
+
+            case 'grid:instrument':
+                this.grid.render();
+                break;
+
+            case 'song:add-instrument':
+                const instrumentURL = form['instrumentURL'].value;
+                form['instrumentURL'].value = '';
+                if(confirm(`Add Instrument to Song?\nURL: ${instrumentURL}`)) {
+                    this.addInstrument(instrumentURL);
+                    this.render();
+                } else {
+                    console.info("Add instrument canceled");
+                }
+//                     this.fieldAddInstrumentInstrument.value = '';
+                break;
+
+            case 'song:set-title':
+                this.setSongTitle(form['title'].value);
+                break;
+
+            case 'song:set-version':
+                this.setSongVersion(form['version'].value);
+                break;
+
+            default:
+                console.warn("Unhandled " + e.type + ": ", command);
+                break;
+        }
+        // } catch (e) {
+        //     this.onError(e);
+        // }
+    }
+
+    onMenu(e) {
+        const cursorIndex = this.grid.cursorPosition;
+        const currentGroup = this.grid.groupName;
+        const instructionList = this.grid.instructionList;
+        const cursorInstruction = instructionList[cursorIndex];
+
+        const dataCommand = e.target.getAttribute('data-command');
+        if(!dataCommand)
+            return;
+        console.info("Menu Click: " + dataCommand, e);
+        e.preventDefault();
+        switch(dataCommand) {
+
+            case 'save:memory':
+                this.saveSongToMemory();
+                break;
+            case 'save:file':
+                this.saveSongToFile();
+                break;
+            case 'load:memory':
+                this.loadSongFromMemory(e.target.getAttribute('data-guid'));
+                break;
+
+            case 'group:add':
+                let newGroupName = this.generateInstructionGroupName(currentGroup);
+                newGroupName = prompt("Create new instruction group?", newGroupName);
+                if(newGroupName)    this.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                else                console.error("Create instruction group canceled");
+                break;
+
+            case 'group:remove':
+                this.removeInstructionGroup(currentGroup);
+                break;
+
+            case 'group:rename':
+                let renameGroupName = prompt("Rename instruction group?", currentGroup);
+                if(renameGroupName)     this.renameInstructionGroup(currentGroup, renameGroupName);
+                else                    console.error("Rename instruction group canceled");
+                break;
+
+            case 'instruction:insert':
+                const newInstruction = {
+                    // type: 'note',
+                    instrument: 0,
+                    command: 'C4',
+                    duration: 1
+                }; // new instruction
+                // editor.getSelectedInstructions() = [selectedInstruction]; // select new instruction
+                this.insertInstructionAtIndex(currentGroup, cursorIndex, newInstruction);
+                break;
+
+            case 'instruction:command':
+                const newCommand = prompt("Set Command:", cursorInstruction.command);
+                if(newCommand !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
+                    command: newCommand
+                });
+                else                    console.error("Set instruction command canceled");
+                break;
+
+            case 'instruction:duration':
+                const newDuration = prompt("Set Duration:", typeof cursorInstruction.duration === 'undefined' ? 1 : cursorInstruction.duration);
+                if(newDuration < 0) throw new Error("Invalid duration value");
+                if(newDuration !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
+                    duration: newDuration
+                });
+                else                    console.error("Set instruction duration canceled");
+                break;
+
+            case 'instruction:velocity':
+                const newVelocity = prompt("Set Velocity:", typeof cursorInstruction.velocity === 'undefined' ? 100 : cursorInstruction.velocity);
+                if(newVelocity < 0 || newVelocity > 100) throw new Error("Invalid velocity value");
+                if(newVelocity !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
+                    velocity: newVelocity
+                });
+                else                    console.error("Set instruction velocity canceled");
+                break;
+
+            case 'menu:toggle':
+                // this.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
+                // e.target.classList.toggle('open');
+                break;
+            default:
+                console.warn("Unknown menu command: " + dataCommand);
+        }
+    }
 
     initWebSocket(uuid) {
         if(!uuid) uuid = null;
@@ -183,38 +474,20 @@ class MusicEditorElement extends HTMLElement {
 
     }
 
-    onError(err) {
-        console.error(err);
-        if(this.webSocket)
-            this.webSocket
-                .send(JSON.stringify({
-                    type: 'error',
-                    message: err.message || err,
-                    stack: err.stack
-                }));
+    
+    getKeyboardCommand(key) {
+        if(typeof this.keyboardLayout[key] === 'undefined')
+            return null;
+        const octave = parseInt(this.menu.fieldRenderOctave.value) || 1;
+        let command = this.keyboardLayout[key];
+        command = command.replace('2', octave+1);
+        command = command.replace('1', octave);
+        return command;
     }
 
-    onInput(e) {
-        // console.info(e.type, e);
-        if(e.defaultPrevented)
-            return;
+    getAudioContext() { return this.player.getAudioContext(); }
+    getSongData() { return this.player.getSongData(); }
 
-        // let targetClassList = e.target.classList;
-        switch(e.type) {
-            case 'keydown':
-                switch(e.key) {
-                    case 'Tab': break;
-                    case ' ': this.player.play(); e.preventDefault(); break;
-                    case 'Escape': this.grid.focus(); break;
-                    default:
-                }
-                break;
-
-
-            default:
-                console.error("Unhandled " + e.type, e);
-        }
-    }
 
     loadSongUUID(uuid) {
         this.setAttribute('uuid', uuid);
@@ -492,17 +765,6 @@ class MusicEditorElement extends HTMLElement {
         if(!newGroupName)
             throw new Error("Failed to generate group name");
         return newGroupName;
-    }
-
-    // Input
-
-    profileInput(e) {
-        e = e || {};
-        return {
-            gridClearSelected: !e.ctrlKey && !e.shiftKey,
-            gridToggleAction: e.key === ' ' || (!e.shiftKey && !e.ctrlKey) ? 'toggle' : (e.ctrlKey && e.type !== 'mousedown' ? null : 'add'),
-            gridCompleteSelection: e.shiftKey
-        };
     }
 
     // Grid Commands
