@@ -358,6 +358,8 @@ class MusicEditorSongModifier {
                     MusicEditorSongModifier.sanitizeInput(value[key], path + `.${key}`);
             return value;
         }
+        if(typeof value !== 'string')
+            return value;
 
         if(typeof require !== 'undefined') {
             var Filter = require('bad-words'),

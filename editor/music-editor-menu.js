@@ -149,57 +149,88 @@ class MusicEditorMenuElement extends HTMLElement {
                     <a tabindex="${tabIndex++}"><span class="key">F</span>ile</a>
                     <ul class="sub-menu">
                         <li>
-                            <a>Open from memory &#9658;</a>
+                            <a href="editor/new" target="_blank" data-command1="song:new">
+                                <span class="key">N</span>ew song
+                            </a>
+                        </li>
+                        <li>
+                            <a tabindex="${tabIndex++}"><span class="key">O</span>pen song &#9658;</a>
                             <ul class="sub-menu">
-                                ${this.editor.getEditorFormOptions('recent-uuid', (value, label) =>
-                                `<li><a data-command="song:load-uuid" data-uuid="${value}">${label}</a></li>`)}
+                                <li>
+                                    <a>from <span class="key">S</span>erver &#9658;</a>
+                                    <ul class="sub-menu">
+                                        ${this.editor.getEditorFormOptions('server-recent-uuid', (value, label) =>
+                                        `<li><a data-command="song:load-server-uuid" data-uuid="${value}">${label}</a></li>`)}
+                                        <li><a data-command="song:load-server-uuid" data-uuid="">Enter UUID</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a>from <span class="key">M</span>emory &#9658;</a>
+                                    <ul class="sub-menu">
+                                        ${this.editor.getEditorFormOptions('memory-recent-uuid', (value, label) =>
+                                        `<li><a data-command="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
+                                        <li><a data-command="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
+                                    </ul>
+                                </li>
+                                <li><a class="disabled" data-command="load:file">from <span class="key">F</span>ile</a></li>
+                                <li><a class="disabled" data-command="load:url">from <span class="key">U</span>rl</a></li>
                             </ul>
                         </li>
-                        <li><a data-command="load:file">Open from file</a></li>
-                        <li><a class="disabled" data-command="load:url">Open from url</a></li>
-                        
-                        <hr/>
-                        <li><a data-command="save:memory">Save to memory</a></li>
-                        <li><a data-command="save:file">Save to file</a></li>
-                        <li><a data-command="save:server">Save to server</a></li>
-                        
-                        <hr/>
-                        <li><a class="disabled" data-command="export:file">Export to audio file</a></li>
+                        <li>
+                            <a tabindex="${tabIndex++}"><span class="key">S</span>ave song &#9658;</a>
+                            <ul class="sub-menu">
+                                <li><a data-command="song:server-sync">to <span class="key">S</span>erver</a><input type="checkbox" ${this.editor.webSocket ? `checked="checked"` : ''}></li>
+                                <li><a data-command="save:memory">to <span class="key">M</span>emory</a></li>
+                                <li><a data-command="save:file">to <span class="key">F</span>ile</a></li>    
+                            </ul>
+                        </li> 
+                        <li>
+                            <a tabindex="${tabIndex++}"><span class="key">E</span>xport song &#9658;</a>
+                            <ul class="sub-menu">
+                                <li><a class="disabled" data-command="export:file">to audio file</a></li>
+                            </ul>
+                        </li>     
                     </ul>
                 </li>
                 <li>
-                    <a tabindex="${tabIndex++}"><span class="key">C</span>md</a>
-                    <ul class="sub-menu submenu:command">
+                    <a tabindex="${tabIndex++}"><span class="key">E</span>dit</a>
+                    <ul class="sub-menu">
                         <li><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
                         <li><a data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
                         <li><a data-command="instruction:instrument">Set <span class="key">I</span>nstrument</a></li>
                         <li><a data-command="instruction:duration">Set <span class="key">D</span>uration</a></li>
                         <li><a data-command="instruction:velocity">Set <span class="key">V</span>elocity</a></li>
                         <li><a data-command="instruction:panning">Set <span class="key">P</span>anning</a></li>
-                        <li><a data-command="instruction:remove"><span class="key">D</span>elete Note</a></li>
+                        <li><a data-command="instruction:delete"><span class="key">D</span>elete Note</a></li>
+                        <hr/>
+                        <li>
+                            <a tabindex="${tabIndex++}">Edit <span class="key">R</span>ow &#9658;</a>
+                            <ul class="sub-menu">
+                                <li><a data-command="row:delete"><span class="key">D</span>elete Row</a></li>
+                            </ul>
+                        </li>
+                        <hr/>
+                        <li>
+                            <a tabindex="${tabIndex++}">Edit <span class="key">G</span>roup &#9658;</a>
+                            <ul class="sub-menu">
+                                <li><a data-command="group:add"><span class="key">I</span>nsert new Group</a></li>
+                                <li><a data-command="group:delete"><span class="key">D</span>elete current Group</a></li>
+                                <li><a data-command="group:rename"><span class="key">R</span>ename current Group</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </li>
                 <li>
-                    <a tabindex="${tabIndex++}"><span class="key">R</span>ow</a>
-                    <ul class="sub-menu submenu:pause">
-                        <li><a data-command="row:remove"><span class="key">R</span>emove Row</a></li>
+                    <a tabindex="${tabIndex++}"><span class="key">V</span>iew</a>
+                    <ul class="sub-menu">
                     </ul>
                 </li>
                 <li>
-                    <a tabindex="${tabIndex++}"><span class="key">G</span>roup</a>
-                    <ul class="sub-menu submenu:group">
-                        <li><a data-command="group:add"><span class="key">I</span>nsert Group</a></li>
-                        <li><a data-command="group:remove"><span class="key">R</span>emove Group</a></li>
-                        <li><a data-command="group:rename"><span class="key">R</span>ename Group</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a tabindex="${tabIndex++}"><span class="key">I</span>nstrument</a>
-                    <ul class="sub-menu submenu:instrument">
+                    <a tabindex="${tabIndex++}"><span class="key">I</span>nstruments</a>
+                    <ul class="sub-menu">
                         <li><a data-command="instrument:add">Add <span class="key">N</span>ew Instrument</a></li>
                     </ul>
                 </li>
-                <li><a class="disabled" tabindex="${tabIndex++}"><span class="key">P</span>ublish</a></li>
             </ul>
             <ul class="editor-context-menu submenu">
                 <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
@@ -288,8 +319,8 @@ class MusicEditorMenuElement extends HTMLElement {
                             </optgroup>
                         </select>
                     </form>
-                    <form class="form-instruction-remove" data-command="instruction:remove">
-                        <button name="remove" class="themed" title="Remove Instruction">-</button>
+                    <form class="form-instruction-delete" data-command="instruction:delete">
+                        <button name="delete" class="themed" title="Delete Instruction">-</button>
                     </form>
                 </div>
                 
@@ -334,8 +365,8 @@ class MusicEditorMenuElement extends HTMLElement {
                     <form class="form-row-insert" data-command="row:insert">
                         <button name="insert" disabled="disabled" class="themed">+</button>
                     </form>
-                    <form class="form-row-remove" data-command="row:remove">
-                        <button name="remove" disabled="disabled" class="themed">-</button>
+                    <form class="form-row-delete" data-command="row:delete">
+                        <button name="delete" disabled="disabled" class="themed">-</button>
                     </form>
                     <form class="form-row-duplicate" data-command="row:duplicate">
                         <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>

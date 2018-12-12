@@ -209,7 +209,7 @@ class MusicEditorElement extends HTMLElement {
                 this.replaceInstructionParam(currentGroup, selectedIndices, 'velocity', velocity);
                 break;
 
-            case 'instruction:remove':
+            case 'instruction:delete':
                 this.deleteInstructionAtIndex(currentGroup, selectedIndices);
                 break;
 
@@ -310,17 +310,34 @@ class MusicEditorElement extends HTMLElement {
             return;
         console.info("Menu Click: " + dataCommand, e);
         e.preventDefault();
+
+        let uuid = e.target.getAttribute('data-uuid') || null;
+
         switch(dataCommand) {
+            case 'song:new':
+                document.location = 'editor/new';
+                break;
+
+            case 'song:save':
+                throw new Error("Todo");
+
+            case 'song:load-server-uuid':
+                if(!uuid) uuid = prompt("Enter UUID: ");
+                this.loadSongFromServer(uuid);
+                break;
+
+            case 'song:load-memory-uuid':
+                this.loadSongFromMemory(uuid);
+                break;
 
             case 'save:memory':
                 this.saveSongToMemory();
                 break;
+
             case 'save:file':
                 this.saveSongToFile();
                 break;
-            case 'load:memory':
-                this.loadSongFromMemory(e.target.getAttribute('data-guid'));
-                break;
+
 
             case 'group:add':
                 let newGroupName = this.generateInstructionGroupName(currentGroup);
@@ -451,9 +468,10 @@ class MusicEditorElement extends HTMLElement {
 
                             const songUUID = songModifier.songData.uuid;
                             if(songUUID) {
-                                const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-recent-uuid') || '{}');
-                                songRecentUUIDs[songModifier.songData.uuid] = songModifier.songData.title || `Untitled`;
-                                localStorage.setItem('editor-recent-uuid', JSON.stringify(songRecentUUIDs));
+                                let songRecentUUIDs = JSON.parse(localStorage.getItem('server-recent-uuid') || '[]');
+                                songRecentUUIDs = songRecentUUIDs.filter((entry) => entry[0] !== songUUID);
+                                songRecentUUIDs.unshift([songUUID, songModifier.songData.title, new Date().getTime()]);
+                                localStorage.setItem('server-recent-uuid', JSON.stringify(songRecentUUIDs));
                             }
                             // }
                             break;
@@ -489,29 +507,37 @@ class MusicEditorElement extends HTMLElement {
     getSongData() { return this.player.getSongData(); }
 
 
-    loadSongUUID(uuid) {
+    loadSongFromServer(uuid) {
         this.setAttribute('uuid', uuid);
         this.initWebSocket(uuid);
 
-        const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-recent-uuid') || '{}');
-        if(typeof songRecentUUIDs[uuid] === 'undefined') {
-            songRecentUUIDs[uuid] = `New Song (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`;
-            localStorage.setItem('editor-recent-uuid', JSON.stringify(songRecentUUIDs));
-        }
+        // const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-recent-uuid') || '{}');
+        // if(typeof songRecentUUIDs[uuid] === 'undefined') {
+        //     songRecentUUIDs[uuid] = `New Song (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`;
+        //     localStorage.setItem('editor-recent-uuid', JSON.stringify(songRecentUUIDs));
+        // }
     }
 
 
     saveSongToMemory() {
         const song = this.getSongData();
-        const songList = JSON.parse(localStorage.getItem('share-editor-saved-list') || "[]");
-        if(songList.indexOf(song.url) === -1)
-            songList.push(song.url);
-        console.log("Saving song: ", song, songList);
-        localStorage.setItem('song:' + song.url, JSON.stringify(song));
-        localStorage.setItem('share-editor-saved-list', JSON.stringify(songList));
+        if(!song.uuid) {
+            // Unsafe
+            song.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        let songRecentUUIDs = JSON.parse(localStorage.getItem('memory-recent-uuid') || '[]');
+        songRecentUUIDs = songRecentUUIDs.filter((entry) => entry[0] !== song.uuid);
+        songRecentUUIDs.unshift([song.uuid, song.title, new Date().getTime()]);
+        localStorage.setItem('memory-recent-uuid', JSON.stringify(songRecentUUIDs));
+
+
+        localStorage.setItem('song:' + song.uuid, JSON.stringify(song));
         this.menu.render();
         // this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
-        console.info("Song saved to memory: " + song.url, song);
+        console.info("Song saved to memory: " + song.uuid, song);
     }
 
     saveSongToFile() {
@@ -825,12 +851,11 @@ class MusicEditorElement extends HTMLElement {
         const songData = this.getSongData() || {};
 
         switch(optionType) {
-            case 'recent-uuid':
-            case 'local-uuid':
-                const songRecentUUIDs = JSON.parse(localStorage.getItem('editor-' + optionType) || '{}');
-                for(const songRecentUUID in songRecentUUIDs)
-                    if(songRecentUUIDs.hasOwnProperty(songRecentUUID))
-                        optionsHTML += callback(songRecentUUID, songRecentUUIDs[songRecentUUID]);
+            case 'server-recent-uuid':
+            case 'memory-recent-uuid':
+                const songRecentUUIDs = JSON.parse(localStorage.getItem(optionType) || '[]');
+                for(var i=0; i<songRecentUUIDs.length; i++)
+                    optionsHTML += callback.apply(this, songRecentUUIDs[i]);
                 break;
 
             case 'instruments-songs':
