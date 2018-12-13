@@ -378,7 +378,7 @@ class MusicEditorMenuElement extends HTMLElement {
                 
                 <div class="form-section">
                     <legend class="themed">Octave</legend>
-                    <form class="form-render-octave">
+                    <form class="form-render-octave submit-on-change">
                         <select name="octave" class="themed">
                             <option value="">Select Octave</option>
                             ${this.editor.renderEditorFormOptions('command-frequency-octaves')}
@@ -401,7 +401,7 @@ class MusicEditorMenuElement extends HTMLElement {
                 
                 <div class="form-section">
                     <legend class="themed">Render Duration</legend>
-                    <form class="form-render-duration" data-command="grid:duration">
+                    <form class="form-render-duration submit-on-change" data-command="grid:duration">
                         <label class="row-label">
                             <select name="duration" title="Render Duration" class="themed">
                                 <option value="1.0">Default (1B)</option>
@@ -415,7 +415,7 @@ class MusicEditorMenuElement extends HTMLElement {
                 
                 <div class="form-section">
                     <legend class="themed">Filter By Instrument</legend>                    
-                    <form class="form-render-instrument" data-command="grid:instrument">
+                    <form class="form-render-instrument submit-on-change" data-command="grid:instrument">
                         <label class="row-label">
                             <select name="instrument" class="themed"->
                                 <option value="">Show All (Default)</option>

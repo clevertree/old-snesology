@@ -108,6 +108,9 @@ class MusicEditorGridElement extends HTMLElement {
         this.editor.menu.update();
     }
 
+    static getInstrumentList(instructionList) {
+    }
+
     render() {
         let cellList = this.querySelectorAll('.grid-cell');
         const cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
@@ -118,72 +121,68 @@ class MusicEditorGridElement extends HTMLElement {
 
         const instructionList = this.instructionList;
 
+
+        let instrumentList = [];
+        for(let index=0; index<instructionList.length; index++) {
+            const instruction = instructionList[index];
+            if (typeof instruction.instrument === "undefined")
+                continue;
+            const instrumentID = parseInt(instruction.instrument);
+            if(instrumentList.indexOf(instrumentID) === -1)
+                instrumentList.push(instrumentID);
+
+        }
+        instrumentList = instrumentList.sort();
+
+
         let odd = false;
-        let editorHTML = '', cellHTML = '', songPosition = 0; // , lastPause = 0;
-
-        const addInstructionHTML = (index, instruction, selectedInstruction) => {
-            const selectedClass = selectedInstruction ? ' selected' : '';
-            cellHTML += `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">`;
-            cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
-            if (typeof instruction.instrument !== 'undefined')
-                cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
-            if (typeof instruction.velocity !== 'undefined')
-                cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-            if (typeof instruction.duration !== 'undefined')
-                cellHTML += `<div class="grid-parameter duration">${this.editor.format(instruction.duration, 'duration')}</div>`;
-            cellHTML += `</div>`;
-        };
-
-        const addPauseHTML = (index, pauseInstruction) => {
-            if(typeof pauseInstruction.duration !== "number")
-                throw console.error(`Invalid Pause command: (${index})`, pauseInstruction);
-
-            const duration = pauseInstruction.duration;
-            for(let subPause=0; subPause<duration; subPause+=gridDuration) {
-                let subDuration = gridDuration;
-                if(subPause + gridDuration > duration)
-                    subDuration = subPause + gridDuration - duration;
-
-                // if (Math.floor(songPosition / beatsPerMeasure) !== Math.floor((songPosition + pauseInstruction.pause) / beatsPerMeasure))
-                //     rowCSS.push('measure-end');
-
-                var rowCSS = (odd = !odd) ? ['odd'] : [];
-
-                // const gridCSS = subDuration >= 1 ? 'duration-large'
-                //     : (subDuration >= 1/4 ? 'duration-medium'
-                //         : 'duration-small');
-                editorHTML +=
-                    `<div class="grid-row ${rowCSS.join(' ')}" data-index="${index}" data-position="${songPosition}">`
-                    +   cellHTML
-                    +   `<div class="grid-cell grid-cell-new">`
-                    +     `<div class="grid-parameter">+</div>`
-                    +   `</div>`
-                    +   `<div class="grid-cell-pause">`
-                    +     `<div class="grid-parameter">${this.editor.format(duration, 'duration')}</div>`
-                    +   `</div>`
-                    + `</div>`;
-                cellHTML = '';
-
-                songPosition += subDuration;
-            }
-
-        };
+        let editorHTML = '', rowContent = null, songPosition = 0; // , lastPause = 0;
+        editorHTML += `<tr class="grid-header">`;
+        for(var i=0; i<instrumentList.length; i++)
+            editorHTML += `<th>${instrumentList[i]}</th>`;
+        editorHTML += `<th>Pause</th>`;
+        editorHTML += `</tr>`;
 
         for(let index=0; index<instructionList.length; index++) {
             const instruction = instructionList[index];
-            let selectedInstruction = false;
-            // let cursorInstruction = cursorCellIndex === index;
-            if(selectedIndices.indexOf(index) !== -1) {
-                selectedInstruction = true;
-            }
+            let selectedInstruction = selectedIndices.indexOf(index) !== -1;
 
             if (instruction.command[0] === '!') {
                 const functionName = instruction.command.substr(1);
                 switch (functionName) {
                     case 'pause':
-                        //songPosition += instruction.duration;
-                        addPauseHTML(index, instruction);
-                        // TODO: skip pauses with no instructions?
+                        if(typeof instruction.duration !== "number")
+                            throw console.error(`Invalid Pause command: (${index})`, instruction);
+                        // TODO: ignore pause if no commands. add duration to next pause
+                        const duration = instruction.duration;
+                        for(let subPause=0; subPause<duration; subPause+=gridDuration) {
+                            let subDuration = gridDuration;
+                            if(subPause + gridDuration > duration)
+                                subDuration = subPause + gridDuration - duration;
+
+                            var rowCSS = (odd = !odd) ? ['odd'] : [];
+
+                            editorHTML +=
+                                `<tr class="grid-row ${rowCSS.join(' ')}" data-index="${index}" data-position="${songPosition}">`;
+                            for(var i=0; i<instrumentList.length; i++) {
+                                editorHTML +=
+                                    `<td>`
+                                +       rowContent[instrumentList[i]]
+                                +   `</td>`
+
+                            }
+                            editorHTML +=
+                                // +   `<div class="grid-cell grid-cell-new">`
+                                // +     `<div class="grid-parameter">+</div>`
+                                // +   `</div>`
+                                    `<td>`
+                                +     `<div class="grid-cell-pause">${this.editor.format(duration, 'duration')}</div>`
+                                +   `</td>`
+                                + `</tr>`;
+
+                            songPosition += subDuration;
+                        }
+                        rowContent = null;
                         break;
 
                     default:
@@ -191,12 +190,30 @@ class MusicEditorGridElement extends HTMLElement {
                         break;
                 }
             } else {
-                if(instrumentFilter === null || instrumentFilter === (instruction.instrument || 0))
-                    addInstructionHTML(index, instruction, selectedInstruction);
+                // if(instrumentFilter === null || instrumentFilter === (instruction.instrument || 0)) {
+                    const selectedClass = selectedInstruction ? ' selected' : '';
+                    let cellHTML = `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">`;
+                    cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
+                    if (typeof instruction.instrument !== 'undefined')
+                        cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
+                    if (typeof instruction.velocity !== 'undefined')
+                        cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
+                    if (typeof instruction.duration !== 'undefined')
+                        cellHTML += `<div class="grid-parameter duration">${this.editor.format(instruction.duration, 'duration')}</div>`;
+                    cellHTML += `</div>`;
+                    const instrumentID = typeof instruction.instrument !== "undefined" ? parseInt(instruction.instrument) : 0;
+                    if(!rowContent) {
+                        rowContent = {};
+                        for(var i=0; i<instrumentList.length; i++)
+                            rowContent[instrumentList[i]] = '';
+                    }
+                    rowContent[instrumentID] = cellHTML;
+                // }
             }
         }
 
         const currentScrollPosition = this.scrollTop || 0;
+        editorHTML = `<table>${editorHTML}</table>`;
         this.innerHTML = editorHTML;
         this.scrollTop = currentScrollPosition;
 
@@ -391,7 +408,8 @@ class MusicEditorGridElement extends HTMLElement {
                         console.info("TODO: add parameter editor at top of context menu: ", e.target);
                     }
                     this.editor.menu.openContextMenu(e);
-                    if(!e.altKey) e.preventDefault();
+                    // if(!e.altKey) e.preventDefault();
+
                     break;
 
             }
