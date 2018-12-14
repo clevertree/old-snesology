@@ -62,7 +62,7 @@ class MusicEditorInstrumentElement extends HTMLElement {
     }
 
     render() {
-        const instrumentIDHTML = ((id) => (id < 10 ? "0" : "") + id + ": ")(this.id);
+        const instrumentIDHTML = (this.id < 10 ? "0" : "") + (this.id + ": ");
 
         const buttonHTML = `<button class="remove-instrument">x</button>`;
 

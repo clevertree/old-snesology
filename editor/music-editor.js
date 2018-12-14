@@ -536,7 +536,7 @@ class MusicEditorElement extends HTMLElement {
 
         localStorage.setItem('song:' + song.uuid, JSON.stringify(song));
         this.menu.render();
-        // this.querySelector('.editor-menu').outerHTML = renderEditorMenuContent(this);
+        // this.querySelector('.menu').outerHTML = renderEditorMenuContent(this);
         console.info("Song saved to memory: " + song.uuid, song);
     }
 
@@ -831,15 +831,15 @@ class MusicEditorElement extends HTMLElement {
             case 'instrument:instance':
                 // console.info("Instrument initialized: ", e.detail);
                 // const instance = e.detail.instance;
-                const instrumentID = e.detail.instrumentID;
-                if(this.instruments[instrumentID]) {
-                    this.instruments[instrumentID].render();
-                    this.menu.render(); // Update instrument list
+                // const instrumentID = e.detail.instrumentID;
+                // if(this.instru-ments[instrumentID]) {
+                    // this.instruments[instrumentID].render();
+                    // this.menu.render(); // Update instrument list
                     // this.render();
-                } else {
-                    console.warn("Instrument elm not found. Re-rendering editor");
+                // } else {
+                    // console.warn("Instrument elm not found. Re-rendering editor");
                     this.render(); // Update instrument list
-                }
+                // }
                 break;
         }
     }

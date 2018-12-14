@@ -1,56 +1,18 @@
 
 /** Drop Down Menu **/
-music-editor-menu .editor-menu {
+music-editor-menu ul.menu {
     display: block;
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
     padding: 0 0;
     margin: 0 0;
-}
-
-music-editor-menu .editor-menu hr {
-    margin: 4px 0;
-    border: 1px #666 solid;
-}
-
-music-editor-menu .editor-menu li {
     list-style-type: none;
 }
 
-music-editor-menu .editor-menu > li {
-    /*float: left;*/
-    display: inline-block;
-}
 
-
-music-editor-menu .editor-menu > li > a > .key,
-music-editor-menu .sub-menu > li > a > .key,
-music-editor-menu .menu-item > .key {
-    font-weight: bold;
-    text-decoration: underline;
-}
-
-music-editor-menu .editor-menu > li > input[type=checkbox],
-music-editor-menu .sub-menu > li > input[type=checkbox],
-music-editor-menu .menu-item-checkbox {
-    
-vertical-align: text-top;
-    
-width: 16px;
-    
-height: 16px;
-    
-margin: 5px;
-    
-left: -25px;
-
-position: absolute;
-}
-
-music-editor-menu .editor-menu > li > a,
-music-editor-menu .sub-menu > li > a,
-music-editor-menu .menu-item {
+music-editor-menu ul.menu > li > a,
+music-editor-menu ul.menu-item {
     vertical-align: top;
     display: inline-block;
     padding: 3px 8px;
@@ -60,14 +22,25 @@ music-editor-menu .menu-item {
     position: relative;
     text-decoration: none;
 }
-music-editor-menu .sub-menu > li {
-    /* min-width: 128px; */
-    /* padding-left: 1.2em; */
-    position: relative;
-    border-left: 26px solid #AAA;
+
+music-editor-menu ul.context-menu,
+music-editor-menu ul.menu > li > ul.menu {
+    display: inline-block;
+    position: absolute;
+    /* display: none; */
+    border: 1px solid grey;
+    background-color: #BBB;
+    /* position: absolute; */
+    opacity: 0;
+    margin: 0 0;
+    padding: 0 0;
+    max-height: 0px;
+    transition: max-height 2s, opacity 0.5s;
+    /*overflow: hidden;*/
+    /* min-width: 200px; */
 }
 
-music-editor-menu .sub-menu > li > * {
+music-editor-menu ul.menu > li > * {
     white-space: nowrap;
 }
 
@@ -76,54 +49,51 @@ music-editor-menu .disabled {
     cursor: not-allowed;
 }
 
-music-editor-menu .sub-menu {
-    display: none;
-    border: 1px solid grey;
-    background-color: #BBB;
-    position: absolute;
-    opacity: 0;
-    margin: 0 0;
-    padding: 0 0;
 
-    max-height: 0px;
-    transition: max-height 2s, opacity 0.5s;
-    list-style-type: none;
-    /*overflow: hidden;*/
-    /* min-width: 200px; */
-}
-
-/*music-editor-menu .menu-item:hover + .submenu,*/
-/*music-editor-menu .submenu:hover,*/
-music-editor-menu .editor-menu > li:hover > .sub-menu,
-music-editor-menu .sub-menu > li:hover > .sub-menu,
-music-editor-menu a.open + .sub-menu,
-music-editor-menu a:focus + .sub-menu,
-music-editor-menu .sub-menu.open {
-    /* display: block; */
-    display: inline-block;
+music-editor-menu ul.menu > li:hover > ul.menu,
+music-editor-menu a.open + ul.menu,
+music-editor-menu a:focus + ul.menu,
+music-editor-menu ul.menu.open {
     white-space: nowrap;
     opacity: 1;
     max-height: 800px;
-    transition: max-height 2s, opacity 1s;
+    transition: max-height 1s, opacity 0.3s;
     /*transition: max-height 2s;*/
     z-index: 98;
 }
 
-music-editor-menu .sub-menu > li:hover {
+music-editor-menu ul.menu > li:hover {
     background-color: #AAA;
 }
-music-editor-menu .sub-menu > li.open {
+music-editor-menu ul.menu > li.open {
     background-color: #99C;
 }
-music-editor-menu .sub-menu > li:active {
+music-editor-menu ul.menu > li:active {
     background-color: #888;
 }
 
+/** Menu Break **/
+
+music-editor-menu ul.menu hr {
+    margin: 4px 0;
+    border: 1px #666 solid;
+}
+
+/** Header Menu **/
+
+music-editor-menu .header-menu {
+    /* display: block; */
+}
+
+music-editor-menu .header-menu > li {
+    /* float: left; */
+    display: inline-block;
+}
 
 
 /** Context Menu **/
 
-music-editor-menu .editor-context-menu {
+music-editor-menu ul.context-menu {
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
@@ -131,7 +101,7 @@ music-editor-menu .editor-context-menu {
     display: none;
     z-index: 99;
 }
-music-editor-menu .editor-context-menu.open {
+music-editor-menu .context-menu.open {
     display: block;
 }
 
@@ -231,9 +201,26 @@ music-editor-menu:not(.show-insert-instruction-controls) .show-on-insert-instruc
     display: none;
 }
 
+/** Highlight Key **/
+
+music-editor-menu ul.menu > li > a > .key,
+music-editor-menu ul.menu-item > .key {
+    font-weight: bold;
+    text-decoration: underline;
+}
 
 /** Form Inputs **/
 
+
+music-editor-menu ul.menu > li > input[type=checkbox],
+music-editor-menu ul.menu-item-checkbox {
+    vertical-align: text-top;
+    width: 16px;
+    height: 16px;
+    margin: 5px;
+    left: -25px;
+    position: absolute;
+}
 
 
 music-editor-menu input[type=text],

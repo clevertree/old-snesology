@@ -341,10 +341,12 @@ class MusicPlayerElement extends HTMLElement {
         return instrumentList[instrumentID];
     }
 
-    getInstrument(instrumentID) {
+    getInstrument(instrumentID, throwException) {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
-        throw new Error("Instrument not yet loaded: ", instrumentID);
+        if(throwException)
+            throw new Error("Instrument not yet loaded: ", instrumentID);
+        return null;
     }
 
     initInstrument(instrumentID) {

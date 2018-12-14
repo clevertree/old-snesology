@@ -14,8 +14,28 @@ music-editor-grid {
     clear: both;
 }
 
+music-editor-grid > table {
+    border-collapse: collapse;
+}
 
-/** Grid Row **/
+/** Grid Header **/
+
+music-editor-grid .grid-header,
+music-editor-grid .grid-header-pause {
+    font-size: small;
+    text-align: left;
+    padding: 0px 0px;
+    font-weight: normal;
+}
+music-editor-grid .grid-header {
+    min-width: 126px;
+}
+music-editor-grid .grid-header-pause {
+    text-align: center;
+    min-width: 44px;
+}
+
+    /** Grid Row **/
 
 music-editor-grid .grid-row {
     cursor: pointer;
@@ -46,6 +66,16 @@ music-editor-grid .grid-row.playing {
     z-index: 1;
 }
 
+/** Grid Data **/
+
+music-editor-grid .grid-data {
+    border-right: 1px solid #888;
+}
+
+music-editor-grid .grid-data-pause {
+    text-align: center;
+    font-size: smaller;
+}
 
 /** Grid Cell **/
 
@@ -54,13 +84,13 @@ music-editor-grid .grid-cell {
     float: left;
     overflow: hidden;
     padding: 0px 3px;
-    margin: 1px 0px 0px 1px;
+    margin: 0px 0px 0px 0px;
     color: #666;
     border: solid 1px #666;
     border-radius: 4px;
     background-color: #CCC;
-    position: relative;
-    z-index: 1;
+    /* position: relative; */
+    /* z-index: 1; */
 }
 
 music-editor-grid .grid-cell-new {

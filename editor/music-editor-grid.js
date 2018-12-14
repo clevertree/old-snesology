@@ -137,10 +137,16 @@ class MusicEditorGridElement extends HTMLElement {
 
         let odd = false;
         let editorHTML = '', rowContent = null, songPosition = 0; // , lastPause = 0;
-        editorHTML += `<tr class="grid-header">`;
-        for(var i=0; i<instrumentList.length; i++)
-            editorHTML += `<th>${instrumentList[i]}</th>`;
-        editorHTML += `<th>Pause</th>`;
+        editorHTML += `<tr>`;
+        for(var i=0; i<instrumentList.length; i++) {
+            const instrumentID = instrumentList[i];
+            const instrument = this.editor.player.getInstrument(instrumentID);
+            const instrumentPreset = this.editor.player.getInstrumentConfig(instrumentID);
+            const instrumentName = instrumentPreset.name || (instrument ? instrument.constructor.name : "Not Loaded");
+            const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + instrumentID;
+            editorHTML += `<th class="grid-header"><legend class="themed"><strong>${instrumentIDHTML}</strong>: ${instrumentName}</legend></th>`;
+        }
+        editorHTML += `<th class="grid-header-pause"><legend class="themed">Pause</legend></th>`;
         editorHTML += `</tr>`;
 
         for(let index=0; index<instructionList.length; index++) {
@@ -166,7 +172,7 @@ class MusicEditorGridElement extends HTMLElement {
                                 `<tr class="grid-row ${rowCSS.join(' ')}" data-index="${index}" data-position="${songPosition}">`;
                             for(var i=0; i<instrumentList.length; i++) {
                                 editorHTML +=
-                                    `<td>`
+                                    `<td class="grid-data">`
                                 +       rowContent[instrumentList[i]]
                                 +   `</td>`
 
@@ -175,8 +181,8 @@ class MusicEditorGridElement extends HTMLElement {
                                 // +   `<div class="grid-cell grid-cell-new">`
                                 // +     `<div class="grid-parameter">+</div>`
                                 // +   `</div>`
-                                    `<td>`
-                                +     `<div class="grid-cell-pause">${this.editor.format(duration, 'duration')}</div>`
+                                    `<td class="grid-data-pause">`
+                                +       this.editor.format(duration, 'duration')
                                 +   `</td>`
                                 + `</tr>`;
 
@@ -194,8 +200,8 @@ class MusicEditorGridElement extends HTMLElement {
                     const selectedClass = selectedInstruction ? ' selected' : '';
                     let cellHTML = `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">`;
                     cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
-                    if (typeof instruction.instrument !== 'undefined')
-                        cellHTML += `<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>`;
+                    // if (typeof instruction.instrument !== 'undefined')
+                        cellHTML += `<!--<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>-->`;
                     if (typeof instruction.velocity !== 'undefined')
                         cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
                     if (typeof instruction.duration !== 'undefined')

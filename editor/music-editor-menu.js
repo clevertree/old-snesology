@@ -144,10 +144,10 @@ class MusicEditorMenuElement extends HTMLElement {
         const songData = player.getSongData();
         let tabIndex = 2;
         this.innerHTML =
-            `<ul class="editor-menu">
+            `<ul class="menu header-menu">
                 <li>
                     <a tabindex="${tabIndex++}"><span class="key">F</span>ile</a>
-                    <ul class="sub-menu">
+                    <ul class="menu">
                         <li>
                             <a href="editor/new" target="_blank" data-command1="song:new">
                                 <span class="key">N</span>ew song
@@ -155,10 +155,10 @@ class MusicEditorMenuElement extends HTMLElement {
                         </li>
                         <li>
                             <a tabindex="${tabIndex++}"><span class="key">O</span>pen song &#9658;</a>
-                            <ul class="sub-menu">
+                            <ul class="menu">
                                 <li>
                                     <a>from <span class="key">S</span>erver &#9658;</a>
-                                    <ul class="sub-menu">
+                                    <ul class="menu">
                                         ${this.editor.getEditorFormOptions('server-recent-uuid', (value, label) =>
                                         `<li><a data-command="song:load-server-uuid" data-uuid="${value}">${label}</a></li>`)}
                                         <li><a data-command="song:load-server-uuid" data-uuid="">Enter UUID</a></li>
@@ -166,7 +166,7 @@ class MusicEditorMenuElement extends HTMLElement {
                                 </li>
                                 <li>
                                     <a>from <span class="key">M</span>emory &#9658;</a>
-                                    <ul class="sub-menu">
+                                    <ul class="menu">
                                         ${this.editor.getEditorFormOptions('memory-recent-uuid', (value, label) =>
                                         `<li><a data-command="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
                                         <li><a data-command="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
@@ -178,7 +178,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         </li>
                         <li>
                             <a tabindex="${tabIndex++}"><span class="key">S</span>ave song &#9658;</a>
-                            <ul class="sub-menu">
+                            <ul class="menu">
                                 <li><a data-command="song:server-sync">to <span class="key">S</span>erver</a><input type="checkbox" ${this.editor.webSocket ? `checked="checked"` : ''}></li>
                                 <li><a data-command="save:memory">to <span class="key">M</span>emory</a></li>
                                 <li><a data-command="save:file">to <span class="key">F</span>ile</a></li>    
@@ -186,7 +186,7 @@ class MusicEditorMenuElement extends HTMLElement {
                         </li> 
                         <li>
                             <a tabindex="${tabIndex++}"><span class="key">E</span>xport song &#9658;</a>
-                            <ul class="sub-menu">
+                            <ul class="menu">
                                 <li><a class="disabled" data-command="export:file">to audio file</a></li>
                             </ul>
                         </li>     
@@ -194,7 +194,7 @@ class MusicEditorMenuElement extends HTMLElement {
                 </li>
                 <li>
                     <a tabindex="${tabIndex++}"><span class="key">E</span>dit</a>
-                    <ul class="sub-menu">
+                    <ul class="menu">
                         <li><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
                         <li><a data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
                         <li><a data-command="instruction:instrument">Set <span class="key">I</span>nstrument</a></li>
@@ -205,14 +205,14 @@ class MusicEditorMenuElement extends HTMLElement {
                         <hr/>
                         <li>
                             <a tabindex="${tabIndex++}">Edit <span class="key">R</span>ow &#9658;</a>
-                            <ul class="sub-menu">
+                            <ul class="menu">
                                 <li><a data-command="row:delete"><span class="key">D</span>elete Row</a></li>
                             </ul>
                         </li>
                         <hr/>
                         <li>
                             <a tabindex="${tabIndex++}">Edit <span class="key">G</span>roup &#9658;</a>
-                            <ul class="sub-menu">
+                            <ul class="menu">
                                 <li><a data-command="group:add"><span class="key">I</span>nsert new Group</a></li>
                                 <li><a data-command="group:delete"><span class="key">D</span>elete current Group</a></li>
                                 <li><a data-command="group:rename"><span class="key">R</span>ename current Group</a></li>
@@ -222,29 +222,29 @@ class MusicEditorMenuElement extends HTMLElement {
                 </li>
                 <li>
                     <a tabindex="${tabIndex++}"><span class="key">V</span>iew</a>
-                    <ul class="sub-menu">
+                    <ul class="menu">
                     </ul>
                 </li>
                 <li>
                     <a tabindex="${tabIndex++}"><span class="key">I</span>nstruments</a>
-                    <ul class="sub-menu">
+                    <ul class="menu">
                         <li><a data-command="instrument:add">Add <span class="key">N</span>ew Instrument</a></li>
                     </ul>
                 </li>
             </ul>
-            <ul class="editor-context-menu submenu">
+            <ul class="menu context-menu">
                 <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
                 <li>
                     <a><span class="key">N</span>ote<span class="sub-menu-pointer"></span></a>
-                    <ul class="sub-menu" data-submenu-content="submenu:command"></ul>
+                    <ul class="menu" data-submenu-content="submenu:command"></ul>
                 </li>
                 <li>
                     <a><span class="key">R</span>ow<span class="sub-menu-pointer"></span></a>
-                    <ul class="sub-menu" data-submenu-content="submenu:pause"></ul>
+                    <ul class="menu" data-submenu-content="submenu:pause"></ul>
                 </li>
                 <li>
                     <a><span class="key">G</span>roup <span class="sub-menu-pointer"></span></a>
-                    <ul class="sub-menu" data-submenu-content="submenu:group"></ul>
+                    <ul class="menu" data-submenu-content="submenu:group"></ul>
                 </li>
             </ul>
             <div class="editor-forms">
@@ -454,7 +454,7 @@ class MusicEditorMenuElement extends HTMLElement {
 //         }
 //
 //         return `
-//         <ul class="sub-menu">
+//         <ul class="menu">
 //             ${menuItemsHTML}
 //         </ul>
 //     `;
