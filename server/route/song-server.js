@@ -20,12 +20,12 @@ class SongServer {
         const router = express.Router(null);
 
         // router.post('/song/*', this.httpSongsRequest.bind(this)); // Update songData files
-        router.get('/editor/new', this.httpNewEditRequest.bind(this)); // Render Editor
-        // router.get('/editor/?', this.httpNewEditRequest.bind(this)); // Render Editor
-        // router.get('/editor/:uuid([\\w/-]+)', this.httpEditRequest.bind(this)); // Render Editor
+        router.get('/song/new', this.httpNewEditRequest.bind(this)); // Render Editor
+        // router.get('/song/?', this.httpNewEditRequest.bind(this)); // Render Editor
+        // router.get('/song/:uuid([\\w/-]+)', this.httpEditRequest.bind(this)); // Render Editor
         router.get('/player/:uuid([\\w/-]+)', this.httpPlayRequest.bind(this)); // Render Editor
 
-        router.ws('/editor/:uuid([\\w/-]+)', this.handleWSRequest.bind(this));
+        router.ws('/song/:uuid([\\w/-]+)', this.handleWSRequest.bind(this));
         app.use('/', router);        // Register Routes
 
         // app.addWebSocketListener(handleWebSocketRequest);
@@ -34,7 +34,7 @@ class SongServer {
     httpNewEditRequest(req, res) {
         const uuidv4 = require('uuid/v4');
         const uuid = uuidv4();
-        return res.redirect('/editor/?uuid=' + uuid);
+        return res.redirect('/song/?uuid=' + uuid);
     }
 
 
@@ -155,7 +155,7 @@ class SongServer {
 
             this.getSongContent(uuid, (songContentEntry) => {
                 const songContent = songContentEntry && songContentEntry.content ? JSON.parse(songContentEntry.content) : this.generateDefaultSong(uuid);
-                const MusicEditorSongModifier = require('../../editor/music-editor-song-modifier');
+                const MusicEditorSongModifier = require('../../song/song-modifier');
                 const songManipulator = new MusicEditorSongModifier(songContent);
 
                 try {
@@ -384,7 +384,7 @@ class SongServer {
 //         throw new Error("Invalid uuid");
 //
 //
-//     const editorPath = path.resolve(BASE_DIR + "/editor.html");
+//     const editorPath = path.resolve(BASE_DIR + "/song.html");
 //     fs.readFile(editorPath, 'utf8', function (err,data) {
 //         if (err) {
 //             return console.log(err);

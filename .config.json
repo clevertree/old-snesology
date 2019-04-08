@@ -1,0 +1,30 @@
+{
+    "database": {
+        "host": "localhost",
+        "user": "cms_user",
+        "password": "cms_pass",
+        "database": "snesology_cms",
+        "multiDomain": false
+    },
+    "mail": {
+        "auth": {
+            "user": "mail@ffga.me",
+            "pass": "mailmail"
+        },
+        "host": "mail.ffga.me",
+        "port": 587,
+        "client": {
+            "host": "mail.ffga.me",
+            "port": 587,
+            "auth": {
+                "user": "mail@ffga.me",
+                "pass": "mailmail"
+            }
+        }
+    },
+    "server": {
+        "httpPort": 8092,
+        "sslEnable": false,
+        "sslPort": 8443
+    }
+}

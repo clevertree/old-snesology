@@ -101,7 +101,7 @@ class OscillatorInstrument extends HTMLElement {
             </form>
         `;
 
-        // editorContainer.querySelector('form.instrument-editor').addEventListener('change', (e) => {
+        // editorContainer.querySelector('form.instrument-song').addEventListener('change', (e) => {
         //     switch(e.target.name) {
         //         case 'customURL':
         //             const libraryURL = e.target.value;

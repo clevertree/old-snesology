@@ -1,14 +1,8 @@
-
-((INCLUDE_CSS) => {
-    if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
-        document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
-})("editor/music-editor-grid.css");
-
-class MusicEditorGridElement extends HTMLElement {
-    constructor() {
-        super();
+class SongEditorGrid {
+    constructor(editor) {
         this.longPressTimeout = null;
-        this.editor = null;
+        this.editor = editor;
+        this.renderElm = null;
     }
 
     // Can't select pauses!
@@ -22,15 +16,15 @@ class MusicEditorGridElement extends HTMLElement {
         return song.instructions[groupName];
     }
 
-    get selectedCells() { return this.querySelectorAll('.grid-cell-instruction.selected'); }
-    get cursorCell() { return this.querySelector('.grid-cell.cursor'); }
+    get selectedCells() { return this.renderElm.querySelectorAll('.grid-cell-instruction.selected'); }
+    get cursorCell() { return this.renderElm.querySelector('.grid-cell.cursor'); }
     get cursorPosition() { const cell = this.cursorCell; return cell ? parseFloat(cell.parentNode.getAttribute('data-position')) : null; }
     get selectedIndices() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
-    get selectedRows() { return this.querySelectorAll('.grid-row.selected'); }
+    get selectedRows() { return this.renderElm.querySelectorAll('.grid-row.selected'); }
     get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
 
     get nextCell() {
-        const cellList = this.querySelectorAll('.grid-cell');
+        const cellList = this.renderElm.querySelectorAll('.grid-cell');
         const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         if(currentIndex === -1)
             throw new Error("Cursor Cell not found");
@@ -38,7 +32,7 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     get previousCell() {
-        const cellList = this.querySelectorAll('.grid-cell');
+        const cellList = this.renderElm.querySelectorAll('.grid-cell');
         let currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         if(currentIndex === -1)
             throw new Error("Cursor Cell not found");
@@ -48,7 +42,7 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     get nextRowCell() {
-        const cellList = this.querySelectorAll('.grid-cell');
+        const cellList = this.renderElm.querySelectorAll('.grid-cell');
         const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         for(let i=currentIndex;i<cellList.length;i++)
             if(cellList[i].parentNode !== cellList[currentIndex].parentNode)
@@ -57,7 +51,7 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     get previousRowCell() {
-        const cellList = this.querySelectorAll('.grid-cell');
+        const cellList = this.renderElm.querySelectorAll('.grid-cell');
         const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         for(let i=currentIndex;i>=0;i--)
             if(cellList[i].parentNode !== cellList[currentIndex].parentNode)
@@ -85,7 +79,7 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     connectedCallback() {
-        this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
+        this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
         this.addEventListener('contextmenu', this.onInput);
         this.addEventListener('keydown', this.onInput);
         // this.addEventListener('keyup', this.onInput.bind(this));
@@ -112,12 +106,18 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     render() {
-        let cellList = this.querySelectorAll('.grid-cell');
+        this.renderElm = this.editor.querySelector('div.editor-grid');
+        if(!this.renderElm) {
+            this.editor.innerHTML += `<div class="editor-grid"></div>`;
+            this.renderElm = this.editor.querySelector('div.editor-grid');
+        }
+
+        let cellList = this.renderElm.querySelectorAll('.grid-cell');
         const cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         const selectedIndices = this.selectedIndices;
-        let instrumentFilter = this.editor.menu.fieldRenderInstrument.value === "" ? null : parseInt(this.editor.menu.fieldRenderInstrument.value);
+        let instrumentFilter = this.editor.forms.fieldRenderInstrument.value === "" ? null : parseInt(this.editor.forms.fieldRenderInstrument.value);
 
-        const gridDuration = parseFloat(this.editor.menu.fieldRenderDuration.value);
+        const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
         const instructionList = this.instructionList;
 
@@ -220,10 +220,10 @@ class MusicEditorGridElement extends HTMLElement {
 
         const currentScrollPosition = this.scrollTop || 0;
         editorHTML = `<table>${editorHTML}</table>`;
-        this.innerHTML = editorHTML;
+        this.renderElm.innerHTML = editorHTML;
         this.scrollTop = currentScrollPosition;
 
-        cellList = this.querySelectorAll('.grid-cell');
+        cellList = this.renderElm.querySelectorAll('.grid-cell');
         // for(let i=0; i<selectedIndices.length; i++)
         //     if(cellList[selectedIndices[i]])
         //         cellList[selectedIndices[i]].classList.add('selected');
@@ -240,7 +240,7 @@ class MusicEditorGridElement extends HTMLElement {
             // const initialCursorPosition = cursorPositions[0];
             // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
-            // const editor = this.editor;
+            // const song = this.song;
 
             switch (e.type) {
                 case 'keydown':
@@ -259,7 +259,7 @@ class MusicEditorGridElement extends HTMLElement {
                         case 'Delete':
                             e.preventDefault();
                             this.editor.deleteInstructionAtIndex(this.groupName, selectedIndices);
-                            // editor.render(true);
+                            // song.render(true);
                             break;
                         case 'Escape':
                         case 'Backspace':
@@ -363,7 +363,7 @@ class MusicEditorGridElement extends HTMLElement {
                             for(let i=0; i<selectedIndices.length; i++)
                                 this.editor.playInstruction(instructionList[selectedIndices[i]]);
 
-                            // editor.gridSelectInstructions([selectedInstruction]);
+                            // song.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
                             break;
 
@@ -380,7 +380,7 @@ class MusicEditorGridElement extends HTMLElement {
                     if (cellElm.classList.contains('grid-row'))
                         cellElm = cellElm.childNodes[cellElm.childNodes.length-2];
                     if (!cellElm.classList.contains('grid-cell'))
-                        cellElm = this.querySelector('.grid-cell.selected') || this.querySelector('.grid-cell'); // Choose selected or default cell
+                        cellElm = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
                     if(!cellElm)
                         throw new Error("Could not find grid-cell");
 
@@ -411,7 +411,7 @@ class MusicEditorGridElement extends HTMLElement {
 
                 case 'contextmenu':
                     if (e.target.classList.contains('grid-parameter')) {
-                        console.info("TODO: add parameter editor at top of context menu: ", e.target);
+                        console.info("TODO: add parameter song at top of context menu: ", e.target);
                     }
                     this.editor.menu.openContextMenu(e);
                     // if(!e.altKey) e.preventDefault();
@@ -471,7 +471,7 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     findInstruction(instruction) {
-        let grids = this.querySelectorAll('music-editor-grid');
+        let grids = this.renderElm.querySelectorAll('music-song-grid');
         for(let i=0; i<grids.length; i++) {
             const instructionElm = grids[i].findInstruction(instruction);
             if(instructionElm)
@@ -487,7 +487,7 @@ class MusicEditorGridElement extends HTMLElement {
             this.status.grids.unshift(existingGrid);
         else
             this.status.grids.unshift(
-                Object.assign({}, MusicEditorElement.DEFAULT_GRID_STATUS, {
+                Object.assign({}, SongEditorElement.DEFAULT_GRID_STATUS, {
                     groupName: groupName,
                     parentInstruction: parentInstruction,
                 })
@@ -533,11 +533,11 @@ class MusicEditorGridElement extends HTMLElement {
 
 
     selectCell(e, cursorCell) {
-        this.querySelectorAll('.grid-cell.cursor')
+        this.renderElm.querySelectorAll('.grid-cell.cursor')
             .forEach(elm => elm.classList.remove('cursor'));
         cursorCell.classList.add('cursor');
 
-        this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
+        this.renderElm.querySelectorAll('.grid-cell.selected,.grid-row.selected')
             .forEach(elm => elm.classList.remove('selected'));
         if(cursorCell.classList.contains('grid-cell-instruction'))
             cursorCell.classList.add('selected');
@@ -546,20 +546,20 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     selectIndices(cursorIndex, selectedIndices) {
-        const cursorCell = this.querySelector(`.grid-cell[data-index='${cursorIndex}']`);
+        const cursorCell = this.renderElm.querySelector(`.grid-cell[data-index='${cursorIndex}']`);
         if (!cursorCell)
             throw new Error("Invalid cursor cell");
 
-        this.querySelectorAll('.grid-cell.cursor')
+        this.renderElm.querySelectorAll('.grid-cell.cursor')
             .forEach(elm => elm.classList.remove('cursor'));
         cursorCell.classList.add('cursor');
 
-        this.querySelectorAll('.grid-cell.selected,.grid-row.selected')
+        this.renderElm.querySelectorAll('.grid-cell.selected,.grid-row.selected')
             .forEach(elm => elm.classList.remove('selected'));
         if(selectedIndices) {
             for (let i = 0; i < selectedIndices.length; i++) {
                 const selectedIndex = selectedIndices[i];
-                const selectedCell = this.querySelector(`.grid-cell[data-index='${selectedIndex}']`);
+                const selectedCell = this.renderElm.querySelector(`.grid-cell[data-index='${selectedIndex}']`);
                 // if(selectedCell.classList.contains('grid-cell-new'))
                 //     continue;
                 if (!selectedCell)
@@ -593,7 +593,7 @@ class MusicEditorGridElement extends HTMLElement {
     }
 
     findDataElement(instructionIndex) {
-        return this.querySelector(`.grid-cell[data-index='${instructionIndex}'`);
+        return this.renderElm.querySelector(`.grid-cell[data-index='${instructionIndex}'`);
     }
 }
-customElements.define('music-editor-grid', MusicEditorGridElement);
+// customElements.define('music-song-grid', SongEditorGrid);

@@ -1,30 +1,36 @@
-// Include assets
+class SongEditorInstruments {
+    constructor(editor) {
+        this.editor = editor;
+        this.instrumentLibrary = {};
 
-((INCLUDE_CSS) => {
-    if (document.head.innerHTML.indexOf(INCLUDE_CSS) === -1)
-        document.head.innerHTML += `<link href="${INCLUDE_CSS}" rel="stylesheet" >`;
-})("editor/music-editor-instrument.css");
 
-class MusicEditorInstrumentElement extends HTMLElement {
-    constructor() {
-        super();
-        this.editor = null;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'instrument/index.json', true);
+        xhr.responseType = 'json';
+        xhr.onload = () => {
+            if(xhr.status !== 200)
+                throw new Error("Instrument list not found");
+            this.instrumentLibrary = xhr.response;
+            this.render();
+        };
+        xhr.send();
     }
 
-    get id() { return parseInt(this.getAttribute('id')); }
-    get preset() { return this.editor.getSongData().instruments[this.id]; }
-    // get instrument() { return this.editor.player.getInstrument(this.id);}
-
-    connectedCallback() {
-        this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
-        // this.addEventListener('change', this.onSubmit);
-        // this.addEventListener('input', this.onSubmit);
-        this.addEventListener('submit', this.onSubmit);
-        this.addEventListener('config:updated', this.onSubmit);
-
-
-        this.render();
-    }
+    // get id() { return parseInt(this.getAttribute('id')); }
+    // get preset() { return this.editor.getSongData().instruments[this.id]; }
+    // // get instrument() { return this.song.player.getInstrument(this.id);}
+    //
+    // connectedCallback() {
+    //     this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
+    //     // this.addEventListener('change', this.onSubmit);
+    //     // this.addEventListener('input', this.onSubmit);
+    //     this.addEventListener('submit', this.onSubmit);
+    //     this.addEventListener('config:updated', this.onSubmit);
+    //
+    //
+    //     this.render();
+    // }
 
     onSubmit(e) {
         if(e.defaultPrevented)
@@ -53,7 +59,7 @@ class MusicEditorInstrumentElement extends HTMLElement {
 
                 case 'input':
                     // Causes problems
-                    // this.editor.player.replaceInstrumentParams(this.id, newConfig);
+                    // this.song.player.replaceInstrumentParams(this.id, newConfig);
                     break;
             }
         } catch (e) {
@@ -107,14 +113,13 @@ class MusicEditorInstrumentElement extends HTMLElement {
     }
 }
 
-class MusicEditorInstrumentListElement extends HTMLElement {
+class MusicEditorInstrumentList {
     constructor() {
-        super();
         this.editor = null;
     }
 
     connectedCallback() {
-        this.editor = this.closest('music-editor'); // findParent(this, (p) => p.matches('music-editor'));
+        this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
         this.render();
         this.addEventListener('change', (e) => e.target.form.submit());
     }
@@ -123,8 +128,8 @@ class MusicEditorInstrumentListElement extends HTMLElement {
         const song = this.editor.getSongData();
         this.innerHTML =
             (song ? song.instruments.map((instrument, id) =>
-                `<music-editor-instrument id="${id}"></music-editor-instrument>`).join('') : null)
-            
+                `<song-editor-instrument id="${id}"></song-editor-instrument>`).join('') : null)
+
              + `<form class="form-add-instrument" data-command="song:add-instrument">
                 <select name="instrumentURL" class="themed">
                     <option value="">Add New Instrument</option>
@@ -137,6 +142,4 @@ class MusicEditorInstrumentListElement extends HTMLElement {
 
     }
 }
-customElements.define('music-editor-instrument', MusicEditorInstrumentElement);
-customElements.define('music-editor-instrument-list', MusicEditorInstrumentListElement);
 

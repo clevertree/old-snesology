@@ -1,7 +1,93 @@
-class MusicEditorSongModifier {
+class SongModifier {
     constructor(songData) {
         this.songData = songData;
         this.historyActions = [];
+    }
+
+
+
+    saveSongToMemory() {
+        const song = this.getSongData();
+        if(!song.uuid) {
+            // Unsafe
+            song.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        let songRecentUUIDs = JSON.parse(localStorage.getItem('memory-recent-uuid') || '[]');
+        songRecentUUIDs = songRecentUUIDs.filter((entry) => entry[0] !== song.uuid);
+        songRecentUUIDs.unshift([song.uuid, song.title, new Date().getTime()]);
+        localStorage.setItem('memory-recent-uuid', JSON.stringify(songRecentUUIDs));
+
+
+        localStorage.setItem('song:' + song.uuid, JSON.stringify(song));
+        this.menu.render();
+        // this.querySelector('.song-menu').outerHTML = renderEditorMenuContent(this);
+        console.info("Song saved to memory: " + song.uuid, song);
+    }
+
+    saveSongToFile() {
+        const song = this.getSongData();
+        const jsonString = JSON.stringify(song, null, "\t");
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", song.url.split('/').reverse()[0]);
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    loadSongFromMemory(songGUID) {
+        let songDataString = localStorage.getItem('song:' + songGUID);
+        if(!songDataString)
+            throw new Error("Song Data not found for guid: " + songGUID);
+        let songData = JSON.parse(songDataString);
+        if(!songData)
+            throw new Error("Invalid Song Data: " + songDataString);
+
+        this.player.loadSongData(songData);
+        this.render();
+        //this.gridSelect(null, 0);
+        console.info("Song loaded from memory: " + songGUID, songData);
+    }
+
+    loadSongData(songData) {
+        const modifier = new MusicEditorSongModifier(songData);
+        modifier.processAllInstructions();
+        this.player.loadSongData(songData);
+    }
+
+    historyQueue(historyActions) {
+        if(!Array.isArray(historyActions))
+            historyActions = [];
+        for(let i=0; i<historyActions.length; i++) {
+            const historyAction = historyActions[i];
+            this.status.history.currentStep++;
+            historyAction.step = this.status.history.currentStep;
+        }
+        //
+        // this.status.history.undoList.push(historyAction);
+        // this.status.history.undoPosition = this.status.history.undoList.length-1;
+
+        if(this.webSocket && historyActions.length > 0) {
+            console.info("Sending history actions: ", historyActions);
+            this.webSocket
+                .send(JSON.stringify({
+                    type: 'history:entry',
+                    historyActions: historyActions,
+                    // uuid: this.uuid
+                }))
+        }
+    }
+
+    historyUndo() {
+
+    }
+
+    historyRedo() {
+
     }
 
     clearHistoryActions() {
@@ -9,6 +95,8 @@ class MusicEditorSongModifier {
         this.historyActions = [];
         return actions;
     }
+
+    /** Modifying **/
 
     applyHistoryActions(historyActions) {
         for(let i=0; i<historyActions.length; i++) {
@@ -66,7 +154,7 @@ class MusicEditorSongModifier {
     }
 
     insertDataPath(path, newData) {
-        newData = MusicEditorSongModifier.sanitizeInput(newData, path);
+        newData = SongModifier.sanitizeInput(newData, path);
 
         const pathInfo = this.findDataPath(path);
 
@@ -110,7 +198,7 @@ class MusicEditorSongModifier {
     }
 
     replaceDataPath(path, newData) {
-        newData = MusicEditorSongModifier.sanitizeInput(newData, path);
+        newData = SongModifier.sanitizeInput(newData, path);
 
         let oldData = null;
         const pathInfo = this.findDataPath(path);
@@ -342,20 +430,20 @@ class MusicEditorSongModifier {
         Object.keys(this.songData.instructions).map((groupName, i) => {
             let instructionList = this.songData.instructions[groupName];
             for (let i = 0; i < instructionList.length; i++)
-                instructionList[i] = MusicEditorSongModifier.processInstruction(instructionList[i]);
+                instructionList[i] = SongModifier.processInstruction(instructionList[i]);
         });
     }
 
     static sanitizeInput(value, path) {
         if(Array.isArray(value)) {
             for(let i=0; i<value.length; i++)
-                MusicEditorSongModifier.sanitizeInput(value[i], path + `.${i}`);
+                SongModifier.sanitizeInput(value[i], path + `.${i}`);
             return value;
         }
         if(typeof value === 'object') {
             for(const key in value)
                 if(value.hasOwnProperty(key))
-                    MusicEditorSongModifier.sanitizeInput(value[key], path + `.${key}`);
+                    SongModifier.sanitizeInput(value[key], path + `.${key}`);
             return value;
         }
         if(typeof value !== 'string')
@@ -403,4 +491,4 @@ class MusicEditorSongModifier {
 }
 
 if(typeof module !== "undefined")
-    module.exports = MusicEditorSongModifier;
+    module.exports = SongModifier;
