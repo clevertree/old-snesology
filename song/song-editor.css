@@ -1,0 +1,538 @@
+song-editor {
+    /* color: #FFF; */
+    background-color: #DDD;
+    display: block;
+    /* font-size: 14px; */
+    /* line-height: 16px; */
+    font-family: monospace;
+    position: relative;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+}
+
+
+
+/** Drop Down Menu **/
+song-editor .editor-menu {
+    display: block;
+    /* border: 1px solid grey; */
+    background-color: #BBB;
+    color: black;
+    padding: 0 0;
+    margin: 0 0;
+}
+
+song-editor .editor-menu hr {
+    margin: 4px 0;
+    border: 1px #666 solid;
+}
+
+song-editor .editor-menu li {
+    list-style-type: none;
+}
+
+song-editor .editor-menu > li {
+    /*float: left;*/
+    display: inline-block;
+}
+
+
+song-editor .editor-menu > li > a > .key,
+song-editor .editor-menu .sub-menu > li > a > .key,
+song-editor .editor-menu .menu-item > .key {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+song-editor .editor-menu > li > input[type=checkbox],
+song-editor .editor-menu .sub-menu > li > input[type=checkbox],
+song-editor .editor-menu .menu-item-checkbox {
+
+    vertical-align: text-top;
+
+    width: 16px;
+
+    height: 16px;
+
+    margin: 5px;
+
+    left: -25px;
+
+    position: absolute;
+}
+
+song-editor .editor-menu > li > a,
+song-editor .editor-menu .sub-menu > li > a,
+song-editor .editor-menu .menu-item {
+    vertical-align: top;
+    display: inline-block;
+    padding: 3px 8px;
+    /* position: relative; */
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    text-decoration: none;
+}
+song-editor .editor-menu .sub-menu > li {
+    /* min-width: 128px; */
+    /* padding-left: 1.2em; */
+    position: relative;
+    border-left: 26px solid #AAA;
+}
+
+song-editor .editor-menu .sub-menu > li > * {
+    white-space: nowrap;
+}
+
+song-editor .editor-menu .disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+song-editor .editor-menu .sub-menu {
+    display: none;
+    border: 1px solid grey;
+    background-color: #BBB;
+    position: absolute;
+    opacity: 0;
+    margin: 0 0;
+    padding: 0 0;
+
+    max-height: 0px;
+    transition: max-height 2s, opacity 0.5s;
+    list-style-type: none;
+    /*overflow: hidden;*/
+    /* min-width: 200px; */
+}
+
+/*music-song-menu .menu-item:hover + .submenu,*/
+/*music-song-menu .submenu:hover,*/
+song-editor .editor-menu > li:hover > .sub-menu,
+song-editor .editor-menu .sub-menu > li:hover > .sub-menu,
+song-editor .editor-menu a.open + .sub-menu,
+song-editor .editor-menu a:focus + .sub-menu,
+song-editor .editor-menu .sub-menu.open {
+    /* display: block; */
+    display: inline-block;
+    white-space: nowrap;
+    opacity: 1;
+    max-height: 800px;
+    transition: max-height 2s, opacity 1s;
+    /*transition: max-height 2s;*/
+    z-index: 98;
+}
+
+song-editor .editor-menu .sub-menu > li:hover {
+    background-color: #AAA;
+}
+song-editor .editor-menu .sub-menu > li.open {
+    background-color: #99C;
+}
+song-editor .editor-menu .sub-menu > li:active {
+    background-color: #888;
+}
+
+
+
+/** Context Menu **/
+
+song-editor .editor-menu .editor-context-menu {
+    /* border: 1px solid grey; */
+    background-color: #BBB;
+    color: black;
+    position: fixed;
+    display: none;
+    z-index: 99;
+}
+song-editor .editor-menu .editor-context-menu.open {
+    display: block;
+}
+
+
+song-editor .editor-menu form {
+    /* border: 1px solid #333; */
+    /* background-color: #CCC; */
+    /* margin: 0px 0; */
+    /* padding: 1px 2px 1px 0px; */
+    /* padding: 0px; */
+    padding-top: 2px;
+    display: inline-block;
+}
+song-editor .editor-menu .form-group-selection > form {
+    float: left;
+    padding: 0px 2px 3px 0px;
+}
+
+
+song-editor .editor-menu label.row-label {
+    display: inline-block;
+    min-width: 61px;
+    text-align: right;
+    font-size: smaller;
+    font-weight: bold;
+}
+
+song-editor .editor-menu option.hidden,
+song-editor .editor-menu form.hidden {
+    display: none;
+}
+
+song-editor .editor-menu input[name=volume] {
+    max-width: 71px;
+    /* max-height: 10px; */
+}
+
+song-editor .editor-menu div.volume-container {
+    /* border: 1px solid #AAA; */
+    /* border-radius: 6px; */
+    /* max-height: 15px; */
+}
+
+song-editor:not(.playing) form.form-song-pause { display: none; }
+song-editor.playing form.form-song-play { display: none; }
+song-editor:not(.paused) form.form-song-resume { display: none; }
+
+song-editor .editor-menu select:disabled,
+song-editor .editor-menu button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+song-editor .editor-menu button.selected {
+    /* border: 1px inset; */
+    font-weight: bold;
+    box-shadow: #333 1px 1px 4px;
+}
+
+song-editor .editor-menu .form-group-selection form.form-group > button {
+    font-size: smaller;
+    padding: 0px 3px 2px 2px;
+    min-width: 18px;
+    border-radius: 2px;
+}
+song-editor .editor-menu .form-group-selection form.form-group > button.new {
+    color: #444;
+}
+song-editor .editor-menu .form-separator {
+    height: 0px;
+    margin: 0;
+}
+
+song-editor .editor-menu fieldset{
+    border: 0px;
+    padding: 0 0;
+    margin: 0 0;
+    display: inline-block;
+}
+song-editor .editor-menu fieldset.hide-on-disabled[disabled] {
+    display: none;
+}
+
+song-editor .editor-menu div.form-section {
+    /* border: 1px outset #ffffff8a; */
+    padding: 3px 8px 2px 2px;
+    display: inline-block;
+    vertical-align: middle;
+    /* float: left; */
+}
+
+
+song-editor .editor-menu:not(.show-modify-instruction-controls) .show-on-modify-instruction {
+    display: none;
+}
+song-editor .editor-menu:not(.show-insert-instruction-controls) .show-on-insert-instruction {
+    display: none;
+}
+
+
+/** Form Inputs **/
+
+
+
+song-editor .editor-menu input[type=text],
+song-editor .editor-menu select,
+song-editor .editor-menu button{
+    max-width: 200px;
+}
+
+
+/** Song Info Form **/
+
+song-editor .editor-menu form.form-song-version input[name=version] {max-width: 64px;}
+song-editor .editor-menu form.form-song-title input[name=title] {width: 160px;}
+
+/** Add Instrument Form **/
+
+song-editor .editor-menu form.form-add-instrument select[name=instrument] { min-width: 129px; }
+
+
+/** Modify Instruction Forms **/
+
+song-editor .editor-menu form.form-instruction-instrument select[name=instrument] {max-width: 91px;}
+song-editor .editor-menu form.form-instruction-command select[name=frequency] { max-width: 42px; }
+song-editor .editor-menu form.form-instruction-command select[name=command] { max-width: 88px; }
+song-editor .editor-menu form.form-instruction-duration select[name=duration] {max-width: 80px;}
+song-editor .editor-menu form.form-instruction-velocity select[name=velocity] {max-width: 78px;}
+
+/** Grid Render Forms **/
+
+song-editor .editor-menu form.form-render-duration {
+    padding-right: 4px;
+    float: right;
+}
+song-editor .editor-menu form.form-render-duration select[name=duration] { min-width: 96px; }
+song-editor .editor-menu form.form-render-octave select[name=octave] { max-width: 61px; }
+song-editor .editor-menu form.form-render-instrument select[name=instrument] { min-width: 135px; }
+
+
+
+/** Editor Grid **/
+
+
+/** Grid **/
+song-editor .editor-grid {
+    display: block;
+    /*cursor: pointer;*/
+    /* display: block; */
+    /* border-collapse: collapse; */
+    /* display: table; */
+    /* width: 100%; */
+    max-height: 600px;
+    overflow-y: auto;
+    position: relative;
+    clear: both;
+}
+
+
+/** Grid Row **/
+
+song-editor .editor-grid .grid-row {
+    cursor: pointer;
+    background-color: #999;
+    height: 1.45em;
+    /* margin: -3px 0px; */
+    /* border-top: 1px solid #BBB; */
+    border: 1px outset #CCC;
+    position: relative;
+    transition: background-color 0.1s ease-out;
+}
+
+song-editor .editor-grid .grid-row.odd {
+    background-color: #AAA;
+}
+
+song-editor .editor-grid .grid-row.selected {
+    background-color: #ffeedd;
+    position: relative;
+    box-shadow: #ffeedd 0px 0px 9px;
+    z-index: 2;
+}
+song-editor .editor-grid .grid-row.playing {
+    transition: background-color 0s;
+    background-color: #609060;
+    position: relative;
+    box-shadow: #AFA 0px 0px 4px;
+    z-index: 1;
+}
+
+
+/** Grid Cell **/
+
+song-editor .editor-grid .grid-cell {
+    /* display: inline-block; */
+    float: left;
+    overflow: hidden;
+    padding: 0px 3px;
+    margin: 1px 0px 0px 1px;
+    color: #666;
+    border: solid 1px #666;
+    border-radius: 4px;
+    background-color: #CCC;
+    position: relative;
+    z-index: 1;
+}
+
+song-editor .editor-grid .grid-cell-new {
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+song-editor .editor-grid .grid-cell-new.cursor,
+song-editor .editor-grid .grid-cell-new.selected,
+song-editor .editor-grid .grid-row.selected .grid-cell-new {
+    opacity: 1;
+}
+
+song-editor .editor-grid .grid-cell:last-child {
+    margin-right: 0;
+}
+
+song-editor .editor-grid .grid-cell.playing {
+    font-weight: bold;
+}
+
+
+song-editor .editor-grid .grid-cell.cursor,
+song-editor .editor-grid .grid-cell.selected {
+    font-weight: bold;
+    max-width: 1000px;
+    box-shadow: #6b6b6b 0 0px 3px;
+    z-index: 2;
+    /* position: relative; */
+}
+song-editor .editor-grid .grid-cell.selected {
+    background-color: white;
+}
+
+song-editor .editor-grid .grid-cell.cursor {
+    border-color: red;
+    box-shadow: darkred 0 0 12px;
+}
+
+song-editor .editor-grid .grid-parameter{
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+song-editor .editor-grid .grid-parameter:not(:first-child) {
+    max-width: 40px;
+    opacity: 1;
+    transition: all 0.25s ease-out;
+}
+
+song-editor .editor-grid .grid-parameter.command {
+    color: darkred;
+}
+song-editor .editor-grid .grid-parameter.instrument {
+    color: darkblue;
+    max-width: 0px;
+}
+song-editor .editor-grid .grid-parameter.duration {
+    color: purple;
+    max-width: 0px;
+}
+song-editor .editor-grid .grid-parameter.velocity {
+    color: green;
+    max-width: 0px;
+}
+song-editor.show-parameter-instrument .grid-parameter.instrument,
+song-editor .editor-grid .grid-cell.selected .grid-parameter.instrument,
+song-editor .editor-grid .grid-cell.cursor .grid-parameter.instrument,
+song-editor .editor-grid .grid-cell.playing .grid-parameter.instrument,
+
+song-editor.show-parameter-duration .grid-parameter.duration,
+song-editor .editor-grid .grid-cell.selected .grid-parameter.duration,
+song-editor .editor-grid .grid-cell.cursor .grid-parameter.duration,
+song-editor .editor-grid .grid-cell.playing .grid-parameter.duration,
+
+song-editor.show-parameter-velocity .grid-parameter.velocity,
+song-editor .editor-grid .grid-cell.selected .grid-parameter.velocity,
+song-editor .editor-grid .grid-cell.cursor .grid-parameter.velocity,
+song-editor .editor-grid .grid-cell.playing .grid-parameter.velocity{
+    border-left: 1px solid #888;
+    max-width: 40px;
+    margin-left: 3px;
+    padding-left: 3px;
+}
+
+
+song-editor .editor-grid .measure-end {
+    /* border-bottom: 2px solid #555; */
+    /* border-bottom: 1px solid #666; */
+}
+
+song-editor .editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
+    max-width: 0px;
+    margin-left: 0px;
+    padding-left: 0;
+    border-left: 0px;
+    opacity: 0;
+    transition-delay: 0.25s;
+}
+
+song-editor .editor-grid .grid-cell-pause {
+    position: absolute;
+    top: 1px;
+    right: 5px;
+    color: #500;
+    z-index: 1;
+    /*opacity: 0.3;*/
+}
+song-editor .editor-grid .grid-cell-pause.duration-large {
+    color: #00A;
+}
+song-editor .editor-grid .grid-cell-pause.duration-medium {
+    color: #050;
+    /* font-size: small; */
+}
+song-editor .editor-grid .grid-cell-pause.duration-small {
+    color: #050;
+    font-size: smaller;
+}
+song-editor .editor-grid .grid-row.selected .grid-cell-pause {
+    opacity: 1;
+
+}
+
+/** Editor Instrument **/
+
+
+/** Instrument List **/
+
+song-editor .instrument-list > form.form-add-instrument > select[name=instrumentURL] {
+    max-width: 144px;
+}
+
+/** Instrument Container **/
+
+song-editor .instrument-list > form.form-add-instrument,
+song-editor .instrument {
+    position: relative;
+    vertical-align: top;
+    display: inline-block;
+    /* float: left; */
+    /*min-height: 60px;*/
+    margin: 2px;
+    padding: 0px 2px 2px 2px;
+    border: 1px outset;
+}
+
+song-editor .instrument form.form-instrument-name input[name=name] {
+    padding: 1px;
+    margin: 0 0;
+    border: 0px;
+    min-width: 28em;
+}
+
+song-editor .instrument form.form-instrument-name > label.label-instrument-name{
+    margin: 5px 0px 1px 6px;
+    display: inline-block;
+    /* margin: 0 0; */
+    /* border: 0px; */
+    /* min-width: 28em; */
+}
+
+song-editor .instrument > legend {
+    margin: 3px 0px 3px 0px;
+    display: inline-block;
+    background: linear-gradient(to right, #bfbfbf 0%,#dddddd 92%);
+    border-radius: 4px;
+}
+
+song-editor .instrument:hover {
+    background-color: #CCC;
+}
+song-editor .instrument form.form-instrument-name input[name=name]:not(:hover) {
+    background-color: #0000;
+}
+
+song-editor .instrument form.form-instrument-name button.remove-instrument {
+    /* text-align: center; */
+    padding: 0px 6px 1px 6px;
+    /* margin: 0px 0px 1px 0px; */
+    border: 1px outset;
+    border-radius: 4px;
+    color: darkred;
+}

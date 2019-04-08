@@ -5,32 +5,13 @@
 class MusicPlayerElement extends HTMLElement {
     constructor() {
         super();
-        this.audioContext = null;
-        this.songData = {};
-        this.loadedInstruments = [];
-        this.seekLength = 4;
-        this.seekPosition = 0;
-        this.volumeGain = null;
-        this.playing = false;
-        // this.config = {
-        //     volume: 0.3
-        // };
-        this.loadSongData({});
+        this.renderer = new SongRenderer();
     }
 
-    getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
-    getSongData() { return this.songData; }
-    getStartingBeatsPerMinute() { return this.songData.beatsPerMinute; }
-    getVolumeGain() {
-        if(!this.volumeGain) {
-            const context = this.getAudioContext();
-            let gain = context.createGain();
-            gain.gain.value = MusicPlayerElement.DEFAULT_VOLUME;
-            gain.connect(context.destination);
-            this.volumeGain = gain;
-        }
-        return this.volumeGain;
-    }
+    getAudioContext()               { return this.renderer.getAudioContext(); }
+    getSongData()                   { return this.renderer.getSongData(); }
+    getStartingBeatsPerMinute()     { return this.renderer.getStartingBeatsPerMinute(); }
+    getVolumeGain()                 { return this.renderer.getVolumeGain(); }
 
     getVolume () {
         if(this.volumeGain) {
@@ -46,16 +27,10 @@ class MusicPlayerElement extends HTMLElement {
         }
     }
     connectedCallback() {
-        this.addEventListener('keydown', this.onInput);
-        this.addEventListener('keyup', this.onInput);
-        this.addEventListener('click', this.onInput);
-        document.addEventListener('instrument:loaded', this.onSongEvent.bind(this));
-
-        // if(this.getSongURL())
-        //     this.loadSongFromURL(this.getSongURL());
-
-        if(!this.getAttribute('tabindex'))
-            this.setAttribute('tabindex', '1');
+        this.addEventListener('keydown', e => this.onInput(e));
+        this.addEventListener('keyup', e => this.onInput(e));
+        this.addEventListener('click', e => this.onInput(e));
+        document.addEventListener('instrument:loaded', e => this.onSongEvent(e));
 
     }
 
@@ -111,19 +86,6 @@ class MusicPlayerElement extends HTMLElement {
 
 
 
-//         loadSongFromURL(songURL, onLoaded) {
-//             const playerElm = this;
-// //             console.log('Song loading:', songURL);
-//             loadJSON(songURL, function(err, songJSON) {
-//                 if(err)
-//                     throw new Error("Could not load song: " + err);
-//                 if(!songJSON)
-//                     throw new Error("Invalid JSON File: " + songURL);
-//
-//             });
-//         }
-
-
     findInstructionGroup(instruction) {
         if(typeof instruction !== 'object')
             throw new Error("Invalid instruction object");
@@ -151,13 +113,6 @@ class MusicPlayerElement extends HTMLElement {
         return p;
     }
 
-    // getInstructionGroup(instruction) {
-    //     for(let groupName in this.songData.instructions)
-    //         if(this.songData.instructions.hasOwnProperty(groupName))
-    //             if(this.songData.instructions[groupName].indexOf(instruction) !== -1)
-    //                 return groupName;
-    //     throw new Error("Instruction not found in any groupName");
-    // }
 
     playInstruction(instruction, noteStartTime, stats) {
         // if (instruction.command[0] === '@') {
@@ -195,10 +150,10 @@ class MusicPlayerElement extends HTMLElement {
 
 
 
-        const audioNode = this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
+        this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
 
         const noteEventData = {
-            audioNode: audioNode,
+            // audioNode: audioNode,
             frequency: noteFrequency,
             startTime: noteStartTime,
             duration: noteDuration,
@@ -209,18 +164,18 @@ class MusicPlayerElement extends HTMLElement {
         };
 
         if(noteStartTime > currentTime)
-            setTimeout(function() {
+            setTimeout(() => {
                 this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-            }.bind(this), (noteStartTime - currentTime) * 1000);
+            }, (noteStartTime - currentTime) * 1000);
         else {
             // Start immediately
             this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
         }
 
         if(noteDuration) {
-            setTimeout(function() {
+            setTimeout(() => {
                 this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
-            }.bind(this), (noteStartTime - currentTime + noteDuration) * 1000);
+            }, (noteStartTime - currentTime + noteDuration) * 1000);
         }
 
     }
@@ -229,7 +184,7 @@ class MusicPlayerElement extends HTMLElement {
         playbackPosition = playbackPosition || 0;
         currentTime = currentTime || this.getAudioContext().currentTime;
         // instructionList = instructionList || this.songData.instructions;
-        return this.eachInstruction(instructionGroup, function(noteInstruction, groupStats) {
+        return this.eachInstruction(instructionGroup, (noteInstruction, groupStats) => {
             const absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
             if(absolutePlaytime < playbackPosition)
                 return;   // Instructions were already played
@@ -237,7 +192,7 @@ class MusicPlayerElement extends HTMLElement {
                 return;
             // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
             this.playInstruction(noteInstruction, currentTime + absolutePlaytime, groupStats);
-        }.bind(this));
+        });
     }
 
 
@@ -366,7 +321,10 @@ class MusicPlayerElement extends HTMLElement {
             }
         } else {
 
-            MusicPlayerElement.loadScript(instrumentPreset.url); // , () => {
+            const newScriptElm = document.createElement('script');
+            newScriptElm.src = instrumentPreset.url;
+            document.head.appendChild(newScriptElm);
+            // MusicPlayerElement.loadScript(instrumentPreset.url); // , () => {
         }
 
     }
@@ -452,34 +410,11 @@ class MusicPlayerElement extends HTMLElement {
         }
     }
 
-    findInstrumentID(instrumentPath, songInstrumentList) {
-        songInstrumentList = songInstrumentList || this.songData.instruments;
-        for(let i=0; i<songInstrumentList.length; i++) {
-            const instrument = songInstrumentList[i];
-            if(instrument.path === instrumentPath)
-                return i;
-        }
-        throw new Error("Song instrument was not found: " + instrumentPath);
-    }
-
-    // getInstrumentPath(instrumentID) {
-    //     if(typeof instrumentID !== "number")
-    //         throw new Error("Invalid instrumentID");
-    //     let instrumentPreset = this.songData.instruments[instrumentID];
-    //     if(!instrumentPreset)
-    //         throw new Error("Invalid Instrument ID: " + instrumentID);
-    //     if(!instrumentPreset.path)
-    //         throw new Error("Invalid Instrument Config: " + instrumentPreset);
-    //     return instrumentPreset.path;
-    // }
 
     isInstrumentLoaded(instrumentID) {
         return !!this.loadedInstruments[instrumentID];
     }
 
-    getLoadedInstruments() {
-        return this.loadedInstruments;
-    }
 
     // Input
 
@@ -492,41 +427,11 @@ class MusicPlayerElement extends HTMLElement {
         }
     }
 
-    // Static
-
-
-    // TODO: onload is unreliable. instruments should send init events
-    static loadScript(scriptPath, onLoaded) {
-        const scripts = document.head.querySelectorAll('script');
-        let foundScriptElm = null;
-        for(let i=0; i<scripts.length; i++) {
-            if(scripts[i].src.endsWith(scriptPath)) {
-                foundScriptElm = scripts[i];
-                break;
-            }
-        }
-        if(!foundScriptElm) {
-            const newScriptElm = document.createElement('script');
-            newScriptElm.src = scriptPath;
-            newScriptElm.setAttribute('loaded', '0');
-            newScriptElm.addEventListener('load', (e) => e.target.setAttribute('loaded', '1'));
-            newScriptElm.addEventListener('load', onLoaded);
-            document.head.appendChild(newScriptElm);
-            return newScriptElm;
-        }
-        if(onLoaded) {
-            if (foundScriptElm.getAttribute('loaded') === '1')
-                onLoaded();
-            else
-                foundScriptElm.addEventListener('load', onLoaded);
-        }
-        return foundScriptElm;
-    }
 
 }
 MusicPlayerElement.DEFAULT_VOLUME = 0.3;
 
 // Define custom elements
-customElements.define('music-player', MusicPlayerElement);
+customElements.define('song-player', MusicPlayerElement);
 
-// MusicPlayerElement.loadStylesheet('client/player/music-player.css');
+// MusicPlayerElement.loadStylesheet('client/player/song-player.css');

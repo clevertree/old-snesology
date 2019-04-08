@@ -46,7 +46,7 @@ class BufferSourceInstrument extends HTMLElement {
     }
 
     connectedCallback() {
-        // this.editor = this.closest('music-editor'); // Don't rely on this !!!
+        // this.song = this.closest('music-song'); // Don't rely on this !!!
         this.addEventListener('change', this.onSubmit);
         // this.addEventListener('input', this.onSubmit);
         this.addEventListener('submit', this.onSubmit);
