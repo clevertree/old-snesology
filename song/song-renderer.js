@@ -60,7 +60,7 @@ class SongRenderer {
         songData.root = songData.root || 'root';
         songData.instruments = (songData.instruments || []);
         songData.instructions = (songData.instructions || {});
-        songData.instructions[songData.root] = songData.instructions[songData.root] || [];
+        songData.instructions[songData.root] = songData.instructions[songData.root] || [0.25,0.25,0.25,0.25];
         this.songData = songData;
         // Object.keys(songData.instructions).map((groupName, i) =>
         //     this.processInstructions(groupName));
@@ -186,14 +186,14 @@ class SongRenderer {
         playbackPosition = playbackPosition || 0;
         currentTime = currentTime || this.getAudioContext().currentTime;
         // instructionList = instructionList || this.songData.instructions;
-        return this.eachInstruction(instructionGroup, (noteInstruction, groupStats) => {
-            const absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
+        return this.eachInstruction(instructionGroup, (i, noteInstruction, stats) => {
+            const absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
             if(absolutePlaytime < playbackPosition)
                 return;   // Instructions were already played
             if(playbackLength && absolutePlaytime >= playbackPosition + playbackLength)
                 return;
             // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
-            this.playInstruction(noteInstruction, currentTime + absolutePlaytime, groupStats);
+            this.playInstruction(noteInstruction, currentTime + absolutePlaytime, stats);
         });
     }
 
@@ -212,24 +212,42 @@ class SongRenderer {
             }
         });
 
-        function playGroup(instructionList, groupStats) {
-            groupStats.currentBPM = groupStats.parentBPM;
+        function playGroup(instructionList, stats) {
+            stats.currentBPM = stats.parentBPM;
             // groupStats.parentPosition = groupStats.parentPosition || 0;
-            groupStats.groupPosition = 0;
-            groupStats.groupPlaytime = 0;
+            stats.groupPosition = 0;
+            stats.groupPlaytime = 0;
             let maxPlaytime = 0;
             for(let i=0; i<instructionList.length; i++) {
-                const instruction = instructionList[i];
+                let instruction = instructionList[i];
+
+                switch(typeof instruction) {
+                    case 'number':
+                        instruction = {command: '!pause', duration: instruction};
+                        break;
+
+                    default:
+                    case 'string':
+                        if(typeof instruction === "string")
+                            instruction = instruction.split(':');
+                        if (Array.isArray(instruction))
+                            instruction = function(args) {
+                                const instruction = {command: args[0]};
+                                if(args.length>1)   instruction.duration = args[1];
+                                return instruction;
+                            }(instruction);
+                }
+
 
                 if(typeof instruction.command !== "undefined") {
                     if (instruction.command[0] === '!') {
                         const functionName = instruction.command.substr(1);
                         switch(functionName) {
                             case 'pause':
-                                groupStats.groupPosition += instruction.duration;
-                                groupStats.groupPlaytime += instruction.duration * (60 / groupStats.currentBPM);
-                                if(groupStats.groupPlaytime > maxPlaytime)
-                                    maxPlaytime = groupStats.groupPlaytime;
+                                stats.groupPosition += instruction.duration;
+                                stats.groupPlaytime += instruction.duration * (60 / stats.currentBPM);
+                                if(stats.groupPlaytime > maxPlaytime)
+                                    maxPlaytime = stats.groupPlaytime;
                                 break;
 
                             default:
@@ -242,18 +260,18 @@ class SongRenderer {
                         let instructionGroupList = this.songData.instructions[groupName];
                         if (!instructionGroupList)
                             throw new Error("Instruction groupName not found: " + groupName);
-                        if(groupName === groupStats.currentGroup) { // TODO group stack
+                        if(groupName === stats.currentGroup) { // TODO group stack
                             console.error("Recursive group call. Skipping group '" + groupName + "'");
                             continue;
                         }
                         // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
                         const subGroupPlayTime = playGroup.call(this, instructionGroupList, {
-                            "parentBPM": groupStats.currentBPM,
-                            "parentPosition": groupStats.groupPosition + groupStats.parentPosition,
-                            "parentPlaytime": groupStats.groupPlaytime + groupStats.parentPlaytime,
+                            "parentBPM": stats.currentBPM,
+                            "parentPosition": stats.groupPosition + stats.parentPosition,
+                            "parentPlaytime": stats.groupPlaytime + stats.parentPlaytime,
                             "currentGroup": groupName,
                             "groupInstruction": instruction,
-                            "parentStats": groupStats
+                            "parentStats": stats
                         });
                         if (subGroupPlayTime > maxPlaytime)
                             maxPlaytime = subGroupPlayTime;
@@ -261,13 +279,14 @@ class SongRenderer {
                     } else {
                         // groupStats.absolutePosition = groupStats.groupPosition + groupStats.parentPosition;
                         // groupStats.absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
-                        callback(instruction, groupStats);
+                        // callback(instruction, groupStats);
                     }
+                    callback(i, instruction, stats);
                 }
 
             }
-            if(groupStats.groupPlaytime > maxPlaytime)
-                maxPlaytime = groupStats.groupPlaytime;
+            if(stats.groupPlaytime > maxPlaytime)
+                maxPlaytime = stats.groupPlaytime;
             return maxPlaytime;
         }
     }
