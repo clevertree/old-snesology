@@ -308,6 +308,7 @@ song-editor .editor-grid {
     overflow-y: auto;
     position: relative;
     clear: both;
+    border-collapse: collapse;
 }
 
 song-editor .editor-grid > table {
@@ -339,7 +340,6 @@ song-editor .editor-grid .grid-row {
     height: 1.45em;
     /* margin: -3px 0px; */
     /* border-top: 1px solid #BBB; */
-    border: 1px outset #CCC;
     position: relative;
     transition: background-color 0.1s ease-out;
 }
@@ -365,7 +365,8 @@ song-editor .editor-grid .grid-row.playing {
 /** Grid Data **/
 
 song-editor .editor-grid .grid-data {
-    border-right: 1px solid #888;
+    border: 2px outset #CCC;
+    /* border-right: 0px solid #888; */
 }
 
 song-editor .editor-grid .grid-data-pause {

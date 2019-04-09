@@ -1,6 +1,7 @@
 class SongEditorMenu {
     constructor(editor) {
         this.editor = editor;
+        this.renderElm=null;
     }
 
 
@@ -19,9 +20,6 @@ class SongEditorMenu {
                 }
                 this.closeMenu();
                 break;
-
-            default:
-                console.error("Unhandled " + e.type, e);
         }
     }
 
@@ -42,6 +40,7 @@ class SongEditorMenu {
         switch(dataCommand) {
             case 'song:new':
                 document.location = 'song/new';
+                e.preventDefault();
                 break;
 
             case 'song:save':
@@ -50,18 +49,22 @@ class SongEditorMenu {
             case 'song:load-server-uuid':
                 if(!uuid) uuid = prompt("Enter UUID: ");
                 this.loadSongFromServer(uuid);
+                e.preventDefault();
                 break;
 
             case 'song:load-memory-uuid':
                 this.loadSongFromMemory(uuid);
+                e.preventDefault();
                 break;
 
             case 'save:memory':
                 this.saveSongToMemory();
+                e.preventDefault();
                 break;
 
             case 'save:file':
                 this.saveSongToFile();
+                e.preventDefault();
                 break;
 
 
@@ -70,16 +73,19 @@ class SongEditorMenu {
                 newGroupName = prompt("Create new instruction group?", newGroupName);
                 if(newGroupName)    this.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
                 else                console.error("Create instruction group canceled");
+                e.preventDefault();
                 break;
 
             case 'group:remove':
                 this.removeInstructionGroup(currentGroup);
+                e.preventDefault();
                 break;
 
             case 'group:rename':
                 let renameGroupName = prompt("Rename instruction group?", currentGroup);
                 if(renameGroupName)     this.renameInstructionGroup(currentGroup, renameGroupName);
                 else                    console.error("Rename instruction group canceled");
+                e.preventDefault();
                 break;
 
             case 'instruction:insert':
@@ -91,6 +97,7 @@ class SongEditorMenu {
                 }; // new instruction
                 // song.getSelectedInstructions() = [selectedInstruction]; // select new instruction
                 this.insertInstructionAtIndex(currentGroup, cursorIndex, newInstruction);
+                e.preventDefault();
                 break;
 
             case 'instruction:command':
@@ -99,6 +106,7 @@ class SongEditorMenu {
                     command: newCommand
                 });
                 else                    console.error("Set instruction command canceled");
+                e.preventDefault();
                 break;
 
             case 'instruction:duration':
@@ -108,6 +116,7 @@ class SongEditorMenu {
                     duration: newDuration
                 });
                 else                    console.error("Set instruction duration canceled");
+                e.preventDefault();
                 break;
 
             case 'instruction:velocity':
@@ -117,11 +126,13 @@ class SongEditorMenu {
                     velocity: newVelocity
                 });
                 else                    console.error("Set instruction velocity canceled");
+                e.preventDefault();
                 break;
 
             case 'menu:toggle':
-                // this.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
+                // this.renderElm.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
                 // e.target.classList.toggle('open');
+                e.preventDefault();
                 break;
             default:
                 console.warn("Unknown menu command: " + dataCommand);
@@ -188,11 +199,11 @@ class SongEditorMenu {
         // Row Instructions
 
         // Group Buttons
-        this.querySelectorAll('button[name=groupName]')
+        this.renderElm.querySelectorAll('button[name=groupName]')
             .forEach(button => button.classList.toggle('selected', button.getAttribute('value') !== groupName));
 
         // Instruction Forms
-        // this.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
+        // this.renderElm.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
         //     .forEach(fieldset => fieldset.classList.add('hidden'));
 
 
@@ -228,7 +239,7 @@ class SongEditorMenu {
         // if(!this.fieldInsertInstructionCommand.value)
         //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
 
-        this.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
+        this.renderElm.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
 
     }
 
@@ -237,12 +248,12 @@ class SongEditorMenu {
         // const player = this.editor.player;
         // const songData = player.getSongData();
         // let tabIndex = 2;
-        let renderElm = this.editor.querySelector('ul.editor-menu');
-        if(!renderElm) {
+        this.renderElm = this.editor.querySelector('ul.editor-menu');
+        if(!this.renderElm) {
             this.editor.innerHTML += `<ul class="editor-menu"></ul>`;
-            renderElm = this.editor.querySelector('ul.editor-menu');
+            this.renderElm = this.editor.querySelector('ul.editor-menu');
         }
-        renderElm.innerHTML =
+        this.renderElm.innerHTML =
             `<li>
                 <a><span class="key">F</span>ile</a>
                 <ul class="sub-menu">
@@ -403,9 +414,9 @@ class SongEditorMenu {
         let target = e.target;
         let x = e.clientX, y = e.clientY;
 
-        this.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
-        // this.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
-        const contextMenu = this.querySelector('.song-context-menu');
+        this.renderElm.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
+        // this.renderElm.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
+        const contextMenu = this.renderElm.querySelector('.song-context-menu');
         // console.info("Context menu", contextMenu);
 
         // contextMenu.setAttribute('class', 'song-context-menu');
@@ -435,7 +446,7 @@ class SongEditorMenu {
     }
 
     closeMenu() {
-        this.querySelectorAll('.menu-item.open,.submenu.open')
+        this.renderElm.querySelectorAll('.menu-item.open,.submenu.open')
             .forEach(elm => elm.classList.remove('open'));
     }
 

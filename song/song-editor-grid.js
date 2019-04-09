@@ -79,13 +79,6 @@ class SongEditorGrid {
 
     connectedCallback() {
         this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
-        this.addEventListener('contextmenu', this.onInput);
-        this.addEventListener('keydown', this.onInput);
-        // this.addEventListener('keyup', this.onInput.bind(this));
-        // this.addEventListener('click', this.onInput.bind(this));
-        this.addEventListener('mousedown', this.onInput);
-        this.addEventListener('mouseup', this.onInput);
-        this.addEventListener('longpress', this.onInput);
 
         if(this.editor.player) {
             const onSongEvent = this.onSongEvent.bind(this);
@@ -397,6 +390,9 @@ class SongEditorGrid {
                     // if(!e.altKey) e.preventDefault();
 
                     break;
+
+                default:
+                    throw new Error("Unhandled type: " + e.type);
 
             }
         } catch (e) {

@@ -43,8 +43,15 @@ class SongEditorElement extends HTMLElement {
         this.addEventListener('submit', this.onSubmit);
         this.addEventListener('change', this.onSubmit);
         this.addEventListener('blur', this.onSubmit);
-        // this.addEventListener('keydown', this.onInput);
+        this.addEventListener('keydown', this.onInput);
+        // this.addEventListener('keyup', this.onInput.bind(this));
+        // this.addEventListener('click', this.onInput.bind(this));
+        this.addEventListener('contextmenu', this.onInput);
         this.addEventListener('mousedown', this.onInput);
+        this.addEventListener('mouseup', this.onInput);
+        this.addEventListener('longpress', this.onInput);
+
+
         this.render();
 
         const uuid = this.getAttribute('uuid');
@@ -71,27 +78,27 @@ class SongEditorElement extends HTMLElement {
         if(e.defaultPrevented)
             return;
 
-        // let targetClassList = e.target.classList;
-        switch(e.type) {
-            // case 'keydown':
-            //     switch(e.key) {
-            //         case 'Tab': break;
-            //         case ' ': this.player.play(); e.preventDefault(); break;
-            //         case 'Escape': this.grid.focus(); break;
-            //         default:
-            //     }
-            //     break;
+        this.menu.onInput(e);
+        if(e.defaultPrevented)
+            return;
+        this.grid.onInput(e);
+        if(e.defaultPrevented)
+            return;
 
-            case 'mousedown':
-                if(this.menu.onInput(e))
-                    return;
-                break;
-
-            default:
-                console.error("Unhandled " + e.type, e);
-        }
+        console.error("Unhandled " + e.type, e);
     }
 
+    onError(err) {
+        console.error(err);
+        if(this.webSocket)
+            this.webSocket
+                .onError(err);
+                // .send(JSON.stringify({
+                //     type: 'error',
+                //     message: err.message || err,
+                //     stack: err.stack
+                // }));
+    }
 
 
     // Rendering
