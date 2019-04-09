@@ -298,12 +298,12 @@ song-editor .editor-forms form.form-render-instrument select[name=instrument] { 
 
 /** Grid **/
 song-editor .editor-grid {
-    display: block;
+    /* display: block; */
     /*cursor: pointer;*/
     /* display: block; */
     /* border-collapse: collapse; */
     /* display: table; */
-    /* width: 100%; */
+    width: 100%;
     max-height: 600px;
     overflow-y: auto;
     position: relative;
@@ -344,7 +344,7 @@ song-editor .editor-grid .grid-row {
     transition: background-color 0.1s ease-out;
 }
 
-song-editor .editor-grid .grid-row.odd {
+song-editor .editor-grid .grid-row:nth-child(odd) {
     background-color: #AAA;
 }
 
@@ -371,6 +371,7 @@ song-editor .editor-grid .grid-data {
 song-editor .editor-grid .grid-data-pause {
     text-align: center;
     font-size: smaller;
+    width: 30px;
 }
 
 /** Grid Cell **/

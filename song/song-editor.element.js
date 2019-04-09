@@ -27,6 +27,7 @@ class SongEditorElement extends HTMLElement {
         this.keyboard = new SongEditorKeyboard(this);
         this.menu = new SongEditorMenu(this);
         this.forms = new SongEditorForms(this);
+        this.commands = new SongEditorCommands(this);
         this.grid = new SongEditorGrid(this);
         this.modifier = new SongModifier(this);
         this.instruments = new SongEditorInstruments(this);

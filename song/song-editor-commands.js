@@ -10,25 +10,6 @@ class SongEditorCommands {
     }
 
 
-
-    format(input, type) {
-        switch(type) {
-            case 'duration':
-                if(input === 1/64) return '1/64';
-                if(input === 1/32) return '1/32';
-                if(input === 1/16) return '1/16';
-                if(input === 1/8) return '1/8';
-                if(input === 1/4) return '1/4';
-                if(input === 1/2) return '1/2';
-                input = parseFloat(input).toFixed(2);
-                return input.replace('.00', 'B');
-
-            case 'instrument':
-                return input < 10 ? "0" + input : "" + input;
-
-        }
-    }
-
     generateInstructionGroupName(currentGroup) {
         const songData = this.getSongData();
         let newGroupName;

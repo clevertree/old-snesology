@@ -104,56 +104,11 @@ class SongEditorGrid {
     static getInstrumentList(instructionList) {
     }
 
-    renderGridRow(pauseInstruction, rowInstructions) {
-
-        let rowContent = '';
-        for(let i=0; i<rowInstructions; i++) {
-            const rowInstruction = rowInstructions[i];
-            // if(instrumentFilter === null || instrumentFilter === (instruction.instrument || 0)) {
-            const selectedClass = selectedInstruction ? ' selected' : '';
-            let cellHTML = `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">`;
-            cellHTML += `<div class="grid-parameter command">${instruction.command}</div>`;
-            // if (typeof instruction.instrument !== 'undefined')
-            cellHTML += `<!--<div class="grid-parameter instrument">${this.editor.format(instruction.instrument, 'instrument')}</div>-->`;
-            if (typeof instruction.velocity !== 'undefined')
-                cellHTML += `<div class="grid-parameter velocity">${instruction.velocity}</div>`;
-            if (typeof instruction.duration !== 'undefined')
-                cellHTML += `<div class="grid-parameter duration">${this.editor.format(instruction.duration, 'duration')}</div>`;
-            cellHTML += `</div>`;
-            // const instrumentID = typeof instruction.instrument !== "undefined" ? parseInt(instruction.instrument) : 0;
-            rowContent += cellHTML;
-            // }
-        }
-
-
-        // TODO: ignore pause if no commands. add duration to next pause
-        const duration = pauseInstruction.duration;
-        for(let subPause=0; subPause<duration; subPause+=gridDuration) {
-            let subDuration = gridDuration;
-            if(subPause + gridDuration > duration)
-                subDuration = subPause + gridDuration - duration;
-
-            var rowCSS = (odd = !odd) ? ['odd'] : [];
-
-            editorHTML +=
-                `<tr class="grid-row ${rowCSS.join(' ')}" data-index="${index}" data-position="${songPosition}">
-                   <td class="grid-data">
-                       ${rowContent}
-                   </td>
-                   <td class="grid-data-pause">
-                       ${this.editor.format(duration, 'duration')}
-                   </td>
-                </tr>`;
-
-        }
-
-    }
-
     render() {
-        this.renderElm = this.editor.querySelector('div.editor-grid');
+        this.renderElm = this.editor.querySelector('table.editor-grid');
         if(!this.renderElm) {
-            this.editor.innerHTML += `<div class="editor-grid"></div>`;
-            this.renderElm = this.editor.querySelector('div.editor-grid');
+            this.editor.innerHTML += `<table class="editor-grid"></table>`;
+            this.renderElm = this.editor.querySelector('table.editor-grid');
         }
 
         let cellList = this.renderElm.querySelectorAll('.grid-cell');
@@ -192,7 +147,8 @@ class SongEditorGrid {
         // editorHTML += `</tr>`;
 
 
-        let editorHTML = '', rowInstructions=[]; // , lastPause = 0;
+        let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
+
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // let selectedInstruction = selectedIndices.indexOf(index) !== -1;
 
@@ -200,9 +156,29 @@ class SongEditorGrid {
                 const functionName = instruction.command.substr(1);
                 switch (functionName) {
                     case 'pause':
-                        editorHTML += this.renderGridRow(instruction, rowInstructions);
+                        // editorHTML += this.renderGridRow(instruction, rowInstructions, odd);
 
-                        rowInstructions = [];
+
+                        // TODO: ignore pause if no commands. add duration to next pause
+                        for(let subPause=0; subPause<instruction.duration; subPause+=gridDuration) {
+                            let subDuration = gridDuration;
+                            if(subPause + gridDuration > instruction.duration)
+                                subDuration = subPause + gridDuration - instruction.duration;
+
+                            editorHTML +=
+                                `<tr class="grid-row" data-index="${index}" data-position="${songPosition}">
+                                   <td class="grid-data">
+                                       ${rowHTML}
+                                   </td>
+                                   <td class="grid-data-pause">
+                                       ${this.editor.renderer.format(instruction.duration, 'duration')}
+                                   </td>
+                                </tr>`;
+                            rowHTML = '';
+                            songPosition += subDuration;
+                        }
+
+
                         break;
 
                     default:
@@ -210,13 +186,20 @@ class SongEditorGrid {
                         break;
                 }
             } else {
-                rowInstructions.push(instruction);
+                const selectedClass = selectedIndices.indexOf(index) !== -1 ? ' selected' : '';
+                rowHTML +=
+                    `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">
+                        <div class="grid-parameter command">${instruction.command}</div>
+                        ${typeof instruction.instrument !== "undefined" ? `<div class="grid-parameter instrument">${this.editor.renderer.format(instruction.instrument, 'instrument')}</div>` : ''}
+                        ${typeof instruction.velocity !== "undefined" ? `<div class="grid-parameter velocity">${instruction.velocity}</div>` : ''}
+                        ${typeof instruction.duration !== "undefined" ? `<div class="grid-parameter duration">${this.editor.renderer.format(instruction.duration, 'duration')}</div>` : ''}
+                    </div>`;
             }
         });
 
 
         const currentScrollPosition = this.scrollTop || 0;
-        editorHTML = `<table>${editorHTML}</table>`;
+        // editorHTML = `<table>${editorHTML}</table>`;
         this.renderElm.innerHTML = editorHTML;
         this.scrollTop = currentScrollPosition;
 
