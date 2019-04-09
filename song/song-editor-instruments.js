@@ -14,7 +14,7 @@ class SongEditorInstruments {
             this.instrumentLibrary = xhr.response;
             this.render();
         };
-        xhr.send();
+//         xhr.send();
     }
 
     // get id() { return parseInt(this.getAttribute('id')); }

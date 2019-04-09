@@ -45,7 +45,6 @@ class SongEditorWebsocket {
     // }
 
     onError(err) {
-        console.error(err);
         if(this.webSocket)
             this.webSocket
                 .send(JSON.stringify({

@@ -97,113 +97,6 @@ class SongEditorGrid {
     static getInstrumentList(instructionList) {
     }
 
-    render() {
-        this.renderElm = this.editor.querySelector('table.editor-grid');
-        if(!this.renderElm) {
-            this.editor.innerHTML += `<table class="editor-grid"></table>`;
-            this.renderElm = this.editor.querySelector('table.editor-grid');
-        }
-
-        let cellList = this.renderElm.querySelectorAll('.grid-cell');
-        const cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
-        const selectedIndices = this.selectedIndices;
-        let instrumentFilter = this.editor.forms.fieldRenderInstrument.value === "" ? null : parseInt(this.editor.forms.fieldRenderInstrument.value);
-
-        const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
-
-        // const instructionList = this.instructionList;
-
-
-        // let instrumentList = [];
-        // for(let index=0; index<instructionList.length; index++) {
-        //     const instruction = instructionList[index];
-        //     if (typeof instruction.instrument === "undefined")
-        //         continue;
-        //     const instrumentID = parseInt(instruction.instrument);
-        //     if(instrumentList.indexOf(instrumentID) === -1)
-        //         instrumentList.push(instrumentID);
-        //
-        // }
-        // instrumentList = instrumentList.sort();
-
-
-        // editorHTML += `<tr>`;
-        // for(var i=0; i<instrumentList.length; i++) {
-        //     const instrumentID = instrumentList[i];
-        //     const instrument = this.editor.player.getInstrument(instrumentID);
-        //     const instrumentPreset = this.editor.player.getInstrumentConfig(instrumentID);
-        //     const instrumentName = instrumentPreset.name || (instrument ? instrument.constructor.name : "Not Loaded");
-        //     const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + instrumentID;
-        //     editorHTML += `<th class="grid-header"><legend class="themed"><strong>${instrumentIDHTML}</strong>: ${instrumentName}</legend></th>`;
-        // }
-        // editorHTML += `<th class="grid-header-pause"><legend class="themed">Pause</legend></th>`;
-        // editorHTML += `</tr>`;
-
-
-        let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
-
-        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
-            // let selectedInstruction = selectedIndices.indexOf(index) !== -1;
-
-            if (instruction.command[0] === '!') {
-                const functionName = instruction.command.substr(1);
-                switch (functionName) {
-                    case 'pause':
-                        // editorHTML += this.renderGridRow(instruction, rowInstructions, odd);
-
-
-                        // TODO: ignore pause if no commands. add duration to next pause
-                        for(let subPause=0; subPause<instruction.duration; subPause+=gridDuration) {
-                            let subDuration = gridDuration;
-                            if(subPause + gridDuration > instruction.duration)
-                                subDuration = subPause + gridDuration - instruction.duration;
-
-                            editorHTML +=
-                                `<tr class="grid-row" data-index="${index}" data-position="${songPosition}">
-                                   <td class="grid-data">
-                                       ${rowHTML}
-                                   </td>
-                                   <td class="grid-data-pause">
-                                       ${this.editor.renderer.format(instruction.duration, 'duration')}
-                                   </td>
-                                </tr>`;
-                            rowHTML = '';
-                            songPosition += subDuration;
-                        }
-
-
-                        break;
-
-                    default:
-                        console.error("Unknown function: " + instruction.command);
-                        break;
-                }
-            } else {
-                const selectedClass = selectedIndices.indexOf(index) !== -1 ? ' selected' : '';
-                rowHTML +=
-                    `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">
-                        <div class="grid-parameter command">${instruction.command}</div>
-                        ${typeof instruction.instrument !== "undefined" ? `<div class="grid-parameter instrument">${this.editor.renderer.format(instruction.instrument, 'instrument')}</div>` : ''}
-                        ${typeof instruction.velocity !== "undefined" ? `<div class="grid-parameter velocity">${instruction.velocity}</div>` : ''}
-                        ${typeof instruction.duration !== "undefined" ? `<div class="grid-parameter duration">${this.editor.renderer.format(instruction.duration, 'duration')}</div>` : ''}
-                    </div>`;
-            }
-        });
-
-
-        const currentScrollPosition = this.scrollTop || 0;
-        // editorHTML = `<table>${editorHTML}</table>`;
-        this.renderElm.innerHTML = editorHTML;
-        this.scrollTop = currentScrollPosition;
-
-        cellList = this.renderElm.querySelectorAll('.grid-cell');
-        // for(let i=0; i<selectedIndices.length; i++)
-        //     if(cellList[selectedIndices[i]])
-        //         cellList[selectedIndices[i]].classList.add('selected');
-        if(cellList[cursorCellIndex])
-            cellList[cursorCellIndex].classList.add('cursor');
-    }
-
     onInput(e) {
         if (e.defaultPrevented)
             return;
@@ -347,18 +240,15 @@ class SongEditorGrid {
                     this.editor.menu.closeMenu();
                     let cellElm = e.target;
                     if (cellElm.classList.contains('grid-parameter'))
-                        cellElm = cellElm.parentNode;
-                    if (cellElm.classList.contains('grid-parameter'))
-                        cellElm = cellElm.parentNode;
+                        return this.onCellInput(e);
+                    if (cellElm.classList.contains('grid-cell'))
+                        return this.onCellInput(e);
+                    if (cellElm.classList.contains('grid-data'))
+                        return this.onRowInput(e);
                     if (cellElm.classList.contains('grid-row'))
-                        cellElm = cellElm.childNodes[cellElm.childNodes.length-2];
-                    if (!cellElm.classList.contains('grid-cell'))
-                        cellElm = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
-                    if(!cellElm)
-                        throw new Error("Could not find grid-cell");
+                        return this.onRowInput(e);
+                        // cellElm = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
 
-                    this.selectCell(e, cellElm);
-                    this.focus();
 
                     // Longpress
                     clearTimeout(this.longPressTimeout);
@@ -401,6 +291,23 @@ class SongEditorGrid {
 
     }
 
+    onRowInput(e) {
+        e.preventDefault();
+        let selectedCell = e.target;
+        if(selectedCell.classList.contains('grid-data'))
+            selectedCell = selectedCell.parentNode;
+        const index = parseInt(selectedCell.getAttribute('data-index'));
+        this.editor.selectInstructions(this.groupName, index);
+    }
+
+    onCellInput(e) {
+        e.preventDefault();
+        let selectedCell = e.target;
+        if(selectedCell.classList.contains('grid-parameter'))
+            selectedCell = selectedCell.parentNode;
+        const index = parseInt(selectedCell.getAttribute('data-index'));
+        this.editor.selectInstructions(this.groupName, index);
+    }
 
     onSongEvent(e) {
         // console.log("onSongEvent", e);
@@ -446,6 +353,7 @@ class SongEditorGrid {
         }
     }
 
+
     findInstruction(instruction) {
         let grids = this.renderElm.querySelectorAll('music-song-grid');
         for(let i=0; i<grids.length; i++) {
@@ -471,7 +379,6 @@ class SongEditorGrid {
         this.render();
     }
 
-
     navigatePop() {
         console.log("Navigate Back: ", this.status.grids[0].groupName);
         if(this.status.grids.length > 0)
@@ -492,13 +399,14 @@ class SongEditorGrid {
         });
     }
 
+
     insertInstructionAtIndex(instruction, insertIndex) {
         return this.editor.insertInstructionAtIndex(this.groupName, insertIndex, instruction);
     }
+
     insertInstructionAtPosition(instruction, insertTimePosition) {
         return this.editor.insertInstructionAtPosition(this.groupName, insertTimePosition, instruction);
     }
-
     deleteInstructionAtIndex(deleteIndex) {
         return this.editor.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
     }
@@ -506,7 +414,6 @@ class SongEditorGrid {
     replaceInstructionParams(replaceIndex, replaceParams) {
         return this.editor.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
     }
-
 
     selectCell(e, cursorCell) {
         this.renderElm.querySelectorAll('.grid-cell.cursor')
@@ -518,8 +425,10 @@ class SongEditorGrid {
         if(cursorCell.classList.contains('grid-cell-instruction'))
             cursorCell.classList.add('selected');
         cursorCell.parentNode.classList.add('selected');
-        this.editor.menu.update();
+        // TODO: editor controls the selection indicies, rows, and group. how is new data selected?
+        this.editor.update();
     }
+
 
     selectIndices(cursorIndex, selectedIndices) {
         const cursorCell = this.renderElm.querySelector(`.grid-cell[data-index='${cursorIndex}']`);
@@ -570,6 +479,90 @@ class SongEditorGrid {
 
     findDataElement(instructionIndex) {
         return this.renderElm.querySelector(`.grid-cell[data-index='${instructionIndex}'`);
+    }
+
+    render() {
+        this.renderElm = this.editor.querySelector('table.editor-grid');
+        if(!this.renderElm) {
+            this.editor.innerHTML += `<table class="editor-grid"></table>`;
+            this.renderElm = this.editor.querySelector('table.editor-grid');
+        }
+
+
+        const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
+
+        const selectedIndicies = this.editor.status.selection.indicies;
+        let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
+
+        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+            const selectedClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
+
+            if (instruction.command[0] === '!') {
+                const functionName = instruction.command.substr(1);
+                switch (functionName) {
+                    case 'pause':
+                        // editorHTML += this.renderGridRow(instruction, rowInstructions, odd);
+
+
+                        // TODO: ignore pause if no commands. add duration to next pause
+                        for(let subPause=0; subPause<instruction.duration; subPause+=gridDuration) {
+                            let subDuration = gridDuration;
+                            if(subPause + gridDuration > instruction.duration)
+                                subDuration = subPause + gridDuration - instruction.duration;
+
+                            editorHTML +=
+                                `<tr class="grid-row${selectedClass}" data-index="${index}" data-position="${songPosition}">
+                                   <td class="grid-data">
+                                       ${rowHTML}
+                                   </td>
+                                   <td class="grid-data-pause">
+                                       ${this.editor.renderer.format(instruction.duration, 'duration')}
+                                   </td>
+                                </tr>`;
+                            rowHTML = '';
+                            songPosition += subDuration;
+                        }
+
+
+                        break;
+
+                    default:
+                        console.error("Unknown function: " + instruction.command);
+                        break;
+                }
+            } else {
+                rowHTML +=
+                    `<div class="grid-cell grid-cell-instruction${selectedClass}" data-index="${index}">
+                        <div class="grid-parameter command">${instruction.command}</div>
+                        ${typeof instruction.instrument !== "undefined" ? `<div class="grid-parameter instrument">${this.editor.renderer.format(instruction.instrument, 'instrument')}</div>` : ''}
+                        ${typeof instruction.velocity !== "undefined" ? `<div class="grid-parameter velocity">${instruction.velocity}</div>` : ''}
+                        ${typeof instruction.duration !== "undefined" ? `<div class="grid-parameter duration">${this.editor.renderer.format(instruction.duration, 'duration')}</div>` : ''}
+                    </div>`;
+            }
+        });
+
+
+
+        const currentScrollPosition = this.scrollTop || 0; // Save scroll position
+        this.renderElm.innerHTML = editorHTML;
+        this.scrollTop = currentScrollPosition;             // Restore scroll position
+
+    }
+
+    update() {
+        let cellList = this.renderElm.querySelectorAll('.grid-cell,.grid-row');
+
+        const selectedIndicies = this.editor.status.selection.indicies;
+        for(let i=0; i<cellList.length; i++) {
+            const cell = cellList[i];
+            const index = parseInt(cell.getAttribute('data-index'));
+            if(selectedIndicies.indexOf(index) === -1) {
+                cell.classList.remove('selected');
+            } else {
+                cell.classList.add('selected');
+            }
+        }
+
     }
 }
 // customElements.define('music-song-grid', SongEditorGrid);

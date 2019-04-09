@@ -164,6 +164,7 @@ class SongEditorMenu {
 
     update() {
 
+
         // const gridDuration = this.fieldRenderDuration.value || 1;
         const cursorIndex = this.editor.grid.cursorPosition;
         const selectedIndices = this.editor.grid.selectedIndices;

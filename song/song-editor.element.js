@@ -9,6 +9,10 @@ class SongEditorElement extends HTMLElement {
         super();
         this.player = null;
         this.status = {
+            selection: {
+                indicies: [],
+                group: 'root'
+            },
             history: {
                 currentStep: 0,
                 undoList: [],
@@ -105,12 +109,39 @@ class SongEditorElement extends HTMLElement {
 
 
     render() {
-        // TODO: switch to non HTML classes that handle their own rendering
         this.innerHTML = ``;
         this.menu.render();
         this.forms.render();
         this.grid.render();
 
+    }
+
+    // Update DOM
+
+
+    update() {
+        this.grid.update();
+        // this.menu.update();
+        // this.forms.update();
+
+    }
+
+    selectInstructions(groupName, index, clearSelection=true, toggle=false) {
+        if(this.status.selection.group !== groupName) {
+            this.status.selection.group = groupName;
+            this.status.selection.indicies = [];
+        }
+        if(clearSelection)
+            this.status.selection.indicies = [];
+        const indicies = this.status.selection.indicies;
+        const existingIndex = indicies.indexOf(index);
+        if(existingIndex === -1) {
+            indicies.push(index);
+        } else {
+            if(toggle)
+                indicies.splice(existingIndex, 1);
+        }
+        this.update();
     }
 
     // Grid Commands
