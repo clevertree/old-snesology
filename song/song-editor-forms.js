@@ -269,195 +269,193 @@ class SongEditorForms {
 
     // ${this.renderEditorMenuLoadFromMemory()}
     render() {
-        this.renderElm = this.editor.querySelector('div.editor-grid');
+        this.renderElm = this.editor.querySelector('div.editor-forms');
         if(!this.renderElm) {
-            this.editor.innerHTML += `<div class="editor-grid"></div>`;
-            this.renderElm = this.editor.querySelector('div.editor-grid');
+            this.editor.innerHTML += `<div class="editor-forms"></div>`;
+            this.renderElm = this.editor.querySelector('div.editor-forms');
         }
 
         const renderer = this.editor.renderer;
         const songData = this.editor.getSongData();
         // let tabIndex = 2;
         this.renderElm.innerHTML =
-            `<div class="editor-forms">
-                <div class="form-section">
-                    <legend class="themed">Playback Controls</legend>
-                    <form class="form-song-play" data-command="song:play">
-                        <button name="play" class="themed">Play</button>
-                    </form>
-                    <form class="form-song-pause" data-command="song:pause">
-                        <button name="pause" class="themed">Pause</button>
-                    </form>
-                    <form class="form-song-resume" data-command="song:resume">
-                        <button name="resume" class="themed">Resume</button>
-                    </form>
-                    <form class="form-song-volume submit-on-change" data-command="song:volume">
-                        <div class="volume-container">
-                            <input name="volume" type="range" min="1" max="100" value="${renderer ? renderer.getVolume() : 0}" class="themed">
-                        </div>
-                    </form>
-                </div>
-                                             
-                
-                <div class="form-section">
-                    <legend class="themed">Song Title</legend>
-                    <form class="form-song-title submit-on-change" data-command="song:set-title">
-                        <input name="title" type="text" class="themed" value="${songData.title}" />
-                    </form>
-                </div>     
-                
-                <div class="form-section">
-                    <legend class="themed">Version</legend>
-                    <form class="form-song-version submit-on-change" data-command="song:set-version">
-                        <input name="version" type="text" class="themed" value="${songData.version}" />
-                    </form>
-                </div>                
-                 
-                <br style="clear: both;"/>
-     
-                <div class="form-section show-on-insert-instruction">
-                    <legend class="themed">Insert Instruction</legend>
-                    <form class="form-instruction-insert" data-command="instruction:insert">
-                        <select name="command" title="Instruction Command" class="themed" required="required">
-                            <optgroup label="Custom Frequencies" class="instrument-frequencies">
-                                ${this.editor.renderEditorFormOptions('command-instrument-frequencies')}
-                            </optgroup>
-                            <optgroup label="Frequencies">
-                                ${this.editor.renderEditorFormOptions('command-frequencies')}
-                            </optgroup>
-                            <optgroup label="Group Execute">
-                                ${this.editor.renderEditorFormOptions('command-group-execute')}
-                            </optgroup>
-                        </select>
-                        <button name="insert" class="themed" title="Insert Instruction">+</button>
-                    </form>
-                </div>
-                
-                <div class="form-section show-on-modify-instruction">
-                    <legend class="themed">Modify Instruction</legend>
-                    <form class="form-instruction-command submit-on-change" data-command="instruction:command">
-                        <select name="command" title="Instruction Command" class="themed" required="required">
-                            <option value="">Command (Choose)</option>
-                            <optgroup label="Custom Frequencies" class="instrument-frequencies">
-                                ${this.editor.renderEditorFormOptions('command-instrument-frequencies')}
-                            </optgroup>
-                            <optgroup label="Frequencies">
-                                ${this.editor.renderEditorFormOptions('command-frequencies')}
-                            </optgroup>
-                            <optgroup label="Group Execute">
-                                ${this.editor.renderEditorFormOptions('command-group-execute')}
-                            </optgroup>
-                        </select>
-                    </form>
-                    <form class="form-instruction-delete" data-command="instruction:delete">
-                        <button name="delete" class="themed" title="Delete Instruction">-</button>
-                    </form>
-                </div>
-                
-                <div class="form-section">
-                    <legend class="themed">Instrument</legend>
-                    <form class="form-instruction-instrument submit-on-change" data-command="instruction:instrument">
-                        <select name="instrument" title="Instruction Instrument" class="themed">
-                            <option value="">Instrument (Default)</option>
-                            <optgroup label="Song Instruments">
-                                ${this.editor.renderEditorFormOptions('instruments-songs')}
-                            </optgroup>
-                        </select>
-                    </form>
-                </div>
-                
-                <div class="form-section">
-                    <legend class="themed">Duration</legend>
-                    <form class="form-instruction-duration submit-on-change" data-command="instruction:duration">
-                        <select name="duration" title="Instruction Duration" class="themed">
-                            <optgroup label="Note Duration">
-                                <option value="">Duration (Default)</option>
-                                ${this.editor.renderEditorFormOptions('durations')}
-                            </optgroup>
-                        </select>
-                    </form>
-                </div>
-                
-                <div class="form-section">
-                    <legend class="themed">Velocity</legend>
-                    <form class="form-instruction-velocity submit-on-change" data-command="instruction:velocity">
-                        <select name="velocity" title="Instruction Velocity" class="themed">
-                            <optgroup label="Velocity">
-                                <option value="">Velocity (Default)</option>
-                                ${this.editor.renderEditorFormOptions('velocities')}
-                            </optgroup>
-                        </select>
-                    </form>
-                </div>
-                
-                <div class="form-section">
-                    <legend class="themed">Modify Row</legend>
-                    <form class="form-row-insert" data-command="row:insert">
-                        <button name="insert" disabled="disabled" class="themed">+</button>
-                    </form>
-                    <form class="form-row-delete" data-command="row:delete">
-                        <button name="delete" disabled="disabled" class="themed">-</button>
-                    </form>
-                    <form class="form-row-duplicate" data-command="row:duplicate">
-                        <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>
-                    </form>
-                </div>                
+            `
+            <div class="form-section">
+                <div class="form-section-header">Playback Controls</div>
+                <form class="form-song-play" data-command="song:play">
+                    <button name="play" class="themed">Play</button>
+                </form>
+                <form class="form-song-pause show-on-song-playing" data-command="song:pause">
+                    <button name="pause" class="themed">Pause</button>
+                </form>
+                <form class="form-song-resume show-on-song-paused" data-command="song:resume">
+                    <button name="resume" class="themed">Resume</button>
+                </form>
+            </div>
+                                         
+            
+            <div class="form-section">
+                <div class="form-section-header">Volume</div>
+                <form class="form-song-volume submit-on-change" data-command="song:volume">
+                    <div class="volume-container">
+                        <input name="volume" type="range" min="1" max="100" value="${renderer ? renderer.getVolume() : 0}" class="themed">
+                    </div>
+                </form>
+            </div>
+                                         
+            
+            <div class="form-section">
+                <div class="form-section-header">Song Title</div>
+                <form class="form-song-title submit-on-change" data-command="song:set-title">
+                    <input name="title" type="text" class="themed" value="${songData.title}" />
+                </form>
+            </div>     
+            
+            <div class="form-section">
+                <div class="form-section-header">Version</div>
+                <form class="form-song-version submit-on-change" data-command="song:set-version">
+                    <input name="version" type="text" class="themed" value="${songData.version}" />
+                </form>
+            </div>                
+             
+            <br style="clear: both;"/>
+ 
+            <div class="form-section show-on-insert-instruction">
+                <div class="form-section-header">Insert Instruction</div>
+                <form class="form-instruction-insert" data-command="instruction:insert">
+                    <select name="command" title="Instruction Command" class="themed" required="required">
+                        <optgroup label="Custom Frequencies" class="instrument-frequencies">
+                            ${this.renderEditorFormOptions('command-instrument-frequencies')}
+                        </optgroup>
+                        <optgroup label="Frequencies">
+                            ${this.renderEditorFormOptions('command-frequencies')}
+                        </optgroup>
+                        <optgroup label="Group Execute">
+                            ${this.renderEditorFormOptions('command-group-execute')}
+                        </optgroup>
+                    </select>
+                    <button name="insert" class="themed" title="Insert Instruction">+</button>
+                </form>
+            </div>
+            
+            <div class="form-section show-on-modify-instruction">
+                <div class="form-section-header">Modify Instruction</div>
+                <form class="form-instruction-command submit-on-change" data-command="instruction:command">
+                    <select name="command" title="Instruction Command" class="themed" required="required">
+                        <option value="">Command (Choose)</option>
+                        <optgroup label="Custom Frequencies" class="instrument-frequencies">
+                            ${this.renderEditorFormOptions('command-instrument-frequencies')}
+                        </optgroup>
+                        <optgroup label="Frequencies">
+                            ${this.renderEditorFormOptions('command-frequencies')}
+                        </optgroup>
+                        <optgroup label="Group Execute">
+                            ${this.renderEditorFormOptions('command-group-execute')}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="form-instruction-delete" data-command="instruction:delete">
+                    <button name="delete" class="themed" title="Delete Instruction">-</button>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Instrument</div>
+                <form class="form-instruction-instrument submit-on-change" data-command="instruction:instrument">
+                    <select name="instrument" title="Instruction Instrument" class="themed">
+                        <option value="">Instrument (Default)</option>
+                        <optgroup label="Song Instruments">
+                            ${this.renderEditorFormOptions('instruments-songs')}
+                        </optgroup>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Duration</div>
+                <form class="form-instruction-duration submit-on-change" data-command="instruction:duration">
+                    <select name="duration" title="Instruction Duration" class="themed">
+                        <optgroup label="Note Duration">
+                            <option value="">Duration (Default)</option>
+                            ${this.renderEditorFormOptions('durations')}
+                        </optgroup>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Velocity</div>
+                <form class="form-instruction-velocity submit-on-change" data-command="instruction:velocity">
+                    <select name="velocity" title="Instruction Velocity" class="themed">
+                        <optgroup label="Velocity">
+                            <option value="">Velocity (Default)</option>
+                            ${this.renderEditorFormOptions('velocities')}
+                        </optgroup>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Modify Row</div>
+                <form class="form-row-insert" data-command="row:insert">
+                    <button name="insert" disabled="disabled" class="themed">+</button>
+                </form>
+                <form class="form-row-delete" data-command="row:delete">
+                    <button name="delete" disabled="disabled" class="themed">-</button>
+                </form>
+                <form class="form-row-duplicate" data-command="row:duplicate">
+                    <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>
+                </form>
+            </div>                
 
-                <br style="clear: both;"/>
+            <br style="clear: both;"/>
+            
+            
+            <div class="form-section">
+                <div class="form-section-header">Octave</div>
+                <form class="form-render-octave submit-on-change">
+                    <select name="octave" class="themed">
+                        <option value="">Select Octave</option>
+                        ${this.renderEditorFormOptions('command-frequency-octaves')}
+                    </select>
+                </form>
+            </div>     
+            
+            <div class="form-section">
+                <div class="form-section-header">Render Group</div>
+                ${this.editor.forms.getEditorFormOptions('groups', (value, label) =>
+                    `<form class="form-group" data-command="group:edit">`
+                    + `<button name="groupName" value="${value}" class="themed" >${label}</button>`
+                    + `</form>`)}
                 
+                <form class="form-group" data-command="group:edit">
+                    <button name="groupName" value=":new" class="new themed" title="Create new group">+</button>
+                </form>
                 
-                <div class="form-section">
-                    <legend class="themed">Octave</legend>
-                    <form class="form-render-octave submit-on-change">
-                        <select name="octave" class="themed">
-                            <option value="">Select Octave</option>
-                            ${this.editor.renderEditorFormOptions('command-frequency-octaves')}
-                        </select>
-                    </form>
-                </div>     
-                
-                <div class="form-section">
-                    <legend class="themed">Render Group</legend>
-                    ${this.editor.forms.getEditorFormOptions('groups', (value, label) =>
-                        `<form class="form-group" data-command="group:edit">`
-                        + `<button name="groupName" value="${value}" class="themed" >${label}</button>`
-                        + `</form>`)}
-                    
-                    <form class="form-group" data-command="group:edit">
-                        <button name="groupName" value=":new" class="new themed" title="Create new group">+</button>
-                    </form>
-                    
-                </div>
-                
-                <div class="form-section">
-                    <legend class="themed">Render Duration</legend>
-                    <form class="form-render-duration submit-on-change" data-command="grid:duration">
-                        <label class="row-label">
-                            <select name="duration" title="Render Duration" class="themed">
-                                <option value="1.0">Default (1B)</option>
-                                <optgroup label="Render Duration">
-                                    ${this.editor.renderEditorFormOptions('durations')}
-                                </optgroup>
-                            </select>
-                        </label>
-                    </form>
-                </div>
-                
-                <div class="form-section">
-                    <legend class="themed">Filter By Instrument</legend>                    
-                    <form class="form-render-instrument submit-on-change" data-command="grid:instrument">
-                        <label class="row-label">
-                            <select name="instrument" class="themed"->
-                                <option value="">Show All (Default)</option>
-                                <optgroup label="Filter By">
-                                    ${this.editor.renderEditorFormOptions('instruments-songs')}
-                                </optgroup>
-                            </select>
-                        </label>
-                    </form>
-                </div>
-    
-    
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Render Duration</div>
+                <form class="form-render-duration submit-on-change" data-command="grid:duration">
+                    <select name="duration" title="Render Duration" class="themed">
+                        <option value="1.0">Default (1B)</option>
+                        <optgroup label="Render Duration">
+                            ${this.renderEditorFormOptions('durations')}
+                        </optgroup>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Filter By Instrument</div>                    
+                <form class="form-render-instrument submit-on-change" data-command="grid:instrument">
+                    <select name="instrument" class="themed"->
+                        <option value="">Show All (Default)</option>
+                        <optgroup label="Filter By">
+                            ${this.renderEditorFormOptions('instruments-songs')}
+                        </optgroup>
+                    </select>
+                </form>
             </div>
         `;
         // this.update();

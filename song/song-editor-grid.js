@@ -6,7 +6,7 @@ class SongEditorGrid {
     }
 
     // Can't select pauses!
-
+    // TODO: group grid vs split grid
     get groupName() { return this.getAttribute('data-group') || 'root'; }
     get instructionList() {
         const song = this.editor.getSongData();

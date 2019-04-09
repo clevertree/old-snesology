@@ -9,7 +9,7 @@ class SongRenderer {
         this.loadedInstruments = [];
         this.seekLength = 4;
         this.seekPosition = 0;
-        this.volumeGain = 0.7;
+        this.volumeGain = null;
         this.playing = false;
         // this.config = {
         //     volume: 0.3
@@ -26,7 +26,7 @@ class SongRenderer {
         if(!this.volumeGain) {
             const context = this.getAudioContext();
             let gain = context.createGain();
-            gain.gain.value = MusicPlayerElement.DEFAULT_VOLUME;
+            gain.gain.value = SongRenderer.DEFAULT_VOLUME;
             gain.connect(context.destination);
             this.volumeGain = gain;
         }
@@ -34,7 +34,7 @@ class SongRenderer {
     }
 
     getVolume () {
-        return this.volumeGain.gain.value * 100;
+        return this.volumeGain ? this.volumeGain.gain.value * 100 : SongRenderer.DEFAULT_VOLUME * 100;
     }
     setVolume (volume) {
         const gain = this.getVolumeGain();
@@ -433,3 +433,4 @@ class SongRenderer {
 
 
 }
+SongRenderer.DEFAULT_VOLUME = 0.7;

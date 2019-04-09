@@ -328,23 +328,26 @@ class SongEditorMenu {
                 <ul class="sub-menu">
                     <li><a data-command="instrument:add">Add <span class="key">N</span>ew Instrument</a></li>
                 </ul>
-            </li>
-        </ul>
-        <ul class="editor-context-menu submenu">
-            <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
-            <li>
-                <a><span class="key">N</span>ote<span class="sub-menu-pointer"></span></a>
-                <ul class="sub-menu" data-submenu-content="submenu:command"></ul>
-            </li>
-            <li>
-                <a><span class="key">R</span>ow<span class="sub-menu-pointer"></span></a>
-                <ul class="sub-menu" data-submenu-content="submenu:pause"></ul>
-            </li>
-            <li>
-                <a><span class="key">G</span>roup <span class="sub-menu-pointer"></span></a>
-                <ul class="sub-menu" data-submenu-content="submenu:group"></ul>
-            </li>
-        </ul>`;
+            </li>`;
+
+
+    // <ul class="editor-context-menu submenu">
+    //         <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
+    //     <li>
+    //     <a><span class="key">N</span>ote<span class="sub-menu-pointer"></span></a>
+    //     <ul class="sub-menu" data-submenu-content="submenu:command"></ul>
+    //         </li>
+    //         <li>
+    //         <a><span class="key">R</span>ow<span class="sub-menu-pointer"></span></a>
+    //     <ul class="sub-menu" data-submenu-content="submenu:pause"></ul>
+    //         </li>
+    //         <li>
+    //         <a><span class="key">G</span>roup <span class="sub-menu-pointer"></span></a>
+    //     <ul class="sub-menu" data-submenu-content="submenu:group"></ul>
+    //         </li>
+    //         </ul>`;
+
+
         // this.update();
     }
 

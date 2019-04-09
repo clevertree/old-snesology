@@ -14,20 +14,64 @@ song-editor {
 
 
 
-/** Drop Down Menu **/
+/** Editor Menu **/
 song-editor ul.editor-menu {
-    display: block;
+    display: table;
+    /*overflow: hidden;*/
+    /* min-height: 22px; */
+}
+song-editor ul.editor-menu > li {
+    /* float: left; */
+    display: table-cell;
+}
+
+
+song-editor ul.editor-menu,
+song-editor ul.sub-menu {
+    /*display: block;*/
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
     padding: 0 0;
     margin: 0 0;
     list-style-type: none;
+    /*overflow: hidden;*/
 }
 
+/** Drop Down / Context Menu **/
+song-editor ul.editor-menu ul.context-menu,
+song-editor ul.sub-menu {
+    display: none;
+    position: absolute;
+    /* display: none; */
+    border: 1px solid grey;
+    background-color: #BBB;
+    /* position: absolute; */
+    opacity: 0;
+    margin: 0 -0.3em -0.3em -0.3em;
+    padding: 0 0.3em 0.3em 0.3em;
+    max-height: 0px;
+    transition: max-height 2s, opacity 0.5s;
+    border-radius: 2px;
+    /*overflow: hidden;*/
+    /* min-width: 200px; */
+}
 
+/** Drop Down Trigger **/
+song-editor li:hover > ul.sub-menu,
+song-editor a:focus + ul.sub-menu {
+    display: inline-block;
+    white-space: nowrap;
+    opacity: 1;
+    max-height: 800px;
+    transition: max-height 1s, opacity 0.3s;
+    /*transition: max-height 2s;*/
+    z-index: 98;
+}
+
+/** Menu Styling **/
 song-editor ul.editor-menu > li > a,
-song-editor .editor-menu ul.menu-item {
+song-editor ul.editor-menu ul.sub-menu > li > a {
     vertical-align: top;
     display: inline-block;
     padding: 3px 8px;
@@ -38,54 +82,23 @@ song-editor .editor-menu ul.menu-item {
     text-decoration: none;
 }
 
-song-editor .editor-menu ul.context-menu,
-song-editor ul.editor-menu > li > ul.menu {
-    display: inline-block;
-    position: absolute;
-    /* display: none; */
-    border: 1px solid grey;
-    background-color: #BBB;
-    /* position: absolute; */
-    opacity: 0;
-    margin: 0 0;
-    padding: 0 0;
-    max-height: 0px;
-    transition: max-height 2s, opacity 0.5s;
-    /*overflow: hidden;*/
-    /* min-width: 200px; */
+
+
+song-editor ul.editor-menu > li:hover,
+song-editor ul.sub-menu > li:hover {
+    background-color: #AAA;
 }
 
 song-editor ul.editor-menu > li > * {
-    white-space: nowrap;
+    /*white-space: nowrap;*/
 }
 
-song-editor .editor-menu .disabled {
+/** Disabled Menu **/
+song-editor ul.editor-menu .disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-
-song-editor ul.editor-menu > li:hover > ul.menu,
-song-editor .editor-menu a.open + ul.menu,
-song-editor .editor-menu a:focus + ul.menu,
-song-editor .editor-menu ul.menu.open {
-    white-space: nowrap;
-    opacity: 1;
-    max-height: 800px;
-    transition: max-height 1s, opacity 0.3s;
-    /*transition: max-height 2s;*/
-    z-index: 98;
-}
-
-song-editor ul.editor-menu > li:hover {
-    background-color: #AAA;
-}
-song-editor ul.editor-menu > li.open {
-    background-color: #99C;
-}
-song-editor ul.editor-menu > li:active {
-    background-color: #888;
-}
 
 /** Menu Break **/
 
@@ -94,21 +107,11 @@ song-editor ul.editor-menu hr {
     border: 1px #666 solid;
 }
 
-/** Header Menu **/
-
-song-editor .editor-menu {
-    /* display: block; */
-}
-
-song-editor .editor-menu > li {
-    /* float: left; */
-    display: inline-block;
-}
 
 
 /** Context Menu **/
 
-song-editor .editor-menu ul.context-menu {
+song-editor ul.context-menu {
     /* border: 1px solid grey; */
     background-color: #BBB;
     color: black;
@@ -116,110 +119,125 @@ song-editor .editor-menu ul.context-menu {
     display: none;
     z-index: 99;
 }
-song-editor .editor-menu .context-menu.open {
+song-editor ul.context-menu .context-menu.open {
     display: block;
 }
 
 
-song-editor .editor-menu form {
+/** Forms **/
+song-editor .editor-forms {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+song-editor .editor-forms form {
     /* border: 1px solid #333; */
     /* background-color: #CCC; */
-    /* margin: 0px 0; */
+    margin: 0px 0px 3px 0px;
     /* padding: 1px 2px 1px 0px; */
     /* padding: 0px; */
-    padding-top: 2px;
+    /* padding-top: 2px; */
     display: inline-block;
 }
-song-editor .editor-menu .form-group-selection > form {
+song-editor .editor-forms .form-group-selection > form {
     float: left;
     padding: 0px 2px 3px 0px;
 }
 
-
-song-editor .editor-menu label.row-label {
-    display: inline-block;
-    min-width: 61px;
-    text-align: right;
-    font-size: smaller;
+/** Form Section **/
+song-editor .editor-forms div.form-section-header {
+    font-size: small;
+    border-bottom: 1px solid #BBB;
+    /* text-decoration-color: #AAA; */
+    margin-bottom: 1px;
+}
+song-editor .editor-forms div.form-section:hover div.form-section-header {
     font-weight: bold;
 }
 
-song-editor .editor-menu option.hidden,
-song-editor .editor-menu form.hidden {
+
+/** Form Section **/
+song-editor .editor-forms div.form-section {
+    /* border: 1px outset #ffffff8a; */
+    padding: 6px 8px 2px 6px;
+    display: inline-block;
+    vertical-align: middle;
+    /* float: left; */
+    border: 1px outset #AAA;
+}
+
+
+/** Form Visibility **/
+
+song-editor:not(.playing)   form.show-on-song-playing,
+song-editor:not(.paused)    form.show-on-song-playing,
+song-editor .editor-forms:not(.show-modify-instruction-controls) .show-on-modify-instruction,
+song-editor .editor-forms:not(.show-insert-instruction-controls) .show-on-insert-instruction {
     display: none;
 }
 
-song-editor .editor-menu input[name=volume] {
+/** Form Inputs **/
+
+
+song-editor .editor-forms input[type='range'] {
+    -webkit-appearance: none;
+    background-color: #AAA;
+    border-radius: 15px;
+    height: 10px;
+    margin: 5px;
+}
+song-editor .editor-forms input.themed[type='range']::-webkit-slider-thumb {
+    vertical-align: middle;
+    -webkit-appearance: none;
+    background-color: #444;
+    width: 16px;
+    height: 16px;
+    border-radius: 16px;
+}
+
+
+
+song-editor .editor-forms input[name=volume] {
     max-width: 71px;
     /* max-height: 10px; */
 }
 
-song-editor .editor-menu div.volume-container {
-    /* border: 1px solid #AAA; */
-    /* border-radius: 6px; */
+song-editor .editor-forms div.volume-container {
+     /*border: 1px solid #AAA;*/
+     /*border-radius: 6px;*/
     /* max-height: 15px; */
 }
 
-music-editor:not(.playing) form.form-song-pause { display: none; }
-music-editor.playing form.form-song-play { display: none; }
-music-editor:not(.paused) form.form-song-resume { display: none; }
-
-song-editor .editor-menu select:disabled,
-song-editor .editor-menu button:disabled {
+song-editor .editor-forms input:disabled,
+song-editor .editor-forms select:disabled,
+song-editor .editor-forms button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
 }
 
-song-editor .editor-menu button.selected {
-    /* border: 1px inset; */
-    font-weight: bold;
-    box-shadow: #333 1px 1px 4px;
-}
-
-song-editor .editor-menu .form-group-selection form.form-group > button {
+/** Form: Group **/
+song-editor .editor-forms .form-group-selection form.form-group > button {
     font-size: smaller;
     padding: 0px 3px 2px 2px;
     min-width: 18px;
     border-radius: 2px;
 }
-song-editor .editor-menu .form-group-selection form.form-group > button.new {
+song-editor .editor-forms .form-group-selection form.form-group > button.new {
     color: #444;
 }
-song-editor .editor-menu .form-separator {
+
+/** Form Separator **/
+
+song-editor .editor-forms .form-separator {
     height: 0px;
     margin: 0;
 }
 
-song-editor .editor-menu fieldset{
-    border: 0px;
-    padding: 0 0;
-    margin: 0 0;
-    display: inline-block;
-}
-song-editor .editor-menu fieldset.hide-on-disabled[disabled] {
-    display: none;
-}
-
-song-editor .editor-menu div.form-section {
-    /* border: 1px outset #ffffff8a; */
-    padding: 3px 8px 2px 2px;
-    display: inline-block;
-    vertical-align: middle;
-    /* float: left; */
-}
-
-
-song-editor .editor-menu:not(.show-modify-instruction-controls) .show-on-modify-instruction {
-    display: none;
-}
-song-editor .editor-menu:not(.show-insert-instruction-controls) .show-on-insert-instruction {
-    display: none;
-}
 
 /** Highlight Key **/
 
-song-editor ul.editor-menu > li > a > .key,
-song-editor .editor-menu ul.menu-item > .key {
+song-editor .editor-forms > li > a > .key,
+song-editor .editor-forms ul.sub-menu-item > .key {
     font-weight: bold;
     text-decoration: underline;
 }
@@ -227,8 +245,8 @@ song-editor .editor-menu ul.menu-item > .key {
 /** Form Inputs **/
 
 
-song-editor ul.editor-menu > li > input[type=checkbox],
-song-editor .editor-menu ul.menu-item-checkbox {
+song-editor .editor-forms > li > input[type=checkbox],
+song-editor .editor-forms ul.sub-menu-item-checkbox {
     vertical-align: text-top;
     width: 16px;
     height: 16px;
@@ -238,40 +256,40 @@ song-editor .editor-menu ul.menu-item-checkbox {
 }
 
 
-song-editor .editor-menu input[type=text],
-song-editor .editor-menu select,
-song-editor .editor-menu button{
+song-editor .editor-forms input[type=text],
+song-editor .editor-forms select,
+song-editor .editor-forms button{
     max-width: 200px;
 }
 
 
 /** Song Info Form **/
 
-song-editor .editor-menu form.form-song-version input[name=version] {max-width: 64px;}
-song-editor .editor-menu form.form-song-title input[name=title] {width: 160px;}
+song-editor .editor-forms form.form-song-version input[name=version] {max-width: 64px;}
+song-editor .editor-forms form.form-song-title input[name=title] {width: 160px;}
 
 /** Add Instrument Form **/
 
-song-editor .editor-menu form.form-add-instrument select[name=instrument] { min-width: 129px; }
+song-editor .editor-forms form.form-add-instrument select[name=instrument] { min-width: 129px; }
 
 
 /** Modify Instruction Forms **/
 
-song-editor .editor-menu form.form-instruction-instrument select[name=instrument] {max-width: 91px;}
-song-editor .editor-menu form.form-instruction-command select[name=frequency] { max-width: 42px; }
-song-editor .editor-menu form.form-instruction-command select[name=command] { max-width: 88px; }
-song-editor .editor-menu form.form-instruction-duration select[name=duration] {max-width: 80px;}
-song-editor .editor-menu form.form-instruction-velocity select[name=velocity] {max-width: 78px;}
+song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 91px;}
+song-editor .editor-forms form.form-instruction-command select[name=frequency] { max-width: 42px; }
+song-editor .editor-forms form.form-instruction-command select[name=command] { max-width: 88px; }
+song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 80px;}
+song-editor .editor-forms form.form-instruction-velocity select[name=velocity] {max-width: 78px;}
 
 /** Grid Render Forms **/
 
-song-editor .editor-menu form.form-render-duration {
+song-editor .editor-forms form.form-render-duration {
     padding-right: 4px;
     float: right;
 }
-song-editor .editor-menu form.form-render-duration select[name=duration] { min-width: 96px; }
-song-editor .editor-menu form.form-render-octave select[name=octave] { max-width: 61px; }
-song-editor .editor-menu form.form-render-instrument select[name=instrument] { min-width: 135px; }
+song-editor .editor-forms form.form-render-duration select[name=duration] { min-width: 96px; }
+song-editor .editor-forms form.form-render-octave select[name=octave] { max-width: 61px; }
+song-editor .editor-forms form.form-render-instrument select[name=instrument] { min-width: 135px; }
 
 
 /** Editor Grid **/
