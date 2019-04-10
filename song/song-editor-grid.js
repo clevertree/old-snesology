@@ -402,6 +402,7 @@ class SongEditorGrid {
         this.replaceInstructionParams(lastIndex, {
             duration: lastInstruction.duration + defaultDuration
         });
+        this.render();
     }
 
 
@@ -489,7 +490,7 @@ class SongEditorGrid {
 
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
-        const selectedIndicies = this.editor.status.selectedindicies;
+        const selectedIndicies = this.editor.status.selectedIndicies;
         const selectedPosition = this.editor.status.selectedPosition;
         let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
 
@@ -552,14 +553,14 @@ class SongEditorGrid {
         const currentScrollPosition = this.scrollTop || 0; // Save scroll position
         this.renderElm.innerHTML = editorHTML;
         this.scrollTop = currentScrollPosition;             // Restore scroll position
-
+        this.update();
     }
 
     update() {
         let cellList = this.renderElm.querySelectorAll('.grid-cell,.grid-row');
 
         const selectedPosition = this.editor.status.selectedPosition;
-        const selectedIndicies = this.editor.status.selectedindicies;
+        const selectedIndicies = this.editor.status.selectedIndicies;
         const selectedIndexCursor = this.editor.status.selectedIndexCursor;
         for(let i=0; i<cellList.length; i++) {
             const cell = cellList[i];

@@ -16,6 +16,7 @@ class SongRenderer {
         // };
         this.loadSongData({});
         this.eventListeners = [];
+        this.historyActions = [];
     }
     addSongEventListener(callback) { this.eventListeners.push(callback); }
 

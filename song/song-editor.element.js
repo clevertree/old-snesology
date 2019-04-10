@@ -134,11 +134,11 @@ class SongEditorElement extends HTMLElement {
             this.status.selectedPosition = position;
         if(this.status.selectedGroup !== groupName) {
             this.status.selectedGroup = groupName;
-            this.status.selectedindicies = [];
+            this.status.selectedIndicies = [];
         }
         if(clearSelection)
-            this.status.selectedindicies = [];
-        const indicies = this.status.selectedindicies;
+            this.status.selectedIndicies = [];
+        const indicies = this.status.selectedIndicies;
         const existingIndex = indicies.indexOf(index);
         if(existingIndex === -1) {
             indicies.push(index);
