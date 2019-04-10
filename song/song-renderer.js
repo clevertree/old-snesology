@@ -60,7 +60,7 @@ class SongRenderer {
         songData.root = songData.root || 'root';
         songData.instruments = (songData.instruments || []);
         songData.instructions = (songData.instructions || {});
-        songData.instructions[songData.root] = songData.instructions[songData.root] || [0.25,0.25, 'C4', 0.25,0.25,0.25];
+        songData.instructions[songData.root] = songData.instructions[songData.root] || [4, 'C4', 1, 1, 1, 1];
         this.songData = songData;
         // Object.keys(songData.instructions).map((groupName, i) =>
         //     this.processInstructions(groupName));

@@ -11,6 +11,7 @@ class SongEditorElement extends HTMLElement {
         this.status = {
             selection: {
                 indicies: [],
+                position: 0,
                 group: 'root'
             },
             history: {
@@ -61,6 +62,8 @@ class SongEditorElement extends HTMLElement {
         const uuid = this.getAttribute('uuid');
         if(uuid)
             this.modifier.loadSongFromServer(uuid);
+        this.setAttribute('tabindex', 1);
+        this.focus();
         // this.initWebSocket(uuid);
 
     }
@@ -126,7 +129,9 @@ class SongEditorElement extends HTMLElement {
 
     }
 
-    selectInstructions(groupName, index, clearSelection=true, toggle=false) {
+    selectInstructions(groupName, index, position=null, clearSelection=true, toggle=false) {
+        if(position !== null)
+            this.status.selection.position = position;
         if(this.status.selection.group !== groupName) {
             this.status.selection.group = groupName;
             this.status.selection.indicies = [];
@@ -141,6 +146,7 @@ class SongEditorElement extends HTMLElement {
             if(toggle)
                 indicies.splice(existingIndex, 1);
         }
+//         console.log("Selected: ", indicies, position, groupName);
         this.update();
     }
 
