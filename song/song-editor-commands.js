@@ -47,17 +47,15 @@ class SongEditorCommands {
     setSongVersion(newSongTitle) { return this.setSongField('version', newSongTitle); }
 
     setSongField(fieldName, fieldValue) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.replaceDataPath(fieldName, fieldValue);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.replaceDataPath(fieldName, fieldValue);
+        this.historyQueue(editor.renderer.clearHistoryActions());
     }
 
     insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
         this.processInstruction(instructionToAdd);
 
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const insertIndex = songModifier.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
-        this.historyQueue(songModifier.clearHistoryActions());
+        const insertIndex = editor.renderer.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
         this.grid.selectIndices(insertIndex, [insertIndex]);
         return insertIndex;
@@ -67,18 +65,16 @@ class SongEditorCommands {
     insertInstructionAtIndex(groupName, insertIndex, instructionToAdd) {
         this.processInstruction(instructionToAdd);
 
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectIndices(insertIndex, [insertIndex]);
         return insertIndex;
     }
 
     deleteInstructionAtIndex(groupName, deleteIndex) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.deleteInstructionAtIndex(groupName, deleteIndex);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.deleteInstructionAtIndex(groupName, deleteIndex);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectIndices(deleteIndex);
         // return null;
@@ -87,18 +83,17 @@ class SongEditorCommands {
     replaceInstructionParams(groupName, replaceIndices, replaceParams) {
         if(!Array.isArray(replaceIndices))
             replaceIndices = [replaceIndices];
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
 
         // TODO: if new instrument does not support custom frequencies, remove them before changing the instrument.
 
         const oldParams = [];
         for(let i=0;i<replaceIndices.length; i++) {
-            const replaceInstruction = songModifier.songData.instructions[groupName][replaceIndices[i]];
+            const replaceInstruction = editor.renderer.songData.instructions[groupName][replaceIndices[i]];
             if(typeof replaceParams.command !== 'undefined' && typeof replaceInstruction.instrument !== 'undefined')
                 replaceParams.command = this.getCommandAlias(replaceInstruction.instrument, replaceParams.command);
-            oldParams.push(songModifier.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
+            oldParams.push(editor.renderer.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
         }
-        this.historyQueue(songModifier.clearHistoryActions());
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectIndices(replaceIndex, [replaceIndex]);
         return oldParams;
@@ -107,64 +102,57 @@ class SongEditorCommands {
     replaceInstructionParam(groupName, replaceIndices, paramName, paramValue) {
         if(!Array.isArray(replaceIndices))
             replaceIndices = [replaceIndices];
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
 
         // TODO: if new instrument does not support custom frequencies, remove them before changing the instrument.
 
         const oldParams = [];
         for(let i=0;i<replaceIndices.length; i++) {
-            const replaceInstruction = songModifier.songData.instructions[groupName][replaceIndices[i]];
+            const replaceInstruction = editor.renderer.songData.instructions[groupName][replaceIndices[i]];
             if(paramName === 'command')
                 paramValue = this.getCommandAlias(replaceInstruction.instrument, paramValue);
-            oldParams.push(songModifier.replaceInstructionParam(groupName, replaceIndices[i], paramName, paramValue));
+            oldParams.push(editor.renderer.replaceInstructionParam(groupName, replaceIndices[i], paramName, paramValue));
         }
-        this.historyQueue(songModifier.clearHistoryActions());
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectIndices(replaceIndex, [replaceIndex]);
         return oldParams;
     }
 
     addInstructionGroup(newGroupName, instructionList) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.addInstructionGroup(newGroupName, instructionList);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.addInstructionGroup(newGroupName, instructionList);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.navigate(newGroupName);
     }
 
     removeInstructionGroup(removedGroupName) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.removeInstructionGroup(removedGroupName);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.removeInstructionGroup(removedGroupName);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.navigatePop();
     }
 
     renameInstructionGroup(oldGroupName, newGroupName) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.renameInstructionGroup(oldGroupName, newGroupName);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.renameInstructionGroup(oldGroupName, newGroupName);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.navigate(newGroupName);
     }
 
     addInstrument(config) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const instrumentID = songModifier.addInstrument(config);
-        this.historyQueue(songModifier.clearHistoryActions());
+        const instrumentID = editor.renderer.addInstrument(config);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.render(); // TODO: render only instruments
         this.player.initInstrument(instrumentID);
         return instrumentID;
     }
 
     removeInstrument(instrumentID) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        songModifier.removeInstrument(instrumentID);
-        this.historyQueue(songModifier.clearHistoryActions());
+        editor.renderer.removeInstrument(instrumentID);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.render(); // TODO: render only instruments
     }
 
     replaceInstrumentParams(instrumentID, replaceConfig) {
-        const songModifier = new MusicEditorSongModifier(this.getSongData());
-        const oldParams = songModifier.replaceInstrumentParams(instrumentID, replaceConfig);
-        this.historyQueue(songModifier.clearHistoryActions());
+        const oldParams = editor.renderer.replaceInstrumentParams(instrumentID, replaceConfig);
+        this.historyQueue(editor.renderer.clearHistoryActions());
         this.render(); // TODO: render only instruments
         return oldParams;
     }

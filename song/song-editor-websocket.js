@@ -90,7 +90,7 @@ class SongEditorWebsocket {
                         case 'history:entry':
                             // for (let i = 0; i < json.historyActions.length; i++) {
                             //     const historyAction = json.historyActions[i];
-                            const songModifier = new MusicEditorSongModifier(this.getSongData());
+                            const songModifier = editor.renderer;
                             songModifier.applyHistoryActions(json.historyActions);
                             this.status.history.currentStep = json.historyActions[json.historyActions.length-1].step;
                             this.player.initAllInstruments();

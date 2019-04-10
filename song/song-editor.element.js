@@ -9,11 +9,10 @@ class SongEditorElement extends HTMLElement {
         super();
         this.player = null;
         this.status = {
-            selection: {
-                indicies: [],
-                position: 0,
-                group: 'root'
-            },
+            selectedIndicies: [],
+            selectedIndexCursor: 0,
+            selectedPosition: 0,
+            selectedGroup: 'root',
             history: {
                 currentStep: 0,
                 undoList: [],
@@ -34,7 +33,7 @@ class SongEditorElement extends HTMLElement {
         this.forms = new SongEditorForms(this);
         this.commands = new SongEditorCommands(this);
         this.grid = new SongEditorGrid(this);
-        this.modifier = new SongModifier(this);
+        // this.modifier = new SongModifier(this);
         this.instruments = new SongEditorInstruments(this);
         this.renderer = new SongRenderer();
         this.renderer.addSongEventListener(e => this.onSongEvent(e));
@@ -61,7 +60,7 @@ class SongEditorElement extends HTMLElement {
 
         const uuid = this.getAttribute('uuid');
         if(uuid)
-            this.modifier.loadSongFromServer(uuid);
+            this.renderer.loadSongFromServer(uuid);
         this.setAttribute('tabindex', 1);
         this.focus();
         // this.initWebSocket(uuid);
@@ -130,15 +129,16 @@ class SongEditorElement extends HTMLElement {
     }
 
     selectInstructions(groupName, index, position=null, clearSelection=true, toggle=false) {
+        this.status.selectedIndexCursor = index;
         if(position !== null)
-            this.status.selection.position = position;
-        if(this.status.selection.group !== groupName) {
-            this.status.selection.group = groupName;
-            this.status.selection.indicies = [];
+            this.status.selectedPosition = position;
+        if(this.status.selectedGroup !== groupName) {
+            this.status.selectedGroup = groupName;
+            this.status.selectedindicies = [];
         }
         if(clearSelection)
-            this.status.selection.indicies = [];
-        const indicies = this.status.selection.indicies;
+            this.status.selectedindicies = [];
+        const indicies = this.status.selectedindicies;
         const existingIndex = indicies.indexOf(index);
         if(existingIndex === -1) {
             indicies.push(index);
@@ -146,7 +146,7 @@ class SongEditorElement extends HTMLElement {
             if(toggle)
                 indicies.splice(existingIndex, 1);
         }
-//         console.log("Selected: ", indicies, position, groupName);
+        console.log("Selected: ", indicies, position, groupName);
         this.update();
     }
 

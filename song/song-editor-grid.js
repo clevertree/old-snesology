@@ -94,8 +94,8 @@ class SongEditorGrid {
         this.editor.menu.update();
     }
 
-    static getInstrumentList(instructionList) {
-    }
+    // static getInstrumentList(instructionList) {
+    // }
 
     onInput(e) {
         if (e.defaultPrevented)
@@ -120,13 +120,14 @@ class SongEditorGrid {
                     // let keydownCellElm = this.cursorCell;
 
                     let selectedIndices = this.selectedIndices;
-                    const instructionList = this.editor.player.getInstructions(this.groupName);
+                    const instructionList = this.editor.renderer.getInstructions(this.groupName);
                     switch (keyEvent) {
                         case 'Delete':
                             e.preventDefault();
-                            this.editor.deleteInstructionAtIndex(this.groupName, selectedIndices);
+                            this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices);
                             // song.render(true);
                             break;
+
                         case 'Escape':
                         case 'Backspace':
                             e.preventDefault();
@@ -134,6 +135,7 @@ class SongEditorGrid {
                             this.selectIndices(0);
                             this.focus();
                             break;
+
                         case 'Enter':
                             e.preventDefault();
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
@@ -396,39 +398,33 @@ class SongEditorGrid {
         if(lastInstruction.command !== '!pause') {
             throw new Error("TODO: Insert new pause");
         }
+        const defaultDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
         this.replaceInstructionParams(lastIndex, {
-            duration: lastInstruction.duration + parseFloat(this.editor.menu.fieldRenderDuration.value)
+            duration: lastInstruction.duration + defaultDuration
         });
     }
 
 
     insertInstructionAtIndex(instruction, insertIndex) {
-        return this.editor.insertInstructionAtIndex(this.groupName, insertIndex, instruction);
+        return this.editor.renderer.insertInstructionAtIndex(this.groupName, insertIndex, instruction);
     }
 
     insertInstructionAtPosition(instruction, insertTimePosition) {
-        return this.editor.insertInstructionAtPosition(this.groupName, insertTimePosition, instruction);
+        return this.editor.renderer.insertInstructionAtPosition(this.groupName, insertTimePosition, instruction);
     }
     deleteInstructionAtIndex(deleteIndex) {
-        return this.editor.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
+        return this.editor.renderer.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
     }
 
     replaceInstructionParams(replaceIndex, replaceParams) {
-        return this.editor.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
+        return this.editor.renderer.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
     }
 
-    selectCell(e, cursorCell) {
-        this.renderElm.querySelectorAll('.grid-cell.cursor')
-            .forEach(elm => elm.classList.remove('cursor'));
-        cursorCell.classList.add('cursor');
-
-        this.renderElm.querySelectorAll('.grid-cell.selected,.grid-row.selected')
-            .forEach(elm => elm.classList.remove('selected'));
-        if(cursorCell.classList.contains('grid-cell-instruction'))
-            cursorCell.classList.add('selected');
-        cursorCell.parentNode.classList.add('selected');
-        // TODO: editor controls the selection indicies, rows, and group. how is new data selected?
-        this.editor.update();
+    selectCell(e, cursorCell, clearSelection=true, toggle=false) {
+        const index = parseInt(cursorCell.getAttribute('data-index'));
+        const position = parseFloat(cursorCell.getAttribute('data-position'));
+        console.log("Cell", cursorCell, index, position);
+        this.editor.selectInstructions(this.groupName, index, position, clearSelection, toggle);
     }
 
 
@@ -493,8 +489,8 @@ class SongEditorGrid {
 
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
-        const selectedIndicies = this.editor.status.selection.indicies;
-        const selectedPosition = this.editor.status.selection.position;
+        const selectedIndicies = this.editor.status.selectedindicies;
+        const selectedPosition = this.editor.status.selectedPosition;
         let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
@@ -562,16 +558,15 @@ class SongEditorGrid {
     update() {
         let cellList = this.renderElm.querySelectorAll('.grid-cell,.grid-row');
 
-        const selectedPosition = this.editor.status.selection.position;
-        const selectedIndicies = this.editor.status.selection.indicies;
+        const selectedPosition = this.editor.status.selectedPosition;
+        const selectedIndicies = this.editor.status.selectedindicies;
+        const selectedIndexCursor = this.editor.status.selectedIndexCursor;
         for(let i=0; i<cellList.length; i++) {
             const cell = cellList[i];
             const position = parseFloat(cell.getAttribute('data-position'));
             const index = parseInt(cell.getAttribute('data-index'));
             cell.classList.toggle('selected', selectedIndicies.indexOf(index) !== -1 && selectedPosition === position);
-            // if(cell.hasAttribute('data-position')) {
-            //     cell.classList.toggle('selected', position === selectedPosition);
-            // }
+            cell.classList.toggle('cursor', selectedIndexCursor === index && selectedPosition === position);
         }
 
     }

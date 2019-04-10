@@ -43,7 +43,7 @@ class SongEditorInstruments {
                 case 'config:updated':
                     // case 'change':
                     console.log("Instrument Form " + e.type, e);
-                    this.editor.replaceInstrumentParams(this.id, e.detail);
+                    this.editor.renderer.replaceInstrumentParams(this.id, e.detail);
                     break;
 
                 case 'submit':
@@ -54,7 +54,7 @@ class SongEditorInstruments {
                         if(form.elements[i].name)
                             newConfig[form.elements[i].name] = form.elements[i].value;
                     console.log("Instrument Form " + e.type, newConfig, e);
-                    this.editor.replaceInstrumentParams(this.id, newConfig);
+                    this.editor.renderer.replaceInstrumentParams(this.id, newConfig);
                     break;
 
                 case 'input':

@@ -192,7 +192,7 @@ class SongEditorForms {
         const cursorIndex = this.editor.grid.cursorPosition;
         const selectedIndices = this.editor.grid.selectedIndices;
         const groupName = this.editor.grid.groupName;
-        const instructionList = this.editor.player ? this.editor.player.getInstructions(groupName) : [];
+        const instructionList = this.editor.player ? this.editor.renderer.getInstructions(groupName) : [];
         let combinedInstruction = null; //, instrumentList = [];
         for(let i=0; i<selectedIndices.length; i++) {
             const selectedIndex = selectedIndices[i];
