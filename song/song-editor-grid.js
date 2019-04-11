@@ -124,7 +124,10 @@ class SongEditorGrid {
                     switch (keyEvent) {
                         case 'Delete':
                             e.preventDefault();
-                            this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices);
+                            for(let i=0; i<selectedIndices.length; i++) {
+                                this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices[i]);
+                            }
+                            this.render();
                             // song.render(true);
                             break;
 
@@ -219,10 +222,12 @@ class SongEditorGrid {
                                 this.selectInstructions(insertIndex);
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
-                                this.replaceInstructionParams(this.selectedIndices, {
-                                    command: newCommand
-                                });
-                                this.selectInstructions(this.selectedIndices[0]); // TODO: select all
+                                for(let i=0; i<selectedIndices.length; i++) {
+                                    this.replaceInstructionParams(selectedIndices[i], {
+                                        command: newCommand
+                                    });
+                                }
+                                // this.selectInstructions(this.selectedIndices[0]); // TODO: select all
                             }
 
                             this.render();
@@ -426,38 +431,13 @@ class SongEditorGrid {
     selectCell(e, cursorCell, clearSelection=true, toggle=false) {
         const index = parseInt(cursorCell.getAttribute('data-index'));
         const position = parseFloat(cursorCell.getAttribute('data-position'));
-        console.log("Cell", cursorCell, index, position);
+        // console.log("Cell", cursorCell, index, position);
         this.selectInstructions(index, position, clearSelection, toggle);
     }
 
 
     selectInstructions(cursorIndex, position=null, clearSelection=true, toggle=false) {
         return this.editor.selectInstructions(this.groupName, cursorIndex, position, clearSelection, toggle);
-        // const cursorCell = this.renderElm.querySelector(`.grid-cell[data-index='${cursorIndex}']`);
-        // if (!cursorCell)
-        //     throw new Error("Invalid cursor cell");
-        //
-        // this.renderElm.querySelectorAll('.grid-cell.cursor')
-        //     .forEach(elm => elm.classList.remove('cursor'));
-        // cursorCell.classList.add('cursor');
-        //
-        // this.renderElm.querySelectorAll('.grid-cell.selected,.grid-row.selected')
-        //     .forEach(elm => elm.classList.remove('selected'));
-        // if(selectedIndices) {
-        //     for (let i = 0; i < selectedIndices.length; i++) {
-        //         const selectedIndex = selectedIndices[i];
-        //         const selectedCell = this.renderElm.querySelector(`.grid-cell[data-index='${selectedIndex}']`);
-        //         // if(selectedCell.classList.contains('grid-cell-new'))
-        //         //     continue;
-        //         if (!selectedCell)
-        //             throw new Error("Invalid selected cell index: " + selectedIndex);
-        //         selectedCell.classList.add('selected');
-        //         selectedCell.parentNode.classList.add('selected');
-        //     }
-        // }
-        //
-        // this.scrollToCursor();
-        // this.editor.menu.update();
     }
 
     scrollToCursor() {

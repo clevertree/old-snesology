@@ -308,7 +308,7 @@ song-editor .editor-grid {
     overflow-y: auto;
     position: relative;
     clear: both;
-    border-collapse: collapse;
+    border-spacing: 0px;
 }
 
 song-editor .editor-grid > table {
@@ -346,6 +346,8 @@ song-editor .editor-grid .grid-row {
 
 song-editor .editor-grid .grid-row:nth-child(odd) {
     background-color: #D0D0D0;
+    /* padding: 0; */
+    /* margin: 0; */
 }
 
 song-editor .editor-grid .grid-row.selected {
@@ -365,8 +367,9 @@ song-editor .editor-grid .grid-row.playing {
 /** Grid Data **/
 
 song-editor .editor-grid .grid-data {
-    border: 2px outset #FFF;
+    border: 1px outset #FFF;
     /* border-right: 0px solid #888; */
+    padding: 0px;
 }
 
 song-editor .editor-grid .grid-data-pause {
