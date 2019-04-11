@@ -163,7 +163,7 @@ song-editor .editor-forms div.form-section {
     display: inline-block;
     vertical-align: middle;
     /* float: left; */
-    border: 1px outset #AAA;
+    border: 1px outset #FFF;
 }
 
 
@@ -336,7 +336,7 @@ song-editor .editor-grid .grid-header-pause {
 
 song-editor .editor-grid .grid-row {
     cursor: pointer;
-    background-color: #999;
+    background-color: #C0C0C0;
     height: 1.45em;
     /* margin: -3px 0px; */
     /* border-top: 1px solid #BBB; */
@@ -345,7 +345,7 @@ song-editor .editor-grid .grid-row {
 }
 
 song-editor .editor-grid .grid-row:nth-child(odd) {
-    background-color: #AAA;
+    background-color: #D0D0D0;
 }
 
 song-editor .editor-grid .grid-row.selected {
@@ -365,7 +365,7 @@ song-editor .editor-grid .grid-row.playing {
 /** Grid Data **/
 
 song-editor .editor-grid .grid-data {
-    border: 2px outset #CCC;
+    border: 2px outset #FFF;
     /* border-right: 0px solid #888; */
 }
 

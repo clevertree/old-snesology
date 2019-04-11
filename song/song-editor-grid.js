@@ -159,48 +159,46 @@ class SongEditorGrid {
                             break;
 
                         case 'Play':
-                            for(let i=0; i<selectedIndices.length; i++)
-                                this.editor.playInstruction(instructionList[i]);
                             e.preventDefault();
+                            for(let i=0; i<selectedIndices.length; i++) {
+                                this.editor.playInstruction(instructionList[i]);
+                            }
                             break;
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
+                            e.preventDefault();
+                            
                             if(!this.nextCell) {
                                 this.increaseGridSize();
+
                                 // this.render();
                                 this.selectCell(e, this.nextCell);
-
                             } else {
                                 this.selectCell(e, this.nextCell);
                             }
-                            // this.focus();
-                            e.preventDefault();
                             break;
 
                         case 'ArrowLeft':
-                            this.previousCell && this.selectCell(e, this.previousCell);
-                            // this.focus();
                             e.preventDefault();
+                            this.previousCell && this.selectCell(e, this.previousCell);
                             break;
 
                         case 'ArrowDown':
+                            e.preventDefault();
                             if(!this.nextRowCell) {
                                 this.increaseGridSize();
+
                                 // this.render();
                                 this.selectCell(e, this.nextRowCell);
-
                             } else {
                                 this.selectCell(e, this.nextRowCell);
                             }
-                            // this.focus();
-                            e.preventDefault();
                             break;
 
                         case 'ArrowUp':
-                            this.selectCell(e, this.previousRowCell || this.previousCell || this.cursorCell);
-                            // this.focus();
                             e.preventDefault();
+                            this.selectCell(e, this.previousRowCell || this.previousCell || this.cursorCell);
                             break;
 
                         case ' ':
@@ -241,17 +239,22 @@ class SongEditorGrid {
                 case 'mousedown':
                     this.editor.menu.closeMenu();
                     let cellElm = e.target;
-                    if (cellElm.classList.contains('grid-parameter'))
+                    if (cellElm.classList.contains('grid-parameter')) {
                         return this.onCellInput(e);
-                    if (cellElm.classList.contains('grid-cell'))
+                    }
+                    if (cellElm.classList.contains('grid-cell')) {
                         return this.onCellInput(e);
-                    if (cellElm.classList.contains('grid-data'))
+                    }
+                    if (cellElm.classList.contains('grid-data')) {
                         return this.onRowInput(e);
-                    if (cellElm.classList.contains('grid-row'))
+                    }
+                    if (cellElm.classList.contains('grid-row')) {
                         return this.onRowInput(e);
-                        // cellElm = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
+                    }
+                    // e.preventDefault();
 
 
+                    // cellElm = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
                     // Longpress
                     clearTimeout(this.longPressTimeout);
                     this.longPressTimeout = setTimeout(function() {
@@ -260,7 +263,6 @@ class SongEditorGrid {
                             bubbles: true
                         }));
                     }, this.editor.status.longPressTimeout);
-                    e.preventDefault();
                     break;
 
                 case 'mouseup':
@@ -269,9 +271,9 @@ class SongEditorGrid {
                     break;
 
                 case 'longpress':
+                    e.preventDefault();
                     console.log("Longpress", e);
                     this.editor.menu.openContextMenu(e);
-                    e.preventDefault();
                     break;
 
                 case 'contextmenu':
@@ -279,7 +281,7 @@ class SongEditorGrid {
                         console.info("TODO: add parameter song at top of context menu: ", e.target);
                     }
                     this.editor.menu.openContextMenu(e);
-                    // if(!e.altKey) e.preventDefault();
+                    if(!e.altKey) e.preventDefault();
 
                     break;
 
@@ -288,7 +290,6 @@ class SongEditorGrid {
 
             }
         } catch (err) {
-            e.preventDefault();
             this.editor.onError(err);
         }
 

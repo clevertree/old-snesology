@@ -80,6 +80,7 @@ class SongEditorElement extends HTMLElement {
     // }
 
     onInput(e) {
+        this.focus();
         // console.info(e.type, e);
         if(e.defaultPrevented)
             return;
