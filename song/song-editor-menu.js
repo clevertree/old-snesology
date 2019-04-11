@@ -140,32 +140,11 @@ class SongEditorMenu {
     }
 
 
-    // get grid() { return this.song.grid; } // Grid associated with menu
-    getInstructionFormValues(isNewInstruction) {
-        if(isNewInstruction && this.fieldInsertInstructionCommand.value === '') {
-            // this.fieldInsertInstructionCommand.focus();
-            return false;
-        }
-        let newInstruction = {
-            command: isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value
-        };
-
-        if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
-            newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
-        if(this.fieldInstructionDuration.value)
-            newInstruction.duration = this.fieldInstructionDuration.value;
-        const velocityValue = parseInt(this.fieldInstructionVelocity.value);
-        if(velocityValue && velocityValue !== 100)
-            newInstruction.velocity = velocityValue;
-
-        return newInstruction;
-    }
-
 
     update() {
 
 
-        // const gridDuration = this.fieldRenderDuration.value || 1;
+        // const gridDuration = this.editor.forms.fieldRenderDuration.value || 1;
         const cursorIndex = this.editor.grid.cursorPosition;
         const selectedIndices = this.editor.grid.selectedIndices;
         const groupName = this.editor.grid.groupName;
@@ -208,20 +187,20 @@ class SongEditorMenu {
         //     .forEach(fieldset => fieldset.classList.add('hidden'));
 
 
-        // this.fieldInstructionCommand.value = 'C4';
-        // this.fieldInstructionInstrument.value = instrumentList[0] || 0;
-        // this.fieldInstructionInstrument.value = '0';
-        this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
-        // this.fieldInstructionVelocity.value = 100;
+        // this.editor.forms.fieldInstructionCommand.value = 'C4';
+        // this.editor.forms.fieldInstructionInstrument.value = instrumentList[0] || 0;
+        // this.editor.forms.fieldInstructionInstrument.value = '0';
+        this.editor.forms.fieldInstructionDuration.value = parseFloat(this.editor.forms.fieldRenderDuration.value) + '';
+        // this.editor.forms.fieldInstructionVelocity.value = 100;
 
         this.classList.remove('show-insert-instruction-controls');
         this.classList.remove('show-modify-instruction-controls');
         if(combinedInstruction) {
             // Note Instruction
-            this.fieldInstructionCommand.value = combinedInstruction.command;
-            this.fieldInstructionInstrument.value = combinedInstruction.instrument;
-            this.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
-            this.fieldInstructionDuration.value = combinedInstruction.duration;
+            this.editor.forms.fieldInstructionCommand.value = combinedInstruction.command;
+            this.editor.forms.fieldInstructionInstrument.value = combinedInstruction.instrument;
+            this.editor.forms.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
+            this.editor.forms.fieldInstructionDuration.value = combinedInstruction.duration;
             this.classList.add('show-modify-instruction-controls');
 
         } else if(cursorIndex !== null) {
@@ -229,16 +208,16 @@ class SongEditorMenu {
             this.classList.add('show-insert-instruction-controls');
         }
 
-        this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
-            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
-        this.fieldInsertInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
-            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
+        this.editor.forms.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
+            option.classList.toggle('hidden', this.editor.forms.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
+        this.editor.forms.fieldInsertInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
+            option.classList.toggle('hidden', this.editor.forms.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
 
-        // const oldInsertCommand = this.fieldInsertInstructionCommand.value;
-        // this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
-        // this.fieldInsertInstructionCommand.value = oldInsertCommand;
-        // if(!this.fieldInsertInstructionCommand.value)
-        //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
+        // const oldInsertCommand = this.editor.forms.fieldInsertInstructionCommand.value;
+        // this.editor.forms.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
+        // this.editor.forms.fieldInsertInstructionCommand.value = oldInsertCommand;
+        // if(!this.editor.forms.fieldInsertInstructionCommand.value)
+        //     this.editor.forms.fieldInsertInstructionCommand.value-this.editor.forms.fieldInsertInstructionCommand.options[0].value
 
         this.renderElm.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
 

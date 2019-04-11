@@ -423,7 +423,7 @@ class SongEditorForms {
             
             <div class="form-section">
                 <div class="form-section-header">Render Group</div>
-                ${this.editor.forms.getEditorFormOptions('groups', (value, label) =>
+                ${this.getEditorFormOptions('groups', (value, label) =>
                     `<form class="form-group" data-command="group:edit">`
                     + `<button name="groupName" value="${value}" class="themed" >${label}</button>`
                     + `</form>`)}

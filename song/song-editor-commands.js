@@ -57,7 +57,7 @@ class SongEditorCommands {
         const insertIndex = editor.renderer.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
         this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
-        this.grid.selectIndices(insertIndex, [insertIndex]);
+        this.grid.selectInstructions(insertIndex, [insertIndex]);
         return insertIndex;
         // return insertIndex;
     }
@@ -68,7 +68,7 @@ class SongEditorCommands {
         editor.renderer.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
         this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
-        // this.grid.selectIndices(insertIndex, [insertIndex]);
+        // this.grid.selectInstructions(insertIndex, [insertIndex]);
         return insertIndex;
     }
 
@@ -76,7 +76,7 @@ class SongEditorCommands {
         editor.renderer.deleteInstructionAtIndex(groupName, deleteIndex);
         this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
-        // this.grid.selectIndices(deleteIndex);
+        // this.grid.selectInstructions(deleteIndex);
         // return null;
     }
 
@@ -95,7 +95,7 @@ class SongEditorCommands {
         }
         this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
-        // this.grid.selectIndices(replaceIndex, [replaceIndex]);
+        // this.grid.selectInstructions(replaceIndex, [replaceIndex]);
         return oldParams;
     }
 
@@ -114,7 +114,7 @@ class SongEditorCommands {
         }
         this.historyQueue(editor.renderer.clearHistoryActions());
         this.grid.render();
-        // this.grid.selectIndices(replaceIndex, [replaceIndex]);
+        // this.grid.selectInstructions(replaceIndex, [replaceIndex]);
         return oldParams;
     }
 

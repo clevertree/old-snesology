@@ -43,7 +43,7 @@ class SongEditorKeyboard {
     getKeyboardCommand(key) {
         if(typeof this.keyboardLayout[key] === 'undefined')
             return null;
-        const octave = parseInt(this.menu.fieldRenderOctave.value) || 1;
+        const octave = parseInt(this.editor.forms.fieldRenderOctave.value) || 1;
         let command = this.keyboardLayout[key];
         command = command.replace('2', octave+1);
         command = command.replace('1', octave);
