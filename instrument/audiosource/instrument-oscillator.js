@@ -244,5 +244,8 @@ OscillatorInstrument.DEFAULT_PERIODIC_WAVE = {
 
 customElements.define('instrument-oscillator', OscillatorInstrument);
 document.dispatchEvent(new CustomEvent('instrument:loaded', {
-    detail: OscillatorInstrument
+    detail: {
+        "class": OscillatorInstrument,
+        "path": "/instrument/audiosource/instrument-oscillator.js"
+    }
 }));

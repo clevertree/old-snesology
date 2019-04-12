@@ -3,10 +3,12 @@
  */
 
 class SongRenderer {
-    constructor() {
+    constructor(dispatchElement=null) {
+        this.dispatchElement = null;
         this.audioContext = null;
         this.songData = {};
         this.loadedInstruments = [];
+        this.loadedInstrumentClasses = {};
         this.seekLength = 4;
         this.seekPosition = 0;
         this.volumeGain = null;
@@ -15,10 +17,12 @@ class SongRenderer {
         //     volume: 0.3
         // };
         this.loadSongData({});
-        this.eventListeners = [];
+        // this.eventListeners = [];
         this.historyActions = [];
+        document.addEventListener('instrument:loaded', e => this.onSongEvent(e));
+
     }
-    addSongEventListener(callback) { this.eventListeners.push(callback); }
+    // addSongEventListener(callback) { this.eventListeners.push(callback); }
 
     getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
     getSongData() { return this.songData; }
@@ -54,6 +58,22 @@ class SongRenderer {
 
     // getSongURL() { return this.getAttribute('src');}
 
+    dispatchEvent(event) {
+        if(this.dispatchElement)
+            this.dispatchElement.dispatchEvent(event);
+    }
+
+    onSongEvent(e) {
+        switch(e.type) {
+            case 'instrument:loaded':
+                const instrumentClass = e.detail.class;
+                const instrumentClassPath = e.detail.path;
+                this.loadedInstrumentClasses[instrumentClassPath] = instrumentClass;
+                this.loadAllInstruments();
+                break;
+        }
+    }
+
 
     /** Loading **/
 
@@ -67,11 +87,11 @@ class SongRenderer {
 
         let loadingInstruments = 0;
         if(songData.instruments.length === 0) {
-//             console.warn("Song contains no instruments");
+            console.warn("Song contains no instruments");
         } else {
             for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
                 loadingInstruments++;
-                this.initInstrument(instrumentID);
+                this.loadInstrument(instrumentID);
 
                 //      , (instance) => {
                 //         loadingInstruments--;
@@ -127,8 +147,8 @@ class SongRenderer {
         if(!songData)
             throw new Error("Invalid Song Data: " + songDataString);
 
-        this.player.loadSongData(songData);
-        this.render();
+        this.loadSongData(songData);
+        // this.render();
         //this.gridSelect(null, 0);
         console.info("Song loaded from memory: " + songGUID, songData);
     }
@@ -254,7 +274,8 @@ class SongRenderer {
             return;
         }
 
-
+        if(typeof noteStartTime === "undefined")
+            noteStartTime = this.getAudioContext().currentTime;
 
 
         this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
@@ -426,55 +447,60 @@ class SongRenderer {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
         if(throwException)
-            throw new Error("Instrument not yet loaded: ", instrumentID);
+            throw new Error("Instrument not yet loaded: " + instrumentID);
         return null;
     }
 
-    initInstrument(instrumentID) {
-        const instrumentPreset = this.getInstrumentConfig(instrumentID);
-        const url = new URL(instrumentPreset.url, document.location);
-        const elementName = url.pathname.substring(url.pathname.lastIndexOf('/')+1).split('.')[0];
-
-        const instrumentClass = customElements.get(elementName);
-        if(instrumentClass) {
-            if(!this.loadedInstruments[instrumentID]) {
-                const instance = new instrumentClass(instrumentPreset, this.getAudioContext());
-                this.loadedInstruments[instrumentID] = instance;
-                document.dispatchEvent(new CustomEvent('instrument:instance', {
-                    detail: {
-                        instance: instance,
-                        instrumentID: instrumentID
-                    }
-                }));
-            }
-        } else {
-
-            const newScriptElm = document.createElement('script');
-            newScriptElm.src = instrumentPreset.url;
-            document.head.appendChild(newScriptElm);
-            // MusicPlayerElement.loadScript(instrumentPreset.url); // , () => {
+    loadInstrumentClass(instrumentClassURL) {
+        instrumentClassURL = new URL(instrumentClassURL, document.location);
+        const instrumentClassPath = instrumentClassURL.pathname;
+        if(typeof this.loadedInstrumentClasses[instrumentClassPath] !== 'undefined') {
+            if(this.loadedInstrumentClasses[instrumentClassPath] === null)
+                console.warn("Instrument class is loading: " + instrumentClassPath);
+            else
+                console.warn("Instrument class is already loaded: " + instrumentClassPath);
         }
-
+        this.loadedInstrumentClasses[instrumentClassPath] = null;
+        const newScriptElm = document.createElement('script');
+        newScriptElm.src = instrumentClassURL;
+        document.head.appendChild(newScriptElm);
+        // MusicPlayerElement.loadScript(instrumentPreset.url); // , () => {
     }
 
-    initAllInstruments() {
+
+    loadInstrument(instrumentID) {
+        if (this.loadedInstruments[instrumentID])
+            return true;
+
+        const instrumentPreset = this.getInstrumentConfig(instrumentID);
+        const instrumentClassURL = new URL(instrumentPreset.url, document.location);
+        const instrumentClassPath = instrumentClassURL.pathname;
+        const instrumentClass = this.loadedInstrumentClasses[instrumentClassPath];
+        // const elementName = url.pathname.substring(url.pathname.lastIndexOf('/') + 1).split('.')[0];
+
+        if (!instrumentClass) {
+            this.loadInstrumentClass(instrumentClassURL);
+            return false;
+        }
+
+        const instance = new instrumentClass(instrumentPreset, this.getAudioContext());
+        this.loadedInstruments[instrumentID] = instance;
+        this.dispatchEvent(new CustomEvent('instrument:instance', {
+            detail: {
+                instance,
+                instrumentID
+            },
+            bubbles: true
+        }));
+        return true;
+    }
+
+    loadAllInstruments() {
         const instrumentList = this.getSongData().instruments;
         for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
-            this.initInstrument(instrumentID);
+            this.loadInstrument(instrumentID);
         }
     }
-
-    addInstrument(url, instrumentConfig) {
-        const instrumentList = this.getSongData().instruments;
-        const instrumentID = instrumentList.length;
-
-        instrumentList[instrumentID] = Object.assign({
-            url: url
-        }, instrumentConfig || {});
-        this.initInstrument(instrumentID);
-        return instrumentID;
-    }
-
 
     addInstrument(config) {
         if(typeof config !== 'object')
@@ -486,6 +512,7 @@ class SongRenderer {
         const instrumentID = instrumentList.length;
 
         this.replaceDataPath(`instruments.${instrumentID}`, config);
+        this.loadInstrument(instrumentID);
         return instrumentID;
     }
 
@@ -967,7 +994,9 @@ SongRenderer.DEFAULT_SONG_DATA = {
     root: 'root',
     beatsPerMinute: 160,
     beatsPerMeasure: 4,
-    instruments: [],
+    instruments: [{
+        "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js",
+    }],
     instructions: {
         'root': [4]
     },

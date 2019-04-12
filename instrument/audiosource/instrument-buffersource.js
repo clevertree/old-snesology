@@ -35,10 +35,11 @@ class BufferSourceInstrument extends HTMLElement {
                 this.initSamples(audioContext); // TODO: inefficient reload?
                 // this.setConfig(newConfig, audioContext);
 
-                this.dispatchEvent(new CustomEvent('instrument:initiated', {
-                    detail: this,
-                    bubbles: true
-                }));
+                // this.dispatchEvent(new CustomEvent('instrument:initiated', {
+                //     detail: this,
+                //     bubbles: true
+                // }));
+                // TODO: re-render
 
                 // console.warn("No default presets found");
             }
@@ -305,5 +306,8 @@ class BufferSourceInstrument extends HTMLElement {
 
 customElements.define('instrument-buffersource', BufferSourceInstrument);
 document.dispatchEvent(new CustomEvent('instrument:loaded', {
-    detail: BufferSourceInstrument
+    detail: {
+        "class": BufferSourceInstrument,
+        "path": "/instrument/audiosource/instrument-buffersource.js"
+    }
 }));

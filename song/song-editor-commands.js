@@ -32,7 +32,7 @@ class SongEditorCommands {
     }
 
     getCommandAlias(instrumentID, command) {
-        const instance = this.player.getInstrument(instrumentID);
+        const instance = this.editor.renderer.getInstrument(instrumentID);
         if (instance.getFrequencyAliases) {
             const aliases = instance.getFrequencyAliases();
             Object.keys(aliases).forEach((key) => {
@@ -47,15 +47,15 @@ class SongEditorCommands {
     setSongVersion(newSongTitle) { return this.setSongField('version', newSongTitle); }
 
     setSongField(fieldName, fieldValue) {
-        editor.renderer.replaceDataPath(fieldName, fieldValue);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.replaceDataPath(fieldName, fieldValue);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
     }
 
     insertInstructionAtPosition(groupName, insertPosition, instructionToAdd) {
         this.processInstruction(instructionToAdd);
 
-        const insertIndex = editor.renderer.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        const insertIndex = this.editor.renderer.insertInstructionAtPosition(groupName, insertPosition, instructionToAdd);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.render();
         this.grid.selectInstructions(insertIndex, [insertIndex]);
         return insertIndex;
@@ -65,16 +65,16 @@ class SongEditorCommands {
     insertInstructionAtIndex(groupName, insertIndex, instructionToAdd) {
         this.processInstruction(instructionToAdd);
 
-        editor.renderer.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.insertInstructionAtIndex(groupName, insertIndex, instructionToAdd);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectInstructions(insertIndex, [insertIndex]);
         return insertIndex;
     }
 
     deleteInstructionAtIndex(groupName, deleteIndex) {
-        editor.renderer.deleteInstructionAtIndex(groupName, deleteIndex);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.deleteInstructionAtIndex(groupName, deleteIndex);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectInstructions(deleteIndex);
         // return null;
@@ -88,12 +88,12 @@ class SongEditorCommands {
 
         const oldParams = [];
         for(let i=0;i<replaceIndices.length; i++) {
-            const replaceInstruction = editor.renderer.songData.instructions[groupName][replaceIndices[i]];
+            const replaceInstruction = this.editor.renderer.songData.instructions[groupName][replaceIndices[i]];
             if(typeof replaceParams.command !== 'undefined' && typeof replaceInstruction.instrument !== 'undefined')
                 replaceParams.command = this.getCommandAlias(replaceInstruction.instrument, replaceParams.command);
-            oldParams.push(editor.renderer.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
+            oldParams.push(this.editor.renderer.replaceInstructionParams(groupName, replaceIndices[i], replaceParams));
         }
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectInstructions(replaceIndex, [replaceIndex]);
         return oldParams;
@@ -107,52 +107,52 @@ class SongEditorCommands {
 
         const oldParams = [];
         for(let i=0;i<replaceIndices.length; i++) {
-            const replaceInstruction = editor.renderer.songData.instructions[groupName][replaceIndices[i]];
+            const replaceInstruction = this.editor.renderer.songData.instructions[groupName][replaceIndices[i]];
             if(paramName === 'command')
                 paramValue = this.getCommandAlias(replaceInstruction.instrument, paramValue);
-            oldParams.push(editor.renderer.replaceInstructionParam(groupName, replaceIndices[i], paramName, paramValue));
+            oldParams.push(this.editor.renderer.replaceInstructionParam(groupName, replaceIndices[i], paramName, paramValue));
         }
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.render();
         // this.grid.selectInstructions(replaceIndex, [replaceIndex]);
         return oldParams;
     }
 
     addInstructionGroup(newGroupName, instructionList) {
-        editor.renderer.addInstructionGroup(newGroupName, instructionList);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.addInstructionGroup(newGroupName, instructionList);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.navigate(newGroupName);
     }
 
     removeInstructionGroup(removedGroupName) {
-        editor.renderer.removeInstructionGroup(removedGroupName);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.removeInstructionGroup(removedGroupName);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.navigatePop();
     }
 
     renameInstructionGroup(oldGroupName, newGroupName) {
-        editor.renderer.renameInstructionGroup(oldGroupName, newGroupName);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.renameInstructionGroup(oldGroupName, newGroupName);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.grid.navigate(newGroupName);
     }
 
     addInstrument(config) {
-        const instrumentID = editor.renderer.addInstrument(config);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        const instrumentID = this.editor.renderer.addInstrument(config);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.render(); // TODO: render only instruments
-        this.player.initInstrument(instrumentID);
+        this.player.loadInstrument(instrumentID);
         return instrumentID;
     }
 
     removeInstrument(instrumentID) {
-        editor.renderer.removeInstrument(instrumentID);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        this.editor.renderer.removeInstrument(instrumentID);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.render(); // TODO: render only instruments
     }
 
     replaceInstrumentParams(instrumentID, replaceConfig) {
-        const oldParams = editor.renderer.replaceInstrumentParams(instrumentID, replaceConfig);
-        this.historyQueue(editor.renderer.clearHistoryActions());
+        const oldParams = this.editor.renderer.replaceInstrumentParams(instrumentID, replaceConfig);
+        this.historyQueue(this.editor.renderer.clearHistoryActions());
         this.render(); // TODO: render only instruments
         return oldParams;
     }

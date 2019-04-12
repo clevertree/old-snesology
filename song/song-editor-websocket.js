@@ -93,7 +93,7 @@ class SongEditorWebsocket {
                             const songModifier = editor.renderer;
                             songModifier.applyHistoryActions(json.historyActions);
                             this.status.history.currentStep = json.historyActions[json.historyActions.length-1].step;
-                            this.player.initAllInstruments();
+                            this.player.loadAllInstruments();
                             this.render();
                             //this.gridSelect(e, 0);
                             this.grid.focus();

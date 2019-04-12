@@ -80,14 +80,14 @@ class SongEditorGrid {
     connectedCallback() {
         this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
 
-        if(this.editor.player) {
+        if(this.editor.renderer) {
             const onSongEvent = this.onSongEvent.bind(this);
-            this.editor.player.addEventListener('note:end', onSongEvent);
-            this.editor.player.addEventListener('note:start', onSongEvent);
-            this.editor.player.addEventListener('song:start', onSongEvent);
-            this.editor.player.addEventListener('song:playback', onSongEvent);
-            this.editor.player.addEventListener('song:end', onSongEvent);
-            this.editor.player.addEventListener('song:pause', onSongEvent);
+            this.editor.renderer.addEventListener('note:end', onSongEvent);
+            this.editor.renderer.addEventListener('note:start', onSongEvent);
+            this.editor.renderer.addEventListener('song:start', onSongEvent);
+            this.editor.renderer.addEventListener('song:playback', onSongEvent);
+            this.editor.renderer.addEventListener('song:end', onSongEvent);
+            this.editor.renderer.addEventListener('song:pause', onSongEvent);
         }
 
         this.render();
@@ -100,8 +100,13 @@ class SongEditorGrid {
     onInput(e) {
         if (e.defaultPrevented)
             return;
-        if(e.target !== this.editor && !this.renderElm.contains(e.target))
+        if(!this.renderElm.contains(e.target))
             return;
+        this.renderElm.focus();
+        // if(this !== document.activeElement && !this.contains(document.activeElement)) {
+        //     console.log("Focus", document.activeElement);
+        //     this.focus();
+        // }
 
         try {
             // const cursorPositions = this.selectedPositions;
@@ -159,14 +164,14 @@ class SongEditorGrid {
                             //     //this.focus();
                             // } else {
                             for(let i=0; i<selectedIndices.length; i++)
-                                this.editor.playInstruction(instructionList[i]);
+                                this.editor.renderer.playInstruction(instructionList[i]);
                             // }
                             break;
 
                         case 'Play':
                             e.preventDefault();
                             for(let i=0; i<selectedIndices.length; i++) {
-                                this.editor.playInstruction(instructionList[i]);
+                                this.editor.renderer.playInstruction(instructionList[i]);
                             }
                             break;
 
@@ -222,6 +227,7 @@ class SongEditorGrid {
                                 const insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 // this.render();
                                 this.selectInstructions(insertIndex);
+                                selectedIndices = [insertIndex];
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
                                 for(let i=0; i<selectedIndices.length; i++) {
@@ -234,7 +240,7 @@ class SongEditorGrid {
 
                             this.render();
                             for(let i=0; i<selectedIndices.length; i++)
-                                this.editor.playInstruction(instructionList[selectedIndices[i]]);
+                                this.editor.renderer.playInstruction(instructionList[selectedIndices[i]]);
 
                             // song.gridSelectInstructions([selectedInstruction]);
                             e.preventDefault();
@@ -445,10 +451,10 @@ class SongEditorGrid {
     }
 
     findInstruction(instruction) {
-        let instructionGroup = this.editor.player.findInstructionGroup(instruction);
+        let instructionGroup = this.editor.renderer.findInstructionGroup(instruction);
         if(instructionGroup !== this.groupName)
             return null;
-        let index = this.editor.player.getInstructionIndex(instruction, instructionGroup);
+        let index = this.editor.renderer.getInstructionIndex(instruction, instructionGroup);
         return this.findDataElement(index);
     }
 

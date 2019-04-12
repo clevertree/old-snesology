@@ -7,7 +7,7 @@
 class SongEditorElement extends HTMLElement {
     constructor() {
         super();
-        this.player = null;
+        // this.player = null;
         this.status = {
             selectedIndicies: [],
             selectedIndexCursor: 0,
@@ -36,7 +36,7 @@ class SongEditorElement extends HTMLElement {
         // this.modifier = new SongModifier(this);
         this.instruments = new SongEditorInstruments(this);
         this.renderer = new SongRenderer();
-        this.renderer.addSongEventListener(e => this.onSongEvent(e));
+        // this.renderer.addSongEventListener(e => this.onSongEvent(e));
         this.longPressTimeout = null;
     }
 
@@ -56,13 +56,18 @@ class SongEditorElement extends HTMLElement {
         this.addEventListener('mouseup', this.onInput);
         this.addEventListener('longpress', this.onInput);
 
+        this.addEventListener('song:start', this.onSongEvent);
+        this.addEventListener('song:end', this.onSongEvent);
+        this.addEventListener('song:pause', this.onSongEvent);
+        this.addEventListener('instrument:loaded', this.onSongEvent);
+        this.addEventListener('instrument:instance', this.onSongEvent);
 
         this.render();
 
         const uuid = this.getAttribute('uuid');
         if(uuid)
             this.renderer.loadSongFromServer(uuid);
-        this.setAttribute('tabindex', 0);
+        // this.setAttribute('tabindex', 0);
         this.focus();
         // this.initWebSocket(uuid);
 
@@ -81,10 +86,10 @@ class SongEditorElement extends HTMLElement {
     // }
 
     onInput(e) {
-        if(this !== document.activeElement && !this.contains(document.activeElement)) {
-            console.log("Focus", document.activeElement);
-            this.focus();
-        }
+        // if(this !== document.activeElement && !this.contains(document.activeElement)) {
+        //     console.log("Focus", document.activeElement);
+        //     this.focus();
+        // }
         switch(e.type) {
             case 'mousedown':
                 // Longpress
@@ -118,6 +123,38 @@ class SongEditorElement extends HTMLElement {
         console.error("Unhandled " + e.type, e);
     }
 
+    onSongEvent(e) {
+        switch(e.type) {
+            case 'song:start':
+                this.classList.add('playing');
+                break;
+            case 'song:end':
+            case 'song:pause':
+                this.classList.remove('playing');
+                break;
+            case 'instrument:loaded':
+                console.info("TODO: load instrument instances", e.detail);
+                break;
+            case 'instrument:instance':
+                // case 'instrument:initiated':
+                //     this.menu.render(); // Update instrument list
+                //     break;
+                // console.info("Instrument initialized: ", e.detail);
+                // const instance = e.detail.instance;
+                // const instrumentID = e.detail.instrumentID;
+                // if(this.instruments[instrumentID]) {
+                //     this.instruments[instrumentID].render();
+                //     this.menu.render(); // Update instrument list
+                //     // this.render();
+                // } else {
+                //     console.warn("Instrument elm not found. Re-rendering song");
+                this.render(); // Update instrument list
+                // }
+                break;
+        }
+    }
+
+
     onError(err) {
         console.error(err);
         if(this.webSocket)
@@ -133,7 +170,6 @@ class SongEditorElement extends HTMLElement {
 
     // Rendering
 
-
     render() {
         this.innerHTML = ``;
         this.menu.render();
@@ -142,8 +178,8 @@ class SongEditorElement extends HTMLElement {
 
     }
 
-    // Update DOM
 
+    // Update DOM
 
     update() {
         this.grid.update();
@@ -185,37 +221,6 @@ class SongEditorElement extends HTMLElement {
     // }
 
     // Playback
-
-    onSongEvent(e) {
-        switch(e.type) {
-            case 'song:start':
-                this.classList.add('playing');
-                break;
-            case 'song:end':
-            case 'song:pause':
-                this.classList.remove('playing');
-                break;
-            case 'instrument:loaded':
-                console.info("TODO: load instrument instances", e.detail);
-                break;
-            case 'instrument:initiated':
-                this.menu.render(); // Update instrument list
-                break;
-            case 'instrument:instance':
-                // console.info("Instrument initialized: ", e.detail);
-                // const instance = e.detail.instance;
-                const instrumentID = e.detail.instrumentID;
-                if(this.instruments[instrumentID]) {
-                    this.instruments[instrumentID].render();
-                    this.menu.render(); // Update instrument list
-                    // this.render();
-                } else {
-                    console.warn("Instrument elm not found. Re-rendering song");
-                    this.render(); // Update instrument list
-                }
-                break;
-        }
-    }
 
 
 }

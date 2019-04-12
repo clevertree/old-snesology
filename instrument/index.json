@@ -5,7 +5,7 @@
     "audiosource/instrument-oscillator.js": "Simple Oscillator",
     "audiosource/instrument-buffersource.js": "Simple AudioBuffer",
 
-    "chiptune/snes/ffvi/instrument-ffvi.js": {
+    "chiptune/snes/ffvi/ffvi.instrument.js": {
       "title": "Final Fantasy VI Instrument"
     }
   }

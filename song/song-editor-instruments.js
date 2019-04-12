@@ -74,10 +74,10 @@ class SongEditorInstruments {
 
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
 
-        if(this.editor.player.isInstrumentLoaded(this.id)) {
+        if(this.editor.renderer.isInstrumentLoaded(this.id)) {
             try {
-                const instrument = this.editor.player.getInstrument(this.id);
-                const instrumentPreset = this.editor.player.getInstrumentConfig(this.id);
+                const instrument = this.editor.renderer.getInstrument(this.id);
+                const instrumentPreset = this.editor.renderer.getInstrumentConfig(this.id);
                 const instrumentName = instrumentPreset.name
                     ? `${instrumentPreset.name} (${instrument.constructor.name})`
                     : instrument.constructor.name;

@@ -44,7 +44,7 @@ class MusicPlayerElement extends HTMLElement {
                 this.classList.remove('playing');
                 break;
             case 'instrument:loaded':
-                this.initAllInstruments();
+                // this.renderer.loadAllInstruments();
                 break;
         }
     }
