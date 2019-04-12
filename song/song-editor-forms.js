@@ -40,7 +40,7 @@ class SongEditorForms {
         if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
             newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
         if(this.fieldInstructionDuration.value)
-            newInstruction.duration = this.fieldInstructionDuration.value;
+            newInstruction.duration = parseFloat(this.fieldInstructionDuration.value);
         const velocityValue = parseInt(this.fieldInstructionVelocity.value);
         if(velocityValue && velocityValue !== 100)
             newInstruction.velocity = velocityValue;
@@ -81,7 +81,7 @@ class SongEditorForms {
         e.preventDefault();
         // try {
         const command = form.getAttribute('data-command');
-        const cursorPosition = this.editor.status.cursorPosition;
+        const cursorCellIndex = this.editor.status.cursorCellIndex;
         const currentGroup = this.editor.status.currentGroup;
         const selectedIndices = this.editor.status.selectedIndices;
         // const selectedPauseIndices = this.grid.selectedPauseIndices;
@@ -97,7 +97,7 @@ class SongEditorForms {
                 if(form['duration'].value)
                     newInstruction['instrument'] = parseInt(form['duration'].value);
                 // newInstruction.command = this.keyboardLayout[e.key];
-                this.insertInstructionAtPosition(currentGroup, cursorPosition, newInstruction);
+                this.editor.renderer.insertInstructionAtPosition(currentGroup, cursorCellIndex, newInstruction);
                 break;
 
             case 'instruction:command':
@@ -105,30 +105,30 @@ class SongEditorForms {
                     form['command'].focus();
                     return;
                 }
-                this.replaceInstructionParam(currentGroup, selectedIndices, 'command', form['command'].value);
+                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'command', form['command'].value);
                 break;
 
             case 'instruction:instrument':
                 let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
-                this.replaceInstructionParam(currentGroup, selectedIndices, 'instrument', instrumentID);
+                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'instrument', instrumentID);
                 break;
 
             case 'instruction:duration':
                 const duration = form.duration.value || null;
-                this.replaceInstructionParam(currentGroup, selectedIndices, 'duration', duration);
+                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'duration', duration);
                 break;
 
             case 'instruction:velocity':
                 const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
-                this.replaceInstructionParam(currentGroup, selectedIndices, 'velocity', velocity);
+                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'velocity', velocity);
                 break;
 
             case 'instruction:delete':
-                this.deleteInstructionAtIndex(currentGroup, selectedIndices);
+                this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedIndices);
                 break;
 
             case 'row:edit':
-                this.replaceInstructionParams(currentGroup, selectedPauseIndices, {
+                this.editor.renderer.replaceInstructionParams(currentGroup, selectedPauseIndices, {
                     command: '!pause',
                     duration: parseFloat(form.duration.value)
                 });
@@ -138,15 +138,15 @@ class SongEditorForms {
             case 'row:duplicate':
                 if (!selectedRange)
                     throw new Error("No selected range");
-                this.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
+                this.editor.renderer.duplicateInstructionRange(currentGroup, selectedRange[0], selectedRange[1]);
                 break;
 
 
             case 'group:edit':
                 if (form.groupName.value === ':new') {
-                    let newGroupName = this.generateInstructionGroupName(currentGroup);
+                    let newGroupName = this.editor.renderer.generateInstructionGroupName(currentGroup);
                     newGroupName = prompt("Create new instruction group?", newGroupName);
-                    if (newGroupName) this.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                    if (newGroupName) this.editor.renderer.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
                     else console.error("Create instruction group canceled");
                 } else {
                     this.gridNavigate(form.groupName.value);
@@ -154,12 +154,8 @@ class SongEditorForms {
                 break;
 
             case 'song:edit':
-                const song = this.getSongData();
-                // songData.pausesPerBeat = parseInt(form['pauses-per-beat'].value);
-                song.beatsPerMinute = parseInt(form['beats-per-minute'].value);
-                song.beatsPerMeasure = parseInt(form['beats-per-measure'].value);
-                this.render();
-                // this.gridSelect(e, 0);
+                this.editor.renderer.replaceDataPath('beatsPerMinute', form['beats-per-minute'].value);
+                this.editor.renderer.replaceDataPath('beatsPerMeasure', form['beats-per-measure'].value);
                 break;
 
             case 'song:play':
@@ -188,7 +184,7 @@ class SongEditorForms {
                 const instrumentURL = form['instrumentURL'].value;
                 form['instrumentURL'].value = '';
                 if(confirm(`Add Instrument to Song?\nURL: ${instrumentURL}`)) {
-                    this.addInstrument(instrumentURL);
+                    this.editor.renderer.addInstrument(instrumentURL);
                     this.render();
                 } else {
                     console.info("Add instrument canceled");
@@ -197,11 +193,11 @@ class SongEditorForms {
                 break;
 
             case 'song:set-title':
-                this.setSongTitle(form['title'].value);
+                this.editor.renderer.setSongTitle(form['title'].value);
                 break;
 
             case 'song:set-version':
-                this.setSongVersion(form['version'].value);
+                this.editor.renderer.setSongVersion(form['version'].value);
                 break;
 
             default:
@@ -216,7 +212,7 @@ class SongEditorForms {
     update() {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
-        const cursorIndex = this.editor.grid.cursorPosition;
+        const cursorIndex = this.editor.grid.cursorCellIndex;
         const selectedIndices = this.editor.grid.selectedIndices;
         const groupName = this.editor.grid.groupName;
         const instructionList = this.editor.renderer.getInstructions(groupName);
@@ -264,19 +260,19 @@ class SongEditorForms {
         this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
         // this.fieldInstructionVelocity.value = 100;
 
-        this.classList.remove('show-insert-instruction-controls');
-        this.classList.remove('show-modify-instruction-controls');
+        this.renderElement.classList.remove('show-insert-instruction-controls');
+        this.renderElement.classList.remove('show-modify-instruction-controls');
         if(combinedInstruction) {
             // Note Instruction
             this.fieldInstructionCommand.value = combinedInstruction.command;
             this.fieldInstructionInstrument.value = combinedInstruction.instrument;
             this.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
             this.fieldInstructionDuration.value = combinedInstruction.duration;
-            this.classList.add('show-modify-instruction-controls');
+            this.renderElement.classList.add('show-modify-instruction-controls');
 
         } else if(cursorIndex !== null) {
 
-            this.classList.add('show-insert-instruction-controls');
+            this.renderElement.classList.add('show-insert-instruction-controls');
         }
 
         this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>

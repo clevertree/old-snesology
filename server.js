@@ -52,7 +52,6 @@ app.listen(config.server.httpPort, function() {
 clevertreeCMS.ContentRenderer.addGlobalElementSources({
     'song-editor': [
         'song/song-editor.css',
-        'song/song-editor-commands.js',
         'song/song-editor-forms.js',
         'song/song-editor-grid.js',
         'song/song-editor-instruments.js',

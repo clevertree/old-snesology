@@ -11,7 +11,7 @@ class SongEditorElement extends HTMLElement {
         this.status = {
             // selectedIndexCursor: 0,
             currentGroup: 'root',
-            cursorPosition: 0,
+            cursorCellIndex: 0,
             selectedIndicies: [],
 
             history: {
@@ -32,11 +32,10 @@ class SongEditorElement extends HTMLElement {
         this.keyboard = new SongEditorKeyboard(this);
         this.menu = new SongEditorMenu(this);
         this.forms = new SongEditorForms(this);
-        this.commands = new SongEditorCommands(this);
         this.grid = new SongEditorGrid(this);
         // this.modifier = new SongModifier(this);
         this.instruments = new SongEditorInstruments(this);
-        this.renderer = new SongRenderer();
+        this.renderer = new SongRenderer(this);
         // this.renderer.addSongEventListener(e => this.onSongEvent(e));
         this.longPressTimeout = null;
     }
@@ -60,6 +59,7 @@ class SongEditorElement extends HTMLElement {
         this.addEventListener('song:start', this.onSongEvent);
         this.addEventListener('song:end', this.onSongEvent);
         this.addEventListener('song:pause', this.onSongEvent);
+        this.addEventListener('song:modified', this.onSongEvent);
         this.addEventListener('instrument:loaded', this.onSongEvent);
         this.addEventListener('instrument:instance', this.onSongEvent);
 
@@ -136,6 +136,9 @@ class SongEditorElement extends HTMLElement {
             case 'song:pause':
                 this.classList.remove('playing');
                 break;
+            case 'song:modified':
+                this.grid.render();
+                break;
             case 'instrument:loaded':
                 console.info("TODO: load instrument instances", e.detail);
                 break;
@@ -178,7 +181,7 @@ class SongEditorElement extends HTMLElement {
         this.innerHTML = ``;
         this.menu.render();
         this.forms.render();
-        this.grid.render();
+        this.grid.render(); // Grid uses form values, renders last
 
     }
 
@@ -186,16 +189,15 @@ class SongEditorElement extends HTMLElement {
     // Update DOM
 
     update() {
+        this.menu.update();
+        this.forms.update();
         this.grid.update();
-        // this.menu.update();
-        // this.forms.update();
-
     }
 
-    selectInstructions(groupName, index, position=null, clearSelection=true, toggle=false) {
+    selectInstructions(groupName, index, cursorCellIndex=null, clearSelection=true, toggle=false) {
         // this.status.selectedIndexCursor = index;
-        if(position !== null)
-            this.status.cursorPosition = position;
+        if(cursorCellIndex !== null)
+            this.status.cursorCellIndex = cursorCellIndex;
         if(this.status.currentGroup !== groupName) {
             this.status.currentGroup = groupName;
             this.status.selectedIndicies = [];

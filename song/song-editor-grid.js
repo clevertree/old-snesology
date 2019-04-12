@@ -25,43 +25,46 @@ class SongEditorGrid {
 
     get selectedCells() { return this.renderElement.querySelectorAll('.grid-cell-instruction.selected'); }
     get cursorCell() { return this.renderElement.querySelector('.grid-cell.cursor'); }
-    get cursorPosition() { return parseFloat(this.cursorCell.getAttribute('data-position')); }
+    get cursorCellIndex() {
+        const cellList = this.renderElement.querySelectorAll('.grid-cell');
+        return this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+    }
     get selectedIndices() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
-    get selectedRows() { return this.renderElement.querySelectorAll('.grid-row.selected'); }
-    get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
+    // get selectedRows() { return this.renderElement.querySelectorAll('.grid-row.selected'); }
+    // get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
 
     get nextCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
-        if(currentIndex === -1)
+        const cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        if(cursorCellIndex === -1)
             throw new Error("Cursor Cell not found");
-        return cellList[currentIndex + 1];
+        return cellList[cursorCellIndex + 1];
     }
 
     get previousCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        let currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
-        if(currentIndex === -1)
+        let cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        if(cursorCellIndex === -1)
             throw new Error("Cursor Cell not found");
-        if(currentIndex === 0)
-            currentIndex = cellList.length - 1;
-        return cellList[currentIndex - 1];
+        if(cursorCellIndex === 0)
+            cursorCellIndex = cellList.length - 1;
+        return cellList[cursorCellIndex - 1];
     }
 
     get nextRowCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
-        for(let i=currentIndex;i<cellList.length;i++)
-            if(cellList[i].parentNode !== cellList[currentIndex].parentNode)
+        const cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        for(let i=cursorCellIndex;i<cellList.length;i++)
+            if(cellList[i].parentNode !== cellList[cursorCellIndex].parentNode)
                 return cellList[i];
         return null;
     }
 
     get previousRowCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        const currentIndex = this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
-        for(let i=currentIndex;i>=0;i--)
-            if(cellList[i].parentNode !== cellList[currentIndex].parentNode)
+        const cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        for(let i=cursorCellIndex;i>=0;i--)
+            if(cellList[i].parentNode !== cellList[cursorCellIndex].parentNode)
                 return cellList[i];
         return null;
     }
@@ -117,9 +120,9 @@ class SongEditorGrid {
         // }
 
         try {
-            // const cursorPositions = this.cursorPositions;
-            // const initialCursorPosition = cursorPositions[0];
-            // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
+            // const cursorCellIndexs = this.cursorCellIndexs;
+            // const initialCursorPosition = cursorCellIndexs[0];
+            // const currentCursorPosition = cursorCellIndexs[cursorCellIndexs.length - 1];
 
             // const song = this.song;
 
@@ -142,7 +145,7 @@ class SongEditorGrid {
                             for(let i=0; i<selectedIndices.length; i++) {
                                 this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices[i]);
                             }
-                            this.render();
+                            // this.render();
                             // song.render(true);
                             break;
 
@@ -160,8 +163,8 @@ class SongEditorGrid {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 if(!newInstruction)
                                     return console.info("Insert canceled");
-                                let insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorPosition);
-                                this.render();
+                                let insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorCellIndex);
+                                // this.render();
                                 this.selectInstructions(insertIndex);
                             }
 
@@ -231,7 +234,7 @@ class SongEditorGrid {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newInstruction.command = newCommand;
 
-                                const insertPosition = this.cursorPosition;
+                                const insertPosition = this.cursorCellIndex;
                                 const insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 // this.render();
                                 this.selectInstructions(insertIndex);
@@ -246,7 +249,7 @@ class SongEditorGrid {
                                 // this.selectInstructions(this.selectedIndices[0]); // TODO: select all
                             }
 
-                            this.render();
+                            // this.render();
                             for(let i=0; i<selectedIndices.length; i++)
                                 this.editor.renderer.playInstruction(instructionList[selectedIndices[i]]);
 
@@ -436,15 +439,17 @@ class SongEditorGrid {
     }
 
     selectCell(e, cursorCell, clearSelection=true, toggle=false) {
+        const cellList = this.renderElement.querySelectorAll('.grid-cell');
+        const cellIndex = this.cursorCell ? [].indexOf.call(cellList, cursorCell) : 0;
         const index = parseInt(cursorCell.getAttribute('data-index'));
-        const position = parseFloat(cursorCell.getAttribute('data-position'));
+        // const position = parseFloat(cursorCell.getAttribute('data-position'));
         // console.log("Cell", cursorCell, index, position);
-        this.selectInstructions(index, position, clearSelection, toggle);
+        this.selectInstructions(index, cellIndex, clearSelection, toggle);
     }
 
 
-    selectInstructions(cursorIndex, position=null, clearSelection=true, toggle=false) {
-        return this.editor.selectInstructions(this.groupName, cursorIndex, position, clearSelection, toggle);
+    selectInstructions(cursorIndex, cursorCellIndex=null, clearSelection=true, toggle=false) {
+        return this.editor.selectInstructions(this.groupName, cursorIndex, cursorCellIndex, clearSelection, toggle);
     }
 
     scrollToCursor() {
@@ -471,14 +476,15 @@ class SongEditorGrid {
     }
 
     render() {
-
+        console.log("RENDER GRID");
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
-        const selectedIndicies = this.editor.status.selectedIndicies;
-        const cursorPosition = this.editor.status.cursorPosition;
+        // const selectedIndicies = this.editor.status.selectedIndicies;
+        // const cursorCellIndex = this.editor.status.cursorCellIndex;
         let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+            console.log(index, instruction);
 
             if (instruction.command[0] === '!') {
                 const functionName = instruction.command.substr(1);
@@ -493,8 +499,8 @@ class SongEditorGrid {
                             if(subPause + gridDuration > instruction.duration)
                                 subDuration = subPause + gridDuration - instruction.duration;
 
-                            // if(cursorPosition === songPosition)
-                            // const cursorPositionClass = cursorPosition === songPosition ? ' selected' : '';
+                            // if(cursorCellIndex === songPosition)
+                            // const cursorCellIndexClass = cursorCellIndex === songPosition ? ' selected' : '';
                             rowHTML +=
                                 `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-index="${index}">
                                     <div class="grid-parameter command">+</div>
@@ -541,17 +547,18 @@ class SongEditorGrid {
     }
 
     update() {
-        let cellList = this.renderElement.querySelectorAll('.grid-cell,.grid-row');
+        let cellList = this.renderElement.querySelectorAll('.grid-cell'); //,.grid-row
 
-        const cursorPosition = this.editor.status.cursorPosition;
+        const cursorCellIndex = this.editor.status.cursorCellIndex;
+        console.log(cursorCellIndex);
         const selectedIndicies = this.editor.status.selectedIndicies;
         // const selectedIndexCursor = this.editor.status.;
         for(let i=0; i<cellList.length; i++) {
             const cell = cellList[i];
-            const position = parseFloat(cell.getAttribute('data-position'));
+            // const position = parseFloat(cell.getAttribute('data-position'));
             const index = parseInt(cell.getAttribute('data-index'));
-            cell.classList.toggle('selected', selectedIndicies.indexOf(index) !== -1 && cursorPosition === position);
-            cell.classList.toggle('cursor', cursorPosition === position);
+            cell.classList.toggle('selected', selectedIndicies.indexOf(index) !== -1);
+            cell.classList.toggle('cursor', cursorCellIndex === i);
         }
 
     }

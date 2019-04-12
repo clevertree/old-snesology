@@ -33,7 +33,7 @@ class SongEditorMenu {
     }
 
     onMenu(e) {
-        const cursorIndex = this.grid.cursorPosition;
+        const cursorIndex = this.grid.cursorCellIndex;
         const currentGroup = this.grid.groupName;
         const instructionList = this.grid.instructionList;
         const cursorInstruction = instructionList[cursorIndex];

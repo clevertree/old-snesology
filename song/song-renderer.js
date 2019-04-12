@@ -4,7 +4,7 @@
 
 class SongRenderer {
     constructor(dispatchElement=null) {
-        this.dispatchElement = null;
+        this.dispatchElement = dispatchElement;
         this.audioContext = null;
         this.songData = {};
         this.loadedInstruments = [];
@@ -58,9 +58,10 @@ class SongRenderer {
 
     // getSongURL() { return this.getAttribute('src');}
 
-    dispatchEvent(event) {
-        if(this.dispatchElement)
-            this.dispatchElement.dispatchEvent(event);
+    dispatchEvent(event, timeout) {
+        if(this.dispatchElement) {
+            setTimeout(() => this.dispatchElement.dispatchEvent(event), timeout);
+        }
     }
 
     onSongEvent(e) {
@@ -152,42 +153,42 @@ class SongRenderer {
         //this.gridSelect(null, 0);
         console.info("Song loaded from memory: " + songGUID, songData);
     }
-
-    historyQueue(historyActions) {
-        if(!Array.isArray(historyActions))
-            historyActions = [];
-        for(let i=0; i<historyActions.length; i++) {
-            const historyAction = historyActions[i];
-            this.status.history.currentStep++;
-            historyAction.step = this.status.history.currentStep;
-        }
-        //
-        // this.status.history.undoList.push(historyAction);
-        // this.status.history.undoPosition = this.status.history.undoList.length-1;
-
-        if(this.webSocket && historyActions.length > 0) {
-            console.info("Sending history actions: ", historyActions);
-            this.webSocket
-                .send(JSON.stringify({
-                    type: 'history:entry',
-                    historyActions: historyActions,
-                    // uuid: this.uuid
-                }))
-        }
-    }
-
-    historyUndo() {
-
-    }
-
-    historyRedo() {
-
-    }
-    clearHistoryActions() {
-        const actions = this.historyActions;
-        this.historyActions = [];
-        return actions;
-    }
+    //
+    // historyQueue(historyActions) {
+    //     if(!Array.isArray(historyActions))
+    //         historyActions = [];
+    //     for(let i=0; i<historyActions.length; i++) {
+    //         const historyAction = historyActions[i];
+    //         this.status.history.currentStep++;
+    //         historyAction.step = this.status.history.currentStep;
+    //     }
+    //     //
+    //     // this.status.history.undoList.push(historyAction);
+    //     // this.status.history.undoPosition = this.status.history.undoList.length-1;
+    //
+    //     if(this.webSocket && historyActions.length > 0) {
+    //         console.info("Sending history actions: ", historyActions);
+    //         this.webSocket
+    //             .send(JSON.stringify({
+    //                 type: 'history:entry',
+    //                 historyActions: historyActions,
+    //                 // uuid: this.uuid
+    //             }))
+    //     }
+    // }
+    //
+    // historyUndo() {
+    //
+    // }
+    //
+    // historyRedo() {
+    //
+    // }
+    // clearHistoryActions() {
+    //     const actions = this.historyActions;
+    //     this.historyActions = [];
+    //     return actions;
+    // }
 
     processInstructions(groupName) {
         const instructionList = this.getInstructions(groupName);
@@ -502,6 +503,28 @@ class SongRenderer {
         }
     }
 
+    /** Modify Song Data **/
+
+
+
+    generateInstructionGroupName(currentGroup) {
+        const songData = this.getSongData();
+        let newGroupName;
+        for(let i=99; i>=0; i--) {
+            const currentGroupName = currentGroup + '.' + i;
+            if(!songData.instructions.hasOwnProperty(currentGroupName))
+                newGroupName = currentGroupName;
+        }
+        if(!newGroupName)
+            throw new Error("Failed to generate group name");
+        return newGroupName;
+    }
+
+
+
+    setSongTitle(newSongTitle) { return this.replaceDataPath('title', newSongTitle); }
+    setSongVersion(newSongTitle) { return this.replaceDataPath('version', newSongTitle); }
+
     addInstrument(config) {
         if(typeof config !== 'object')
             config = {
@@ -694,6 +717,7 @@ class SongRenderer {
             data: newData
         };
         this.historyActions.push(historyAction);
+        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
         return historyAction;
     }
 
@@ -718,6 +742,7 @@ class SongRenderer {
             oldData: oldData
         };
         this.historyActions.push(historyAction);
+        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
         return historyAction;
     }
 
@@ -745,6 +770,8 @@ class SongRenderer {
         if(oldData !== null)
             historyAction['oldData'] = oldData;
         this.historyActions.push(historyAction);
+
+        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
         return historyAction;
     }
 
@@ -804,6 +831,7 @@ class SongRenderer {
         this.replaceInstructionParam(groupName, pauseIndex, 'duration', splitDuration);
         if(insertInstruction)
             this.insertInstructionAtIndex(groupName, ++pauseIndex, insertInstruction);
+
         this.insertInstructionAtIndex(groupName, ++pauseIndex, {
             command: '!pause',
             duration: splitDuration2
