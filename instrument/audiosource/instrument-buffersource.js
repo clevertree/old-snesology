@@ -119,6 +119,7 @@ class BufferSourceInstrument extends HTMLElement {
             }
         }
         source.connect(destination);
+        // console.log("Buffer Play: ", playbackRate);
         return source;
     }
 

@@ -1,13 +1,22 @@
 class SongEditorMenu {
     constructor(editor) {
         this.editor = editor;
-        this.renderElm=null;
     }
 
+    get renderElement() {
+        let renderElement = this.editor.querySelector('ul.editor-menu');
+        if(!renderElement) {
+            this.editor.innerHTML += `<ul class="editor-menu" tabindex="0"></ul>`;
+            renderElement = this.editor.querySelector('ul.editor-menu');
+        }
+        return renderElement;
+    }
 
     onInput(e) {
         // console.info(e.type, e);
         if(e.defaultPrevented)
+            return;
+        if(!this.renderElement.contains(e.target))
             return;
 
         // let targetClassList = e.target.classList;
@@ -130,7 +139,7 @@ class SongEditorMenu {
                 break;
 
             case 'menu:toggle':
-                // this.renderElm.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
+                // this.renderElement.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
                 // e.target.classList.toggle('open');
                 e.preventDefault();
                 break;
@@ -150,12 +159,8 @@ class SongEditorMenu {
         // const player = this.editor.player;
         // const songData = player.getSongData();
         // let tabIndex = 2;
-        this.renderElm = this.editor.querySelector('ul.editor-menu');
-        if(!this.renderElm) {
-            this.editor.innerHTML += `<ul class="editor-menu" tabindex="0"></ul>`;
-            this.renderElm = this.editor.querySelector('ul.editor-menu');
-        }
-        this.renderElm.innerHTML =
+
+        this.renderElement.innerHTML =
             `<li>
                 <a><span class="key">F</span>ile</a>
                 <ul class="sub-menu">
@@ -316,9 +321,9 @@ class SongEditorMenu {
         let target = e.target;
         let x = e.clientX, y = e.clientY;
 
-        this.renderElm.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
-        // this.renderElm.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
-        const contextMenu = this.renderElm.querySelector('.song-context-menu');
+        this.renderElement.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
+        // this.renderElement.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
+        const contextMenu = this.renderElement.querySelector('.song-context-menu');
         // console.info("Context menu", contextMenu);
 
         // contextMenu.setAttribute('class', 'song-context-menu');
@@ -348,7 +353,7 @@ class SongEditorMenu {
     }
 
     closeMenu() {
-        this.renderElm.querySelectorAll('.menu-item.open,.submenu.open')
+        this.renderElement.querySelectorAll('.menu-item.open,.submenu.open')
             .forEach(elm => elm.classList.remove('open'));
     }
 

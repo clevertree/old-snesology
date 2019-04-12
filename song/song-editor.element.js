@@ -45,9 +45,9 @@ class SongEditorElement extends HTMLElement {
 
 
     connectedCallback() {
-        this.addEventListener('submit', this.onSubmit);
-        this.addEventListener('change', this.onSubmit);
-        this.addEventListener('blur', this.onSubmit);
+        this.addEventListener('submit', this.onInput);
+        this.addEventListener('change', this.onInput);
+        this.addEventListener('blur', this.onInput);
         this.addEventListener('keydown', this.onInput);
         // this.addEventListener('keyup', this.onInput.bind(this));
         // this.addEventListener('click', this.onInput.bind(this));
@@ -117,6 +117,9 @@ class SongEditorElement extends HTMLElement {
         if(e.defaultPrevented)
             return;
         this.grid.onInput(e);
+        if(e.defaultPrevented)
+            return;
+        this.forms.onInput(e);
         if(e.defaultPrevented)
             return;
 

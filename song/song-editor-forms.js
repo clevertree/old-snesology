@@ -1,23 +1,31 @@
 class SongEditorForms {
     constructor(editor) {
         this.editor = editor;
-        this.renderElm = null;
     }
 
-    get fieldInsertInstructionCommand() { return this.renderElm.querySelector('form.form-instruction-insert select[name=command]'); }
+    get renderElement() {
+        let renderElement = this.editor.querySelector('div.editor-forms');
+        if(!renderElement) {
+            this.editor.innerHTML += `<div class="editor-forms"></div>`;
+            renderElement = this.editor.querySelector('div.editor-forms');
+        }
+        return renderElement;
+    }
 
-    get fieldInstructionInstrument() { return this.renderElm.querySelector('form.form-instruction-instrument select[name=instrument]'); }
-    get fieldInstructionDuration() { return this.renderElm.querySelector('form.form-instruction-duration select[name=duration]'); }
-    get fieldInstructionCommand() { return this.renderElm.querySelector('form.form-instruction-command select[name=command]'); }
-    get fieldInstructionVelocity() { return this.renderElm.querySelector('form.form-instruction-velocity select[name=velocity]'); }
+    get fieldInsertInstructionCommand() { return this.renderElement.querySelector('form.form-instruction-insert select[name=command]'); }
 
-    get fieldRowDuration() { return this.renderElm.querySelector('form.form-row-duration select[name=duration]'); }
+    get fieldInstructionInstrument() { return this.renderElement.querySelector('form.form-instruction-instrument select[name=instrument]'); }
+    get fieldInstructionDuration() { return this.renderElement.querySelector('form.form-instruction-duration select[name=duration]'); }
+    get fieldInstructionCommand() { return this.renderElement.querySelector('form.form-instruction-command select[name=command]'); }
+    get fieldInstructionVelocity() { return this.renderElement.querySelector('form.form-instruction-velocity select[name=velocity]'); }
 
-    get fieldRenderDuration() { return this.renderElm.querySelector('form.form-render-duration select[name=duration]'); }
-    get fieldRenderInstrument() { return this.renderElm.querySelector('form.form-render-instrument select[name=instrument]'); }
-    get fieldRenderOctave() { return this.renderElm.querySelector('form.form-render-octave select[name=octave]'); }
+    get fieldRowDuration() { return this.renderElement.querySelector('form.form-row-duration select[name=duration]'); }
 
-    get fieldAddInstrumentInstrument() { return this.renderElm.querySelector('form.form-add-instrument select[name=instrument]'); }
+    get fieldRenderDuration() { return this.renderElement.querySelector('form.form-render-duration select[name=duration]'); }
+    get fieldRenderInstrument() { return this.renderElement.querySelector('form.form-render-instrument select[name=instrument]'); }
+    get fieldRenderOctave() { return this.renderElement.querySelector('form.form-render-octave select[name=octave]'); }
+
+    get fieldAddInstrumentInstrument() { return this.renderElement.querySelector('form.form-add-instrument select[name=instrument]'); }
 
     // get grid() { return this.song.grid; } // Grid associated with menu
     getInstructionFormValues(isNewInstruction) {
@@ -40,6 +48,25 @@ class SongEditorForms {
         return newInstruction;
     }
 
+    onInput(e) {
+        if (e.defaultPrevented)
+            return;
+        if (!this.renderElement.contains(e.target))
+            return;
+
+        try {
+            switch (e.type) {
+                case 'submit':
+                case 'change':
+                case 'blur':
+                    this.onSubmit(e);
+                    break;
+            }
+
+        } catch (err) {
+            this.editor.onError(err);
+        }
+    }
 
     onSubmit(e) {
         let form = e.target;
@@ -223,11 +250,11 @@ class SongEditorForms {
         // Row Instructions
 
         // Group Buttons
-        this.renderElm.querySelectorAll('button[name=groupName]')
+        this.renderElement.querySelectorAll('button[name=groupName]')
             .forEach(button => button.classList.toggle('selected', button.getAttribute('value') !== groupName));
 
         // Instruction Forms
-        // this.renderElm.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
+        // this.renderElement.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
         //     .forEach(fieldset => fieldset.classList.add('hidden'));
 
 
@@ -263,33 +290,27 @@ class SongEditorForms {
         // if(!this.fieldInsertInstructionCommand.value)
         //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
 
-        this.renderElm.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
+        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
 
     }
 
     // ${this.renderEditorMenuLoadFromMemory()}
     render() {
-        this.renderElm = this.editor.querySelector('div.editor-forms');
-        if(!this.renderElm) {
-            this.editor.innerHTML += `<div class="editor-forms"></div>`;
-            this.renderElm = this.editor.querySelector('div.editor-forms');
-        }
-
         const renderer = this.editor.renderer;
         const songData = this.editor.getSongData();
         // let tabIndex = 2;
-        this.renderElm.innerHTML =
+        this.renderElement.innerHTML =
             `
             <div class="form-section">
                 <div class="form-section-header">Playback Controls</div>
                 <form action="#" class="form-song-play" data-command="song:play">
-                    <button name="play" class="themed">Play</button>
+                    <button type="submit" name="play" class="themed">Play</button>
                 </form>
                 <form action="#" class="form-song-pause show-on-song-playing" data-command="song:pause">
-                    <button name="pause" class="themed">Pause</button>
+                    <button type="submit" name="pause" class="themed">Pause</button>
                 </form>
                 <form action="#" class="form-song-resume show-on-song-paused" data-command="song:resume">
-                    <button name="resume" class="themed">Resume</button>
+                    <button type="submit" name="resume" class="themed">Resume</button>
                 </form>
             </div>
                                          
@@ -648,9 +669,9 @@ class SongEditorForms {
         let target = e.target;
         let x = e.clientX, y = e.clientY;
 
-        this.renderElm.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
-        // this.renderElm.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
-        const contextMenu = this.renderElm.querySelector('.song-context-menu');
+        this.renderElement.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
+        // this.renderElement.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
+        const contextMenu = this.renderElement.querySelector('.song-context-menu');
         // console.info("Context menu", contextMenu);
 
         // contextMenu.setAttribute('class', 'song-context-menu');
@@ -680,7 +701,7 @@ class SongEditorForms {
     }
 
     closeMenu() {
-        this.renderElm.querySelectorAll('.menu-item.open,.submenu.open')
+        this.renderElement.querySelectorAll('.menu-item.open,.submenu.open')
             .forEach(elm => elm.classList.remove('open'));
     }
 
