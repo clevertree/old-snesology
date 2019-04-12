@@ -100,6 +100,8 @@ class SongEditorGrid {
     onInput(e) {
         if (e.defaultPrevented)
             return;
+        if(e.target !== this.editor && !this.renderElm.contains(e.target))
+            return;
 
         try {
             // const cursorPositions = this.selectedPositions;
@@ -243,42 +245,33 @@ class SongEditorGrid {
 
                 case 'mousedown':
                     this.editor.menu.closeMenu();
-                    let cellElm = e.target;
-                    if (cellElm.classList.contains('grid-parameter')) {
+                    if (e.target.classList.contains('grid-parameter')) {
                         return this.onCellInput(e);
                     }
-                    if (cellElm.classList.contains('grid-cell')) {
+                    if (e.target.classList.contains('grid-cell')) {
                         return this.onCellInput(e);
                     }
-                    if (cellElm.classList.contains('grid-data')) {
+                    if (e.target.classList.contains('grid-data')) {
                         return this.onRowInput(e);
                     }
-                    if (cellElm.classList.contains('grid-row')) {
+                    if (e.target.classList.contains('grid-row')) {
                         return this.onRowInput(e);
                     }
                     // e.preventDefault();
 
 
-                    // cellElm = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
-                    // Longpress
-                    clearTimeout(this.longPressTimeout);
-                    this.longPressTimeout = setTimeout(function() {
-                        e.target.dispatchEvent(new CustomEvent('longpress', {
-                            detail: {originalEvent: e},
-                            bubbles: true
-                        }));
-                    }, this.editor.status.longPressTimeout);
-                    break;
-
-                case 'mouseup':
-                    e.preventDefault();
-                    clearTimeout(this.longPressTimeout);
+                    // e.target = this.renderElm.querySelector('.grid-cell.selected') || this.renderElm.querySelector('.grid-cell'); // Choose selected or default cell
                     break;
 
                 case 'longpress':
-                    e.preventDefault();
-                    console.log("Longpress", e);
-                    this.editor.menu.openContextMenu(e);
+                    if (e.target.classList.contains('grid-parameter')
+                        || e.target.classList.contains('grid-cell')
+                        || e.target.classList.contains('grid-data')
+                        || e.target.classList.contains('grid-row')) {
+                        e.preventDefault();
+                        console.log("Longpress", e);
+                        this.editor.menu.openContextMenu(e);
+                    }
                     break;
 
                 case 'contextmenu':
@@ -466,7 +459,7 @@ class SongEditorGrid {
     render() {
         this.renderElm = this.editor.querySelector('table.editor-grid');
         if(!this.renderElm) {
-            this.editor.innerHTML += `<table class="editor-grid"></table>`;
+            this.editor.innerHTML += `<table class="editor-grid" tabindex="0"></table>`;
             this.renderElm = this.editor.querySelector('table.editor-grid');
         }
 

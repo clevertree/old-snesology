@@ -230,7 +230,7 @@ class SongEditorMenu {
         // let tabIndex = 2;
         this.renderElm = this.editor.querySelector('ul.editor-menu');
         if(!this.renderElm) {
-            this.editor.innerHTML += `<ul class="editor-menu"></ul>`;
+            this.editor.innerHTML += `<ul class="editor-menu" tabindex="0"></ul>`;
             this.renderElm = this.editor.querySelector('ul.editor-menu');
         }
         this.renderElm.innerHTML =

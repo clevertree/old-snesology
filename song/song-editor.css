@@ -1,6 +1,6 @@
 song-editor {
     /* color: #FFF; */
-    background-color: #DDD;
+    background-color: #CCC;
     display: block;
     /* font-size: 14px; */
     /* line-height: 16px; */
@@ -30,12 +30,13 @@ song-editor ul.editor-menu,
 song-editor ul.sub-menu {
     /*display: block;*/
     /* border: 1px solid grey; */
-    background-color: #BBB;
+    /* background-color: #BBB; */
     color: black;
     padding: 0 0;
     margin: 0 0;
     list-style-type: none;
     /*overflow: hidden;*/
+    /* width: 100%; */
 }
 
 /** Drop Down / Context Menu **/
@@ -158,6 +159,7 @@ song-editor .editor-forms div.form-section:hover div.form-section-header {
 
 /** Form Section **/
 song-editor .editor-forms div.form-section {
+    background: #DDD;
     /* border: 1px outset #ffffff8a; */
     padding: 6px 8px 2px 6px;
     display: inline-block;

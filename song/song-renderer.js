@@ -60,13 +60,7 @@ class SongRenderer {
 
 
     loadSongData(songData) {
-        songData.beatsPerMinute =   (songData.beatsPerMinute || 160);
-        // songData.pausesPerBeat =    (songData.pausesPerBeat || DEFAULT_PAUSES_PER_BEAT);
-        songData.beatsPerMeasure =  (songData.beatsPerMeasure || 4);
-        songData.root = songData.root || 'root';
-        songData.instruments = (songData.instruments || []);
-        songData.instructions = (songData.instructions || {});
-        songData.instructions[songData.root] = songData.instructions[songData.root] || [4, 'C4', 1, 1, 1, 1];
+        songData = Object.assign({}, SongRenderer.DEFAULT_SONG_DATA, songData);
         this.songData = songData;
         Object.keys(songData.instructions).map((groupName, i) =>
             this.processInstructions(groupName));
@@ -967,3 +961,14 @@ class SongRenderer {
 
 }
 SongRenderer.DEFAULT_VOLUME = 0.7;
+SongRenderer.DEFAULT_SONG_DATA = {
+    title: 'New Song',
+    version: '0.0.1',
+    root: 'root',
+    beatsPerMinute: 160,
+    beatsPerMeasure: 4,
+    instruments: [],
+    instructions: {
+        'root': [4]
+    },
+};

@@ -37,6 +37,7 @@ class SongEditorElement extends HTMLElement {
         this.instruments = new SongEditorInstruments(this);
         this.renderer = new SongRenderer();
         this.renderer.addSongEventListener(e => this.onSongEvent(e));
+        this.longPressTimeout = null;
     }
 
     getAudioContext()   { return this.renderer.getAudioContext(); }
@@ -61,7 +62,7 @@ class SongEditorElement extends HTMLElement {
         const uuid = this.getAttribute('uuid');
         if(uuid)
             this.renderer.loadSongFromServer(uuid);
-        this.setAttribute('tabindex', 1);
+        this.setAttribute('tabindex', 0);
         this.focus();
         // this.initWebSocket(uuid);
 
@@ -80,7 +81,29 @@ class SongEditorElement extends HTMLElement {
     // }
 
     onInput(e) {
-        this.focus();
+        if(this !== document.activeElement && !this.contains(document.activeElement)) {
+            console.log("Focus", document.activeElement);
+            this.focus();
+        }
+        switch(e.type) {
+            case 'mousedown':
+                // Longpress
+                clearTimeout(this.longPressTimeout);
+                this.longPressTimeout = setTimeout(function() {
+                    e.target.dispatchEvent(new CustomEvent('longpress', {
+                        detail: {originalEvent: e},
+                        cancelable: true,
+                        bubbles: true
+                    }));
+                }, this.status.longPressTimeout);
+                break;
+
+            case 'mouseup':
+                e.preventDefault();
+                clearTimeout(this.longPressTimeout);
+                break;
+        }
+
         // console.info(e.type, e);
         if(e.defaultPrevented)
             return;
@@ -147,7 +170,7 @@ class SongEditorElement extends HTMLElement {
             if(toggle)
                 indicies.splice(existingIndex, 1);
         }
-        console.log("Selected: ", indicies, position, groupName);
+        // console.log("Selected: ", indicies, position, groupName);
         this.update();
     }
 
