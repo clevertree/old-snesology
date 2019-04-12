@@ -117,7 +117,7 @@ class SongEditorGrid {
         // }
 
         try {
-            // const cursorPositions = this.selectedPositions;
+            // const cursorPositions = this.cursorPositions;
             // const initialCursorPosition = cursorPositions[0];
             // const currentCursorPosition = cursorPositions[cursorPositions.length - 1];
 
@@ -475,7 +475,7 @@ class SongEditorGrid {
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
         const selectedIndicies = this.editor.status.selectedIndicies;
-        const selectedPosition = this.editor.status.selectedPosition;
+        const cursorPosition = this.editor.status.cursorPosition;
         let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
@@ -493,8 +493,8 @@ class SongEditorGrid {
                             if(subPause + gridDuration > instruction.duration)
                                 subDuration = subPause + gridDuration - instruction.duration;
 
-                            // if(selectedPosition === songPosition)
-                            // const selectedPositionClass = selectedPosition === songPosition ? ' selected' : '';
+                            // if(cursorPosition === songPosition)
+                            // const cursorPositionClass = cursorPosition === songPosition ? ' selected' : '';
                             rowHTML +=
                                 `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-index="${index}">
                                     <div class="grid-parameter command">+</div>
@@ -543,15 +543,15 @@ class SongEditorGrid {
     update() {
         let cellList = this.renderElement.querySelectorAll('.grid-cell,.grid-row');
 
-        const selectedPosition = this.editor.status.selectedPosition;
+        const cursorPosition = this.editor.status.cursorPosition;
         const selectedIndicies = this.editor.status.selectedIndicies;
-        const selectedIndexCursor = this.editor.status.selectedIndexCursor;
+        // const selectedIndexCursor = this.editor.status.;
         for(let i=0; i<cellList.length; i++) {
             const cell = cellList[i];
             const position = parseFloat(cell.getAttribute('data-position'));
             const index = parseInt(cell.getAttribute('data-index'));
-            cell.classList.toggle('selected', selectedIndicies.indexOf(index) !== -1 && selectedPosition === position);
-            cell.classList.toggle('cursor', selectedIndexCursor === index && selectedPosition === position);
+            cell.classList.toggle('selected', selectedIndicies.indexOf(index) !== -1 && cursorPosition === position);
+            cell.classList.toggle('cursor', cursorPosition === position);
         }
 
     }

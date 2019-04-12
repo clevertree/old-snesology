@@ -81,11 +81,11 @@ class SongEditorForms {
         e.preventDefault();
         // try {
         const command = form.getAttribute('data-command');
-        const cursorPosition = this.grid.cursorPosition;
-        const currentGroup = this.grid.groupName;
-        const selectedIndices = this.grid.selectedIndices;
-        const selectedPauseIndices = this.grid.selectedPauseIndices;
-        const selectedRange = this.grid.selectedRange;
+        const cursorPosition = this.editor.status.cursorPosition;
+        const currentGroup = this.editor.status.currentGroup;
+        const selectedIndices = this.editor.status.selectedIndices;
+        // const selectedPauseIndices = this.grid.selectedPauseIndices;
+        // const selectedRange = this.grid.selectedRange;
 
         switch (command) {
 

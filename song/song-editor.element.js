@@ -9,10 +9,11 @@ class SongEditorElement extends HTMLElement {
         super();
         // this.player = null;
         this.status = {
+            // selectedIndexCursor: 0,
+            currentGroup: 'root',
+            cursorPosition: 0,
             selectedIndicies: [],
-            selectedIndexCursor: 0,
-            selectedPosition: 0,
-            selectedGroup: 'root',
+
             history: {
                 currentStep: 0,
                 undoList: [],
@@ -192,11 +193,11 @@ class SongEditorElement extends HTMLElement {
     }
 
     selectInstructions(groupName, index, position=null, clearSelection=true, toggle=false) {
-        this.status.selectedIndexCursor = index;
+        // this.status.selectedIndexCursor = index;
         if(position !== null)
-            this.status.selectedPosition = position;
-        if(this.status.selectedGroup !== groupName) {
-            this.status.selectedGroup = groupName;
+            this.status.cursorPosition = position;
+        if(this.status.currentGroup !== groupName) {
+            this.status.currentGroup = groupName;
             this.status.selectedIndicies = [];
         }
         if(clearSelection)
