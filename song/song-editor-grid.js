@@ -29,6 +29,9 @@ class SongEditorGrid {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
         return this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
     }
+    get cursorPosition() {
+        return parseFloat(this.cursorCell.getAttribute('data-position'));
+    }
     get selectedIndices() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
     // get selectedRows() { return this.renderElement.querySelectorAll('.grid-row.selected'); }
     // get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
@@ -163,7 +166,7 @@ class SongEditorGrid {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 if(!newInstruction)
                                     return console.info("Insert canceled");
-                                let insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorCellIndex);
+                                let insertIndex = this.insertInstructionAtPosition(newInstruction, this.cursorPosition);
                                 // this.render();
                                 this.selectInstructions(insertIndex);
                             }
@@ -234,7 +237,7 @@ class SongEditorGrid {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newInstruction.command = newCommand;
 
-                                const insertPosition = this.cursorCellIndex;
+                                const insertPosition = this.cursorPosition;
                                 const insertIndex = this.insertInstructionAtPosition(newInstruction, insertPosition);
                                 // this.render();
                                 this.selectInstructions(insertIndex);
@@ -312,12 +315,15 @@ class SongEditorGrid {
 
     onRowInput(e) {
         e.preventDefault();
-        let selectedCell = e.target;
-        if(selectedCell.classList.contains('grid-data'))
-            selectedCell = selectedCell.parentNode;
-        const index = parseInt(selectedCell.getAttribute('data-index'));
-        const position = parseInt(selectedCell.getAttribute('data-position'));
-        this.selectInstructions(index, position);
+        let selectedRow = e.target;
+        if(selectedRow.classList.contains('grid-data'))
+            selectedRow = selectedRow.parentNode;
+        const selectedCell = selectedRow.querySelector('.grid-cell-new');
+        const cellList = this.renderElement.querySelectorAll('.grid-cell');
+        const cellIndex = [].indexOf.call(cellList, selectedCell);
+        const index = parseInt(selectedRow.getAttribute('data-index'));
+        // const position = parseInt(selectedRow.getAttribute('data-position'));
+        this.selectInstructions(index, cellIndex);
     }
 
     onCellInput(e) {
@@ -325,9 +331,11 @@ class SongEditorGrid {
         let selectedCell = e.target;
         if(selectedCell.classList.contains('grid-parameter'))
             selectedCell = selectedCell.parentNode;
+
+        const cellList = this.renderElement.querySelectorAll('.grid-cell');
+        const cellIndex = [].indexOf.call(cellList, selectedCell);
         const index = parseInt(selectedCell.getAttribute('data-index'));
-        const position = parseInt(selectedCell.parentNode.parentNode.getAttribute('data-position'));
-        this.selectInstructions(index, position);
+        this.selectInstructions(index, cellIndex);
     }
 
     onSongEvent(e) {
@@ -443,7 +451,6 @@ class SongEditorGrid {
         const cellIndex = this.cursorCell ? [].indexOf.call(cellList, cursorCell) : 0;
         const index = parseInt(cursorCell.getAttribute('data-index'));
         // const position = parseFloat(cursorCell.getAttribute('data-position'));
-        // console.log("Cell", cursorCell, index, position);
         this.selectInstructions(index, cellIndex, clearSelection, toggle);
     }
 
@@ -550,7 +557,6 @@ class SongEditorGrid {
         let cellList = this.renderElement.querySelectorAll('.grid-cell'); //,.grid-row
 
         const cursorCellIndex = this.editor.status.cursorCellIndex;
-        console.log(cursorCellIndex);
         const selectedIndicies = this.editor.status.selectedIndicies;
         // const selectedIndexCursor = this.editor.status.;
         for(let i=0; i<cellList.length; i++) {

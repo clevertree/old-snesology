@@ -400,9 +400,7 @@ song-editor .editor-grid .grid-cell-new {
     opacity: 0;
     transition: opacity 0.25s;
 }
-song-editor .editor-grid .grid-cell-new.cursor,
-song-editor .editor-grid .grid-cell-new.selected,
-song-editor .editor-grid .grid-row.selected .grid-cell-new {
+song-editor .editor-grid .grid-cell-new.cursor, song-editor .editor-grid .grid-cell-new.cursor, song-editor .editor-grid .grid-row.selected .grid-cell-new {
     opacity: 1;
 }
 
