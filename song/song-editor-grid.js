@@ -24,10 +24,10 @@ class SongEditorGrid {
 
     get selectedCells() { return this.renderElement.querySelectorAll('.grid-cell-instruction.selected'); }
     get cursorCell() { return this.renderElement.querySelector('.grid-cell.cursor'); }
-    get cursorCellIndex() {
-        const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        return this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
-    }
+    // get cursorCellIndex() {
+    //     const cellList = this.renderElement.querySelectorAll('.grid-cell');
+    //     return this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+    // }
     get cursorPosition() {
         return parseFloat(this.cursorCell.getAttribute('data-position'));
     }
@@ -37,7 +37,7 @@ class SongEditorGrid {
 
     get nextCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        const cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        const cursorCellIndex = this.editor.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         if(cursorCellIndex === -1)
             throw new Error("Cursor Cell not found");
         return cellList[cursorCellIndex + 1];
@@ -45,7 +45,7 @@ class SongEditorGrid {
 
     get previousCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        let cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        let cursorCellIndex = this.editor.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         if(cursorCellIndex === -1)
             throw new Error("Cursor Cell not found");
         if(cursorCellIndex === 0)
@@ -55,7 +55,7 @@ class SongEditorGrid {
 
     get nextRowCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        const cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        const cursorCellIndex = this.editor.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         for(let i=cursorCellIndex;i<cellList.length;i++)
             if(cellList[i].parentNode !== cellList[cursorCellIndex].parentNode)
                 return cellList[i];
@@ -64,7 +64,7 @@ class SongEditorGrid {
 
     get previousRowCell() {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
-        const cursorCellIndex = this.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        const cursorCellIndex = this.editor.cursorCellIndex; // this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
         for(let i=cursorCellIndex;i>=0;i--)
             if(cellList[i].parentNode !== cellList[cursorCellIndex].parentNode)
                 return cellList[i];
@@ -433,7 +433,7 @@ class SongEditorGrid {
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
-        // const cursorCellIndex = this.editor.status.cursorCellIndex;
+        // const cursorCellIndex = this.editor.cursorCellIndex;
         let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
@@ -502,7 +502,7 @@ class SongEditorGrid {
     update() {
         let cellList = this.renderElement.querySelectorAll('.grid-cell'); //,.grid-row
 
-        const cursorCellIndex = this.editor.status.cursorCellIndex;
+        const cursorCellIndex = this.editor.cursorCellIndex;
         const selectedIndicies = this.editor.status.selectedIndicies;
         // const selectedIndexCursor = this.editor.status.;
         for(let i=0; i<cellList.length; i++) {

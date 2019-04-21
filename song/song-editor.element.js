@@ -150,6 +150,7 @@ class SongEditorElement extends HTMLElement {
                 break;
             case 'song:modified':
                 this.grid.render();
+                this.forms.render();
                 break;
             case 'instrument:loaded':
                 console.info("TODO: load instrument instances", e.detail);

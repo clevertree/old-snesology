@@ -81,8 +81,8 @@ class SongEditorForms {
         }
         // try {
         const command = form.getAttribute('data-command');
-        const cursorCellIndex = this.editor.status.cursorCellIndex;
-        const currentGroup = this.editor.status.currentGroup;
+        const cursorCellIndex = this.editor.cursorCellIndex;
+        const currentGroup = this.editor.currentGroup;
         // const selectedIndicies = this.editor.status.selectedIndicies;
         const selectedNoteIndices = this.editor.selectedNoteIndicies;
         const selectedPauseIndices = this.editor.selectedPauseIndicies;
@@ -218,9 +218,9 @@ class SongEditorForms {
     update() {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
-        const cursorIndex = this.editor.status.cursorCellIndex;
+        const cursorIndex = this.editor.cursorCellIndex;
         const selectedIndices = this.editor.status.selectedIndicies;
-        const groupName = this.editor.status.currentGroup;
+        const groupName = this.editor.currentGroup;
         const instructionList = this.editor.renderer.getInstructions(groupName);
         let combinedInstruction = null; //, instrumentList = [];
         for(let i=0; i<selectedIndices.length; i++) {
