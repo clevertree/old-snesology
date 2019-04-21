@@ -147,7 +147,7 @@ body.theme-minimal {
 
 /** Form Inputs **/
 
-.theme-minimal .input-theme,
+/*.theme-minimal .input-theme,*/
 .theme-minimal input,
 .theme-minimal select,
 .theme-minimal button {
@@ -156,7 +156,7 @@ body.theme-minimal {
     /* font-weight: bold; */
 }
 
-.theme-minimal .input-theme:hover,
+/*.theme-minimal .input-theme:hover,*/
 .theme-minimal input:hover,
 .theme-minimal select:hover,
 .theme-minimal button:hover {

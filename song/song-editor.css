@@ -539,14 +539,14 @@ song-editor .editor-grid .grid-row.selected .grid-cell-pause {
 
 /** Instrument List **/
 
-song-editor .instrument-list > form.form-add-instrument > select[name=instrumentURL] {
+song-editor .editor-instruments > form.form-add-instrument > select[name=instrumentURL] {
     max-width: 144px;
 }
 
 /** Instrument Container **/
 
-song-editor .instrument-list > form.form-add-instrument,
-song-editor .instrument-entry {
+song-editor .editor-instruments > form.form-add-instrument,
+song-editor .instrument-container {
     position: relative;
     vertical-align: top;
     display: inline-block;
@@ -557,36 +557,34 @@ song-editor .instrument-entry {
     border: 1px outset;
 }
 
-song-editor .instrument-entry form.form-instrument-name input[name=name] {
+song-editor .instrument-container form.form-instrument-name input[name=name] {
     padding: 1px;
     margin: 0 0;
     border: 0px;
     min-width: 28em;
 }
 
-song-editor .instrument-entry form.form-instrument-name > label.label-instrument-name{
-    margin: 5px 0px 1px 6px;
-    display: inline-block;
+song-editor .instrument-container form.form-instrument-name > label.label-instrument-name{
+    /*margin: 5px 0px 1px 6px;*/
+    /*display: inline-block;*/
     /* margin: 0 0; */
     /* border: 0px; */
     /* min-width: 28em; */
+    font-size: smaller;
 }
 
-song-editor .instrument-entry > legend {
-    margin: 3px 0px 3px 0px;
+song-editor .instrument-container > .instrument-container-header > form {
     display: inline-block;
-    background: linear-gradient(to right, #bfbfbf 0%,#dddddd 92%);
-    border-radius: 4px;
 }
 
-song-editor .instrument-entry:hover {
+song-editor .instrument-container:hover {
     background-color: #CCC;
 }
-song-editor .instrument-entry form.form-instrument-name input[name=name]:not(:hover) {
+song-editor .instrument-container form.form-instrument-name input[name=name]:not(:hover) {
     background-color: #0000;
 }
 
-song-editor .instrument-entry form.form-instrument-name button.remove-instrument {
+song-editor .instrument-container form.form-instrument-name button.remove-instrument {
     /* text-align: center; */
     padding: 0px 6px 1px 6px;
     /* margin: 0px 0px 1px 0px; */

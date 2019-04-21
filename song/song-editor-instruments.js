@@ -42,19 +42,58 @@ class SongEditorInstruments {
     //     this.render();
     // }
 
+    onInput(e) {
+        if (e.defaultPrevented)
+            return;
+        if (!this.renderElement.contains(e.target))
+            return;
+
+        try {
+            switch (e.type) {
+                case 'submit':
+                case 'change':
+                case 'blur':
+                    this.onSubmit(e);
+                    break;
+            }
+
+        } catch (err) {
+            this.editor.onError(err);
+        }
+    }
+
     onSubmit(e) {
         if(e.defaultPrevented)
             return;
         e.preventDefault();
+        let form = e.target;
+        switch(e.type) {
+            case 'config:updated':
+                // case 'change':
+                console.log("Instrument Form " + e.type, e);
+                this.editor.renderer.replaceInstrumentParams(this.id, e.detail);
+                return;
+            case 'change':
+            case 'blur':
+                form = e.target.form;
+                if(!form || !form.classList.contains('submit-on-' + e.type))
+                    return;
+                break;
+        }
+        // try {
+        const command = form.getAttribute('data-command');
 
         try {
 
-            switch(e.type) {
-                case 'config:updated':
-                    // case 'change':
-                    console.log("Instrument Form " + e.type, e);
-                    this.editor.renderer.replaceInstrumentParams(this.id, e.detail);
+            switch(command) {
+                case 'instrument:name':
+                    throw new Error("TODO");
                     break;
+
+                case 'instrument:remove':
+                    throw new Error("TODO");
+                    break;
+
 
                 case 'submit':
                     // case 'change':
@@ -71,6 +110,8 @@ class SongEditorInstruments {
                     // Causes problems
                     // this.song.player.replaceInstrumentParams(this.id, newConfig);
                     break;
+                default:
+                    throw new Error("Unexpected event type: " + e.type);
             }
         } catch (e) {
             this.editor.onError(e);
@@ -86,6 +127,7 @@ class SongEditorInstruments {
 
             let instrumentDiv = document.createElement('div');
             instrumentDiv.setAttribute('data-id', instrumentID+'');
+            instrumentDiv.classList.add('instrument-container');
             this.renderElement.appendChild(instrumentDiv);
 
             // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
@@ -99,11 +141,15 @@ class SongEditorInstruments {
                         : instrument.constructor.name;
 
                     instrumentDiv.innerHTML =
-                        `<legend class="input-theme">
-                            <form class="form-instrument-name">
-                                <label>${instrumentIDHTML}
+                        `<div class="instrument-container-header">
+                            <form class="form-instrument-name" data-command="instrument:name">
+                                <input type="hidden" value="${instrumentID}"/>
+                                <label class="label-instrument-name">${instrumentIDHTML}
                                     <input name="name" type="text" value="${instrumentName}" />
                                 </label>
+                            </form>
+                            <form class="form-instrument-remove" data-command="instrument:remove">
+                                <input type="hidden" value="${instrumentID}"/>
                                 <button class="remove-instrument">x</button>
                             </form>
                         </legend>`;

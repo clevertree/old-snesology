@@ -135,6 +135,9 @@ class SongEditorElement extends HTMLElement {
         this.forms.onInput(e);
         if(e.defaultPrevented)
             return;
+        this.instruments.onInput(e);
+        if(e.defaultPrevented)
+            return;
 
         console.info("Unhandled " + e.type, e);
     }
