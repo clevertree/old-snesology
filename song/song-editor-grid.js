@@ -1,6 +1,5 @@
 class SongEditorGrid {
     constructor(editor, groupName='root') {
-        this.longPressTimeout = null;
         this.editor = editor;
         this.groupName = groupName;
     }
@@ -72,62 +71,19 @@ class SongEditorGrid {
         return null;
     }
 
-    get selectedRange() {
-        const instructionList = this.instructionList;
-        let selectedIndices = this.selectedIndices;
-        selectedIndices = selectedIndices.concat().sort((a,b) => a - b);
-
-        let currentPosition = selectedIndices[0];
-        for(let i=0; i<selectedIndices.length; i++) {
-            if(currentPosition !== selectedIndices[i])
-                return false;
-            currentPosition++;
-        }
-        if(instructionList.length > currentPosition
-            && instructionList[currentPosition].command !== '!pause'
-            && instructionList[currentPosition+1].command === '!pause') {
-            currentPosition++;
-        }
-        return [selectedIndices[0], currentPosition];
-    }
-
-    connectedCallback() {
-        this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
-
-        if(this.editor.renderer) {
-            const onSongEvent = this.onSongEvent.bind(this);
-            this.editor.renderer.addEventListener('note:end', onSongEvent);
-            this.editor.renderer.addEventListener('note:start', onSongEvent);
-            this.editor.renderer.addEventListener('song:start', onSongEvent);
-            this.editor.renderer.addEventListener('song:playback', onSongEvent);
-            this.editor.renderer.addEventListener('song:end', onSongEvent);
-            this.editor.renderer.addEventListener('song:pause', onSongEvent);
-        }
-
-        this.render();
-        this.editor.menu.update();
-    }
-
-    // static getInstrumentList(instructionList) {
-    // }
-
     onInput(e) {
         if (e.defaultPrevented)
             return;
         if(!this.renderElement.contains(e.target))
             return;
-        this.renderElement.focus();
-        // if(this !== document.activeElement && !this.contains(document.activeElement)) {
-        //     console.log("Focus", document.activeElement);
-        //     this.focus();
-        // }
+        if(this.renderElement !== document.activeElement) {
+            console.log("Focus", document.activeElement);
+            this.renderElement.focus();
+        }
+        e.preventDefault();
 
         try {
-            // const cursorCellIndexs = this.cursorCellIndexs;
-            // const initialCursorPosition = cursorCellIndexs[0];
-            // const currentCursorPosition = cursorCellIndexs[cursorCellIndexs.length - 1];
-
-            // const song = this.song;
+            let selectedIndices = this.selectedIndices;
 
             switch (e.type) {
                 case 'keydown':
@@ -140,11 +96,10 @@ class SongEditorGrid {
 
                     // let keydownCellElm = this.cursorCell;
 
-                    let selectedIndices = this.selectedIndices;
                     const instructionList = this.editor.renderer.getInstructions(this.groupName);
                     switch (keyEvent) {
                         case 'Delete':
-                            e.preventDefault();
+                            // e.preventDefault();
                             for(let i=0; i<selectedIndices.length; i++) {
                                 this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices[i]);
                             }
@@ -154,14 +109,14 @@ class SongEditorGrid {
 
                         case 'Escape':
                         case 'Backspace':
-                            e.preventDefault();
+                            // e.preventDefault();
                             this.navigatePop();
                             this.selectInstructions(0);
-                            this.focus();
+                            // this.focus();
                             break;
 
                         case 'Enter':
-                            e.preventDefault();
+                            // e.preventDefault();
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 if(!newInstruction)
@@ -183,7 +138,7 @@ class SongEditorGrid {
                             break;
 
                         case 'Play':
-                            e.preventDefault();
+                            // e.preventDefault();
                             for(let i=0; i<selectedIndices.length; i++) {
                                 this.editor.renderer.playInstruction(instructionList[i]);
                             }
@@ -191,7 +146,7 @@ class SongEditorGrid {
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
-                            e.preventDefault();
+                            // e.preventDefault();
                             
                             if(!this.nextCell) {
                                 this.increaseGridSize();
@@ -204,12 +159,12 @@ class SongEditorGrid {
                             break;
 
                         case 'ArrowLeft':
-                            e.preventDefault();
+                            // e.preventDefault();
                             this.previousCell && this.selectCell(e, this.previousCell);
                             break;
 
                         case 'ArrowDown':
-                            e.preventDefault();
+                            // e.preventDefault();
                             if(!this.nextRowCell) {
                                 this.increaseGridSize();
 
@@ -221,7 +176,7 @@ class SongEditorGrid {
                             break;
 
                         case 'ArrowUp':
-                            e.preventDefault();
+                            // e.preventDefault();
                             this.selectCell(e, this.previousRowCell || this.previousCell || this.cursorCell);
                             break;
 
@@ -257,7 +212,7 @@ class SongEditorGrid {
                                 this.editor.renderer.playInstruction(instructionList[selectedIndices[i]]);
 
                             // song.gridSelectInstructions([selectedInstruction]);
-                            e.preventDefault();
+                            // e.preventDefault();
                             break;
 
                     }
@@ -384,13 +339,11 @@ class SongEditorGrid {
 
 
     findInstruction(instruction) {
-        let grids = this.renderElement.querySelectorAll('music-song-grid');
-        for(let i=0; i<grids.length; i++) {
-            const instructionElm = grids[i].findInstruction(instruction);
-            if(instructionElm)
-                return instructionElm;
-        }
-        return null;
+        let instructionGroup = this.editor.renderer.findInstructionGroup(instruction);
+        if(instructionGroup !== this.groupName)
+            return null;
+        let index = this.editor.renderer.getInstructionIndex(instruction, instructionGroup);
+        return this.findDataElement(index);
     }
 
     navigate(groupName, parentInstruction) {
@@ -470,20 +423,13 @@ class SongEditorGrid {
             this.scrollTop = currentCellParent.offsetTop - this.offsetHeight + this.cursorCell.offsetHeight;
     }
 
-    findInstruction(instruction) {
-        let instructionGroup = this.editor.renderer.findInstructionGroup(instruction);
-        if(instructionGroup !== this.groupName)
-            return null;
-        let index = this.editor.renderer.getInstructionIndex(instruction, instructionGroup);
-        return this.findDataElement(index);
-    }
 
     findDataElement(instructionIndex) {
         return this.renderElement.querySelector(`.grid-cell[data-index='${instructionIndex}'`);
     }
 
     render() {
-        console.log("RENDER GRID");
+        // console.log("RENDER GRID");
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
@@ -491,7 +437,7 @@ class SongEditorGrid {
         let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
-            console.log(index, instruction);
+            // console.log(index, instruction);
 
             if (instruction.command[0] === '!') {
                 const functionName = instruction.command.substr(1);

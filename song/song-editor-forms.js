@@ -69,6 +69,7 @@ class SongEditorForms {
     }
 
     onSubmit(e) {
+        e.preventDefault();
         let form = e.target;
         switch(e.type) {
             case 'change':
@@ -78,24 +79,24 @@ class SongEditorForms {
                     return;
                 break;
         }
-        e.preventDefault();
         // try {
         const command = form.getAttribute('data-command');
         const cursorCellIndex = this.editor.status.cursorCellIndex;
         const currentGroup = this.editor.status.currentGroup;
-        const selectedIndices = this.editor.status.selectedIndices;
-        // const selectedPauseIndices = this.grid.selectedPauseIndices;
-        // const selectedRange = this.grid.selectedRange;
+        // const selectedIndicies = this.editor.status.selectedIndicies;
+        const selectedNoteIndices = this.editor.selectedNoteIndicies;
+        const selectedPauseIndices = this.editor.selectedPauseIndicies;
+        // const selectedRange = this.editor.selectedRange;
 
         switch (command) {
 
             case 'instruction:insert':
                 const newInstruction = {
                     command: form.command.value,
-                    duration: parseFloat(form['duration'].value),
+                    duration: parseFloat(this.fieldInstructionDuration.value),
                 };
-                if(form['duration'].value)
-                    newInstruction['instrument'] = parseInt(form['duration'].value);
+                if(this.fieldInstructionInstrument.value)
+                    newInstruction['instrument'] = parseInt(this.fieldInstructionInstrument.value);
                 // newInstruction.command = this.keyboardLayout[e.key];
                 this.editor.renderer.insertInstructionAtPosition(currentGroup, cursorCellIndex, newInstruction);
                 break;
@@ -105,26 +106,31 @@ class SongEditorForms {
                     form['command'].focus();
                     return;
                 }
-                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'command', form['command'].value);
+                for(let i=0; i<selectedNoteIndices.length; i++)
+                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'command', form['command'].value);
                 break;
 
             case 'instruction:instrument':
                 let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
-                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'instrument', instrumentID);
+                for(let i=0; i<selectedNoteIndices.length; i++)
+                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'instrument', instrumentID);
                 break;
 
             case 'instruction:duration':
-                const duration = form.duration.value || null;
-                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'duration', duration);
+                const duration = parseFloat(form.duration.value) || null;
+                for(let i=0; i<selectedNoteIndices.length; i++)
+                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'duration', duration);
                 break;
 
             case 'instruction:velocity':
                 const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
-                this.editor.renderer.replaceInstructionParam(currentGroup, selectedIndices, 'velocity', velocity);
+                for(let i=0; i<selectedNoteIndices.length; i++)
+                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'velocity', velocity);
                 break;
 
             case 'instruction:delete':
-                this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedIndices);
+                for(let i=0; i<selectedNoteIndices.length; i++)
+                    this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
                 break;
 
             case 'row:edit':
@@ -173,11 +179,11 @@ class SongEditorForms {
                 break;
 
             case 'grid:duration':
-                this.grid.render();
+                this.editor.grid.render();
                 break;
 
             case 'grid:instrument':
-                this.grid.render();
+                this.editor.grid.render();
                 break;
 
             case 'song:add-instrument':
@@ -212,9 +218,9 @@ class SongEditorForms {
     update() {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
-        const cursorIndex = this.editor.grid.cursorCellIndex;
-        const selectedIndices = this.editor.grid.selectedIndices;
-        const groupName = this.editor.grid.groupName;
+        const cursorIndex = this.editor.status.cursorCellIndex;
+        const selectedIndices = this.editor.status.selectedIndicies;
+        const groupName = this.editor.status.currentGroup;
         const instructionList = this.editor.renderer.getInstructions(groupName);
         let combinedInstruction = null; //, instrumentList = [];
         for(let i=0; i<selectedIndices.length; i++) {
@@ -226,9 +232,6 @@ class SongEditorForms {
             if(selectedInstruction.command[0] === '!')
                 continue;
 
-            // if(typeof selectedInstruction.instrument !== "undefined")
-            //     if(instrumentList.indexOf(selectedInstruction.instrument) === -1)
-            //         instrumentList.push(selectedInstruction.instrument);
 
             if(combinedInstruction === null) {
                 combinedInstruction = Object.assign({}, selectedInstruction);
@@ -240,25 +243,16 @@ class SongEditorForms {
                 });
             }
         }
-        // if(instrumentList.length === 0)
-            // instrumentList = [0];
+        console.log("Combined Instruction", combinedInstruction);
 
         // Row Instructions
 
         // Group Buttons
         this.renderElement.querySelectorAll('button[name=groupName]')
-            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') !== groupName));
-
-        // Instruction Forms
-        // this.renderElement.querySelectorAll('.form-section-new-instruction, .form-section-modify-instruction')
-        //     .forEach(fieldset => fieldset.classList.add('hidden'));
+            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
 
 
-        // this.fieldInstructionCommand.value = 'C4';
-        // this.fieldInstructionInstrument.value = instrumentList[0] || 0;
-        // this.fieldInstructionInstrument.value = '0';
         this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
-        // this.fieldInstructionVelocity.value = 100;
 
         this.renderElement.classList.remove('show-insert-instruction-controls');
         this.renderElement.classList.remove('show-modify-instruction-controls');
@@ -270,7 +264,7 @@ class SongEditorForms {
             this.fieldInstructionDuration.value = combinedInstruction.duration;
             this.renderElement.classList.add('show-modify-instruction-controls');
 
-        } else if(cursorIndex !== null) {
+        } else if(cursorIndex || cursorIndex === 0) {
 
             this.renderElement.classList.add('show-insert-instruction-controls');
         }
@@ -380,7 +374,6 @@ class SongEditorForms {
                 <div class="form-section-header">Instrument</div>
                 <form action="#" class="form-instruction-instrument submit-on-change" data-command="instruction:instrument">
                     <select name="instrument" title="Instruction Instrument" class="themed">
-                        <option value="">Instrument (Default)</option>
                         <optgroup label="Song Instruments">
                             ${this.renderEditorFormOptions('instruments-songs')}
                         </optgroup>
@@ -432,8 +425,9 @@ class SongEditorForms {
                 <div class="form-section-header">Octave</div>
                 <form action="#" class="form-render-octave submit-on-change">
                     <select name="octave" class="themed">
-                        <option value="">Select Octave</option>
-                        ${this.renderEditorFormOptions('command-frequency-octaves')}
+                        <optgroup label="Select Octave">
+                            ${this.renderEditorFormOptions('command-frequency-octaves')}
+                        </optgroup>
                     </select>
                 </form>
             </div>     
@@ -475,7 +469,7 @@ class SongEditorForms {
                 </form>
             </div>
         `;
-        // this.update();
+        this.update();
     }
 
     /** Form Options **/
@@ -541,7 +535,7 @@ class SongEditorForms {
 
             case 'command-frequency-octaves':
                 for(let oi=1; oi<=7; oi+=1) {
-                    optionsHTML += callback(oi, 'Octave ' + oi);
+                    optionsHTML += callback(oi, '' + oi);
                 }
                 break;
 
@@ -685,7 +679,7 @@ class SongEditorForms {
             x = rect.x + rect.width;
             y = rect.y + rect.height;
             this.editor.grid.selectCell(e, dataElm);
-            // this.grid.focus();
+            // this.editor.grid.focus();
         } else if(target.classList.contains('grid-row')) {
             contextMenu.classList.add('selected-row');
         }

@@ -40,6 +40,18 @@ class SongEditorElement extends HTMLElement {
         this.longPressTimeout = null;
     }
 
+    get currentGroup()      { return this.status.currentGroup; }
+    get cursorCellIndex()   { return this.status.cursorCellIndex; }
+    get selectedIndicies()  { return this.status.selectedIndicies; }
+    get selectedPauseIndicies()  {
+        const instructionList = this.renderer.getInstructions(this.currentGroup);
+        return this.selectedIndicies.filter(index => instructionList[index].command === '!pause')
+    }
+    get selectedNoteIndicies()  {
+        const instructionList = this.renderer.getInstructions(this.currentGroup);
+        return this.selectedIndicies.filter(index => instructionList[index].command !== '!pause')
+    }
+
     getAudioContext()   { return this.renderer.getAudioContext(); }
     getSongData()       { return this.renderer.getSongData(); }
 
@@ -124,7 +136,7 @@ class SongEditorElement extends HTMLElement {
         if(e.defaultPrevented)
             return;
 
-        console.error("Unhandled " + e.type, e);
+        console.info("Unhandled " + e.type, e);
     }
 
     onSongEvent(e) {

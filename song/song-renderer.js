@@ -241,6 +241,18 @@ class SongRenderer {
         return p;
     }
 
+    getInstruction(groupName, index, throwException=true) {
+        let instructionList = this.songData.instructions[groupName];
+        if(!Number.isInteger(index))
+            throw new Error("Invalid Index: " + typeof index);
+        if(throwException) {
+            if (index >= instructionList.length)
+                throw new Error(`Instruction index is greater than group length: ${index} >= ${instructionList.length} for groupName: ${groupName}`);
+            if (!instructionList[index])
+                throw new Error(`Instruction not found at index: ${index} for groupName: ${groupName}`);
+        }
+        return instructionList[index];
+    }
 
     playInstruction(instruction, noteStartTime, stats) {
         // if (instruction.command[0] === '@') {
@@ -828,7 +840,7 @@ class SongRenderer {
         if(pauseInstruction.duration <= splitDuration)
             throw new Error("Split duration must be within pause duration");
         const splitDuration2 = pauseInstruction.duration - splitDuration;
-        this.replaceInstructionParam(groupName, pauseIndex, 'duration', splitDuration);
+        this.replacePauseInstructionParam(groupName, pauseIndex, 'duration', splitDuration);
         if(insertInstruction)
             this.insertInstructionAtIndex(groupName, ++pauseIndex, insertInstruction);
 
@@ -854,23 +866,23 @@ class SongRenderer {
     }
 
 
-    replaceInstructionAtIndex(groupName, replaceIndex, replaceInstruction) {
-        if(!replaceInstruction)
-            throw new Error("Invalid replace instruction");
-        let instructionList = this.songData.instructions[groupName];
-        if (!instructionList[replaceIndex])
-            throw new Error("Failed to replace. Old instruction not found at index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
+    replacePauseInstructionParam(groupName, replaceIndex, paramName, paramValue) {
+        const instruction = this.getInstruction(groupName, replaceIndex);
+        if(instruction.command !== '!pause')
+            throw new Error("Instruction is not a pause instruction");
 
-        return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}`, replaceInstruction)
+        if(paramValue === null)
+            return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
+                .oldData;
+        return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`, paramValue)
             .oldData;
     }
 
+
     replaceInstructionParam(groupName, replaceIndex, paramName, paramValue) {
-        let instructionList = this.songData.instructions[groupName];
-        if(!Number.isInteger(replaceIndex))
-            throw new Error("Invalid Index: " + typeof replaceIndex);
-        if (!instructionList[replaceIndex])
-            throw new Error("Failed to replace param. Old instruction not found at index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
+        const instruction = this.getInstruction(groupName, replaceIndex);
+        if(instruction.command === '!pause')
+            throw new Error("Instruction is a pause instruction");
 
         if(paramValue === null)
             return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
@@ -881,9 +893,6 @@ class SongRenderer {
 
 
     replaceInstructionParams(groupName, replaceIndex, replaceParams) {
-        let instructionList = this.songData.instructions[groupName];
-        if (instructionList.length < replaceIndex)
-            throw new Error("Replace position out of index: " + instructionList.length + " < " + replaceIndex + " for groupName: " + groupName);
 
         const oldParams = {};
         for(const paramName in replaceParams) {
