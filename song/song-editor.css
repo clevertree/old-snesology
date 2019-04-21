@@ -573,6 +573,12 @@ song-editor .instrument-container form.form-instrument-name > label.label-instru
     font-size: smaller;
 }
 
+song-editor .instrument-container form {
+    margin: 0;
+}
+song-editor .instrument-container > .instrument-container-header {
+    border-bottom: 1px solid #BBB;
+}
 song-editor .instrument-container > .instrument-container-header > form {
     display: inline-block;
 }
@@ -584,7 +590,7 @@ song-editor .instrument-container form.form-instrument-name input[name=name]:not
     background-color: #0000;
 }
 
-song-editor .instrument-container form.form-instrument-name button.remove-instrument {
+song-editor .instrument-container form.form-instrument-remove button.remove-instrument {
     /* text-align: center; */
     padding: 0px 6px 1px 6px;
     /* margin: 0px 0px 1px 0px; */

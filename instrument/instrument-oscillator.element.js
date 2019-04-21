@@ -1,7 +1,7 @@
 
 class OscillatorInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
-    get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/audiosource/sample/3rdparty/mohayonao.library.json'; }
+    get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/oscillator/sample/3rdparty/mohayonao.library.json'; }
 
     constructor(config, audioContext) {
         super();
@@ -246,6 +246,6 @@ customElements.define('instrument-oscillator', OscillatorInstrument);
 document.dispatchEvent(new CustomEvent('instrument:loaded', {
     detail: {
         "class": OscillatorInstrument,
-        "path": "/instrument/audiosource/instrument-oscillator.js"
+        "path": "/instrument/oscillator/instrument-oscillator.element.js"
     }
 }));

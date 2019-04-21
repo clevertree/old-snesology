@@ -341,7 +341,6 @@ class SongServer {
             "description": "New Song",
             "instruments": [{
                 "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js", // Default instrument
-                "urlDependencies": ["/instrument/audiosource/instrument-buffersource.js"], // Dependencies
             }],
             "instructions": {
                 "root": [{

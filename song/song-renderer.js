@@ -1036,7 +1036,7 @@ SongRenderer.DEFAULT_SONG_DATA = {
     beatsPerMinute: 160,
     beatsPerMeasure: 4,
     instruments: [{
-        "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js",
+        "url": "/instrument/instrument-buffersource.element.js",
     }],
     instructions: {
         'root': [4]

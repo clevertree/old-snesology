@@ -1,7 +1,7 @@
 
 class BufferSourceInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
-    get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/chiptune/snes/ffvi/ffvi.library.json'; }
+    get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/sample.library.json'; }
 
     constructor(config, audioContext) {
         super();
@@ -22,7 +22,7 @@ class BufferSourceInstrument extends HTMLElement {
         this.config = config;            // TODO: validate config
         this.buffers = {};
 
-        this.initSamples(audioContext); // TODO: instruments recieve audiosource only after user gesture-
+        this.initSamples(audioContext); // TODO: instruments receive oscillator only after user gesture-
 
         // Sample Library
         this.loadSampleLibrary(BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {
@@ -74,7 +74,7 @@ class BufferSourceInstrument extends HTMLElement {
     play(destination, commandFrequency, startTime, duration) {
         const frequencyValue = this.getCommandFrequency(commandFrequency);
 
-        // Loop through samples
+        // Loop through sample
         const sources = [];
         for(let sampleName in this.config.samples) {
             if(this.config.samples.hasOwnProperty(sampleName)) {
@@ -309,6 +309,6 @@ customElements.define('instrument-buffersource', BufferSourceInstrument);
 document.dispatchEvent(new CustomEvent('instrument:loaded', {
     detail: {
         "class": BufferSourceInstrument,
-        "path": "/instrument/audiosource/instrument-buffersource.js"
+        "path": "/instrument/buffersource/instrument-buffersource.element.js"
     }
 }));

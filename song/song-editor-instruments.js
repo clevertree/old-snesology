@@ -173,18 +173,13 @@ class SongEditorInstruments {
             }
         }
 
-        // this.innerHTML =
-        //     (song ? song.instruments.map((instrument, id) =>
-        //         `<song-editor-instrument id="${id}"></song-editor-instrument>`).join('') : null)
-        //
-        //     + `<form class="form-add-instrument" data-command="song:add-instrument">
-        //         <select name="instrumentURL" class="themed">
-        //             <option value="">Add New Instrument</option>
-        //             ${this.editor.renderEditorFormOptions('instruments-available')}
-        //         </select>
-        //     </form>
-        //
-        //     `;
+        this.renderElement.innerHTML +=
+            `<form class="form-add-instrument" data-command="song:add-instrument">
+                <select name="instrumentURL" class="themed">
+                    <option value="">Add New Instrument</option>
+                    ${this.editor.forms.renderEditorFormOptions('instruments-available')}
+                </select>
+            </form>`;
 
     }
 }
