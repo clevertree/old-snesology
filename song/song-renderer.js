@@ -450,7 +450,7 @@ class SongRenderer {
     }
 
     getInstrumentConfig(instrumentID) {
-        const instrumentList = this.getSongData().instruments;
+        const instrumentList = this.getInstrumentList();
         if(!instrumentList[instrumentID])
             throw new Error("Instrument ID not found: " + instrumentID);
         return instrumentList[instrumentID];
@@ -462,6 +462,10 @@ class SongRenderer {
         if(throwException)
             throw new Error("Instrument not yet loaded: " + instrumentID);
         return null;
+    }
+
+    getInstrumentList() {
+        return this.getSongData().instruments.slice();
     }
 
     loadInstrumentClass(instrumentClassURL) {
@@ -509,7 +513,7 @@ class SongRenderer {
     }
 
     loadAllInstruments() {
-        const instrumentList = this.getSongData().instruments;
+        const instrumentList = this.getInstrumentList();
         for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
             this.loadInstrument(instrumentID);
         }

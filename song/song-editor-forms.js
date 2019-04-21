@@ -243,7 +243,7 @@ class SongEditorForms {
                 });
             }
         }
-        console.log("Combined Instruction", combinedInstruction);
+        // console.log("Combined Instruction", combinedInstruction);
 
         // Row Instructions
 

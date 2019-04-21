@@ -194,7 +194,8 @@ class SongEditorElement extends HTMLElement {
         this.innerHTML = ``;
         this.menu.render();
         this.forms.render();
-        this.grid.render(); // Grid uses form values, renders last
+        this.grid.render();
+        this.instruments.render();
 
     }
 
@@ -205,6 +206,7 @@ class SongEditorElement extends HTMLElement {
         this.menu.update();
         this.forms.update();
         this.grid.update();
+        this.instruments.update();
     }
 
     selectInstructions(groupName, index, cursorCellIndex=null, clearSelection=true, toggle=false) {

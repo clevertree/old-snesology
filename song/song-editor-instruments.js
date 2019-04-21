@@ -17,6 +17,16 @@ class SongEditorInstruments {
 //         xhr.send();
     }
 
+
+    get renderElement() {
+        let renderElement = this.editor.querySelector('div.editor-instruments');
+        if(!renderElement) {
+            this.editor.innerHTML += `<div class="editor-instruments"></div>`;
+            renderElement = this.editor.querySelector('div.editor-instruments');
+        }
+        return renderElement;
+    }
+
     // get id() { return parseInt(this.getAttribute('id')); }
     // get preset() { return this.editor.getSongData().instruments[this.id]; }
     // // get instrument() { return this.song.player.getInstrument(this.id);}
@@ -67,79 +77,68 @@ class SongEditorInstruments {
         }
     }
 
+
     render() {
-        const instrumentIDHTML = (this.id < 10 ? "0" : "") + (this.id + ": ");
+        this.renderElement.innerHTML = '';
+        const instrumentList = this.editor.renderer.getInstrumentList();
+        for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
+            const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + (instrumentID + ": ");
 
-        const buttonHTML = `<button class="remove-instrument">x</button>`;
+            let instrumentDiv = document.createElement('div');
+            instrumentDiv.setAttribute('data-id', instrumentID+'');
+            this.renderElement.appendChild(instrumentDiv);
 
-        // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
+            // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
 
-        if(this.editor.renderer.isInstrumentLoaded(this.id)) {
-            try {
-                const instrument = this.editor.renderer.getInstrument(this.id);
-                const instrumentPreset = this.editor.renderer.getInstrumentConfig(this.id);
-                const instrumentName = instrumentPreset.name
-                    ? `${instrumentPreset.name} (${instrument.constructor.name})`
-                    : instrument.constructor.name;
+            if(this.editor.renderer.isInstrumentLoaded(instrumentID)) {
+                try {
+                    const instrument = this.editor.renderer.getInstrument(instrumentID);
+                    const instrumentPreset = this.editor.renderer.getInstrumentConfig(instrumentID);
+                    const instrumentName = instrumentPreset.name
+                        ? `${instrumentPreset.name} (${instrument.constructor.name})`
+                        : instrument.constructor.name;
 
-                this.innerHTML =
-                    `<legend class="input-theme">
-                        <form class="form-instrument-name">
-                            <label>${instrumentIDHTML}
-                                <input name="name" type="text" value="${instrumentName}" />
-                            </label>
-                            <button class="remove-instrument">x</button>
-                        </form>
-                    </legend>`;
+                    instrumentDiv.innerHTML =
+                        `<legend class="input-theme">
+                            <form class="form-instrument-name">
+                                <label>${instrumentIDHTML}
+                                    <input name="name" type="text" value="${instrumentName}" />
+                                </label>
+                                <button class="remove-instrument">x</button>
+                            </form>
+                        </legend>`;
 
-                if (instrument instanceof HTMLElement) {
-                    this.appendChild(instrument);
-                } else if (instrument.render) {
-                    const renderedHTML = instrument.render(this);
-                    if(renderedHTML)
-                        this.innerHTML += renderedHTML;
-                } else {
-                    throw new Error("No Renderer");
+                    if (instrument instanceof HTMLElement) {
+                        instrumentDiv.appendChild(instrument);
+                    } else if (instrument.render) {
+                        const renderedHTML = instrument.render(this);
+                        if(renderedHTML)
+                            instrumentDiv.innerHTML += renderedHTML;
+                    } else {
+                        throw new Error("No Renderer");
+                    }
+
+                } catch (e) {
+                    instrumentDiv.innerHTML = `<legend class="themed">${instrumentIDHTML} Error: ${e.message}<button class="remove-instrument">x</button></legend>`
+                    + e.stack;
                 }
-
-            } catch (e) {
-                this.innerHTML = `<legend class="themed">${instrumentIDHTML} Error: ${e.message}${buttonHTML}</legend>`;
-                this.innerHTML += e.stack;
+            } else {
+                instrumentDiv.innerHTML = `<legend class="themed">${instrumentIDHTML} Loading...<button class="remove-instrument">x</button></legend>`;
             }
-        } else {
-            this.innerHTML = `<legend class="themed">${instrumentIDHTML} Loading...${buttonHTML}</legend>`;
         }
 
-    }
-}
-
-class MusicEditorInstrumentList {
-    constructor() {
-        this.editor = null;
-    }
-
-    connectedCallback() {
-        this.editor = this.closest('song-editor'); // findParent(this, (p) => p.matches('music-song'));
-        this.render();
-        this.addEventListener('change', (e) => e.target.form.submit());
-    }
-
-    render() {
-        const song = this.editor.getSongData();
-        this.innerHTML =
-            (song ? song.instruments.map((instrument, id) =>
-                `<song-editor-instrument id="${id}"></song-editor-instrument>`).join('') : null)
-
-             + `<form class="form-add-instrument" data-command="song:add-instrument">
-                <select name="instrumentURL" class="themed">
-                    <option value="">Add New Instrument</option>
-                    ${this.editor.renderEditorFormOptions('instruments-available')}
-                </select>
-            </form>
-            
-            `;
-
+        // this.innerHTML =
+        //     (song ? song.instruments.map((instrument, id) =>
+        //         `<song-editor-instrument id="${id}"></song-editor-instrument>`).join('') : null)
+        //
+        //     + `<form class="form-add-instrument" data-command="song:add-instrument">
+        //         <select name="instrumentURL" class="themed">
+        //             <option value="">Add New Instrument</option>
+        //             ${this.editor.renderEditorFormOptions('instruments-available')}
+        //         </select>
+        //     </form>
+        //
+        //     `;
 
     }
 }
-
