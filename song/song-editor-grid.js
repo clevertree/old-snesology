@@ -238,6 +238,9 @@ class SongEditorGrid {
                     // e.target = this.renderElement.querySelector('.grid-cell.selected') || this.renderElement.querySelector('.grid-cell'); // Choose selected or default cell
                     break;
 
+                case 'mouseup':
+                    break;
+
                 case 'longpress':
                     if (e.target.classList.contains('grid-parameter')
                         || e.target.classList.contains('grid-cell')

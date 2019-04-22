@@ -24,7 +24,14 @@ class SongRenderer {
     }
     // addSongEventListener(callback) { this.eventListeners.push(callback); }
 
-    getAudioContext() { return this.audioContext || (this.audioContext = new (window.AudioContext||window.webkitAudioContext)()); }
+    getAudioContext() {
+        if(this.audioContext)
+            return this.audioContext;
+
+        this.audioContext = new (window.AudioContext||window.webkitAudioContext)();
+        this.initAllInstruments(this.audioContext);
+        return this.audioContext;
+    }
     getSongData() { return this.songData; }
     getStartingBeatsPerMinute() { return this.songData.beatsPerMinute; }
     getVolumeGain() {
@@ -456,7 +463,7 @@ class SongRenderer {
         return instrumentList[instrumentID];
     }
 
-    getInstrument(instrumentID, throwException) {
+    getInstrument(instrumentID, throwException=true) {
         if(this.loadedInstruments[instrumentID])
             return this.loadedInstruments[instrumentID];
         if(throwException)
@@ -475,7 +482,8 @@ class SongRenderer {
             if(this.loadedInstrumentClasses[instrumentClassPath] === null)
                 console.warn("Instrument class is loading: " + instrumentClassPath);
             else
-                console.warn("Instrument class is already loaded: " + instrumentClassPath);
+                throw new Error("Instrument class is already loaded: " + instrumentClassPath);
+            return;
         }
         this.loadedInstrumentClasses[instrumentClassPath] = null;
         const newScriptElm = document.createElement('script');
@@ -500,7 +508,7 @@ class SongRenderer {
             return false;
         }
 
-        const instance = new instrumentClass(instrumentPreset, this.getAudioContext());
+        const instance = new instrumentClass(instrumentPreset); //, this.getAudioContext());
         this.loadedInstruments[instrumentID] = instance;
         this.dispatchEvent(new CustomEvent('instrument:instance', {
             detail: {
@@ -509,6 +517,10 @@ class SongRenderer {
             },
             bubbles: true
         }));
+
+        if(this.audioContext)
+            this.initInstrument(instrumentID, this.audioContext);
+
         return true;
     }
 
@@ -518,6 +530,20 @@ class SongRenderer {
             this.loadInstrument(instrumentID);
         }
     }
+
+    initInstrument(instrumentID, audioContext) {
+        const instrument = this.getInstrument(instrumentID);
+        instrument.init(audioContext);
+    }
+
+    initAllInstruments(audioContext) {
+        const instrumentList = this.getInstrumentList();
+        for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
+            this.initInstrument(instrumentID, audioContext);
+        }
+    }
+
+
 
     /** Modify Song Data **/
 

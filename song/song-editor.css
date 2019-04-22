@@ -285,7 +285,7 @@ song-editor .editor-forms form.form-add-instrument select[name=instrument] { min
 
 /** Modify Instruction Forms **/
 
-song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 91px;}
+song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 203px;}
 song-editor .editor-forms form.form-instruction-command select[name=frequency] { max-width: 42px; }
 song-editor .editor-forms form.form-instruction-command select[name=command] { max-width: 88px; }
 song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 80px;}
@@ -539,8 +539,9 @@ song-editor .editor-grid .grid-row.selected .grid-cell-pause {
 
 /** Instrument List **/
 
-song-editor .editor-instruments > form.form-add-instrument > select[name=instrumentURL] {
-    max-width: 144px;
+song-editor .editor-instruments form.form-change-instrument > select[name=instrumentURL],
+song-editor .editor-instruments form.form-add-instrument > select[name=instrumentURL] {
+    max-width: 165px;
 }
 
 /** Instrument Container **/
@@ -561,7 +562,7 @@ song-editor .instrument-container form.form-instrument-name input[name=name] {
     padding: 1px;
     margin: 0 0;
     border: 0px;
-    min-width: 28em;
+    min-width: 18em;
 }
 
 song-editor .instrument-container form.form-instrument-name > label.label-instrument-name{
@@ -577,7 +578,7 @@ song-editor .instrument-container form {
     margin: 0;
 }
 song-editor .instrument-container > .instrument-container-header {
-    border-bottom: 1px solid #BBB;
+    /* border-bottom: 1px solid #BBB; */
 }
 song-editor .instrument-container > .instrument-container-header > form {
     display: inline-block;

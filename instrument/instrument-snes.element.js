@@ -4,7 +4,7 @@
     // TODO: load dependencies
     const INSTRUMENT_NAME = 'instrument-snes';
     const PARENT_CLASS = 'instrument-buffersource';
-    const PARENT_CLASS_URL = `/instrument/buffersource/${PARENT_CLASS}.element.js`;
+    const PARENT_CLASS_URL = `/instrument/${PARENT_CLASS}.element.js`;
     loadParentClass();
     document.addEventListener('instrument:loaded', loadParentClass);
 

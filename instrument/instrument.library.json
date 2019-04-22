@@ -1,0 +1,13 @@
+{
+  "name": "Instrument Libraries",
+  "instruments": [
+    {
+      "title": "Oscillator Instrument",
+      "url": "/instrument/instrument-oscillator.element.js"
+    },
+    {
+      "title": "Audio Buffer Instrument",
+      "url": "/instrument/instrument-buffersource.element.js"
+    }
+  ]
+}

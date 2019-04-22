@@ -3,7 +3,7 @@ class OscillatorInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
     get DEFAULT_SAMPLE_LIBRARY_URL() { return '/instrument/oscillator/sample/3rdparty/mohayonao.library.json'; }
 
-    constructor(config, audioContext) {
+    constructor(config) {
         super();
         if (!OscillatorInstrument.NEW_COUNTER)
             OscillatorInstrument.NEW_COUNTER = 1;
@@ -22,14 +22,17 @@ class OscillatorInstrument extends HTMLElement {
         this.lastEditorContainer = null;
         this.periodicWave = null;
         this.periodicWaveName = "loading...";
+    }
+
+    init(audioContext) {
 
         // Periodic Wave
-        if (config.type === 'custom') {
+        if (this.config.type === 'custom') {
             this.periodicWave = audioContext.createPeriodicWave(OscillatorInstrument.DEFAULT_PERIODIC_WAVE.real, OscillatorInstrument.DEFAULT_PERIODIC_WAVE.imag);
-            if (config.customURL) {
-                this.loadPeriodicWave(audioContext, config.customURL, (periodicWave) => {
+            if (this.config.customURL) {
+                this.loadPeriodicWave(audioContext, this.config.customURL, (periodicWave) => {
                     this.periodicWave = periodicWave;
-                    this.periodicWaveName = (config.customURL + '').split('/').pop().replace('.json', '');
+                    this.periodicWaveName = (this.config.customURL + '').split('/').pop().replace('.json', '');
                     if (this.lastEditorContainer)  // Re-render
                         this.renderEditor(this.lastEditorContainer);
                 });
@@ -38,6 +41,7 @@ class OscillatorInstrument extends HTMLElement {
 
         // Sample Library
         this.loadSampleLibrary(OscillatorInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL);
+
     }
 
     play(destination, commandFrequency, startTime, duration) {
@@ -153,7 +157,7 @@ class OscillatorInstrument extends HTMLElement {
     loadSampleLibrary(libraryURL, onLoaded) {
         const url = new URL(libraryURL, window.origin);
         if(url.pathname.substr(-1, 1) === '/')
-            url.pathname += 'index.library.json';
+            url.pathname += 'instrument-library.json.library.json';
 
         if(!url.pathname.endsWith('.library.json'))
             throw new Error("Invalid sample library url: " + url);
@@ -169,7 +173,7 @@ class OscillatorInstrument extends HTMLElement {
             OscillatorInstrument.LAST_SAMPLE_LIBRARY_URL = url + '';
 
             let html = '';
-            const index = Array.isArray(library.index) ? library.index : Object.keys(library.index);
+            const index = Array.isArray(library.instrument) ? library.instrument : Object.keys(library.instrument);
             for(let i=0; i<index.length; i++) {
                 const path = index[i];
                 let value = library.baseURL + path;
@@ -246,6 +250,6 @@ customElements.define('instrument-oscillator', OscillatorInstrument);
 document.dispatchEvent(new CustomEvent('instrument:loaded', {
     detail: {
         "class": OscillatorInstrument,
-        "path": "/instrument/oscillator/instrument-oscillator.element.js"
+        "path": "/instrument/instrument-oscillator.element.js"
     }
 }));

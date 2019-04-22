@@ -3,7 +3,7 @@ class BufferSourceInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
     get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/sample.library.json'; }
 
-    constructor(config, audioContext) {
+    constructor(config) {
         super();
         if(!BufferSourceInstrument.NEW_COUNTER)
             BufferSourceInstrument.NEW_COUNTER = 1;
@@ -22,28 +22,6 @@ class BufferSourceInstrument extends HTMLElement {
         this.config = config;            // TODO: validate config
         this.buffers = {};
 
-        this.initSamples(audioContext); // TODO: instruments receive oscillator only after user gesture-
-
-        // Sample Library
-        this.loadSampleLibrary(BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {
-            let loadPreset = this.config.preset;
-            if(!loadPreset && Object.keys(this.config.samples).length === 0)
-                loadPreset = Object.keys(this.library.instruments)[0];
-            if(loadPreset) {
-                console.info("Loading default preset: " + loadPreset);
-                Object.assign(this.config, this.loadPresetConfig(loadPreset));
-                this.initSamples(audioContext); // TODO: inefficient reload?
-                // this.setConfig(newConfig, audioContext);
-
-                // this.dispatchEvent(new CustomEvent('instrument:initiated', {
-                //     detail: this,
-                //     bubbles: true
-                // }));
-                // TODO: re-render
-
-                // console.warn("No default presets found");
-            }
-        });
     }
 
     connectedCallback() {
@@ -54,6 +32,40 @@ class BufferSourceInstrument extends HTMLElement {
 
 
         this.render();
+    }
+
+    init(audioContext) {
+        this.initSamples(audioContext); // TODO: instruments receive audioContext only after user gesture-
+        this.loadDefaultSample(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL);
+    }
+
+    loadDefaultSample(libraryURL = null) {
+
+        // Sample Library
+        this.loadSampleLibrary(libraryURL, (libraryData) => {
+            console.log("LIBRARY", libraryData);
+            if(libraryData.instruments) {
+                if(Object.keys(this.config.samples).length === 0) {
+                    const sampleInstrument = Object.keys(libraryData.instruments.instruments)[0];
+
+                    console.info("Loading default sample instrument: " + sampleInstrument);
+                    Object.assign(this.config, this.loadSampleInstrument(sampleInstrument));
+                    this.initSamples(audioContext); // TODO: inefficient reload?
+                    // this.setConfig(newConfig, audioContext);
+
+                    // this.dispatchEvent(new CustomEvent('instrument:initiated', {
+                    //     detail: this,
+                    //     bubbles: true
+                    // }));
+                    // TODO: re-render
+
+                    // console.warn("No default presets found");
+                }
+
+
+            } else if (libraryData.libraries) {
+            }
+        });
     }
 
     initSamples(audioContext) {
@@ -130,15 +142,23 @@ class BufferSourceInstrument extends HTMLElement {
                 <legend class="themed">Preset</legend>
                 <label>
                     <select name="preset" title="Load Preset" class="themed">
-                        ${this.library ? 
+                        <option value="">Select Preset</option>
+                        ${this.library && this.library.instruments ? 
                             `<optgroup label="${this.library.name || 'Unnamed Library'}">` +
                             Object.keys(this.library.instruments).map((presetName) => {
                                 const instrumentConfig = this.library.instruments[presetName];
                                 let title = presetName || instrumentConfig.title;
-                                if(presetName.endsWith('.library.json'))
-                                    title = "Library: " + title.replace('.library.json', '');
                                 const selected = presetName === this.config.preset ? ` selected="selected"` : '';
                                 return `<option value="${presetName}" ${selected}>${title}</option>`;
+                            }).join("\n")
+                            + `</optgroup>`
+                        : null}
+                        ${this.library && this.library.libraries ? 
+                            `<optgroup label="Other Libraries"}">` +
+                            Object.keys(this.library.libraries).map((libraryName) => {
+                                const instrumentConfig = this.library.libraries[libraryName];
+                                let title = libraryName || instrumentConfig.title;
+                                return `<option value="${libraryName}">${title}</option>`;
                             }).join("\n")
                             + `</optgroup>`
                         : null}
@@ -171,7 +191,7 @@ class BufferSourceInstrument extends HTMLElement {
 
         // Validate Config
         if(newConfig.preset !== this.config.preset) {
-            Object.assign(newConfig, this.loadPresetConfig(newConfig.preset));
+            Object.assign(newConfig, this.loadSampleInstrument(newConfig.preset));
         }
 
         this.config = newConfig;
@@ -182,7 +202,7 @@ class BufferSourceInstrument extends HTMLElement {
         }))
     }
 
-    loadPresetConfig(presetName) {
+    loadSampleInstrument(presetName) {
         const urlPrefix = this.library.urlPrefix || '';
         const newConfig = Object.assign({}, this.config);
         newConfig.preset = presetName;
@@ -244,11 +264,6 @@ class BufferSourceInstrument extends HTMLElement {
 
     loadSampleLibrary(libraryURL, onLoaded) {
         const url = new URL(libraryURL, document.location);
-        if(url.pathname.substr(-1, 1) === '/')
-            url.pathname += 'index.library.json';
-
-        if(!url.pathname.endsWith('.library.json'))
-            throw new Error("Invalid sample library url: " + url);
 
         const xhr = new XMLHttpRequest();
         xhr.open('GET', url + '', true);
@@ -261,7 +276,7 @@ class BufferSourceInstrument extends HTMLElement {
             BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL = url + '';
 
             this.render(); // Re-render
-            onLoaded && onLoaded();
+            onLoaded && onLoaded(this.library);
         };
         xhr.send();
 
@@ -309,6 +324,6 @@ customElements.define('instrument-buffersource', BufferSourceInstrument);
 document.dispatchEvent(new CustomEvent('instrument:loaded', {
     detail: {
         "class": BufferSourceInstrument,
-        "path": "/instrument/buffersource/instrument-buffersource.element.js"
+        "path": "/instrument/instrument-buffersource.element.js"
     }
 }));

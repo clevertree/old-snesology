@@ -26,7 +26,8 @@ class SongEditorElement extends HTMLElement {
             },
             previewInstructionsOnSelect: false,
             longPressTimeout: 500,
-            instrumentLibrary: null
+            instrumentLibrary: null,
+            instrumentLibraryURL: null
         };
         this.webSocket = new SongEditorWebsocket(this);
         this.keyboard = new SongEditorKeyboard(this);
@@ -38,6 +39,7 @@ class SongEditorElement extends HTMLElement {
         this.renderer = new SongRenderer(this);
         // this.renderer.addSongEventListener(e => this.onSongEvent(e));
         this.longPressTimeout = null;
+        this.instruments.loadInstrumentLibrary('instrument/instrument.library.json');
     }
 
     get currentGroup()      { return this.status.currentGroup; }
@@ -99,6 +101,7 @@ class SongEditorElement extends HTMLElement {
     // }
 
     onInput(e) {
+        this.renderer.getAudioContext();
         // if(this !== document.activeElement && !this.contains(document.activeElement)) {
         //     console.log("Focus", document.activeElement);
         //     this.focus();
@@ -117,7 +120,7 @@ class SongEditorElement extends HTMLElement {
                 break;
 
             case 'mouseup':
-                e.preventDefault();
+                // e.preventDefault();
                 clearTimeout(this.longPressTimeout);
                 break;
         }
@@ -139,7 +142,12 @@ class SongEditorElement extends HTMLElement {
         if(e.defaultPrevented)
             return;
 
-        console.info("Unhandled " + e.type, e);
+        switch(e.type) {
+            case 'submit':
+            case 'change':
+            case 'blur':
+                console.info("Unhandled " + e.type, e);
+        }
     }
 
     onSongEvent(e) {

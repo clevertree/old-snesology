@@ -371,7 +371,7 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Instrument</div>
+                <div class="form-section-header">Note Instrument</div>
                 <form action="#" class="form-instruction-instrument submit-on-change" data-command="instruction:instrument">
                     <select name="instrument" title="Instruction Instrument" class="themed">
                         <optgroup label="Song Instruments">
@@ -382,7 +382,7 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Duration</div>
+                <div class="form-section-header">Note Duration</div>
                 <form action="#" class="form-instruction-duration submit-on-change" data-command="instruction:duration">
                     <select name="duration" title="Instruction Duration" class="themed">
                         <optgroup label="Note Duration">
@@ -394,7 +394,7 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Velocity</div>
+                <div class="form-section-header">Note Velocity</div>
                 <form action="#" class="form-instruction-velocity submit-on-change" data-command="instruction:velocity">
                     <select name="velocity" title="Instruction Velocity" class="themed">
                         <optgroup label="Velocity">
@@ -499,13 +499,15 @@ class SongEditorForms {
                 break;
 
             case 'instruments-available':
-                if(this.status.instrumentLibrary) {
-                    const instrumentLibrary = this.status.instrumentLibrary;
-                    Object.keys(instrumentLibrary.index).forEach((path) => {
-                        let pathConfig = instrumentLibrary.index[path];
-                        if (typeof pathConfig !== 'object') pathConfig = {title: pathConfig};
-                        optionsHTML += callback(instrumentLibrary.baseURL + path, pathConfig.title + " (" + instrumentLibrary.baseURL + path + ")");
-                    });
+                if(this.editor.status.instrumentLibrary) {
+                    const instrumentLibrary = this.editor.status.instrumentLibrary;
+                    if(instrumentLibrary.instruments) {
+                        instrumentLibrary.instruments.forEach((pathConfig) => {
+                            if (typeof pathConfig !== 'object') pathConfig = {url: pathConfig};
+                            if(!pathConfig.title) pathConfig.title = pathConfig.url.split('/').pop();
+                            optionsHTML += callback(pathConfig.url, pathConfig.title + " (" + pathConfig.url + ")");
+                        });
+                    }
                 }
                 break;
 
@@ -590,7 +592,7 @@ class SongEditorForms {
 
     renderEditorFormOptions(optionType, selectCallback) {
         let optionsHTML = '';
-        this.getEditorFormOptions(optionType, function (value, label, html) {
+        this.getEditorFormOptions(optionType, function (value, label, html='') {
             const selected = selectCallback ? selectCallback(value) : false;
             optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
         });
