@@ -13,6 +13,19 @@ song-editor {
 }
 
 
+/** Inputs **/
+
+song-editor input[type=text],
+song-editor select,
+song-editor button{
+    padding: 2px 4px;
+    border: 1px outset #FFF;
+    border-radius: 2px;
+    /* max-width: 200px; */
+}
+
+
+
 
 /** Editor Menu **/
 song-editor ul.editor-menu {
@@ -261,17 +274,6 @@ song-editor .editor-forms ul.sub-menu-item-checkbox {
     left: -25px;
     position: absolute;
 }
-
-
-song-editor .editor-forms input[type=text],
-song-editor .editor-forms select,
-song-editor .editor-forms button{
-    padding: 2px 4px;
-    border: 1px outset #FFF;
-    border-radius: 2px;
-    /* max-width: 200px; */
-}
-
 
 /** Song Info Form **/
 

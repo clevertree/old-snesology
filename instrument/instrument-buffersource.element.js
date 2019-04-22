@@ -21,7 +21,7 @@ class BufferSourceInstrument extends HTMLElement {
         //     config.preset = {};
         this.config = config;            // TODO: validate config
         this.buffers = {};
-
+        this.library = null;
     }
 
     connectedCallback() {
@@ -34,38 +34,48 @@ class BufferSourceInstrument extends HTMLElement {
         this.render();
     }
 
+    // instruments receive audioContext only after user gesture-
     init(audioContext) {
-        this.initSamples(audioContext); // TODO: instruments receive audioContext only after user gesture-
-        this.loadDefaultSample(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL);
+        this.loadDefaultSample(audioContext);
+        // this.initSamples(audioContext);
     }
 
-    loadDefaultSample(libraryURL = null) {
+    loadDefaultSample(audioContext) {
 
         // Sample Library
-        this.loadSampleLibrary(libraryURL, (libraryData) => {
-            console.log("LIBRARY", libraryData);
-            if(libraryData.instruments) {
-                if(Object.keys(this.config.samples).length === 0) {
-                    const sampleInstrument = Object.keys(libraryData.instruments.instruments)[0];
+        console.log("LIBRARY", this.library);
+        if(!this.library) {
+            this.loadSampleLibrary(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL, libraryData => {
+                this.loadDefaultSample(audioContext);
+            })
 
-                    console.info("Loading default sample instrument: " + sampleInstrument);
-                    Object.assign(this.config, this.loadSampleInstrument(sampleInstrument));
-                    this.initSamples(audioContext); // TODO: inefficient reload?
-                    // this.setConfig(newConfig, audioContext);
+        } else if(this.library.instruments) {
+            if(Object.keys(this.config.samples).length === 0) {
+                const sampleInstrument = Object.keys(this.library.instruments)[0];
 
-                    // this.dispatchEvent(new CustomEvent('instrument:initiated', {
-                    //     detail: this,
-                    //     bubbles: true
-                    // }));
-                    // TODO: re-render
+                console.info("Loading default sample instrument: " + sampleInstrument);
+                Object.assign(this.config, this.loadSampleInstrument(sampleInstrument));
+                this.initSamples(audioContext); // TODO: inefficient reload?
+                // this.setConfig(newConfig, audioContext);
 
-                    // console.warn("No default presets found");
-                }
+                // this.dispatchEvent(new CustomEvent('instrument:initiated', {
+                //     detail: this,
+                //     bubbles: true
+                // }));
+                // TODO: re-render
 
-
-            } else if (libraryData.libraries) {
+                // console.warn("No default presets found");
             }
-        });
+
+
+        } else if (this.library.libraries) {
+            const firstLibrary = this.library.libraries[0];
+            this.loadSampleLibrary(firstLibrary.url, libraryData => {
+                this.loadDefaultSample(audioContext);
+            })
+        } else {
+            console.warn("No default samples found");
+        }
     }
 
     initSamples(audioContext) {
@@ -214,7 +224,7 @@ class BufferSourceInstrument extends HTMLElement {
                 Object.assign({},
                     presetConfig.samples[sampleName],
                     this.library.samples[sampleName]);
-            sampleConfig.url = new URL(urlPrefix + sampleConfig.url, BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL) + '';
+            sampleConfig.url = new URL(urlPrefix + sampleConfig.url, this.library.sourceURL) + '';
             sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
 
             if(typeof sampleConfig.keyRange !== "undefined") {
@@ -273,6 +283,7 @@ class BufferSourceInstrument extends HTMLElement {
                 throw new Error("Sample library not found: " + url);
 
             this.library = xhr.response;
+            this.library.sourceURL = url;
             BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL = url + '';
 
             this.render(); // Re-render
