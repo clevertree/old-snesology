@@ -149,19 +149,19 @@ class SongEditorInstruments {
 
                     instrumentDiv.innerHTML =
                         `<div class="instrument-container-header">
-                            <form class="form-instrument-name submit-on-change" data-command="instrument:name">
-                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                                <label class="label-instrument-name">${instrumentIDHTML}
-                                    <input name="name" type="text" value="${instrumentPreset.name}" placeholder="Unnamed Instrument" />
-                                </label>
-                            </form>
                             <form class="form-change-instrument submit-on-change" data-command="instrument:change">
-                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>${instrumentIDHTML}
                                 <select name="instrumentURL" class="themed">
                                     <optgroup label="Change Instrument">
                                         ${this.editor.forms.renderEditorFormOptions('instruments-available', (value) => value === instrumentPreset.url)}
                                     </optgroup>
                                 </select>
+                            </form>
+                            <form class="form-instrument-name submit-on-change" data-command="instrument:name">
+                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                                <label class="label-instrument-name">
+                                    <input name="name" type="text" value="${instrumentPreset.name}" placeholder="Unnamed Instrument" />
+                                </label>
                             </form>
                             <form class="form-instrument-remove" data-command="instrument:remove">
                                 <input type="hidden" name="instrumentID" value="${instrumentID}"/>

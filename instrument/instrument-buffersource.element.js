@@ -32,6 +32,7 @@ class BufferSourceInstrument extends HTMLElement {
 
 
         this.render();
+        this.loadDefaultLibrary();
     }
 
     // instruments receive audioContext only after user gesture-
@@ -40,10 +41,27 @@ class BufferSourceInstrument extends HTMLElement {
         // this.initSamples(audioContext);
     }
 
+    loadDefaultLibrary() {
+        if(!this.library) {
+            this.loadSampleLibrary(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL, () => {
+                this.render();
+                this.loadDefaultLibrary();
+            });
+        } else if (this.library.libraries && !this.library.instruments && !this.library.samples) {
+            const firstLibrary = this.library.libraries[0];
+            firstLibrary.url = new URL(firstLibrary.url, this.library.url)+'';
+            if(firstLibrary.url !== this.library.url) {
+                this.loadSampleLibrary(firstLibrary.url, libraryData => {
+                    this.render();
+                    this.loadDefaultLibrary();
+                })
+            }
+        }
+    }
+
     loadDefaultSample(audioContext) {
 
         // Sample Library
-        console.log("LIBRARY", this.library);
         if(!this.library) {
             this.loadSampleLibrary(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL, libraryData => {
                 this.loadDefaultSample(audioContext);
@@ -56,6 +74,8 @@ class BufferSourceInstrument extends HTMLElement {
                 console.info("Loading default sample instrument: " + sampleInstrument);
                 Object.assign(this.config, this.loadSampleInstrument(sampleInstrument));
                 this.initSamples(audioContext); // TODO: inefficient reload?
+                this.render();
+
                 // this.setConfig(newConfig, audioContext);
 
                 // this.dispatchEvent(new CustomEvent('instrument:initiated', {
@@ -165,10 +185,10 @@ class BufferSourceInstrument extends HTMLElement {
                         : null}
                         ${this.library && this.library.libraries ? 
                             `<optgroup label="Other Libraries"}">` +
-                            Object.keys(this.library.libraries).map((libraryName) => {
-                                const instrumentConfig = this.library.libraries[libraryName];
-                                let title = libraryName || instrumentConfig.title;
-                                return `<option value="${libraryName}">${title}</option>`;
+                            this.library.libraries.map((libraryConfig) => {
+                                if (typeof libraryConfig !== 'object') libraryConfig = {url: libraryConfig};
+                                if(!libraryConfig.title) libraryConfig.title = libraryConfig.url.split('/').pop();
+                                return `<option value="${libraryConfig.url}">${libraryConfig.title}</option>`;
                             }).join("\n")
                             + `</optgroup>`
                         : null}
@@ -224,7 +244,7 @@ class BufferSourceInstrument extends HTMLElement {
                 Object.assign({},
                     presetConfig.samples[sampleName],
                     this.library.samples[sampleName]);
-            sampleConfig.url = new URL(urlPrefix + sampleConfig.url, this.library.sourceURL) + '';
+            sampleConfig.url = new URL(urlPrefix + sampleConfig.url, this.library.url) + '';
             sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
 
             if(typeof sampleConfig.keyRange !== "undefined") {
@@ -283,7 +303,8 @@ class BufferSourceInstrument extends HTMLElement {
                 throw new Error("Sample library not found: " + url);
 
             this.library = xhr.response;
-            this.library.sourceURL = url;
+            this.library.url = url+'';
+            console.log("LIBRARY", this.library);
             BufferSourceInstrument.LAST_SAMPLE_LIBRARY_URL = url + '';
 
             this.render(); // Re-render
