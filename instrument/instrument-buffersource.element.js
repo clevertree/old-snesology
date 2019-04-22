@@ -37,8 +37,8 @@ class BufferSourceInstrument extends HTMLElement {
 
     // instruments receive audioContext only after user gesture-
     init(audioContext) {
-        this.loadDefaultSample(audioContext);
-        // this.initSamples(audioContext);
+        // this.loadDefaultSample(audioContext);
+        this.initSamples(audioContext);
     }
 
     loadDefaultLibrary() {
@@ -56,24 +56,14 @@ class BufferSourceInstrument extends HTMLElement {
                     this.loadDefaultLibrary();
                 })
             }
-        }
-    }
-
-    loadDefaultSample(audioContext) {
-
-        // Sample Library
-        if(!this.library) {
-            this.loadSampleLibrary(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL, libraryData => {
-                this.loadDefaultSample(audioContext);
-            })
-
         } else if(this.library.instruments) {
+            // Load default sample
             if(Object.keys(this.config.samples).length === 0) {
                 const sampleInstrument = Object.keys(this.library.instruments)[0];
 
                 console.info("Loading default sample instrument: " + sampleInstrument);
                 Object.assign(this.config, this.loadSampleInstrument(sampleInstrument));
-                this.initSamples(audioContext); // TODO: inefficient reload?
+                // this.initSamples(audioContext); // TODO: inefficient reload?
                 this.render();
 
                 // this.setConfig(newConfig, audioContext);
@@ -88,15 +78,9 @@ class BufferSourceInstrument extends HTMLElement {
             }
 
 
-        } else if (this.library.libraries) {
-            const firstLibrary = this.library.libraries[0];
-            this.loadSampleLibrary(firstLibrary.url, libraryData => {
-                this.loadDefaultSample(audioContext);
-            })
-        } else {
-            console.warn("No default samples found");
         }
     }
+
 
     initSamples(audioContext) {
         for(let sampleName in this.config.samples) {
