@@ -1,7 +1,6 @@
 // const path = require('path');
 const express = require('express');
 const expressWS = require('express-ws');
-const bodyParser = require('body-parser');
 const clevertreeCMS = require('clevertree-cms');
 
 const app = express();
@@ -15,37 +14,40 @@ expressWS(app);
 // Add Your App
 app.use(express.static(__dirname));
 
-// Config
-const config = {
-    database: {
-        // host: 'localhost',
-        // user: 'cms_user',
-        // password: 'cms_pass',
-        database: 'snesology_cms'
-    },
-    server: {
-        httpPort: 8092,
-        sslEnable: false
-        // sslPort: 8443,
-    },
-    mail: {
-        client: {
-            auth: {
-                user: "mail@ffga.me",
-                pass: "mailmail"
-            },
-            host: "mail.ffga.me",
-            port: 587
-        }
-    }
-};
+// // Config
+// const config = {
+//     database: {
+//         // host: 'localhost',
+//         // user: 'cms_user',
+//         // password: 'cms_pass',
+//         database: 'snesology_cms'
+//     },
+//     server: {
+//         httpPort: 8092,
+//         sslEnable: false
+//         // sslPort: 8443,
+//     },
+//     mail: {
+//         client: {
+//             auth: {
+//                 user: "mail@ffga.me",
+//                 pass: "mailmail"
+//             },
+//             host: "mail.ffga.me",
+//             port: 587
+//         }
+//     }
+// };
+
+// Load .config.json via HTTPServer
+const httpServer = new clevertreeCMS.HTTPServer();
 
 // Add CMS middleware
-app.use(clevertreeCMS.getMiddleware(config));
+app.use(httpServer.getMiddleware());
 
 // Launch your server
-app.listen(config.server.httpPort, function() {
-    console.log('Example app listening on port: ' + config.server.httpPort);
+app.listen(httpServer.serverConfig.httpPort, function() {
+    console.log('Example app listening on port: ' + httpServer.serverConfig.httpPort);
 });
 
 // Add Custom Element Sources

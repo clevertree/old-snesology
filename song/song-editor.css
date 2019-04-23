@@ -564,7 +564,7 @@ song-editor .instrument-container form.form-instrument-name input[name=name] {
     padding: 1px;
     margin: 0 0;
     border: 0px;
-    min-width: 18em;
+    /* min-width: 18em; */
 }
 
 song-editor .instrument-container form.form-instrument-name > label.label-instrument-name{

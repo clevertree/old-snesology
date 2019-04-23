@@ -77,10 +77,9 @@ class SongEditorGrid {
         if(!this.renderElement.contains(e.target))
             return;
         if(this.renderElement !== document.activeElement) {
-            console.log("Focus", document.activeElement);
+//             console.log("Focus", document.activeElement);
             this.renderElement.focus();
         }
-        e.preventDefault();
 
         try {
             let selectedIndices = this.selectedIndices;
@@ -89,7 +88,7 @@ class SongEditorGrid {
                 case 'keydown':
 
                     let keyEvent = e.key;
-                    if (this.editor.keyboard.getKeyboardCommand(e.key))
+                    if (!e.ctrlKey && this.editor.keyboard.getKeyboardCommand(e.key))
                         keyEvent = 'PlayFrequency';
                     if (keyEvent === 'Enter' && e.altKey)
                         keyEvent = 'ContextMenu';
@@ -99,7 +98,7 @@ class SongEditorGrid {
                     const instructionList = this.editor.renderer.getInstructions(this.groupName);
                     switch (keyEvent) {
                         case 'Delete':
-                            // e.preventDefault();
+                            e.preventDefault();
                             for(let i=0; i<selectedIndices.length; i++) {
                                 this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices[i]);
                             }
@@ -109,14 +108,14 @@ class SongEditorGrid {
 
                         case 'Escape':
                         case 'Backspace':
-                            // e.preventDefault();
+                            e.preventDefault();
                             this.navigatePop();
                             this.selectInstructions(0);
                             // this.focus();
                             break;
 
                         case 'Enter':
-                            // e.preventDefault();
+                            e.preventDefault();
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 if(!newInstruction)
@@ -138,7 +137,7 @@ class SongEditorGrid {
                             break;
 
                         case 'Play':
-                            // e.preventDefault();
+                            e.preventDefault();
                             for(let i=0; i<selectedIndices.length; i++) {
                                 this.editor.renderer.playInstruction(instructionList[i]);
                             }
@@ -146,7 +145,7 @@ class SongEditorGrid {
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
-                            // e.preventDefault();
+                            e.preventDefault();
                             
                             if(!this.nextCell) {
                                 this.increaseGridSize();
@@ -159,12 +158,12 @@ class SongEditorGrid {
                             break;
 
                         case 'ArrowLeft':
-                            // e.preventDefault();
+                            e.preventDefault();
                             this.previousCell && this.selectCell(e, this.previousCell);
                             break;
 
                         case 'ArrowDown':
-                            // e.preventDefault();
+                            e.preventDefault();
                             if(!this.nextRowCell) {
                                 this.increaseGridSize();
 
@@ -176,17 +175,22 @@ class SongEditorGrid {
                             break;
 
                         case 'ArrowUp':
-                            // e.preventDefault();
+                            e.preventDefault();
                             this.selectCell(e, this.previousRowCell || this.previousCell || this.cursorCell);
                             break;
 
                         case ' ':
+                            e.preventDefault();
                             this.selectCell(e, this.cursorCell);
                             if(e.ctrlKey) e.preventDefault();
                             break;
 
                         case 'PlayFrequency':
                             let newCommand = this.editor.keyboard.getKeyboardCommand(e.key);
+                            if(newCommand === null)
+                                break;
+
+                            e.preventDefault();
 
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
@@ -242,14 +246,14 @@ class SongEditorGrid {
                     break;
 
                 case 'longpress':
-                    if (e.target.classList.contains('grid-parameter')
-                        || e.target.classList.contains('grid-cell')
-                        || e.target.classList.contains('grid-data')
-                        || e.target.classList.contains('grid-row')) {
+                    // if (e.target.classList.contains('grid-parameter')
+                    //     || e.target.classList.contains('grid-cell')
+                    //     || e.target.classList.contains('grid-data')
+                    //     || e.target.classList.contains('grid-row')) {
                         e.preventDefault();
-                        console.log("Longpress", e);
+                        // console.log("Longpress", e);
                         this.editor.menu.openContextMenu(e);
-                    }
+                    // }
                     break;
 
                 case 'contextmenu':

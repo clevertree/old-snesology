@@ -493,8 +493,9 @@ class SongRenderer {
     }
 
 
-    loadInstrument(instrumentID) {
-        if (this.loadedInstruments[instrumentID])
+    loadInstrument(instrumentID, forceReload=false) {
+        instrumentID = parseInt(instrumentID);
+        if (!forceReload && this.loadedInstruments[instrumentID])
             return true;
 
         const instrumentPreset = this.getInstrumentConfig(instrumentID);
@@ -591,6 +592,7 @@ class SongRenderer {
     }
 
     replaceInstrumentParam(instrumentID, paramName, paramValue) {
+        instrumentID = parseInt(instrumentID);
         const instrumentList = this.songData.instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);

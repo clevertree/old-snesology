@@ -96,14 +96,20 @@ class SongEditorInstruments {
             switch(command) {
                 case 'instrument:name':
                     this.editor.renderer.replaceInstrumentParam(form.elements['instrumentID'].value, 'name', form.elements['name'].value);
-                    return;
+                    break;
 
                 case 'instrument:remove':
                     throw new Error("TODO");
                     break;
 
                 case 'instrument:change':
-                    throw new Error("TODO");
+                    this.editor.renderer.replaceInstrumentParam(form.elements['instrumentID'].value, 'url', form.elements['instrumentURL'].value);
+                    this.editor.renderer.loadInstrument(form.elements['instrumentID'].value, true);
+                    this.editor.instruments.render();
+                    break;
+
+                case 'instrument:add':
+                    this.editor.renderer.addInstrument(form.elements['instrumentURL'].value);
                     break;
 
                 // case 'change':
@@ -194,7 +200,7 @@ class SongEditorInstruments {
         this.renderElement.appendChild(addInstrumentDiv);
 
         addInstrumentDiv.innerHTML +=
-            `<form class="form-add-instrument submit-on-change" data-command="song:add-instrument">
+            `<form class="form-add-instrument submit-on-change" data-command="instrument:add">
                 <select name="instrumentURL" class="themed">
                     <option value="">Add New Instrument</option>
                     ${this.editor.forms.renderEditorFormOptions('instruments-available')}
