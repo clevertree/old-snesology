@@ -67,7 +67,7 @@ class SynthesizerInstrument extends HTMLElement {
                 const sampleInstrument = Object.keys(this.librarySelected.instruments)[0];
 
                 Object.assign(this.config, this.getInstrumentPresetConfig(sampleInstrument));
-                console.info("Loaded default sample instrument: " + sampleInstrument, this.config);
+//                 console.info("Loaded default sample instrument: " + sampleInstrument, this.config);
                 if(this.audioContext)
                     await this.initSamples(this.audioContext);
                 this.render();
@@ -287,7 +287,7 @@ class SynthesizerInstrument extends HTMLElement {
                         url: this.librarySelected.url,
                         title: this.libraryHistory.length === 0 ? "Home Index" : this.librarySelected.title
                     })
-                console.log("LIBRARY", this.librarySelected);
+//                 console.log("LIBRARY", this.librarySelected);
 
                 this.render(); // Re-render
                 resolve(this.librarySelected);

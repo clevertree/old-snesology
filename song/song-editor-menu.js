@@ -33,115 +33,125 @@ class SongEditorMenu {
     }
 
     onMenu(e) {
-        const cursorIndex = this.grid.cursorCellIndex;
-        const currentGroup = this.grid.groupName;
-        const instructionList = this.grid.instructionList;
-        const cursorInstruction = instructionList[cursorIndex];
+        let form = e.target.form || e.target;
+        // const cursorCellIndex = this.editor.cursorCellIndex;
+        const currentGroup = this.editor.currentGroup;
+        const selectedIndicies = this.editor.status.selectedIndicies;
+        const selectedNoteIndices = this.editor.selectedNoteIndicies;
+        // const selectedPauseIndices = this.editor.selectedPauseIndicies;
 
         const dataCommand = e.target.getAttribute('data-command');
         if(!dataCommand)
             return;
         console.info("Menu Click: " + dataCommand, e);
-        e.preventDefault();
+        // e.preventDefault();
 
         let uuid = e.target.getAttribute('data-uuid') || null;
 
         switch(dataCommand) {
             case 'song:new':
-                document.location = 'song/new';
                 e.preventDefault();
+                document.location = 'song/new';
                 break;
 
             case 'song:save':
                 throw new Error("Todo");
 
             case 'song:load-server-uuid':
+                e.preventDefault();
                 if(!uuid) uuid = prompt("Enter UUID: ");
                 this.loadSongFromServer(uuid);
-                e.preventDefault();
                 break;
 
             case 'song:load-memory-uuid':
-                this.loadSongFromMemory(uuid);
                 e.preventDefault();
+                this.loadSongFromMemory(uuid);
                 break;
 
             case 'save:memory':
-                this.saveSongToMemory();
                 e.preventDefault();
+                this.saveSongToMemory();
                 break;
 
             case 'save:file':
-                this.saveSongToFile();
                 e.preventDefault();
+                this.saveSongToFile();
                 break;
 
 
             case 'group:add':
+                e.preventDefault();
                 let newGroupName = this.generateInstructionGroupName(currentGroup);
                 newGroupName = prompt("Create new instruction group?", newGroupName);
                 if(newGroupName)    this.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
                 else                console.error("Create instruction group canceled");
-                e.preventDefault();
                 break;
 
             case 'group:remove':
-                this.removeInstructionGroup(currentGroup);
                 e.preventDefault();
+                this.removeInstructionGroup(currentGroup);
                 break;
 
             case 'group:rename':
+                e.preventDefault();
                 let renameGroupName = prompt("Rename instruction group?", currentGroup);
                 if(renameGroupName)     this.renameInstructionGroup(currentGroup, renameGroupName);
                 else                    console.error("Rename instruction group canceled");
-                e.preventDefault();
                 break;
 
             case 'instruction:insert':
-                const newInstruction = {
-                    // type: 'note',
-                    instrument: 0,
-                    command: 'C4',
-                    duration: 1
-                }; // new instruction
-                // song.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-                this.insertInstructionAtIndex(currentGroup, cursorIndex, newInstruction);
                 e.preventDefault();
+
+                let newInstruction = this.editor.forms.getInstructionFormValues(true);
+                if(!newInstruction)
+                    return console.info("Insert canceled");
+                // song.getSelectedInstructions() = [selectedInstruction]; // select new instruction
+
+
+                let newInstruction = this.editor.forms.getInstructionFormValues(true);
+                if(!newInstruction)
+                    return console.info("Insert canceled");
+                let insertIndex = this.editor.renderer.insertInstructionAtPosition(newInstruction, this.editor.cursorPosition);
+                this.editor.status.selectedIndices = [insertIndex];
+                this.editor.render();
+
+
+                this.editor.renderer.insertInstructionAtIndex(currentGroup, selectedIndicies[0], newInstruction);
                 break;
 
             case 'instruction:command':
+                e.preventDefault();
                 const newCommand = prompt("Set Command:", cursorInstruction.command);
                 if(newCommand !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
                     command: newCommand
                 });
                 else                    console.error("Set instruction command canceled");
-                e.preventDefault();
                 break;
 
             case 'instruction:duration':
+                e.preventDefault();
                 const newDuration = prompt("Set Duration:", typeof cursorInstruction.duration === 'undefined' ? 1 : cursorInstruction.duration);
                 if(newDuration < 0) throw new Error("Invalid duration value");
                 if(newDuration !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
                     duration: newDuration
                 });
                 else                    console.error("Set instruction duration canceled");
-                e.preventDefault();
                 break;
 
             case 'instruction:velocity':
+                e.preventDefault();
                 const newVelocity = prompt("Set Velocity:", typeof cursorInstruction.velocity === 'undefined' ? 100 : cursorInstruction.velocity);
                 if(newVelocity < 0 || newVelocity > 100) throw new Error("Invalid velocity value");
                 if(newVelocity !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
                     velocity: newVelocity
                 });
                 else                    console.error("Set instruction velocity canceled");
-                e.preventDefault();
                 break;
 
             case 'menu:toggle':
+                e.preventDefault();
                 // this.renderElement.querySelectorAll('a.open').forEach((a) => a !== e.target ? a.classList.remove('open') : null);
                 // e.target.classList.toggle('open');
-                e.preventDefault();
                 break;
             default:
                 console.warn("Unknown menu command: " + dataCommand);
@@ -151,7 +161,23 @@ class SongEditorMenu {
 
 
     update() {
+        const cursorIndex = this.editor.cursorCellIndex;
+        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
 
+        // Note Instructions
+
+        this.renderElement.classList.remove('show-insert-instruction-controls');
+        this.renderElement.classList.remove('show-modify-instruction-controls');
+        if(selectedNoteIndicies.length > 0) {
+            // Note is selected
+            this.renderElement.classList.add('show-modify-instruction-controls');
+
+        } else if(cursorIndex || cursorIndex === 0) {
+            // Cursor is available
+            this.renderElement.classList.add('show-insert-instruction-controls');
+        } else {
+            this.renderElement.classList.add('show-no-instruction-controls');
+        }
     }
 
     // ${this.renderEditorMenuLoadFromMemory()}
@@ -163,18 +189,18 @@ class SongEditorMenu {
         this.renderElement.innerHTML =
             `<li>
                 <a><span class="key">F</span>ile</a>
-                <ul class="sub-menu">
+                <ul class="submenu">
                     <li>
-                        <a href="editor/new" target="_blank" data-command1="song:new">
+                        <a data-command="song:new">
                             <span class="key">N</span>ew song
                         </a>
                     </li>
                     <li>
                         <a><span class="key">O</span>pen song &#9658;</a>
-                        <ul class="sub-menu">
+                        <ul class="submenu">
                             <li>
-                                <a>from <span class="key">S</span>erver &#9658;</a>
-                                <ul class="sub-menu">
+                                <a class="disabled">from <span class="key">S</span>erver &#9658;</a>
+                                <ul class="submenu">
                                     ${this.editor.forms.getEditorFormOptions('server-recent-uuid', (value, label) =>
                                     `<li><a data-command="song:load-server-uuid" data-uuid="${value}">${label}</a></li>`)}
                                     <li><a data-command="song:load-server-uuid" data-uuid="">Enter UUID</a></li>
@@ -182,7 +208,7 @@ class SongEditorMenu {
                             </li>
                             <li>
                                 <a>from <span class="key">M</span>emory &#9658;</a>
-                                <ul class="sub-menu">
+                                <ul class="submenu">
                                     ${this.editor.forms.getEditorFormOptions('memory-recent-uuid', (value, label) =>
                                     `<li><a data-command="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
                                     <li><a data-command="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
@@ -194,15 +220,15 @@ class SongEditorMenu {
                     </li>
                     <li>
                         <a><span class="key">S</span>ave song &#9658;</a>
-                        <ul class="sub-menu">
-                            <li><a data-command="song:server-sync">to <span class="key">S</span>erver</a><input type="checkbox" ${this.editor.webSocket ? `checked="checked"` : ''}></li>
+                        <ul class="submenu">
+                            <li><a class="disabled" data-command="song:server-sync">to <span class="key">S</span>erver</a><input type="checkbox" ${this.editor.webSocket ? `checked="checked"` : ''}></li>
                             <li><a data-command="save:memory">to <span class="key">M</span>emory</a></li>
                             <li><a data-command="save:file">to <span class="key">F</span>ile</a></li>    
                         </ul>
                     </li> 
                     <li>
-                        <a><span class="key">E</span>xport song &#9658;</a>
-                        <ul class="sub-menu">
+                        <a class="disabled"><span class="key">E</span>xport song &#9658;</a>
+                        <ul class="submenu">
                             <li><a class="disabled" data-command="export:file">to audio file</a></li>
                         </ul>
                     </li>     
@@ -210,25 +236,26 @@ class SongEditorMenu {
             </li>
             <li>
                 <a><span class="key">E</span>dit</a>
-                <ul class="sub-menu">
-                    <li><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
-                    <li><a data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
-                    <li><a data-command="instruction:instrument">Set <span class="key">I</span>nstrument</a></li>
-                    <li><a data-command="instruction:duration">Set <span class="key">D</span>uration</a></li>
-                    <li><a data-command="instruction:velocity">Set <span class="key">V</span>elocity</a></li>
-                    <li><a data-command="instruction:panning">Set <span class="key">P</span>anning</a></li>
-                    <li><a data-command="instruction:delete"><span class="key">D</span>elete Note</a></li>
+                <ul class="submenu">
+                    <li class="no-instruction-controls"><a class="disabled">Select a grid position to insert or modify notes</a></li>
+                    <li class="insert-instruction-controls"><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
+                    <li class="modify-instruction-controls"><a data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
+                    <li class="modify-instruction-controls"><a data-command="instruction:instrument">Set <span class="key">I</span>nstrument</a></li>
+                    <li class="modify-instruction-controls"><a data-command="instruction:duration">Set <span class="key">D</span>uration</a></li>
+                    <li class="modify-instruction-controls"><a data-command="instruction:velocity">Set <span class="key">V</span>elocity</a></li>
+                    <li class="modify-instruction-controls"><a data-command="instruction:panning">Set <span class="key">P</span>anning</a></li>
+                    <li class="modify-instruction-controls"><a data-command="instruction:delete"><span class="key">D</span>elete Note</a></li>
                     <hr/>
                     <li>
                         <a>Edit <span class="key">R</span>ow &#9658;</a>
-                        <ul class="sub-menu">
+                        <ul class="submenu">
                             <li><a data-command="row:delete"><span class="key">D</span>elete Row</a></li>
                         </ul>
                     </li>
                     <hr/>
                     <li>
                         <a>Edit <span class="key">G</span>roup &#9658;</a>
-                        <ul class="sub-menu">
+                        <ul class="submenu">
                             <li><a data-command="group:add"><span class="key">I</span>nsert new Group</a></li>
                             <li><a data-command="group:delete"><span class="key">D</span>elete current Group</a></li>
                             <li><a data-command="group:rename"><span class="key">R</span>ename current Group</a></li>
@@ -238,12 +265,12 @@ class SongEditorMenu {
             </li>
             <li>
                 <a><span class="key">V</span>iew</a>
-                <ul class="sub-menu">
+                <ul class="submenu">
                 </ul>
             </li>
             <li>
                 <a><span class="key">I</span>nstruments</a>
-                <ul class="sub-menu">
+                <ul class="submenu">
                     <li><a data-command="instrument:add">Add <span class="key">N</span>ew Instrument</a></li>
                 </ul>
             </li>`;
@@ -252,16 +279,16 @@ class SongEditorMenu {
     // <ul class="editor-context-menu submenu">
     //         <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
     //     <li>
-    //     <a><span class="key">N</span>ote<span class="sub-menu-pointer"></span></a>
-    //     <ul class="sub-menu" data-submenu-content="submenu:command"></ul>
+    //     <a><span class="key">N</span>ote<span class="submenu-pointer"></span></a>
+    //     <ul class="submenu" data-submenu-content="submenu:command"></ul>
     //         </li>
     //         <li>
-    //         <a><span class="key">R</span>ow<span class="sub-menu-pointer"></span></a>
-    //     <ul class="sub-menu" data-submenu-content="submenu:pause"></ul>
+    //         <a><span class="key">R</span>ow<span class="submenu-pointer"></span></a>
+    //     <ul class="submenu" data-submenu-content="submenu:pause"></ul>
     //         </li>
     //         <li>
-    //         <a><span class="key">G</span>roup <span class="sub-menu-pointer"></span></a>
-    //     <ul class="sub-menu" data-submenu-content="submenu:group"></ul>
+    //         <a><span class="key">G</span>roup <span class="submenu-pointer"></span></a>
+    //     <ul class="submenu" data-submenu-content="submenu:group"></ul>
     //         </li>
     //         </ul>`;
 
@@ -290,7 +317,7 @@ class SongEditorMenu {
 //         }
 //
 //         return `
-//         <ul class="sub-menu">
+//         <ul class="submenu">
 //             ${menuItemsHTML}
 //         </ul>
 //     `;

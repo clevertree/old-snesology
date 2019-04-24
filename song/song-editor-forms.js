@@ -108,6 +108,7 @@ class SongEditorForms {
                 let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
                 for(let i=0; i<selectedNoteIndices.length; i++)
                     this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'instrument', instrumentID);
+                this.editor.status.currentInstrumentID = instrumentID;
                 break;
 
             case 'instruction:duration':
@@ -217,28 +218,13 @@ class SongEditorForms {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
         const cursorIndex = this.editor.cursorCellIndex;
-        const selectedIndices = this.editor.status.selectedIndicies;
+        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
         const groupName = this.editor.currentGroup;
-        const instructionList = this.editor.renderer.getInstructions(groupName);
+        const selectedInstructionList = this.editor.renderer.getInstructions(groupName, selectedNoteIndicies);
         let combinedInstruction = null; //, instrumentList = [];
-        for(let i=0; i<selectedIndices.length; i++) {
-            const selectedIndex = selectedIndices[i];
-            if(!instructionList[selectedIndex])
-                throw new Error("Instruction not found at index " + selectedIndex + " in group " + groupName);
-            const selectedInstruction = instructionList[selectedIndex];
-
-            if(selectedInstruction.command[0] === '!')
-                continue;
-
-
-            if(combinedInstruction === null) {
-                combinedInstruction = Object.assign({}, selectedInstruction);
-            } else {
-                Object.keys(combinedInstruction).forEach(function(key, i) {
-                    // Delete keys that don't match
-                    if(selectedInstruction[key] !== combinedInstruction[key])
-                        delete combinedInstruction[key];
-                });
+        if(selectedInstructionList.length > 0) {
+            for(let i=0; i<selectedInstructionList.length; i++) {
+                combinedInstruction = Object.assign({}, selectedInstructionList[i], combinedInstruction || {})
             }
         }
         // console.log("Combined Instruction", combinedInstruction);
@@ -263,6 +249,8 @@ class SongEditorForms {
             this.renderElement.classList.add('show-modify-instruction-controls');
 
         } else if(cursorIndex || cursorIndex === 0) {
+            this.fieldInstructionInstrument.value = this.editor.status.currentInstrumentID;
+            // console.log(this.editor.status.currentInstrumentID);
 
             this.renderElement.classList.add('show-insert-instruction-controls');
         }
@@ -278,7 +266,7 @@ class SongEditorForms {
         // if(!this.fieldInsertInstructionCommand.value)
         //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
 
-        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
+        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedNoteIndicies.length > 1 ? '(s)' : ''));
 
         // Status Fields
 
@@ -332,7 +320,7 @@ class SongEditorForms {
              
             <br style="clear: both;"/>
  
-            <div class="form-section show-on-insert-instruction">
+            <div class="form-section insert-instruction-controls">
                 <div class="form-section-header">Insert Instruction</div>
                 <form action="#" class="form-instruction-insert" data-command="instruction:insert">
                     <select name="command" title="Instruction Command" class="themed" required="required">
@@ -350,7 +338,7 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section show-on-modify-instruction">
+            <div class="form-section modify-instruction-controls">
                 <div class="form-section-header">Modify Instruction</div>
                 <form action="#" class="form-instruction-command submit-on-change" data-command="instruction:command">
                     <select name="command" title="Instruction Command" class="themed" required="required">

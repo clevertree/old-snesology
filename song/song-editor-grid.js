@@ -284,8 +284,8 @@ class SongEditorGrid {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
         const cellIndex = [].indexOf.call(cellList, selectedCell);
         const index = parseInt(selectedRow.getAttribute('data-index'));
-        // const position = parseInt(selectedRow.getAttribute('data-position'));
-        this.selectInstructions(index, cellIndex);
+        const position = parseInt(selectedRow.getAttribute('data-position'));
+        this.selectInstructions(index, position, cellIndex);
     }
 
     onCellInput(e) {
@@ -297,7 +297,8 @@ class SongEditorGrid {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
         const cellIndex = [].indexOf.call(cellList, selectedCell);
         const index = parseInt(selectedCell.getAttribute('data-index'));
-        this.selectInstructions(index, cellIndex);
+        const position = parseInt(selectedCell.getAttribute('data-position'));
+        this.selectInstructions(index, position, cellIndex);
     }
 
     onSongEvent(e) {
@@ -410,13 +411,33 @@ class SongEditorGrid {
         const cellList = this.renderElement.querySelectorAll('.grid-cell');
         const cellIndex = this.cursorCell ? [].indexOf.call(cellList, cursorCell) : 0;
         const index = parseInt(cursorCell.getAttribute('data-index'));
-        // const position = parseFloat(cursorCell.getAttribute('data-position'));
-        this.selectInstructions(index, cellIndex, clearSelection, toggle);
+        const position = parseFloat(cursorCell.getAttribute('data-position'));
+        this.selectInstructions(index, position, cellIndex, clearSelection, toggle);
     }
 
 
-    selectInstructions(cursorIndex, cursorCellIndex=null, clearSelection=true, toggle=false) {
-        return this.editor.selectInstructions(this.groupName, cursorIndex, cursorCellIndex, clearSelection, toggle);
+    selectInstructions(cursorIndex, cursorPosition=null, cursorCellIndex=null, clearSelection=true, toggle=false) {
+        if(cursorPosition !== null)
+            this.editor.status.cursorPosition = cursorPosition;
+        if(cursorCellIndex !== null)
+            this.editor.status.cursorCellIndex = cursorCellIndex;
+        if(this.editor.status.currentGroup !== this.groupName) {
+            this.editor.status.currentGroup = this.groupName;
+            this.editor.status.selectedIndicies = [];
+        }
+        if(clearSelection)
+            this.editor.status.selectedIndicies = [];
+        const indicies = this.editor.status.selectedIndicies;
+        const existingIndex = indicies.indexOf(cursorIndex);
+        if(existingIndex === -1) {
+            indicies.push(cursorIndex);
+        } else {
+            if(toggle)
+                indicies.splice(existingIndex, 1);
+        }
+
+        this.editor.update();
+        // return this.editor.selectInstructions(this.groupName, cursorIndex, cursorCellIndex, clearSelection, toggle);
     }
 
     scrollToCursor() {

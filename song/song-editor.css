@@ -40,7 +40,7 @@ song-editor ul.editor-menu > li {
 
 
 song-editor ul.editor-menu,
-song-editor ul.sub-menu {
+song-editor ul.submenu {
     /*display: block;*/
     /* border: 1px solid grey; */
     /* background-color: #BBB; */
@@ -54,7 +54,7 @@ song-editor ul.sub-menu {
 
 /** Drop Down / Context Menu **/
 song-editor ul.editor-menu ul.context-menu,
-song-editor ul.sub-menu {
+song-editor ul.submenu {
     display: none;
     position: absolute;
     /* display: none; */
@@ -72,8 +72,8 @@ song-editor ul.sub-menu {
 }
 
 /** Drop Down Trigger **/
-song-editor li:hover > ul.sub-menu,
-song-editor a:focus + ul.sub-menu {
+song-editor li:hover > ul.submenu,
+song-editor a:focus + ul.submenu {
     display: inline-block;
     white-space: nowrap;
     opacity: 1;
@@ -85,7 +85,7 @@ song-editor a:focus + ul.sub-menu {
 
 /** Menu Styling **/
 song-editor ul.editor-menu > li > a,
-song-editor ul.editor-menu ul.sub-menu > li > a {
+song-editor ul.editor-menu ul.submenu > li > a {
     vertical-align: top;
     display: inline-block;
     padding: 3px 8px;
@@ -99,7 +99,7 @@ song-editor ul.editor-menu ul.sub-menu > li > a {
 
 
 song-editor ul.editor-menu > li:hover,
-song-editor ul.sub-menu > li:hover {
+song-editor ul.submenu > li:hover {
     background-color: #AAA;
 }
 
@@ -121,6 +121,12 @@ song-editor ul.editor-menu hr {
     border: 1px #666 solid;
 }
 
+
+song-editor .editor-menu:not(.show-no-instruction-controls) .no-instruction-controls,
+song-editor .editor-menu:not(.show-modify-instruction-controls) .modify-instruction-controls,
+song-editor .editor-menu:not(.show-insert-instruction-controls) .insert-instruction-controls {
+    display: none;
+}
 
 
 /** Context Menu **/
@@ -186,8 +192,8 @@ song-editor .editor-forms div.form-section {
 
 song-editor:not(.playing)   form.show-on-song-playing,
 song-editor:not(.paused)    form.show-on-song-playing,
-song-editor .editor-forms:not(.show-modify-instruction-controls) .show-on-modify-instruction,
-song-editor .editor-forms:not(.show-insert-instruction-controls) .show-on-insert-instruction {
+song-editor .editor-forms:not(.show-modify-instruction-controls) .modify-instruction-controls,
+song-editor .editor-forms:not(.show-insert-instruction-controls) .insert-instruction-controls {
     display: none;
 }
 
@@ -257,7 +263,7 @@ song-editor .editor-forms .form-separator {
 /** Highlight Key **/
 
 song-editor .editor-forms > li > a > .key,
-song-editor .editor-forms ul.sub-menu-item > .key {
+song-editor .editor-forms ul.submenu-item > .key {
     font-weight: bold;
     text-decoration: underline;
 }
@@ -266,7 +272,7 @@ song-editor .editor-forms ul.sub-menu-item > .key {
 
 
 song-editor .editor-forms > li > input[type=checkbox],
-song-editor .editor-forms ul.sub-menu-item-checkbox {
+song-editor .editor-forms ul.submenu-item-checkbox {
     vertical-align: text-top;
     width: 16px;
     height: 16px;

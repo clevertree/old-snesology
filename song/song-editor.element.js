@@ -12,9 +12,11 @@ class SongEditorElement extends HTMLElement {
             // selectedIndexCursor: 0,
             currentGroup: 'root',
             cursorCellIndex: 0,
+            cursorPosition: 0,
             selectedIndicies: [],
 
             currentOctave: 3,
+            currentInstrumentID: 0,
 
             // history: {
             //     currentStep: 0,
@@ -46,6 +48,7 @@ class SongEditorElement extends HTMLElement {
 
     get currentGroup()      { return this.status.currentGroup; }
     get cursorCellIndex()   { return this.status.cursorCellIndex; }
+    get cursorPosition()    { return this.status.cursorPosition; }
     get selectedIndicies()  { return this.status.selectedIndicies; }
     get selectedPauseIndicies()  {
         const instructionList = this.renderer.getInstructions(this.currentGroup);

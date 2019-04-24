@@ -233,11 +233,13 @@ class SongRenderer {
         throw new Error("Instruction not found in songData");
     }
 
-    getInstructions(groupName) {
+    getInstructions(groupName, indicies=null) {
         let instructionList = this.songData.instructions[groupName];
         if(!instructionList)
             throw new Error("Instruction groupName not found: " + groupName);
-        return instructionList;
+        if(!indicies)
+            return instructionList;
+        return instructionList.filter((instruction, index) => indicies.indexOf(index) !== -1)
     }
 
     getInstructionIndex(instruction, groupName) {

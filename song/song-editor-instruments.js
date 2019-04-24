@@ -96,7 +96,8 @@ class SongEditorInstruments {
                     break;
 
                 case 'instrument:add':
-                    this.editor.renderer.addInstrument(form.elements['instrumentURL'].value);
+                    this.editor.status.currentInstrumentID = this.editor.renderer.addInstrument(form.elements['instrumentURL'].value);
+                    // this.editor.update();
                     break;
 
                 // case 'change':
