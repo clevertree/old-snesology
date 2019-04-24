@@ -541,12 +541,31 @@ song-editor .editor-grid .grid-row.selected .grid-cell-pause {
 
 /** Instrument List **/
 
-song-editor .editor-instruments form.form-change-instrument > select[name=instrumentURL],
 song-editor .editor-instruments form.form-add-instrument > select[name=instrumentURL] {
-    max-width: 165px;
+    width: 95%;
+    padding: 0.5em;
+    margin: 0.5em auto;
+    /* display: inline-block; */
+    font-weight: bold;
+    text-align: center;
+    text-align-last: center;
+}
+
+
+
+song-editor .editor-instruments form.form-change-instrument > select[name=instrumentURL]{
+    max-width: 174px;
+}
+song-editor .editor-instruments form.form-change-instrument > select[name=instrumentURL]:not(:hover):not(:focus) {
+    border-color: transparent;
+    background: transparent;
 }
 
 /** Instrument Container **/
+song-editor .instrument-add-container {
+    /* display: inline-block; */
+    text-align: center;
+}
 
 song-editor .editor-instruments > form.form-add-instrument,
 song-editor .instrument-container {
@@ -564,7 +583,7 @@ song-editor .instrument-container form.form-instrument-name input[name=name] {
     padding: 1px;
     margin: 0 0;
     border: 0px;
-    /* min-width: 18em; */
+    width: 132px;
 }
 
 song-editor .instrument-container form.form-instrument-name > label.label-instrument-name{
@@ -580,7 +599,7 @@ song-editor .instrument-container form {
     margin: 0;
 }
 song-editor .instrument-container > .instrument-container-header {
-    /* border-bottom: 1px solid #BBB; */
+    border-bottom: 1px solid #BBB;
 }
 song-editor .instrument-container > .instrument-container-header > form {
     display: inline-block;

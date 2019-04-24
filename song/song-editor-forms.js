@@ -57,9 +57,12 @@ class SongEditorForms {
         try {
             switch (e.type) {
                 case 'submit':
+                    this.onSubmit(e);
+                    break;
                 case 'change':
                 case 'blur':
-                    this.onSubmit(e);
+                    if(e.target.form && e.target.form.classList.contains('submit-on-' + e.type))
+                        this.onSubmit(e);
                     break;
             }
 
@@ -70,16 +73,7 @@ class SongEditorForms {
 
     onSubmit(e) {
         e.preventDefault();
-        let form = e.target;
-        switch(e.type) {
-            case 'change':
-            case 'blur':
-                form = e.target.form;
-                if(!form || !form.classList.contains('submit-on-' + e.type))
-                    return;
-                break;
-        }
-        // try {
+        let form = e.target.form || e.target;
         const command = form.getAttribute('data-command');
         const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
@@ -176,6 +170,10 @@ class SongEditorForms {
 
             case 'song:volume':
                 this.editor.renderer.setVolume(parseInt(form['volume'].value));
+                break;
+
+            case 'status:octave':
+                this.editor.status.currentOctave = parseInt(this.fieldRenderOctave.value);
                 break;
 
             case 'grid:duration':
@@ -282,6 +280,9 @@ class SongEditorForms {
 
         this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndices.length > 1 ? '(s)' : ''));
 
+        // Status Fields
+
+        this.fieldRenderOctave.value = this.editor.status.currentOctave;
     }
 
     // ${this.renderEditorMenuLoadFromMemory()}
@@ -423,7 +424,7 @@ class SongEditorForms {
             
             <div class="form-section">
                 <div class="form-section-header">Octave</div>
-                <form action="#" class="form-render-octave submit-on-change">
+                <form action="#" class="form-render-octave submit-on-change" data-command="status:octave">
                     <select name="octave" class="themed">
                         <optgroup label="Select Octave">
                             ${this.renderEditorFormOptions('command-frequency-octaves')}
@@ -490,7 +491,7 @@ class SongEditorForms {
                 if(songData.instruments) {
                     const instrumentList = songData.instruments;
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
-                        const instrumentInfo = instrumentList[instrumentID];
+                        const instrumentInfo = instrumentList[instrumentID] || {name: "No Instrument Loaded"};
                         // const instrument = this.editor.renderer.getInstrument(instrumentID);
                         optionsHTML += callback(instrumentID, this.editor.renderer.format(instrumentID, 'instrument')
                             + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));

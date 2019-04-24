@@ -14,16 +14,18 @@ class SongEditorElement extends HTMLElement {
             cursorCellIndex: 0,
             selectedIndicies: [],
 
-            history: {
-                currentStep: 0,
-                undoList: [],
-                undoPosition: []
-            },
-            webSocket: {
-                attempts: 0,
-                reconnectTimeout: 3000,
-                maxAttempts: 3,
-            },
+            currentOctave: 3,
+
+            // history: {
+            //     currentStep: 0,
+            //     undoList: [],
+            //     undoPosition: []
+            // },
+            // webSocket: {
+            //     attempts: 0,
+            //     reconnectTimeout: 3000,
+            //     maxAttempts: 3,
+            // },
             previewInstructionsOnSelect: false,
             longPressTimeout: 500,
             instrumentLibrary: null,
@@ -39,7 +41,7 @@ class SongEditorElement extends HTMLElement {
         this.renderer = new SongRenderer(this);
         // this.renderer.addSongEventListener(e => this.onSongEvent(e));
         this.longPressTimeout = null;
-        this.instruments.loadInstrumentLibrary('instrument/instrument.library.json');
+        this.instruments.loadInstrumentLibrary('synthesizer/instrument.library.json');
     }
 
     get currentGroup()      { return this.status.currentGroup; }
@@ -101,6 +103,8 @@ class SongEditorElement extends HTMLElement {
     // }
 
     onInput(e) {
+        if(e.defaultPrevented)
+            return;
         this.renderer.getAudioContext();
         // if(this !== document.activeElement && !this.contains(document.activeElement)) {
         //     console.log("Focus", document.activeElement);
@@ -126,28 +130,20 @@ class SongEditorElement extends HTMLElement {
         }
 
         // console.info(e.type, e);
-        if(e.defaultPrevented)
-            return;
 
         this.menu.onInput(e);
-        if(e.defaultPrevented)
-            return;
         this.grid.onInput(e);
-        if(e.defaultPrevented)
-            return;
         this.forms.onInput(e);
-        if(e.defaultPrevented)
-            return;
         this.instruments.onInput(e);
-        if(e.defaultPrevented)
-            return;
 
-        switch(e.type) {
-            case 'submit':
-            case 'change':
-            case 'blur':
-                console.info("Unhandled " + e.type, e);
-        }
+        // if(!e.defaultPrevented) {
+        //     switch (e.type) {
+        //         case 'submit':
+        //             // case 'change':
+        //             // case 'blur':
+        //             console.info("Unhandled " + e.type, e);
+        //     }
+        // }
     }
 
     onSongEvent(e) {

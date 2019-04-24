@@ -27,9 +27,9 @@ class MusicPlayerElement extends HTMLElement {
         }
     }
     connectedCallback() {
-        this.addEventListener('keydown', e => this.onInput(e));
-        this.addEventListener('keyup', e => this.onInput(e));
-        this.addEventListener('click', e => this.onInput(e));
+        this.addEventListener('keydown', this.onInput);
+        this.addEventListener('keyup', this.onInput);
+        this.addEventListener('click', this.onInput);
         document.addEventListener('instrument:loaded', e => this.onSongEvent(e));
 
     }

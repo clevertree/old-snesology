@@ -50,18 +50,20 @@ class SongEditorInstruments {
     //     this.render();
     // }
 
+
     onInput(e) {
-        if (e.defaultPrevented)
-            return;
         if (!this.renderElement.contains(e.target))
             return;
 
         try {
             switch (e.type) {
                 case 'submit':
+                    this.onSubmit(e);
+                    break;
                 case 'change':
                 case 'blur':
-                    this.onSubmit(e);
+                    if(e.target.form && e.target.form.classList.contains('submit-on-' + e.type))
+                        this.onSubmit(e);
                     break;
             }
 
@@ -71,24 +73,8 @@ class SongEditorInstruments {
     }
 
     onSubmit(e) {
-        // if(e.defaultPrevented)
-        //     return;
         e.preventDefault();
-        let form = e.target;
-        switch(e.type) {
-            case 'config:updated':
-                // case 'change':
-                console.log("Instrument Form " + e.type, e);
-                this.editor.renderer.replaceInstrumentParams(this.id, e.detail);
-                return;
-            case 'change':
-            case 'blur':
-                form = e.target.form;
-                if(!form || !form.classList.contains('submit-on-' + e.type))
-                    return;
-                break;
-        }
-        // try {
+        let form = e.target.form || e.target;
         const command = form.getAttribute('data-command');
 
         try {
@@ -99,13 +85,14 @@ class SongEditorInstruments {
                     break;
 
                 case 'instrument:remove':
-                    throw new Error("TODO");
+                    this.editor.renderer.removeInstrument(form.elements['instrumentID'].value);
+                    this.editor.instruments.render();
                     break;
 
                 case 'instrument:change':
-                    this.editor.renderer.replaceInstrumentParam(form.elements['instrumentID'].value, 'url', form.elements['instrumentURL'].value);
+                    this.editor.renderer.replaceInstrument(form.elements['instrumentID'].value, form.elements['instrumentURL'].value);
                     this.editor.renderer.loadInstrument(form.elements['instrumentID'].value, true);
-                    this.editor.instruments.render();
+                    this.editor.instruments.render(); // Renders instrument in 'loading' state if not yet loaded by loadInstrument()
                     break;
 
                 case 'instrument:add':
@@ -123,8 +110,8 @@ class SongEditorInstruments {
                 //     console.log("Instrument Form " + e.type, newConfig, e);
                 //     this.editor.renderer.replaceInstrumentParams(this.id, newConfig);
                 //     break;
-                default:
-                    throw new Error("Unexpected command: " + command);
+                // default:
+                //     throw new Error("Unexpected command: " + command);
             }
         } catch (e) {
             this.editor.onError(e);
@@ -139,7 +126,7 @@ class SongEditorInstruments {
         this.renderElement.innerHTML = '';
         const instrumentList = this.editor.renderer.getInstrumentList();
         for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
-            const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + (instrumentID + ": ");
+            const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + (instrumentID + ":");
 
             let instrumentDiv = document.createElement('div');
             instrumentDiv.setAttribute('data-id', instrumentID+'');
@@ -148,33 +135,39 @@ class SongEditorInstruments {
 
             // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
 
-            if(this.editor.renderer.isInstrumentLoaded(instrumentID)) {
+            const instrument = this.editor.renderer.getInstrument(instrumentID, false);
+            const instrumentPreset = this.editor.renderer.getInstrumentConfig(instrumentID, false) || {name: "Empty Instrument"};
+
+            instrumentDiv.innerHTML =
+                `<div class="instrument-container-header">
+                    <form class="form-instrument-name submit-on-change" data-command="instrument:name">
+                        <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                        <label class="label-instrument-name">${instrumentIDHTML}<!--
+                            --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument" ${instrumentPreset.url ? '' : `disabled`}/>
+                        </label>
+                    </form>
+                    <form class="form-change-instrument submit-on-change" data-command="instrument:change">
+                        <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                        <select name="instrumentURL" class="themed">
+                            <optgroup label="Change Instrument">
+                                ${this.editor.forms.renderEditorFormOptions('instruments-available', (value) => value === instrumentPreset.url)}
+                            </optgroup>
+                        </select>
+                    </form>
+                    <form class="form-instrument-remove" data-command="instrument:remove">
+                        <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                        <button class="remove-instrument">x</button>
+                    </form>
+                </div>`;
+
+            if(!instrumentPreset.url) {
+                instrumentDiv.innerHTML += `Empty`;
+
+            } else if(!this.editor.renderer.isInstrumentLoaded(instrumentID)) {
+                instrumentDiv.innerHTML += `Loading...`;
+
+            } else {
                 try {
-                    const instrument = this.editor.renderer.getInstrument(instrumentID);
-                    const instrumentPreset = this.editor.renderer.getInstrumentConfig(instrumentID);
-
-                    instrumentDiv.innerHTML =
-                        `<div class="instrument-container-header">
-                            <form class="form-change-instrument submit-on-change" data-command="instrument:change">
-                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>${instrumentIDHTML}
-                                <select name="instrumentURL" class="themed">
-                                    <optgroup label="Change Instrument">
-                                        ${this.editor.forms.renderEditorFormOptions('instruments-available', (value) => value === instrumentPreset.url)}
-                                    </optgroup>
-                                </select>
-                            </form>
-                            <form class="form-instrument-name submit-on-change" data-command="instrument:name">
-                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                                <label class="label-instrument-name">
-                                    <input name="name" type="text" value="${instrumentPreset.name}" placeholder="Unnamed Instrument" />
-                                </label>
-                            </form>
-                            <form class="form-instrument-remove" data-command="instrument:remove">
-                                <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                                <button class="remove-instrument">x</button>
-                            </form>
-                        </legend>`;
-
                     if (instrument instanceof HTMLElement) {
                         instrumentDiv.appendChild(instrument);
                     } else if (instrument.render) {
@@ -186,11 +179,8 @@ class SongEditorInstruments {
                     }
 
                 } catch (e) {
-                    instrumentDiv.innerHTML = `<legend class="themed">${instrumentIDHTML} Error: ${e.message}<button class="remove-instrument">x</button></legend>`
-                    + e.stack;
+                    instrumentDiv.innerHTML += e;
                 }
-            } else {
-                instrumentDiv.innerHTML = `<legend class="themed">${instrumentIDHTML} Loading...<button class="remove-instrument">x</button></legend>`;
             }
         }
 
@@ -202,7 +192,7 @@ class SongEditorInstruments {
         addInstrumentDiv.innerHTML +=
             `<form class="form-add-instrument submit-on-change" data-command="instrument:add">
                 <select name="instrumentURL" class="themed">
-                    <option value="">Add New Instrument</option>
+                    <option value="">Add an Instrument to this song</option>
                     ${this.editor.forms.renderEditorFormOptions('instruments-available')}
                 </select>
             </form>`;

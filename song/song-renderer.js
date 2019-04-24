@@ -338,6 +338,8 @@ class SongRenderer {
                 return;   // Instructions were already played
             if(playbackLength && absolutePlaytime >= playbackPosition + playbackLength)
                 return;
+            if(noteInstruction.command[0] === '!')
+                return;
             // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
             this.playInstruction(noteInstruction, currentTime + absolutePlaytime, stats);
         });
@@ -427,6 +429,7 @@ class SongRenderer {
                         // groupStats.absolutePlaytime = groupStats.groupPlaytime + groupStats.parentPlaytime;
                         // callback(instruction, groupStats);
                     }
+                    // Callback all notes, including commands and groups
                     callback(i, instruction, stats);
                 }
 
@@ -456,11 +459,13 @@ class SongRenderer {
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
     }
 
-    getInstrumentConfig(instrumentID) {
+    getInstrumentConfig(instrumentID, throwException=true) {
         const instrumentList = this.getInstrumentList();
-        if(!instrumentList[instrumentID])
+        if(instrumentList[instrumentID])
+            return instrumentList[instrumentID];
+        if(throwException)
             throw new Error("Instrument ID not found: " + instrumentID);
-        return instrumentList[instrumentID];
+        return null;
     }
 
     getInstrument(instrumentID, throwException=true) {
@@ -475,6 +480,7 @@ class SongRenderer {
         return this.getSongData().instruments.slice();
     }
 
+    // TODO: async
     loadInstrumentClass(instrumentClassURL) {
         instrumentClassURL = new URL(instrumentClassURL, document.location);
         const instrumentClassPath = instrumentClassURL.pathname;
@@ -493,10 +499,12 @@ class SongRenderer {
     }
 
 
+    // TODO: async
     loadInstrument(instrumentID, forceReload=false) {
         instrumentID = parseInt(instrumentID);
         if (!forceReload && this.loadedInstruments[instrumentID])
             return true;
+        this.loadedInstruments[instrumentID] = null;
 
         const instrumentPreset = this.getInstrumentConfig(instrumentID);
         const instrumentClassURL = new URL(instrumentPreset.url, document.location);
@@ -582,11 +590,30 @@ class SongRenderer {
         return instrumentID;
     }
 
+    replaceInstrument(instrumentID, config) {
+        const instrumentList = this.songData.instruments;
+        if(!instrumentList[instrumentID])
+            throw new Error("Invalid instrument ID: " + instrumentID);
+        const oldInstrument = instrumentList[instrumentID];
+        if(typeof config !== 'object')
+            config = {
+                url: config
+            };
+        if(oldInstrument.name && !config.name)
+            config.name = oldInstrument.name;
+        // Preserve old instrument name
+        return this.replaceDataPath(`instruments.${instrumentID}`, config)
+            .oldData;
+    }
+
     removeInstrument(instrumentID) {
         const instrumentList = this.songData.instruments;
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
-
+        // if(instrumentList.length === instrumentID) {
+        //
+        // }
+        delete this.loadedInstruments[instrumentID];
         return this.replaceDataPath(`instruments.${instrumentID}`)
             .oldData;
     }
@@ -1064,7 +1091,9 @@ SongRenderer.DEFAULT_SONG_DATA = {
     beatsPerMinute: 160,
     beatsPerMeasure: 4,
     instruments: [{
-        "url": "/instrument/instrument-buffersource.element.js",
+        "url": "/synthesizer/synthesizer-instrument.element.js",
+        // "url": "/instrument/instrument-buffersource.element.js",
+        // "url": "/instrument/instrument-oscillator.element.js",
     }],
     instructions: {
         'root': [4]
