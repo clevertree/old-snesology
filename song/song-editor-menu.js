@@ -36,8 +36,8 @@ class SongEditorMenu {
         let form = e.target.form || e.target;
         // const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
-        const selectedIndicies = this.editor.status.selectedIndicies;
-        const selectedNoteIndices = this.editor.selectedNoteIndicies;
+        const selectedIndicies = this.editor.selectedIndicies;
+        const selectedNoteIndices = this.editor.selectedRange;
         // const selectedPauseIndices = this.editor.selectedPauseIndicies;
 
         const dataCommand = e.target.getAttribute('data-command');
@@ -101,22 +101,12 @@ class SongEditorMenu {
 
             case 'instruction:insert':
                 e.preventDefault();
-
                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                 if(!newInstruction)
                     return console.info("Insert canceled");
-                // song.getSelectedInstructions() = [selectedInstruction]; // select new instruction
-
-
-                let newInstruction = this.editor.forms.getInstructionFormValues(true);
-                if(!newInstruction)
-                    return console.info("Insert canceled");
-                let insertIndex = this.editor.renderer.insertInstructionAtPosition(newInstruction, this.editor.cursorPosition);
-                this.editor.status.selectedIndices = [insertIndex];
+                let insertIndex = this.editor.renderer.insertInstructionAtPosition(this.editor.currentGroup, selectedRange[0], newInstruction);
+                this.editor.selectInstructions(this.editor.currentGroup, insertIndex);
                 this.editor.render();
-
-
-                this.editor.renderer.insertInstructionAtIndex(currentGroup, selectedIndicies[0], newInstruction);
                 break;
 
             case 'instruction:command':

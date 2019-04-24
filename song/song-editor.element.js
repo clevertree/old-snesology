@@ -11,9 +11,10 @@ class SongEditorElement extends HTMLElement {
         this.status = {
             // selectedIndexCursor: 0,
             currentGroup: 'root',
-            cursorCellIndex: 0,
-            cursorPosition: 0,
+            // cursorCellIndex: 0,
+            // cursorPosition: 0,
             selectedIndicies: [],
+            selectedRange: [0,0],
 
             currentOctave: 3,
             currentInstrumentID: 0,
@@ -47,9 +48,8 @@ class SongEditorElement extends HTMLElement {
     }
 
     get currentGroup()      { return this.status.currentGroup; }
-    get cursorCellIndex()   { return this.status.cursorCellIndex; }
-    get cursorPosition()    { return this.status.cursorPosition; }
     get selectedIndicies()  { return this.status.selectedIndicies; }
+    get selectedRange()     { return this.status.selectedRange; }
     get selectedPauseIndicies()  {
         const instructionList = this.renderer.getInstructions(this.currentGroup);
         return this.selectedIndicies.filter(index => instructionList[index].command === '!pause')
@@ -92,7 +92,6 @@ class SongEditorElement extends HTMLElement {
         // this.initWebSocket(uuid);
 
     }
-
 
     // Input
 
@@ -219,39 +218,21 @@ class SongEditorElement extends HTMLElement {
         this.instruments.update();
     }
 
-    selectInstructions(groupName, index, cursorCellIndex=null, clearSelection=true, toggle=false) {
-        // this.status.selectedIndexCursor = index;
-        if(cursorCellIndex !== null)
-            this.status.cursorCellIndex = cursorCellIndex;
-        if(this.status.currentGroup !== groupName) {
-            this.status.currentGroup = groupName;
-            this.status.selectedIndicies = [];
-        }
-        if(clearSelection)
-            this.status.selectedIndicies = [];
-        const indicies = this.status.selectedIndicies;
-        const existingIndex = indicies.indexOf(index);
-        if(existingIndex === -1) {
-            indicies.push(index);
+    selectInstructions(groupName, selectedIndicies, selectedRange=null) {
+        if(!Array.isArray(selectedIndicies))
+            selectedIndicies = [selectedIndicies];
+        this.status.selectedIndicies = selectedIndicies;
+        this.status.currentGroup = groupName;
+        if(selectedRange !== null) {
+            this.status.selectedRange = selectedRange;
         } else {
-            if(toggle)
-                indicies.splice(existingIndex, 1);
+            this.status.selectedRange = this.renderer.getInstructionRange(groupName, selectedIndicies);
         }
-        // console.log("Selected: ", indicies, position, groupName);
+
         this.update();
     }
 
-    // Grid Commands
 
-    // Player commands
-
-    // Forms
-
-    // formUpdate() {
-    //     this.menu.setEditableInstruction();
-    // }
-
-    // Playback
 
 
 }

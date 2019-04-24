@@ -263,6 +263,21 @@ class SongRenderer {
         return instructionList[index];
     }
 
+    getInstructionRange(groupName, selectedIndicies) {
+        if(!Array.isArray(selectedIndicies))
+            selectedIndicies = [selectedIndicies];
+        let min=null, max=null;
+        this.eachInstruction(groupName, (i, instruction, stats) => {
+            if(selectedIndicies.indexOf(i) !== -1) {
+                if(min === null || stats.groupPosition < min)
+                    min = stats.groupPosition;
+                if(max === null || stats.groupPosition > max)
+                    max = stats.groupPosition;
+            }
+        });
+        return [min, max];
+    }
+
     playInstruction(instruction, noteStartTime, stats) {
         // if (instruction.command[0] === '@') {
         //     const commandGroup = instruction.command.substr(1);
@@ -334,16 +349,16 @@ class SongRenderer {
         playbackPosition = playbackPosition || 0;
         currentTime = currentTime || this.getAudioContext().currentTime;
         // instructionList = instructionList || this.songData.instructions;
-        return this.eachInstruction(instructionGroup, (i, noteInstruction, stats) => {
+        return this.eachInstruction(instructionGroup, (i, instruction, stats) => {
             const absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
             if(absolutePlaytime < playbackPosition)
                 return;   // Instructions were already played
             if(playbackLength && absolutePlaytime >= playbackPosition + playbackLength)
                 return;
-            if(noteInstruction.command[0] === '!')
+            if(instruction.command[0] === '!')
                 return;
             // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
-            this.playInstruction(noteInstruction, currentTime + absolutePlaytime, stats);
+            this.playInstruction(instruction, currentTime + absolutePlaytime, stats);
         });
     }
 
