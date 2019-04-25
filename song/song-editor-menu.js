@@ -47,7 +47,7 @@ class SongEditorMenu {
         const dataCommand = menuTarget.getAttribute('data-action');
         if(!dataCommand)
             return;
-        console.info("Menu Click: " + dataCommand, e);
+        // console.info("Menu Click: " + dataCommand, e);
         // e.preventDefault();
 
 
@@ -133,6 +133,23 @@ class SongEditorMenu {
                 for(let i=0; i<selectedNoteIndicies.length; i++) {
                     this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
                         command: newCommand
+                    });
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                }
+                this.editor.render();
+                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                break;
+
+            case 'instruction:instrument':
+                e.preventDefault();
+                // use menu data or prompt for value
+                let newInstrument = menuTarget.getAttribute('data-instrument');
+                if(newInstrument === null)
+                    throw new Error("Missing instrument ID");
+                newInstrument = parseFloat(newInstrument);
+                for(let i=0; i<selectedNoteIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
+                        instrument: newInstrument
                     });
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
                 }
@@ -341,7 +358,11 @@ class SongEditorMenu {
                             ${this.editor.forms.getEditorFormOptions('song-instruments', (value, label) =>
                                 `<li><a data-action="instruction:instrument" data-instrument="${value}">${label}</a></li>`)}
                                 <li>
-                                    <a data-action="instruction:instrument">Add new Instrument &#9658;</a>
+                                    <a>Add new Instrument &#9658;</a>
+                                    <ul class="submenu">
+                                        ${this.editor.forms.getEditorFormOptions('instruments-available', (value, label) =>
+                                            `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
+                                    </ul>
                                 </li>
                         </ul>
                     </li>
@@ -389,7 +410,13 @@ class SongEditorMenu {
             <li>
                 <a><span class="key">I</span>nstruments</a>
                 <ul class="submenu">
-                    <li><a data-action="instrument:add">Add <span class="key">N</span>ew Instrument</a></li>
+                    <li>
+                        <a>Add new Instrument &#9658;</a>
+                        <ul class="submenu">
+                            ${this.editor.forms.getEditorFormOptions('instruments-available', (value, label) =>
+                                `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
+                        </ul>
+                    </li>
                 </ul>
             </li>`;
 

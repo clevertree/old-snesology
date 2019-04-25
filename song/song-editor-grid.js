@@ -69,7 +69,7 @@ class SongEditorGrid {
 
     focus() {
         if(this.renderElement !== document.activeElement) {
-            console.log("Focus", document.activeElement);
+//             console.log("Focus", document.activeElement);
             this.renderElement.focus();
         }
 
@@ -518,15 +518,27 @@ class SongEditorGrid {
         const selectedIndicies = this.editor.selectedIndicies;
         // console.log(cursorCellIndex);
         // const selectedIndexCursor = this.editor.status.;
-        for(let i=0; i<cellList.length; i++) {
+        for (let i = 0; i < cellList.length; i++) {
             const cell = cellList[i];
             // const position = parseFloat(cell.getAttribute('data-position'));
             const index = parseInt(cell.getAttribute('data-index'));
-            cell.classList.toggle('selected', selectedIndicies.indexOf(index) !== -1);
             // cell.classList.toggle('cursor', selectedIndicies[0] === index);
-            cell.classList.toggle('cursor', this.cursorCellIndex === i);
+            cell.classList.remove('cursor');
+            cell.classList.remove('selected');
+            if (selectedIndicies.indexOf(index) !== -1) {
+                cell.classList.add('selected');
+                // cell.classList.toggle('cursor', selectedIndicies[0] === index);
+                cell.classList.toggle('cursor', this.cursorCellIndex === i);
+            }
         }
 
+        // Check for missing cursor
+        let missingCell = this.renderElement.querySelector('.grid-cell.selected');
+        if (!missingCell)
+            this.renderElement.querySelector('.grid-cell').classList.add('selected');
+        missingCell = this.renderElement.querySelector('.grid-cell.cursor');
+        if (!missingCell)
+            this.renderElement.querySelector('.grid-cell.selected').classList.add('cursor');
     }
 }
 // customElements.define('music-song-grid', SongEditorGrid);

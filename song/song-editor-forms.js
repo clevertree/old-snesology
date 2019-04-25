@@ -495,7 +495,7 @@ class SongEditorForms {
                         instrumentLibrary.instruments.forEach((pathConfig) => {
                             if (typeof pathConfig !== 'object') pathConfig = {url: pathConfig};
                             if(!pathConfig.title) pathConfig.title = pathConfig.url.split('/').pop();
-                            optionsHTML += callback(pathConfig.url, pathConfig.title + " (" + pathConfig.url + ")");
+                            optionsHTML += callback(pathConfig.url, pathConfig.title); //  + " (" + pathConfig.url + ")"
                         });
                     }
                 }

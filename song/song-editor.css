@@ -144,6 +144,8 @@ song-editor ul.editor-context-menu {
     /*color: black;*/
     /*position: fixed;*/
     /*display: none;*/
+
+    transition: all 0s;
 }
 song-editor ul.editor-context-menu.open-context-menu {
     display: block;
