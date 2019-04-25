@@ -278,7 +278,12 @@ class SongRenderer {
         return [min, max];
     }
 
-    playInstruction(instruction, noteStartTime, stats) {
+    playInstructionAtIndex(groupName, instructionIndex, noteStartTime=null, stats=null) {
+        const instruction = this.getInstruction(groupName, instructionIndex);
+        this.playInstruction(instruction, noteStartTime, stats)
+    }
+
+    playInstruction(instruction, noteStartTime=null, stats=null) {
         // if (instruction.command[0] === '@') {
         //     const commandGroup = instruction.command.substr(1);
             // TODO: play groups too
@@ -311,7 +316,7 @@ class SongRenderer {
             return;
         }
 
-        if(typeof noteStartTime === "undefined")
+        if(!noteStartTime && noteStartTime !== 0)
             noteStartTime = this.getAudioContext().currentTime;
 
 

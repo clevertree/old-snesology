@@ -52,35 +52,42 @@ song-editor ul.submenu {
     /* width: 100%; */
 }
 
-/** Drop Down / Context Menu **/
-song-editor ul.editor-menu ul.context-menu,
+/** Drop Down Menu **/
 song-editor ul.submenu {
-    display: none;
-    position: absolute;
+    z-index: 98;
+    /*display: none;*/
     /* display: none; */
+    display: inline-block;
+    position: absolute;
+    /*left: -800px;*/
+
     border: 1px solid grey;
     background-color: #BBB;
     /* position: absolute; */
     opacity: 0;
     margin: 0 -0.3em -0.3em -0.3em;
     padding: 0 0.3em 0.3em 0.3em;
-    max-height: 0px;
-    transition: max-height 2s, opacity 0.5s;
+    /*max-height: 0px;*/
+    transition: all 0.1s 0.4s ease-in;
     border-radius: 2px;
+    white-space: nowrap;
+    transform: scaleY(0);
     /*overflow: hidden;*/
     /* min-width: 200px; */
 }
 
 /** Drop Down Trigger **/
+song-editor ul.submenu.open,
 song-editor li:hover > ul.submenu,
 song-editor a:focus + ul.submenu {
-    display: inline-block;
-    white-space: nowrap;
+    z-index: 99;
+    /*left: 0;*/
+    transform: scaleY(1);
     opacity: 1;
-    max-height: 800px;
-    transition: max-height 1s, opacity 0.3s;
+    /*max-height: 800px;*/
+    transition: all 0.1s 0s ease-out;
+    /*transition: max-height 1s, opacity 0.3s;*/
     /*transition: max-height 2s;*/
-    z-index: 98;
 }
 
 /** Menu Styling **/
@@ -88,7 +95,7 @@ song-editor ul.editor-menu > li > a,
 song-editor ul.editor-menu ul.submenu > li > a {
     vertical-align: top;
     display: inline-block;
-    padding: 3px 8px;
+    padding: 5px 8px;
     /* position: relative; */
     cursor: pointer;
     white-space: nowrap;
@@ -131,16 +138,17 @@ song-editor .editor-menu:not(.show-modify-instruction-controls) .modify-instruct
 
 /** Context Menu **/
 
-song-editor ul.context-menu {
+song-editor ul.editor-context-menu {
     /* border: 1px solid grey; */
-    background-color: #BBB;
-    color: black;
-    position: fixed;
-    display: none;
-    z-index: 99;
+    /*background-color: #BBB;*/
+    /*color: black;*/
+    /*position: fixed;*/
+    /*display: none;*/
 }
-song-editor ul.context-menu .context-menu.open {
+song-editor ul.editor-context-menu.open-context-menu {
     display: block;
+    position: fixed;
+    z-index: 99;
 }
 
 

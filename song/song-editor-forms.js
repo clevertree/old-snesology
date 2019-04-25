@@ -364,7 +364,7 @@ class SongEditorForms {
                 <form action="#" class="form-instruction-instrument submit-on-change" data-action="instruction:instrument">
                     <select name="instrument" title="Instruction Instrument" class="themed">
                         <optgroup label="Song Instruments">
-                            ${this.renderEditorFormOptions('instruments-songs')}
+                            ${this.renderEditorFormOptions('song-instruments')}
                         </optgroup>
                     </select>
                 </form>
@@ -452,7 +452,7 @@ class SongEditorForms {
                     <select name="instrument" class="themed"->
                         <option value="">Show All (Default)</option>
                         <optgroup label="Filter By">
-                            ${this.renderEditorFormOptions('instruments-songs')}
+                            ${this.renderEditorFormOptions('song-instruments')}
                         </optgroup>
                     </select>
                 </form>
@@ -476,7 +476,7 @@ class SongEditorForms {
                     optionsHTML += callback.apply(this, songRecentUUIDs[i]);
                 break;
 
-            case 'instruments-songs':
+            case 'song-instruments':
                 if(songData.instruments) {
                     const instrumentList = songData.instruments;
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
