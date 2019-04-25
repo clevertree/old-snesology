@@ -299,7 +299,7 @@ class SynthesizerInstrument extends HTMLElement {
     render() {
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
-            <form class="instrument-editor submit-on-change" data-command="instrument:preset">
+            <form class="instrument-editor submit-on-change" data-action="instrument:preset">
                 <label>Preset
                     <select name="preset" title="Load Preset" class="themed">
                         <option value="">Select Preset</option>
@@ -364,7 +364,7 @@ class SynthesizerInstrument extends HTMLElement {
             return;
         e.preventDefault();
         let form = e.target.form || e.target;
-        const command = form.getAttribute('data-command');
+        const command = form.getAttribute('data-action');
 
 
         switch(command) {

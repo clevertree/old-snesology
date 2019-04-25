@@ -75,7 +75,7 @@ class SongEditorInstruments {
     onSubmit(e) {
         e.preventDefault();
         let form = e.target.form || e.target;
-        const command = form.getAttribute('data-command');
+        const command = form.getAttribute('data-action');
 
         try {
 
@@ -141,13 +141,13 @@ class SongEditorInstruments {
 
             instrumentDiv.innerHTML =
                 `<div class="instrument-container-header">
-                    <form class="form-instrument-name submit-on-change" data-command="instrument:name">
+                    <form class="form-instrument-name submit-on-change" data-action="instrument:name">
                         <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                         <label class="label-instrument-name">${instrumentIDHTML}<!--
                             --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument" ${instrumentPreset.url ? '' : `disabled`}/>
                         </label>
                     </form>
-                    <form class="form-change-instrument submit-on-change" data-command="instrument:change">
+                    <form class="form-change-instrument submit-on-change" data-action="instrument:change">
                         <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                         <select name="instrumentURL" class="themed">
                             <optgroup label="Change Instrument">
@@ -155,7 +155,7 @@ class SongEditorInstruments {
                             </optgroup>
                         </select>
                     </form>
-                    <form class="form-instrument-remove" data-command="instrument:remove">
+                    <form class="form-instrument-remove" data-action="instrument:remove">
                         <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                         <button class="remove-instrument">x</button>
                     </form>
@@ -191,7 +191,7 @@ class SongEditorInstruments {
         this.renderElement.appendChild(addInstrumentDiv);
 
         addInstrumentDiv.innerHTML +=
-            `<form class="form-add-instrument submit-on-change" data-command="instrument:add">
+            `<form class="form-add-instrument submit-on-change" data-action="instrument:add">
                 <select name="instrumentURL" class="themed">
                     <option value="">Add an Instrument to this song</option>
                     ${this.editor.forms.renderEditorFormOptions('instruments-available')}

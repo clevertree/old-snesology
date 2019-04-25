@@ -67,15 +67,21 @@ class SongEditorGrid {
         return null;
     }
 
+    focus() {
+        if(this.renderElement !== document.activeElement) {
+            console.log("Focus", document.activeElement);
+            this.renderElement.focus();
+        }
+
+    }
+
     onInput(e) {
         if (e.defaultPrevented)
             return;
         if(!this.renderElement.contains(e.target))
             return;
-        if(this.renderElement !== document.activeElement) {
-//             console.log("Focus", document.activeElement);
-            this.renderElement.focus();
-        }
+
+        this.focus();
 
         try {
             let selectedIndices = this.selectedIndices;

@@ -123,8 +123,8 @@ song-editor ul.editor-menu hr {
 
 
 song-editor .editor-menu:not(.show-no-instruction-controls) .no-instruction-controls,
-song-editor .editor-menu:not(.show-modify-instruction-controls) .modify-instruction-controls,
-song-editor .editor-menu:not(.show-insert-instruction-controls) .insert-instruction-controls {
+song-editor .editor-menu:not(.show-modify-instruction-controls) .modify-instruction-controls {
+/*song-editor .editor-menu:not(.show-insert-instruction-controls) .insert-instruction-controls {*/
     display: none;
 }
 
