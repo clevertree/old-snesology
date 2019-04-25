@@ -31,7 +31,7 @@ class SongEditorKeyboard {
     }
 
     getKeyboardCommand(key) {
-        const keyboardLayout = this.editor.constants.keyboardLayout;
+        const keyboardLayout = this.editor.values.keyboardLayout;
         if(typeof keyboardLayout[key] === 'undefined')
             return null;
         const octave = parseInt(this.editor.forms.fieldRenderOctave.value) || 1;

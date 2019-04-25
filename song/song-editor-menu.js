@@ -248,7 +248,7 @@ class SongEditorMenu {
                             <li>
                                 <a class="disabled">from <span class="key">S</span>erver &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('server-recent-uuid', (value, label) =>
+                                    ${this.editor.values.getEditorFormOptions('server-recent-uuid', (value, label) =>
                                     `<li><a data-action="song:load-server-uuid" data-uuid="${value}">${label}</a></li>`)}
                                     <li><a data-action="song:load-server-uuid" data-uuid="">Enter UUID</a></li>
                                 </ul>
@@ -256,7 +256,7 @@ class SongEditorMenu {
                             <li>
                                 <a>from <span class="key">M</span>emory &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('memory-recent-uuid', (value, label) =>
+                                    ${this.editor.values.getEditorFormOptions('memory-recent-uuid', (value, label) =>
                                     `<li><a data-action="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
                                     <li><a data-action="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
                                 </ul>
@@ -290,11 +290,11 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">F</span>requency &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('note-frequency-octaves', (octave, label) =>
+                                    ${this.editor.values.getEditorFormOptions('note-frequency-octaves', (octave, label) =>
                                         `<li>
                                             <a>Octave ${label}</a>
                                             <ul class="submenu">
-                                            ${this.editor.forms.getEditorFormOptions('note-frequencies', (noteName, label) =>
+                                            ${this.editor.values.getEditorFormOptions('note-frequencies', (noteName, label) =>
                                                 `<li><a data-action="instruction:insert" data-command="${noteName+octave}">${label}${octave}</a>`)}
                                             </ul>
                                         </li>`)}
@@ -304,7 +304,7 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">N</span>amed &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('command-instrument-frequencies', (value, label) =>
+                                    ${this.editor.values.getEditorFormOptions('command-instrument-frequencies', (value, label) =>
                                         `<li><a data-action="instruction:insert" data-command="${value}">${label}</a></li>`)}
                                         <li><a data-action="instruction:insert">Custom Command</a></li>
                                 </ul>
@@ -312,7 +312,7 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">G</span>roup &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('command-group-execute', (value, label) =>
+                                    ${this.editor.values.getEditorFormOptions('command-group-execute', (value, label) =>
                                         `<li><a data-action="instruction:insert" data-command="${value}">${label}</a></li>`)}
                                         <li><a data-action="instruction:insert">Custom Command</a></li>
                                 </ul>
@@ -325,11 +325,11 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">F</span>requency &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('note-frequency-octaves', (octave, label) =>
+                                    ${this.editor.values.getEditorFormOptions('note-frequency-octaves', (octave, label) =>
                                         `<li>
                                             <a>Octave ${label}</a>
                                             <ul class="submenu">
-                                            ${this.editor.forms.getEditorFormOptions('note-frequencies', (noteName, label) =>
+                                            ${this.editor.values.getEditorFormOptions('note-frequencies', (noteName, label) =>
                                                 `<li><a data-action="instruction:command" data-command="${noteName+octave}">${label}${octave}</a>`)}
                                             </ul>
                                         </li>`)}
@@ -338,14 +338,14 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">N</span>amed &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('command-instrument-frequencies', (value, label) =>
+                                    ${this.editor.values.getEditorFormOptions('command-instrument-frequencies', (value, label) =>
                                         `<li><a data-action="instruction:command" data-command="${value}">${label}</a></li>`)}
                                 </ul>
                             </li>
                             <li>
                                 <a><span class="key">G</span>roup &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.forms.getEditorFormOptions('command-group-execute', (value, label) =>
+                                    ${this.editor.values.getEditorFormOptions('command-group-execute', (value, label) =>
                                         `<li><a data-action="instruction:command" data-command="${value}">${label}</a></li>`)}
                                 </ul>
                             </li>
@@ -355,12 +355,12 @@ class SongEditorMenu {
                     <li class="modify-instruction-controls">
                         <a>Set <span class="key">I</span>nstrument &#9658;</a>
                         <ul class="submenu">
-                            ${this.editor.forms.getEditorFormOptions('song-instruments', (value, label) =>
+                            ${this.editor.values.getEditorFormOptions('song-instruments', (value, label) =>
                                 `<li><a data-action="instruction:instrument" data-instrument="${value}">${label}</a></li>`)}
                                 <li>
                                     <a>Add new Instrument &#9658;</a>
                                     <ul class="submenu">
-                                        ${this.editor.forms.getEditorFormOptions('instruments-available', (value, label) =>
+                                        ${this.editor.values.getEditorFormOptions('instruments-available', (value, label) =>
                                             `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
                                     </ul>
                                 </li>
@@ -370,7 +370,7 @@ class SongEditorMenu {
                         <a>Set <span class="key">D</span>uration &#9658</a>
                         <ul class="submenu">
                             <li><a data-action="instruction:duration">Custom Duration</a></li>
-                            ${this.editor.forms.getEditorFormOptions('durations', (value, label) =>
+                            ${this.editor.values.getEditorFormOptions('durations', (value, label) =>
                                 `<li><a data-action="instruction:duration" data-duration="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
@@ -378,7 +378,7 @@ class SongEditorMenu {
                         <a>Set <span class="key">V</span>elocity &#9658</a>
                         <ul class="submenu">
                             <li><a data-action="instruction:velocity">Custom Velocity</a></li>
-                            ${this.editor.forms.getEditorFormOptions('velocities', (value, label) =>
+                            ${this.editor.values.getEditorFormOptions('velocities', (value, label) =>
                                 `<li><a data-action="instruction:velocity" data-velocity="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
@@ -413,7 +413,7 @@ class SongEditorMenu {
                     <li>
                         <a>Add new Instrument &#9658;</a>
                         <ul class="submenu">
-                            ${this.editor.forms.getEditorFormOptions('instruments-available', (value, label) =>
+                            ${this.editor.values.getEditorFormOptions('instruments-available', (value, label) =>
                                 `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
@@ -424,52 +424,7 @@ class SongEditorMenu {
         this.update();
     }
 
-//     renderEditorMenuLoadFromMemory() {
-//         return '';
-//         const songGUIDs = JSON.parse(localStorage.getItem('share-song-saved-list') || '[]');
-// //         console.log("Loading songData list from memory: ", songGUIDs);
-//
-//         let menuItemsHTML = '';
-//         for(let i=0; i<songGUIDs.length; i++) {
-//             const songGUID = songGUIDs[i];
-//             let songDataString = localStorage.getItem('song:' + songGUID);
-//             const song = JSON.parse(songDataString);
-//             if(song) {
-//                 menuItemsHTML +=
-//                     `<li>
-//                     <a data-action="load:memory" data-guid="${songGUID}">${song.name || "unnamed"}</a>
-//                 </li>`;
-//             } else {
-//                 console.error("Song GUID not found: " + songGUID);
-//             }
-//         }
-//
-//         return `
-//         <ul class="submenu">
-//             ${menuItemsHTML}
-//         </ul>
-//     `;
-//     }
-
-
-// <br/>
-// <label class="row-label">Group:</label>
-// <form class="form-song-bpm" data-action="song:edit">
-//         <select name="beats-per-minute" title="Beats per minute" disabled>
-// <optgroup label="Beats per minute">
-//         ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>
-// `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
-//     </optgroup>
-// </select>
-// <select name="beats-per-measure" title="Beats per measure" disabled>
-// <optgroup label="Beats per measure">
-//         ${this.getEditorFormOptions('beats-per-measure', (value, label, selected) =>
-// `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
-//     </optgroup>
-// </select>
-// </form>
-
-    // Menu
+    // Context Menu
 
     openContextMenu(e) {
         let x = e.clientX, y = e.clientY;

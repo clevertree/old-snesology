@@ -34,7 +34,7 @@ class SongEditorElement extends HTMLElement {
             instrumentLibrary: null,
             instrumentLibraryURL: null
         };
-        this.constants = new SongEditorConstants();
+        this.values = new SongEditorValues(this);
         this.webSocket = new SongEditorWebsocket(this);
         this.keyboard = new SongEditorKeyboard(this);
         this.menu = new SongEditorMenu(this);

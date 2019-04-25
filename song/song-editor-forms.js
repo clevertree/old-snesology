@@ -423,7 +423,7 @@ class SongEditorForms {
             
             <div class="form-section">
                 <div class="form-section-header">Render Group</div>
-                ${this.getEditorFormOptions('groups', (value, label) =>
+                ${this.editor.values.getEditorFormOptions('groups', (value, label) =>
                     `<form action="#" class="form-group" data-action="group:edit">`
                     + `<button name="groupName" value="${value}" class="themed" >${label}</button>`
                     + `</form>`)}
@@ -461,138 +461,11 @@ class SongEditorForms {
         this.update();
     }
 
-    /** Form Options **/
-
-    getEditorFormOptions(optionType, callback) {
-        let noteFrequencies;
-        let optionsHTML = '';
-        const songData = this.editor.getSongData() || {};
-
-        switch(optionType) {
-            case 'server-recent-uuid':
-            case 'memory-recent-uuid':
-                const songRecentUUIDs = JSON.parse(localStorage.getItem(optionType) || '[]');
-                for(var i=0; i<songRecentUUIDs.length; i++)
-                    optionsHTML += callback.apply(this, songRecentUUIDs[i]);
-                break;
-
-            case 'song-instruments':
-                if(songData.instruments) {
-                    const instrumentList = songData.instruments;
-                    for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
-                        const instrumentInfo = instrumentList[instrumentID] || {name: "No Instrument Loaded"};
-                        // const instrument = this.editor.renderer.getInstrument(instrumentID);
-                        optionsHTML += callback(instrumentID, this.editor.renderer.format(instrumentID, 'instrument')
-                            + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));
-                    }
-                }
-                break;
-
-            case 'instruments-available':
-                if(this.editor.status.instrumentLibrary) {
-                    const instrumentLibrary = this.editor.status.instrumentLibrary;
-                    if(instrumentLibrary.instruments) {
-                        instrumentLibrary.instruments.forEach((pathConfig) => {
-                            if (typeof pathConfig !== 'object') pathConfig = {url: pathConfig};
-                            if(!pathConfig.title) pathConfig.title = pathConfig.url.split('/').pop();
-                            optionsHTML += callback(pathConfig.url, pathConfig.title); //  + " (" + pathConfig.url + ")"
-                        });
-                    }
-                }
-                break;
-
-            case 'command-instrument-frequencies':
-                for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
-                    if(this.editor.renderer.isInstrumentLoaded(instrumentID)) {
-                        const instance = this.editor.renderer.getInstrument(instrumentID);
-                        if(instance.getFrequencyAliases) {
-                            const aliases = instance.getFrequencyAliases();
-                            Object.keys(aliases).forEach((aliasName) =>
-                                optionsHTML += callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
-                        }
-                    }
-                }
-                break;
-
-            case 'note-frequencies':
-                noteFrequencies = this.editor.constants.noteFrequencies;
-                // for(let i=1; i<=6; i++) {
-                for(let j=0; j<noteFrequencies.length; j++) {
-                    const noteFrequency = noteFrequencies[j]; //  + i
-                    optionsHTML += callback(noteFrequency, noteFrequency);
-                }
-                // }
-                break;
-
-
-            case 'note-frequencies-all':
-                noteFrequencies = this.editor.constants.noteFrequencies;
-                for(let i=1; i<=6; i++) {
-                    for(let j=0; j<noteFrequencies.length; j++) {
-                        const noteFrequency = noteFrequencies[j] + i;
-                        optionsHTML += callback(noteFrequency, noteFrequency);
-                    }
-                }
-                break;
-
-            case 'note-frequency-octaves':
-                for(let oi=1; oi<=7; oi+=1) {
-                    optionsHTML += callback(oi, '' + oi);
-                }
-                break;
-
-            case 'velocities':
-                // optionsHTML += callback(null, 'Velocity (Default)');
-                for(let vi=100; vi>=0; vi-=10) {
-                    optionsHTML += callback(vi, vi);
-                }
-                break;
-
-            case 'durations':
-                optionsHTML += callback(1/64, '1/64');
-                optionsHTML += callback(1/32, '1/32');
-                optionsHTML += callback(1/16, '1/16');
-                optionsHTML += callback(1/8,  '1/8');
-                optionsHTML += callback(1/4,  '1/4');
-                optionsHTML += callback(1/2,  '1/2');
-                for(let i=1; i<=16; i++)
-                    optionsHTML += callback(i, i+'B');
-                break;
-
-            case 'beats-per-measure':
-                for(let vi=1; vi<=12; vi++) {
-                    optionsHTML += callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
-                }
-                break;
-
-            case 'beats-per-minute':
-                for(let vi=40; vi<=300; vi+=10) {
-                    optionsHTML += callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
-                }
-                break;
-
-            case 'groups':
-                if(songData.instructions)
-                    Object.keys(songData.instructions).forEach(function(key, i) {
-                        optionsHTML += callback(key, key);
-                    });
-                break;
-
-            case 'command-group-execute':
-                if(songData.instructions)
-                    Object.keys(songData.instructions).forEach(function(key, i) {
-                        optionsHTML += callback('@' + key, '@' + key);
-                    });
-                break;
-        }
-        return optionsHTML;
-    }
-
 
 
     renderEditorFormOptions(optionType, selectCallback) {
         let optionsHTML = '';
-        this.getEditorFormOptions(optionType, function (value, label, html='') {
+        this.editor.values.getEditorFormOptions(optionType, function (value, label, html='') {
             const selected = selectCallback ? selectCallback(value) : false;
             optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
         });
@@ -643,58 +516,5 @@ class SongEditorForms {
 //     </optgroup>
 // </select>
 // </form>
-
-    // Menu
-
-
-    renderEditorMenuLinks(optionType, selectCallback) {
-        let optionsHTML = '';
-        this.getEditorFormOptions(optionType, function (value, label, html) {
-            const selected = selectCallback ? selectCallback(value) : false;
-            optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
-        });
-        return optionsHTML;
-    }
-
-    openContextMenu(e) {
-        let dataElm = null;
-        let target = e.target;
-        let x = e.clientX, y = e.clientY;
-
-        this.renderElement.querySelectorAll('a.open').forEach(elm => elm.classList.remove('open'));
-        // this.renderElement.querySelectorAll('.selected-context-menu').forEach(elm => elm.classList.remove('selected-context-menu'));
-        const contextMenu = this.renderElement.querySelector('.song-context-menu');
-        // console.info("Context menu", contextMenu);
-
-        // contextMenu.setAttribute('class', 'song-context-menu');
-        // contextMenu.firstElementChild.classList.add('open');
-
-        if(target.classList.contains('grid-parameter'))
-            target = target.parentNode;
--
-        contextMenu.classList.remove('selected-data', 'selected-row');
-        if(target.classList.contains('grid-cell')) {
-            dataElm = target;
-            contextMenu.classList.add('selected-data');
-            contextMenu.classList.add('selected-row');
-            const rect = dataElm.getBoundingClientRect();
-            x = rect.x + rect.width;
-            y = rect.y + rect.height;
-            this.editor.grid.selectCell(e, dataElm);
-            // this.editor.grid.focus();
-        } else if(target.classList.contains('grid-row')) {
-            contextMenu.classList.add('selected-row');
-        }
-
-        contextMenu.classList.add('open');
-
-        contextMenu.style.left = x + 'px';
-        contextMenu.style.top = y + 'px';
-    }
-
-    closeMenu() {
-        this.renderElement.querySelectorAll('.menu-item.open,.submenu.open')
-            .forEach(elm => elm.classList.remove('open'));
-    }
 
 }
