@@ -13,7 +13,7 @@ class SongEditorElement extends HTMLElement {
             currentGroup: 'root',
             // cursorCellIndex: 0,
             // cursorPosition: 0,
-            selectedIndicies: [],
+            selectedIndicies: [0],
             selectedRange: [0,0],
 
             currentOctave: 3,
@@ -224,6 +224,8 @@ class SongEditorElement extends HTMLElement {
         this.status.selectedIndicies = selectedIndicies;
         this.status.currentGroup = groupName;
         if(selectedRange !== null) {
+            if(selectedRange && !Array.isArray(selectedRange))
+                selectedRange = [selectedRange,selectedRange];
             this.status.selectedRange = selectedRange;
         } else {
             this.status.selectedRange = this.renderer.getInstructionRange(groupName, selectedIndicies);

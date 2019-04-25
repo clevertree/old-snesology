@@ -916,7 +916,7 @@ class SongRenderer {
         if(pauseInstruction.duration <= splitDuration)
             throw new Error("Split duration must be within pause duration");
         const splitDuration2 = pauseInstruction.duration - splitDuration;
-        this.replacePauseInstructionParam(groupName, pauseIndex, 'duration', splitDuration);
+        this.replaceInstructionParam(groupName, pauseIndex, 'duration', splitDuration);
         if(insertInstruction)
             this.insertInstructionAtIndex(groupName, ++pauseIndex, insertInstruction);
 
@@ -942,24 +942,8 @@ class SongRenderer {
     }
 
 
-    replacePauseInstructionParam(groupName, replaceIndex, paramName, paramValue) {
-        const instruction = this.getInstruction(groupName, replaceIndex);
-        if(instruction.command !== '!pause')
-            throw new Error("Instruction is not a pause instruction");
-
-        if(paramValue === null)
-            return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
-                .oldData;
-        return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`, paramValue)
-            .oldData;
-    }
-
 
     replaceInstructionParam(groupName, replaceIndex, paramName, paramValue) {
-        const instruction = this.getInstruction(groupName, replaceIndex);
-        if(instruction.command === '!pause')
-            throw new Error("Instruction is a pause instruction");
-
         if(paramValue === null)
             return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
                 .oldData;
@@ -1113,6 +1097,6 @@ SongRenderer.DEFAULT_SONG_DATA = {
         // "url": "/instrument/instrument-oscillator.element.js",
     }],
     instructions: {
-        'root': [4]
+        'root': [4,4]
     },
 };

@@ -37,7 +37,7 @@ class SongEditorMenu {
         // const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
         const selectedIndicies = this.editor.selectedIndicies;
-        const selectedNoteIndices = this.editor.selectedRange;
+        const selectedRange = this.editor.selectedRange;
         // const selectedPauseIndices = this.editor.selectedPauseIndicies;
 
         const dataCommand = e.target.getAttribute('data-command');
@@ -105,12 +105,14 @@ class SongEditorMenu {
                 if(!newInstruction)
                     return console.info("Insert canceled");
                 let insertIndex = this.editor.renderer.insertInstructionAtPosition(this.editor.currentGroup, selectedRange[0], newInstruction);
+                this.editor.renderer.playInstruction(newInstruction);
                 this.editor.selectInstructions(this.editor.currentGroup, insertIndex);
                 this.editor.render();
                 break;
 
             case 'instruction:command':
                 e.preventDefault();
+                // use menu data or prompt for value
                 const newCommand = prompt("Set Command:", cursorInstruction.command);
                 if(newCommand !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
                     command: newCommand
@@ -120,6 +122,7 @@ class SongEditorMenu {
 
             case 'instruction:duration':
                 e.preventDefault();
+                // use menu data or prompt for value
                 const newDuration = prompt("Set Duration:", typeof cursorInstruction.duration === 'undefined' ? 1 : cursorInstruction.duration);
                 if(newDuration < 0) throw new Error("Invalid duration value");
                 if(newDuration !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
@@ -130,6 +133,7 @@ class SongEditorMenu {
 
             case 'instruction:velocity':
                 e.preventDefault();
+                // use menu data or prompt for value
                 const newVelocity = prompt("Set Velocity:", typeof cursorInstruction.velocity === 'undefined' ? 100 : cursorInstruction.velocity);
                 if(newVelocity < 0 || newVelocity > 100) throw new Error("Invalid velocity value");
                 if(newVelocity !== null)     this.replaceInstructionParams(currentGroup, cursorIndex, {
@@ -151,22 +155,12 @@ class SongEditorMenu {
 
 
     update() {
-        const cursorIndex = this.editor.cursorCellIndex;
         const selectedNoteIndicies = this.editor.selectedNoteIndicies;
 
-        // Note Instructions
-
-        this.renderElement.classList.remove('show-insert-instruction-controls');
         this.renderElement.classList.remove('show-modify-instruction-controls');
         if(selectedNoteIndicies.length > 0) {
             // Note is selected
             this.renderElement.classList.add('show-modify-instruction-controls');
-
-        } else if(cursorIndex || cursorIndex === 0) {
-            // Cursor is available
-            this.renderElement.classList.add('show-insert-instruction-controls');
-        } else {
-            this.renderElement.classList.add('show-no-instruction-controls');
         }
     }
 
@@ -227,8 +221,7 @@ class SongEditorMenu {
             <li>
                 <a><span class="key">E</span>dit</a>
                 <ul class="submenu">
-                    <li class="no-instruction-controls"><a class="disabled">Select a grid position to insert or modify notes</a></li>
-                    <li class="insert-instruction-controls"><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
+                    <li><a data-command="instruction:insert">Insert <span class="key">N</span>ew Command</a></li>
                     <li class="modify-instruction-controls"><a data-command="instruction:command">Set <span class="key">C</span>ommand</a></li>
                     <li class="modify-instruction-controls"><a data-command="instruction:instrument">Set <span class="key">I</span>nstrument</a></li>
                     <li class="modify-instruction-controls"><a data-command="instruction:duration">Set <span class="key">D</span>uration</a></li>
@@ -266,24 +259,7 @@ class SongEditorMenu {
             </li>`;
 
 
-    // <ul class="editor-context-menu submenu">
-    //         <!--<li><a class="menu-section-title">- Cell Actions -</a></li>-->
-    //     <li>
-    //     <a><span class="key">N</span>ote<span class="submenu-pointer"></span></a>
-    //     <ul class="submenu" data-submenu-content="submenu:command"></ul>
-    //         </li>
-    //         <li>
-    //         <a><span class="key">R</span>ow<span class="submenu-pointer"></span></a>
-    //     <ul class="submenu" data-submenu-content="submenu:pause"></ul>
-    //         </li>
-    //         <li>
-    //         <a><span class="key">G</span>roup <span class="submenu-pointer"></span></a>
-    //     <ul class="submenu" data-submenu-content="submenu:group"></ul>
-    //         </li>
-    //         </ul>`;
-
-
-        // this.update();
+        this.update();
     }
 
 //     renderEditorMenuLoadFromMemory() {
