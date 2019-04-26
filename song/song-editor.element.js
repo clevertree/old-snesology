@@ -42,10 +42,11 @@ class SongEditorElement extends HTMLElement {
         this.grid = new SongEditorGrid(this);
         // this.modifier = new SongModifier(this);
         this.instruments = new SongEditorInstruments(this);
-        this.renderer = new SongRenderer(this);
         // this.renderer.addSongEventListener(e => this.onSongEvent(e));
         this.longPressTimeout = null;
         this.instruments.loadInstrumentLibrary('synthesizer/instrument.library.json');
+        this.renderer = new SongRenderer(this);
+        this.renderer.loadRecentSongData();
     }
 
     get currentGroup()      { return this.status.currentGroup; }

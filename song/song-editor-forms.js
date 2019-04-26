@@ -423,7 +423,7 @@ class SongEditorForms {
             
             <div class="form-section">
                 <div class="form-section-header">Render Group</div>
-                ${this.editor.values.getEditorFormOptions('groups', (value, label) =>
+                ${this.editor.values.getValues('groups', (value, label) =>
                     `<form action="#" class="form-group" data-action="group:edit">`
                     + `<button name="groupName" value="${value}" class="themed" >${label}</button>`
                     + `</form>`)}
@@ -465,7 +465,7 @@ class SongEditorForms {
 
     renderEditorFormOptions(optionType, selectCallback) {
         let optionsHTML = '';
-        this.editor.values.getEditorFormOptions(optionType, function (value, label, html='') {
+        this.editor.values.getValues(optionType, function (value, label, html='') {
             const selected = selectCallback ? selectCallback(value) : false;
             optionsHTML += `<option value="${value}" ${selected ? ` selected="selected"` : ''}${html}>${label}</option>`;
         });
@@ -505,13 +505,13 @@ class SongEditorForms {
 // <form action="#" class="form-song-bpm" data-command="song:edit">
 //         <select name="beats-per-minute" title="Beats per minute" disabled>
 // <optgroup label="Beats per minute">
-//         ${this.getEditorFormOptions('beats-per-minute', (value, label, selected) =>
+//         ${this.getValues('beats-per-minute', (value, label, selected) =>
 // `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
 //     </optgroup>
 // </select>
 // <select name="beats-per-measure" title="Beats per measure" disabled>
 // <optgroup label="Beats per measure">
-//         ${this.getEditorFormOptions('beats-per-measure', (value, label, selected) =>
+//         ${this.getValues('beats-per-measure', (value, label, selected) =>
 // `<option value="${value}" ${selected ? ` selected="selected"` : ''}>${label}</option>`)}
 //     </optgroup>
 // </select>

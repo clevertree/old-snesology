@@ -28,17 +28,17 @@ class SongEditorValues {
 
     /** Form Options **/
 
-    getEditorFormOptions(optionType, callback) {
+    getValues(valueType, callback) {
         let noteFrequencies;
-        let optionsHTML = '';
+        let valuesHTML = '';
         const songData = this.editor.getSongData() || {};
 
-        switch(optionType) {
+        switch(valueType) {
             case 'server-recent-uuid':
             case 'memory-recent-uuid':
-                const songRecentUUIDs = JSON.parse(localStorage.getItem(optionType) || '[]');
+                const songRecentUUIDs = JSON.parse(localStorage.getItem(valueType) || '[]');
                 for(let i=0; i<songRecentUUIDs.length; i++)
-                    optionsHTML += callback.apply(this, songRecentUUIDs[i]);
+                    valuesHTML += callback.apply(this, songRecentUUIDs[i]);
                 break;
 
             case 'song-instruments':
@@ -47,7 +47,7 @@ class SongEditorValues {
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
                         const instrumentInfo = instrumentList[instrumentID] || {name: "No Instrument Loaded"};
                         // const instrument = this.editor.renderer.getInstrument(instrumentID);
-                        optionsHTML += callback(instrumentID, this.editor.renderer.format(instrumentID, 'instrument')
+                        valuesHTML += callback(instrumentID, this.editor.renderer.format(instrumentID, 'instrument')
                             + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));
                     }
                 }
@@ -60,7 +60,7 @@ class SongEditorValues {
                         instrumentLibrary.instruments.forEach((pathConfig) => {
                             if (typeof pathConfig !== 'object') pathConfig = {url: pathConfig};
                             if(!pathConfig.title) pathConfig.title = pathConfig.url.split('/').pop();
-                            optionsHTML += callback(pathConfig.url, pathConfig.title); //  + " (" + pathConfig.url + ")"
+                            valuesHTML += callback(pathConfig.url, pathConfig.title); //  + " (" + pathConfig.url + ")"
                         });
                     }
                 }
@@ -73,7 +73,7 @@ class SongEditorValues {
                         if(instance.getFrequencyAliases) {
                             const aliases = instance.getFrequencyAliases();
                             Object.keys(aliases).forEach((aliasName) =>
-                                optionsHTML += callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
+                                valuesHTML += callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
                         }
                     }
                 }
@@ -84,7 +84,7 @@ class SongEditorValues {
                 // for(let i=1; i<=6; i++) {
                 for(let j=0; j<noteFrequencies.length; j++) {
                     const noteFrequency = noteFrequencies[j]; //  + i
-                    optionsHTML += callback(noteFrequency, noteFrequency);
+                    valuesHTML += callback(noteFrequency, noteFrequency);
                 }
                 // }
                 break;
@@ -95,62 +95,62 @@ class SongEditorValues {
                 for(let i=1; i<=6; i++) {
                     for(let j=0; j<noteFrequencies.length; j++) {
                         const noteFrequency = noteFrequencies[j] + i;
-                        optionsHTML += callback(noteFrequency, noteFrequency);
+                        valuesHTML += callback(noteFrequency, noteFrequency);
                     }
                 }
                 break;
 
             case 'note-frequency-octaves':
                 for(let oi=1; oi<=7; oi+=1) {
-                    optionsHTML += callback(oi, '' + oi);
+                    valuesHTML += callback(oi, '' + oi);
                 }
                 break;
 
             case 'velocities':
                 // optionsHTML += callback(null, 'Velocity (Default)');
                 for(let vi=100; vi>=0; vi-=10) {
-                    optionsHTML += callback(vi, vi);
+                    valuesHTML += callback(vi, vi);
                 }
                 break;
 
             case 'durations':
-                optionsHTML += callback(1/64, '1/64');
-                optionsHTML += callback(1/32, '1/32');
-                optionsHTML += callback(1/16, '1/16');
-                optionsHTML += callback(1/8,  '1/8');
-                optionsHTML += callback(1/4,  '1/4');
-                optionsHTML += callback(1/2,  '1/2');
+                valuesHTML += callback(1/64, '1/64');
+                valuesHTML += callback(1/32, '1/32');
+                valuesHTML += callback(1/16, '1/16');
+                valuesHTML += callback(1/8,  '1/8');
+                valuesHTML += callback(1/4,  '1/4');
+                valuesHTML += callback(1/2,  '1/2');
                 for(let i=1; i<=16; i++)
-                    optionsHTML += callback(i, i+'B');
+                    valuesHTML += callback(i, i+'B');
                 break;
 
             case 'beats-per-measure':
                 for(let vi=1; vi<=12; vi++) {
-                    optionsHTML += callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
+                    valuesHTML += callback(vi, vi + ` beat${vi>1?'s':''} per measure`);
                 }
                 break;
 
             case 'beats-per-minute':
                 for(let vi=40; vi<=300; vi+=10) {
-                    optionsHTML += callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
+                    valuesHTML += callback(vi, vi+ ` beat${vi>1?'s':''} per minute`);
                 }
                 break;
 
             case 'groups':
                 if(songData.instructions)
                     Object.keys(songData.instructions).forEach(function(key, i) {
-                        optionsHTML += callback(key, key);
+                        valuesHTML += callback(key, key);
                     });
                 break;
 
             case 'command-group-execute':
                 if(songData.instructions)
                     Object.keys(songData.instructions).forEach(function(key, i) {
-                        optionsHTML += callback('@' + key, '@' + key);
+                        valuesHTML += callback('@' + key, '@' + key);
                     });
                 break;
         }
-        return optionsHTML;
+        return valuesHTML;
     }
 
 }

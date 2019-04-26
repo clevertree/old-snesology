@@ -19,6 +19,7 @@ class SongRenderer {
         this.loadSongData({});
         // this.eventListeners = [];
         this.historyActions = [];
+        this.saveSongToMemoryTimeout = null;
         document.addEventListener('instrument:loaded', e => this.onSongEvent(e));
 
     }
@@ -65,9 +66,9 @@ class SongRenderer {
 
     // getSongURL() { return this.getAttribute('src');}
 
-    dispatchEvent(event, timeout) {
+    dispatchEvent(event) {
         if(this.dispatchElement) {
-            setTimeout(() => this.dispatchElement.dispatchEvent(event), timeout);
+            this.dispatchElement.dispatchEvent(event);
         }
     }
 
@@ -87,8 +88,26 @@ class SongRenderer {
 
 
 
+    generateDefaultSong() {
+        return {
+            title: 'New Song',
+            guid: this.generateGUID(),
+            version: '0.0.1',
+            root: 'root',
+            created: new Date().getTime(),
+            beatsPerMinute: 160,
+            beatsPerMeasure: 4,
+            instruments: [{
+                "url": "/synthesizer/synthesizer-instrument.element.js",
+            }],
+            instructions: {
+                'root': [4,4]
+            }
+        }
+    }
+
     loadSongData(songData) {
-        songData = Object.assign({}, SongRenderer.DEFAULT_SONG_DATA, songData);
+        songData = Object.assign({}, this.generateDefaultSong(), songData);
         this.songData = songData;
         Object.keys(songData.instructions).map((groupName, i) =>
             this.processInstructions(groupName));
@@ -113,27 +132,29 @@ class SongRenderer {
         }
     }
 
+    loadRecentSongData() {
+        let songRecentGUIDs = JSON.parse(localStorage.getItem('song-recent-list') || '[]');
+        if(songRecentGUIDs[0] && songRecentGUIDs[0].guid) {
+            this.loadSongFromMemory(songRecentGUIDs[0].guid);
+        }
+    }
 
     saveSongToMemory() {
         const song = this.getSongData();
-        if(!song.uuid) {
-            // Unsafe
-            song.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-        let songRecentUUIDs = JSON.parse(localStorage.getItem('memory-recent-uuid') || '[]');
-        songRecentUUIDs = songRecentUUIDs.filter((entry) => entry[0] !== song.uuid);
-        songRecentUUIDs.unshift([song.uuid, song.title, new Date().getTime()]);
-        localStorage.setItem('memory-recent-uuid', JSON.stringify(songRecentUUIDs));
+        if(!song.guid) 
+            song.guid = this.generateGUID();
+        let songRecentGUIDs = JSON.parse(localStorage.getItem('song-recent-list') || '[]');
+        songRecentGUIDs = songRecentGUIDs.filter((entry) => entry.guid !== song.guid);
+        songRecentGUIDs.unshift({guid: song.guid, title: song.title});
+        localStorage.setItem('song-recent-list', JSON.stringify(songRecentGUIDs));
 
 
-        localStorage.setItem('song:' + song.uuid, JSON.stringify(song));
-        this.menu.render();
+        localStorage.setItem('song:' + song.guid, JSON.stringify(song));
+        localStorage.setItem('song-history:' + song.guid, JSON.stringify(this.historyActions)); // History stored separately due to memory limits
         // this.querySelector('.song-menu').outerHTML = renderEditorMenuContent(this);
-        console.info("Song saved to memory: " + song.uuid, song);
+        // console.info("Song saved to memory: " + song.guid, song);
     }
+
     saveSongToFile() {
         const song = this.getSongData();
         const jsonString = JSON.stringify(song, null, "\t");
@@ -154,8 +175,12 @@ class SongRenderer {
         let songData = JSON.parse(songDataString);
         if(!songData)
             throw new Error("Invalid Song Data: " + songDataString);
-
         this.loadSongData(songData);
+
+        let songHistoryString = localStorage.getItem('song-history:' + songGUID);
+        if(songHistoryString) {
+            this.historyActions = JSON.parse(songHistoryString);
+        }
         // this.render();
         //this.gridSelect(null, 0);
         console.info("Song loaded from memory: " + songGUID, songData);
@@ -179,7 +204,7 @@ class SongRenderer {
     //             .send(JSON.stringify({
     //                 type: 'history:entry',
     //                 historyActions: historyActions,
-    //                 // uuid: this.uuid
+    //                 // guid: this.guid
     //             }))
     //     }
     // }
@@ -578,7 +603,17 @@ class SongRenderer {
 
     /** Modify Song Data **/
 
-
+    generateGUID() { 
+        var d = new Date().getTime();
+        if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
+            d += performance.now(); //use high-precision timer if available
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
 
     generateInstructionGroupName(currentGroup) {
         const songData = this.getSongData();
@@ -804,14 +839,7 @@ class SongRenderer {
             throw new Error(`Insert position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
         pathInfo.parent.splice(pathInfo.key, 0, newData);
 
-        const historyAction = {
-            action: 'insert',
-            path: path,
-            data: newData
-        };
-        this.historyActions.push(historyAction);
-        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
-        return historyAction;
+        return this.queueHistoryAction('insert', path, newData);
     }
 
 
@@ -829,14 +857,7 @@ class SongRenderer {
             delete pathInfo.parent[pathInfo.key];
         }
 
-        const historyAction = {
-            action: 'delete',
-            path: path,
-            oldData: oldData
-        };
-        this.historyActions.push(historyAction);
-        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
-        return historyAction;
+        return this.queueHistoryAction('delete', path, null, oldData);
     }
 
     replaceDataPath(path, newData) {
@@ -855,16 +876,26 @@ class SongRenderer {
             delete pathInfo.parent[pathInfo.key];
         }
 
-        const historyAction = {
-            action: 'replace',
-            path: path,
-            data: newData
-        };
-        if(oldData !== null)
-            historyAction['oldData'] = oldData;
-        this.historyActions.push(historyAction);
+        return this.queueHistoryAction('replace', path, newData, oldData);
+    }
 
-        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
+    queueHistoryAction(action, path, data=null, oldData=null) {
+        const historyAction = [
+            action[0],
+            path,
+        ];
+        if(data !== null || oldData !== null)
+            historyAction.push(data);
+        if(oldData !== null)
+            historyAction.push(oldData);
+        this.historyActions.push(historyAction);
+        setTimeout(() => {
+            this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
+        }, 1);
+        clearTimeout(this.saveSongToMemoryTimeout);
+        this.saveSongToMemoryTimeout = setTimeout(() => {
+            this.saveSongToMemory();
+        }, 500);
         return historyAction;
     }
 
@@ -1090,18 +1121,3 @@ class SongRenderer {
 
 }
 SongRenderer.DEFAULT_VOLUME = 0.7;
-SongRenderer.DEFAULT_SONG_DATA = {
-    title: 'New Song',
-    version: '0.0.1',
-    root: 'root',
-    beatsPerMinute: 160,
-    beatsPerMeasure: 4,
-    instruments: [{
-        "url": "/synthesizer/synthesizer-instrument.element.js",
-        // "url": "/instrument/instrument-buffersource.element.js",
-        // "url": "/instrument/instrument-oscillator.element.js",
-    }],
-    instructions: {
-        'root': [4,4]
-    },
-};

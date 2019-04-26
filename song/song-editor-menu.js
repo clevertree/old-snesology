@@ -64,43 +64,46 @@ class SongEditorMenu {
                 e.preventDefault();
                 // let uuid = menuTarget.getAttribute('data-uuid') || null;
                 if(!uuid) uuid = prompt("Enter UUID: ");
-                this.loadSongFromServer(uuid);
+                this.editor.renderer.loadSongFromServer(uuid);
+                this.editor.render();
                 break;
 
             case 'song:load-memory-uuid':
                 e.preventDefault();
                 // let uuid = menuTarget.getAttribute('data-uuid') || null;
-                this.loadSongFromMemory(uuid);
+                this.editor.renderer.loadSongFromMemory(uuid);
+                this.editor.render();
                 break;
 
             case 'save:memory':
                 e.preventDefault();
-                this.saveSongToMemory();
+                this.editor.renderer.saveSongToMemory();
+                this.editor.render();
                 break;
 
             case 'save:file':
                 e.preventDefault();
-                this.saveSongToFile();
+                this.editor.renderer.saveSongToFile();
                 break;
 
 
             case 'group:add':
                 e.preventDefault();
-                let newGroupName = this.generateInstructionGroupName(currentGroup);
+                let newGroupName = this.editor.renderer.generateInstructionGroupName(currentGroup);
                 newGroupName = prompt("Create new instruction group?", newGroupName);
-                if(newGroupName)    this.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                if(newGroupName)    this.editor.renderer.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
                 else                console.error("Create instruction group canceled");
                 break;
 
             case 'group:remove':
                 e.preventDefault();
-                this.removeInstructionGroup(currentGroup);
+                this.editor.renderer.removeInstructionGroup(currentGroup);
                 break;
 
             case 'group:rename':
                 e.preventDefault();
                 let renameGroupName = prompt("Rename instruction group?", currentGroup);
-                if(renameGroupName)     this.renameInstructionGroup(currentGroup, renameGroupName);
+                if(renameGroupName)     this.editor.renderer.renameInstructionGroup(currentGroup, renameGroupName);
                 else                    console.error("Rename instruction group canceled");
                 break;
 
@@ -248,7 +251,7 @@ class SongEditorMenu {
                             <li>
                                 <a class="disabled">from <span class="key">S</span>erver &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('server-recent-uuid', (value, label) =>
+                                    ${this.editor.values.getValues('server-recent-uuid', (value, label) =>
                                     `<li><a data-action="song:load-server-uuid" data-uuid="${value}">${label}</a></li>`)}
                                     <li><a data-action="song:load-server-uuid" data-uuid="">Enter UUID</a></li>
                                 </ul>
@@ -256,7 +259,7 @@ class SongEditorMenu {
                             <li>
                                 <a>from <span class="key">M</span>emory &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('memory-recent-uuid', (value, label) =>
+                                    ${this.editor.values.getValues('memory-recent-uuid', (value, label) =>
                                     `<li><a data-action="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
                                     <li><a data-action="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
                                 </ul>
@@ -290,11 +293,11 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">F</span>requency &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('note-frequency-octaves', (octave, label) =>
+                                    ${this.editor.values.getValues('note-frequency-octaves', (octave, label) =>
                                         `<li>
                                             <a>Octave ${label}</a>
                                             <ul class="submenu">
-                                            ${this.editor.values.getEditorFormOptions('note-frequencies', (noteName, label) =>
+                                            ${this.editor.values.getValues('note-frequencies', (noteName, label) =>
                                                 `<li><a data-action="instruction:insert" data-command="${noteName+octave}">${label}${octave}</a>`)}
                                             </ul>
                                         </li>`)}
@@ -304,7 +307,7 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">N</span>amed &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('command-instrument-frequencies', (value, label) =>
+                                    ${this.editor.values.getValues('command-instrument-frequencies', (value, label) =>
                                         `<li><a data-action="instruction:insert" data-command="${value}">${label}</a></li>`)}
                                         <li><a data-action="instruction:insert">Custom Command</a></li>
                                 </ul>
@@ -312,7 +315,7 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">G</span>roup &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('command-group-execute', (value, label) =>
+                                    ${this.editor.values.getValues('command-group-execute', (value, label) =>
                                         `<li><a data-action="instruction:insert" data-command="${value}">${label}</a></li>`)}
                                         <li><a data-action="instruction:insert">Custom Command</a></li>
                                 </ul>
@@ -325,11 +328,11 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">F</span>requency &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('note-frequency-octaves', (octave, label) =>
+                                    ${this.editor.values.getValues('note-frequency-octaves', (octave, label) =>
                                         `<li>
                                             <a>Octave ${label}</a>
                                             <ul class="submenu">
-                                            ${this.editor.values.getEditorFormOptions('note-frequencies', (noteName, label) =>
+                                            ${this.editor.values.getValues('note-frequencies', (noteName, label) =>
                                                 `<li><a data-action="instruction:command" data-command="${noteName+octave}">${label}${octave}</a>`)}
                                             </ul>
                                         </li>`)}
@@ -338,14 +341,14 @@ class SongEditorMenu {
                             <li>
                                 <a><span class="key">N</span>amed &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('command-instrument-frequencies', (value, label) =>
+                                    ${this.editor.values.getValues('command-instrument-frequencies', (value, label) =>
                                         `<li><a data-action="instruction:command" data-command="${value}">${label}</a></li>`)}
                                 </ul>
                             </li>
                             <li>
                                 <a><span class="key">G</span>roup &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getEditorFormOptions('command-group-execute', (value, label) =>
+                                    ${this.editor.values.getValues('command-group-execute', (value, label) =>
                                         `<li><a data-action="instruction:command" data-command="${value}">${label}</a></li>`)}
                                 </ul>
                             </li>
@@ -355,12 +358,12 @@ class SongEditorMenu {
                     <li class="modify-instruction-controls">
                         <a>Set <span class="key">I</span>nstrument &#9658;</a>
                         <ul class="submenu">
-                            ${this.editor.values.getEditorFormOptions('song-instruments', (value, label) =>
+                            ${this.editor.values.getValues('song-instruments', (value, label) =>
                                 `<li><a data-action="instruction:instrument" data-instrument="${value}">${label}</a></li>`)}
                                 <li>
                                     <a>Add new Instrument &#9658;</a>
                                     <ul class="submenu">
-                                        ${this.editor.values.getEditorFormOptions('instruments-available', (value, label) =>
+                                        ${this.editor.values.getValues('instruments-available', (value, label) =>
                                             `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
                                     </ul>
                                 </li>
@@ -370,7 +373,7 @@ class SongEditorMenu {
                         <a>Set <span class="key">D</span>uration &#9658</a>
                         <ul class="submenu">
                             <li><a data-action="instruction:duration">Custom Duration</a></li>
-                            ${this.editor.values.getEditorFormOptions('durations', (value, label) =>
+                            ${this.editor.values.getValues('durations', (value, label) =>
                                 `<li><a data-action="instruction:duration" data-duration="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
@@ -378,7 +381,7 @@ class SongEditorMenu {
                         <a>Set <span class="key">V</span>elocity &#9658</a>
                         <ul class="submenu">
                             <li><a data-action="instruction:velocity">Custom Velocity</a></li>
-                            ${this.editor.values.getEditorFormOptions('velocities', (value, label) =>
+                            ${this.editor.values.getValues('velocities', (value, label) =>
                                 `<li><a data-action="instruction:velocity" data-velocity="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
@@ -413,7 +416,7 @@ class SongEditorMenu {
                     <li>
                         <a>Add new Instrument &#9658;</a>
                         <ul class="submenu">
-                            ${this.editor.values.getEditorFormOptions('instruments-available', (value, label) =>
+                            ${this.editor.values.getValues('instruments-available', (value, label) =>
                                 `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
