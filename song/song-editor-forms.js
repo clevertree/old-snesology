@@ -148,6 +148,7 @@ class SongEditorForms {
                     newGroupName = prompt("Create new instruction group?", newGroupName);
                     if (newGroupName) this.editor.renderer.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
                     else console.error("Create instruction group canceled");
+                    this.editor.render();
                 } else {
                     this.gridNavigate(form.groupName.value);
                 }
