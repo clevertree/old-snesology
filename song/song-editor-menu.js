@@ -30,7 +30,7 @@ class SongEditorMenu {
     }
 
     onMenu(e) {
-        let newCommand, newInstruction;
+        let newCommand, newInstruction, newInstrumentID, newInstrumentURL, insertIndex;
 
         // let form = e.target.form || e.target;
         // const cursorCellIndex = this.editor.cursorCellIndex;
@@ -110,8 +110,36 @@ class SongEditorMenu {
                 break;
 
             case 'instruction:new-instrument':
-            case 'instruction:insert-new-instrument':
-                throw new Error("TODO");
+                e.preventDefault();
+                // use menu data or prompt for value
+                newInstrumentURL = menuTarget.getAttribute('data-instrumentURL');
+                if(newInstrumentURL === null)
+                    throw new Error("Missing instrument ID");
+                newInstrumentID = this.editor.renderer.addInstrument(newInstrumentURL);
+                for(let i=0; i<selectedNoteIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
+                        instrument: newInstrumentID
+                    });
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                }
+                this.editor.render();
+                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                break;
+
+            case 'instrument:add':
+                e.preventDefault();
+                newInstrumentURL = menuTarget.getAttribute('data-instrumentURL');
+                if(newInstrumentURL === null)
+                    throw new Error("Missing instrument ID");
+                newInstrumentID = this.editor.renderer.addInstrument(newInstrumentURL);
+                // newInstruction = this.editor.forms.getInstructionFormValues(true);
+                // if(!newInstruction)
+                //     return console.info("Insert canceled");
+                // newInstruction.instrument = newInstrumentID;
+                // insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
+                this.editor.render();
+                // this.editor.renderer.playInstruction(newInstruction);
+                // this.editor.selectInstructions(currentGroup, insertIndex, selectedRange);
                 break;
 
             case 'instruction:insert':
@@ -125,7 +153,7 @@ class SongEditorMenu {
                 if(!newCommand)
                     return console.info("Insert canceled");
                 newInstruction.command = newCommand;
-                let insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
+                insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
                 this.editor.render();
                 this.editor.renderer.playInstruction(newInstruction);
                 this.editor.selectInstructions(currentGroup, insertIndex, selectedRange);
@@ -153,13 +181,13 @@ class SongEditorMenu {
             case 'instruction:instrument':
                 e.preventDefault();
                 // use menu data or prompt for value
-                let newInstrument = menuTarget.getAttribute('data-instrument');
-                if(newInstrument === null)
+                newInstrumentID = menuTarget.getAttribute('data-instrument');
+                if(newInstrumentID === null)
                     throw new Error("Missing instrument ID");
-                newInstrument = parseFloat(newInstrument);
+                newInstrumentID = parseFloat(newInstrumentID);
                 for(let i=0; i<selectedNoteIndicies.length; i++) {
                     this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
-                        instrument: newInstrument
+                        instrument: newInstrumentID
                     });
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
                 }
@@ -424,7 +452,7 @@ class SongEditorMenu {
                         <a>Add new Instrument &#9658;</a>
                         <ul class="submenu">
                             ${this.editor.values.getValues('instruments-available', (value, label) =>
-                                `<li><a data-action="instruction:insert-new-instrument" data-instrumentURL="${value}">${label}</a></li>`)}
+                                `<li><a data-action="instrument:add" data-instrumentURL="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
                 </ul>
