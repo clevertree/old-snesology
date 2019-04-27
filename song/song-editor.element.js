@@ -11,6 +11,7 @@ class SongEditorElement extends HTMLElement {
         this.status = {
             // selectedIndexCursor: 0,
             currentGroup: 'root',
+            groupHistory: [],
             // cursorCellIndex: 0,
             // cursorPosition: 0,
             selectedIndicies: [0],
@@ -31,9 +32,12 @@ class SongEditorElement extends HTMLElement {
             // },
             previewInstructionsOnSelect: false,
             longPressTimeout: 500,
-            instrumentLibrary: null,
-            instrumentLibraryURL: null
+            autoSaveTimeout: 4000,
         };
+        this.saveSongToMemoryTimer = null;
+        this.instrumentLibrary = null;
+        this.instrumentLibraryURL = null;
+
         this.values = new SongEditorValues(this);
         this.webSocket = new SongEditorWebsocket(this);
         this.keyboard = new SongEditorKeyboard(this);
@@ -46,7 +50,7 @@ class SongEditorElement extends HTMLElement {
         this.longPressTimeout = null;
         this.instruments.loadInstrumentLibrary('synthesizer/instrument.library.json');
         this.renderer = new SongRenderer(this);
-        this.renderer.loadRecentSongData();
+        this.loadRecentSongData();
     }
 
     get currentGroup()      { return this.status.currentGroup; }
@@ -95,6 +99,44 @@ class SongEditorElement extends HTMLElement {
 
     }
 
+    loadNewSongData() {
+        const storage = new SongStorage();
+        let songData = storage.generateDefaultSong();
+        this.loadSongData(songData);
+    }
+
+
+    loadRecentSongData() {
+        const storage = new SongStorage();
+        let songRecentGUIDs = storage.getRecentSongList();
+        if(songRecentGUIDs[0] && songRecentGUIDs[0].guid) {
+            this.loadSongFromMemory(songRecentGUIDs[0].guid);
+        }
+    }
+
+    saveSongToMemory() {
+        const songData = this.renderer.getSongData();
+        const songHistory = this.renderer.getSongHistory();
+        const storage = new SongStorage();
+        storage.saveSongToMemory(songData, songHistory);
+    }
+
+    saveSongToFile() {
+        const songData = this.renderer.getSongData();
+        // const songHistory = this.renderer.getSongHistory();
+        const storage = new SongStorage();
+        storage.saveSongToFile(songData);
+    }
+
+
+    loadSongFromMemory(songGUID) {
+        const storage = new SongStorage();
+        const songData = storage.loadSongFromMemory(songGUID);
+        const songHistory = storage.loadSongHistoryFromMemory(songGUID);
+        this.renderer.loadSongData(songData, songHistory);
+        console.info("Song loaded from memory: " + songGUID, songData, songHistory);
+
+    }
     // Input
 
     // profileInput(e) {
@@ -162,6 +204,11 @@ class SongEditorElement extends HTMLElement {
             case 'song:modified':
                 this.grid.render();
                 this.forms.render();
+
+                clearTimeout(this.saveSongToMemoryTimer);
+                this.saveSongToMemoryTimer = setTimeout(() => {
+                    this.saveSongToMemory();
+                }, this.status.autoSaveTimeout);
                 break;
             case 'instrument:loaded':
                 console.info("TODO: load instrument instances", e.detail);
@@ -220,11 +267,20 @@ class SongEditorElement extends HTMLElement {
         this.instruments.update();
     }
 
-    selectInstructions(groupName, selectedIndicies, selectedRange=null) {
-        if(!Array.isArray(selectedIndicies))
+    selectInstructions(groupName, selectedIndicies=null, selectedRange=null) {
+        if(selectedIndicies === null)
+            selectedIndicies = [0]
+        if (!Array.isArray(selectedIndicies))
             selectedIndicies = [selectedIndicies];
         this.status.selectedIndicies = selectedIndicies;
-        this.status.currentGroup = groupName;
+        if(this.status.currentGroup !== groupName) {
+            this.status.groupHistory = this.status.groupHistory.filter(historyGroup => historyGroup === this.status.currentGroup);
+            this.status.groupHistory.unshift(this.status.currentGroup);
+            this.status.currentGroup = groupName;
+            console.log("Group Change: ", groupName, this.status.groupHistory);
+            this.grid = new SongEditorGrid(this, groupName);
+            this.render();
+        }
         if(selectedRange !== null) {
             if(selectedRange && !Array.isArray(selectedRange))
                 selectedRange = [selectedRange,selectedRange];

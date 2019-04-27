@@ -18,8 +18,7 @@ class SongRenderer {
         // };
         this.loadSongData({});
         // this.eventListeners = [];
-        this.historyActions = [];
-        this.saveSongToMemoryTimeout = null;
+        this.songHistory = [];
         document.addEventListener('instrument:loaded', e => this.onSongEvent(e));
 
     }
@@ -34,6 +33,7 @@ class SongRenderer {
         return this.audioContext;
     }
     getSongData() { return this.songData; }
+    getSongHistory() { return this.songHistory; }
     getStartingBeatsPerMinute() { return this.songData.beatsPerMinute; }
     getVolumeGain() {
         if(!this.volumeGain) {
@@ -88,27 +88,17 @@ class SongRenderer {
 
 
 
-    generateDefaultSong() {
-        return {
-            title: `Untitled (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`,
-            guid: this.generateGUID(),
-            version: '0.0.1',
-            root: 'root',
-            created: new Date().getTime(),
-            beatsPerMinute: 160,
-            beatsPerMeasure: 4,
-            instruments: [{
-                "url": "/synthesizer/synthesizer-instrument.element.js",
-            }],
+    loadSongData(songData, songHistory=[]) {
+        songData = Object.assign({}, {
+            instruments: [],
             instructions: {
-                'root': [4,4]
+                'root': []
             }
-        }
-    }
-
-    loadSongData(songData) {
-        songData = Object.assign({}, this.generateDefaultSong(), songData);
+        }, songData);
+        // TODO: Cleanup
         this.songData = songData;
+        this.songHistory = songHistory || [];
+
         Object.keys(songData.instructions).map((groupName, i) =>
             this.processInstructions(groupName));
 
@@ -131,120 +121,6 @@ class SongRenderer {
             }
         }
     }
-
-    loadNewSongData() {
-        let songData = this.generateDefaultSong();
-        this.loadSongData(songData);
-    }
-
-
-    loadRecentSongData() {
-        let songRecentGUIDs = this.decodeForStorage(localStorage.getItem('song-recent-list') || '[]');
-        if(songRecentGUIDs[0] && songRecentGUIDs[0].guid) {
-            this.loadSongFromMemory(songRecentGUIDs[0].guid);
-        }
-    }
-
-    encodeForStorage(json, replacer=null, space=null) {
-        let encodedString = JSON.stringify(json, replacer, space);
-        if(SongRenderer.COMPRESSOR) {
-            const compressedString = SongRenderer.COMPRESSOR.compress(encodedString);
-            console.log(`Compression: ${compressedString.length} / ${encodedString.length} = ${Math.round((compressedString.length / encodedString.length)*100)/100}`);
-            return compressedString;
-        }
-        return encodedString;
-    }
-
-    decodeForStorage(encodedString) {
-        if(!encodedString)
-            return null;
-        if(SongRenderer.COMPRESSOR)
-            encodedString = SongRenderer.COMPRESSOR.decompress(encodedString) || encodedString;
-        return JSON.parse(encodedString);
-    }
-
-    saveSongToMemory() {
-        const song = this.getSongData();
-        if(!song.guid) 
-            song.guid = this.generateGUID();
-        let songRecentGUIDs = this.decodeForStorage(localStorage.getItem('song-recent-list') || '[]');
-        songRecentGUIDs = songRecentGUIDs.filter((entry) => entry.guid !== song.guid);
-        songRecentGUIDs.unshift({guid: song.guid, title: song.title});
-        localStorage.setItem('song-recent-list', this.encodeForStorage(songRecentGUIDs));
-
-
-        localStorage.setItem('song:' + song.guid, this.encodeForStorage(song));
-        localStorage.setItem('song-history:' + song.guid, this.encodeForStorage(this.historyActions)); // History stored separately due to memory limits
-        // this.querySelector('.song-menu').outerHTML = renderEditorMenuContent(this);
-        // console.info("Song saved to memory: " + song.guid, song);
-    }
-
-    saveSongToFile() {
-        const song = this.getSongData();
-        const jsonString = this.encodeForStorage(song, null, "\t");
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href",     dataStr);
-        downloadAnchorNode.setAttribute("download", song.title);
-        document.body.appendChild(downloadAnchorNode); // required for firefox
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    }
-
-
-    loadSongFromMemory(songGUID) {
-        let songDataString = localStorage.getItem('song:' + songGUID);
-        if(!songDataString)
-            throw new Error("Song Data not found for guid: " + songGUID);
-        let songData = this.decodeForStorage(songDataString);
-        if(!songData)
-            throw new Error("Invalid Song Data: " + songDataString);
-        this.loadSongData(songData);
-
-        let songHistoryString = localStorage.getItem('song-history:' + songGUID);
-        if(songHistoryString) {
-            this.historyActions = this.decodeForStorage(songHistoryString);
-        }
-        // this.render();
-        //this.gridSelect(null, 0);
-        console.info("Song loaded from memory: " + songGUID, songData);
-    }
-    //
-    // historyQueue(historyActions) {
-    //     if(!Array.isArray(historyActions))
-    //         historyActions = [];
-    //     for(let i=0; i<historyActions.length; i++) {
-    //         const historyAction = historyActions[i];
-    //         this.status.history.currentStep++;
-    //         historyAction.step = this.status.history.currentStep;
-    //     }
-    //     //
-    //     // this.status.history.undoList.push(historyAction);
-    //     // this.status.history.undoPosition = this.status.history.undoList.length-1;
-    //
-    //     if(this.webSocket && historyActions.length > 0) {
-    //         console.info("Sending history actions: ", historyActions);
-    //         this.webSocket
-    //             .send(this.encodeForStorage({
-    //                 type: 'history:entry',
-    //                 historyActions: historyActions,
-    //                 // guid: this.guid
-    //             }))
-    //     }
-    // }
-    //
-    // historyUndo() {
-    //
-    // }
-    //
-    // historyRedo() {
-    //
-    // }
-    // clearHistoryActions() {
-    //     const actions = this.historyActions;
-    //     this.historyActions = [];
-    //     return actions;
-    // }
 
     processInstructions(groupName) {
         const instructionList = this.getInstructions(groupName);
@@ -797,9 +673,9 @@ class SongRenderer {
 
     /** Modifying **/
 
-    applyHistoryActions(historyActions) {
-        for(let i=0; i<historyActions.length; i++) {
-            const historyAction = historyActions[i];
+    applyHistoryActions(songHistory) {
+        for(let i=0; i<songHistory.length; i++) {
+            const historyAction = songHistory[i];
             switch(historyAction.action) {
                 case 'reset':
                     Object.assign(this.songData, historyAction.data);
@@ -815,13 +691,13 @@ class SongRenderer {
                     break;
             }
         }
-        this.historyActions = [];
+        this.songHistory = [];
         this.processAllInstructions();
     }
 
     findDataPath(pathList) {
         if(!Array.isArray(pathList))
-            pathList = pathList.split('.');
+            throw new Error("Path list must be an array");
         if(pathList[0] === "*") {
             return {
                 value: this.songData,
@@ -854,47 +730,47 @@ class SongRenderer {
         };
     }
 
-    insertDataPath(path, newData) {
-        newData = SongRenderer.sanitizeInput(newData, path);
+    insertDataPath(pathList, newData) {
+        const pathInfo = this.findDataPath(pathList);
 
-        const pathInfo = this.findDataPath(path);
+        newData = SongRenderer.sanitizeInput(newData);
 
         if(typeof pathInfo.key !== 'number')
             throw new Error("Insert action requires numeric key");
         if(pathInfo.parent.length < pathInfo.key)
-            throw new Error(`Insert position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+            throw new Error(`Insert position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${pathList}`);
         pathInfo.parent.splice(pathInfo.key, 0, newData);
 
-        return this.queueHistoryAction('insert', path, newData);
+        return this.queueHistoryAction(pathList, newData);
     }
 
 
-    deleteDataPath(path) {
-        const pathInfo = this.findDataPath(path);
+    deleteDataPath(pathList) {
+        const pathInfo = this.findDataPath(pathList);
 
         // if(typeof pathInfo.key !== 'number')
         //     throw new Error("Delete action requires numeric key");
         const oldData = pathInfo.parent[pathInfo.key];
         if(typeof pathInfo.key === 'number') {
             if(pathInfo.parent.length < pathInfo.key)
-                throw new Error(`Delete position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+                throw new Error(`Delete position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${pathList}`);
             pathInfo.parent.splice(pathInfo.key, 1);
         } else {
             delete pathInfo.parent[pathInfo.key];
         }
 
-        return this.queueHistoryAction('delete', path, null, oldData);
+        return this.queueHistoryAction(pathList, null, oldData);
     }
 
-    replaceDataPath(path, newData) {
-        newData = SongRenderer.sanitizeInput(newData, path);
+    replaceDataPath(pathList, newData) {
+        const pathInfo = this.findDataPath(pathList);
 
+        newData = SongRenderer.sanitizeInput(newData);
         let oldData = null;
-        const pathInfo = this.findDataPath(path);
 
         if(typeof newData !== "undefined") {
             if(typeof pathInfo.key === 'number' && pathInfo.parent.length < pathInfo.key)
-                throw new Error(`Replace position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${path}`);
+                throw new Error(`Replace position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${pathList}`);
             if(typeof pathInfo.parent[pathInfo.key] !== "undefined")
                 oldData = pathInfo.parent[pathInfo.key];
             pathInfo.parent[pathInfo.key] = newData
@@ -902,26 +778,24 @@ class SongRenderer {
             delete pathInfo.parent[pathInfo.key];
         }
 
-        return this.queueHistoryAction('replace', path, newData, oldData);
+        return this.queueHistoryAction(pathList, newData, oldData);
     }
 
-    queueHistoryAction(action, path, data=null, oldData=null) {
+    queueHistoryAction(pathList, data=null, oldData=null) {
         const historyAction = [
-            action[0],
-            path,
+            // action[0],
+            pathList,
         ];
         if(data !== null || oldData !== null)
             historyAction.push(data);
         if(oldData !== null)
             historyAction.push(oldData);
-        this.historyActions.push(historyAction);
+        this.songHistory.push(historyAction);
+
         setTimeout(() => {
             this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
         }, 1);
-        clearTimeout(this.saveSongToMemoryTimeout);
-        this.saveSongToMemoryTimeout = setTimeout(() => {
-            this.saveSongToMemory();
-        }, 500);
+
         return historyAction;
     }
 
@@ -994,12 +868,12 @@ class SongRenderer {
     insertInstructionAtIndex(groupName, insertIndex, insertInstruction) {
         if(!insertInstruction)
             throw new Error("Invalid insert instruction");
-        this.insertDataPath(`instructions.${groupName}.${insertIndex}`, insertInstruction);
+        this.insertDataPath(['instructions', groupName, insertIndex], insertInstruction);
     }
 
 
     deleteInstructionAtIndex(groupName, deleteIndex) {
-        return this.deleteDataPath(`instructions.${groupName}.${deleteIndex}`)
+        return this.deleteDataPath(['instructions', groupName, deleteIndex])
             .oldData;
     }
 
@@ -1007,9 +881,9 @@ class SongRenderer {
 
     replaceInstructionParam(groupName, replaceIndex, paramName, paramValue) {
         if(paramValue === null)
-            return this.deleteDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`)
+            return this.deleteDataPath(['instructions', groupName, replaceIndex, paramName])
                 .oldData;
-        return this.replaceDataPath(`instructions.${groupName}.${replaceIndex}.${paramName}`, paramValue)
+        return this.replaceDataPath(['instructions', groupName, replaceIndex, paramName], paramValue)
             .oldData;
     }
 
@@ -1032,7 +906,7 @@ class SongRenderer {
     addInstructionGroup(newGroupName, instructionList) {
         if(this.songData.instructions.hasOwnProperty(newGroupName))
             throw new Error("New group already exists: " + newGroupName);
-        this.replaceDataPath(`instructions.${newGroupName}`, instructionList || []);
+        this.replaceDataPath(['instructions', newGroupName], instructionList || []);
     }
 
 
@@ -1042,7 +916,7 @@ class SongRenderer {
         if(!this.songData.instructions.hasOwnProperty(removeGroupName))
             throw new Error("Existing group not found: " + removeGroupName);
 
-        return this.replaceDataPath(`instructions.${removeGroupName}`)
+        return this.replaceDataPath(['instructions', removeGroupName])
             .oldData;
     }
 
@@ -1055,8 +929,9 @@ class SongRenderer {
         if(this.songData.instructions.hasOwnProperty(newGroupName))
             throw new Error("New group already exists: " + newGroupName);
 
-        const removedGroupData = this.replaceDataPath(`instructions.${oldGroupName}`).oldData;
-        this.replaceDataPath(`instructions.${newGroupName}`, removedGroupData);
+        const removedGroupData = this.replaceDataPath(['instructions', oldGroupName])
+            .oldData;
+        this.replaceDataPath(['instructions', newGroupName], removedGroupData);
     }
 
 
@@ -1093,16 +968,16 @@ class SongRenderer {
     }
 
     // TODO: remove path
-    static sanitizeInput(value, path) {
+    static sanitizeInput(value) {
         if(Array.isArray(value)) {
             for(let i=0; i<value.length; i++)
-                SongRenderer.sanitizeInput(value[i], path + `.${i}`);
+                value[i] = SongRenderer.sanitizeInput(value[i]);
             return value;
         }
         if(typeof value === 'object') {
             for(const key in value)
                 if(value.hasOwnProperty(key))
-                    SongRenderer.sanitizeInput(value[key], path + `.${key}`);
+                    value[key] = SongRenderer.sanitizeInput(value[key]);
             return value;
         }
         if(typeof value !== 'string')
@@ -1148,6 +1023,3 @@ class SongRenderer {
 
 }
 SongRenderer.DEFAULT_VOLUME = 0.7;
-
-// TODO: resolve compressor dependencies
-SongRenderer.COMPRESSOR = function(){function o(o,r){if(!t[o]){t[o]={};for(var n=0;n<o.length;n++)t[o][o.charAt(n)]=n}return t[o][r]}var r=String.fromCharCode,n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",e="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",t={},i={compressToBase64:function(o){if(null==o)return"";var r=i._compress(o,6,function(o){return n.charAt(o)});switch(r.length%4){default:case 0:return r;case 1:return r+"===";case 2:return r+"==";case 3:return r+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(e){return o(n,r.charAt(e))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(o){return null==o?"":""==o?null:i._decompress(o.length,16384,function(r){return o.charCodeAt(r)-32})},compressToUint8Array:function(o){for(var r=i.compress(o),n=new Uint8Array(2*r.length),e=0,t=r.length;t>e;e++){var s=r.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null===o||void 0===o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;t>e;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(o){return null==o?"":i._compress(o,6,function(o){return e.charAt(o)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(n){return o(e,r.charAt(n))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(o,r,n){if(null==o)return"";var e,t,i,s={},p={},u="",c="",a="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<o.length;i+=1)if(u=o.charAt(i),Object.prototype.hasOwnProperty.call(s,u)||(s[u]=f++,p[u]=!0),c=a+u,Object.prototype.hasOwnProperty.call(s,c))a=c;else{if(Object.prototype.hasOwnProperty.call(p,a)){if(a.charCodeAt(0)<256){for(e=0;h>e;e++)m<<=1,v==r-1?(v=0,d.push(n(m)),m=0):v++;for(t=a.charCodeAt(0),e=0;8>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;h>e;e++)m=m<<1|t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=a.charCodeAt(0),e=0;16>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}l--,0==l&&(l=Math.pow(2,h),h++),delete p[a]}else for(t=s[a],e=0;h>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;l--,0==l&&(l=Math.pow(2,h),h++),s[c]=f++,a=String(u)}if(""!==a){if(Object.prototype.hasOwnProperty.call(p,a)){if(a.charCodeAt(0)<256){for(e=0;h>e;e++)m<<=1,v==r-1?(v=0,d.push(n(m)),m=0):v++;for(t=a.charCodeAt(0),e=0;8>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;h>e;e++)m=m<<1|t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=a.charCodeAt(0),e=0;16>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}l--,0==l&&(l=Math.pow(2,h),h++),delete p[a]}else for(t=s[a],e=0;h>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;l--,0==l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;h>e;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==r-1){d.push(n(m));break}v++}return d.join("")},decompress:function(o){return null==o?"":""==o?null:i._decompress(o.length,32768,function(r){return o.charCodeAt(r)})},_decompress:function(o,n,e){var t,i,s,p,u,c,a,l,f=[],h=4,d=4,m=3,v="",w=[],A={val:e(0),position:n,index:1};for(i=0;3>i;i+=1)f[i]=i;for(p=0,c=Math.pow(2,2),a=1;a!=c;)u=A.val&A.position,A.position>>=1,0==A.position&&(A.position=n,A.val=e(A.index++)),p|=(u>0?1:0)*a,a<<=1;switch(t=p){case 0:for(p=0,c=Math.pow(2,8),a=1;a!=c;)u=A.val&A.position,A.position>>=1,0==A.position&&(A.position=n,A.val=e(A.index++)),p|=(u>0?1:0)*a,a<<=1;l=r(p);break;case 1:for(p=0,c=Math.pow(2,16),a=1;a!=c;)u=A.val&A.position,A.position>>=1,0==A.position&&(A.position=n,A.val=e(A.index++)),p|=(u>0?1:0)*a,a<<=1;l=r(p);break;case 2:return""}for(f[3]=l,s=l,w.push(l);;){if(A.index>o)return"";for(p=0,c=Math.pow(2,m),a=1;a!=c;)u=A.val&A.position,A.position>>=1,0==A.position&&(A.position=n,A.val=e(A.index++)),p|=(u>0?1:0)*a,a<<=1;switch(l=p){case 0:for(p=0,c=Math.pow(2,8),a=1;a!=c;)u=A.val&A.position,A.position>>=1,0==A.position&&(A.position=n,A.val=e(A.index++)),p|=(u>0?1:0)*a,a<<=1;f[d++]=r(p),l=d-1,h--;break;case 1:for(p=0,c=Math.pow(2,16),a=1;a!=c;)u=A.val&A.position,A.position>>=1,0==A.position&&(A.position=n,A.val=e(A.index++)),p|=(u>0?1:0)*a,a<<=1;f[d++]=r(p),l=d-1,h--;break;case 2:return w.join("")}if(0==h&&(h=Math.pow(2,m),m++),f[l])v=f[l];else{if(l!==d)return null;v=s+s.charAt(0)}w.push(v),f[d++]=s+v.charAt(0),h--,s=v,0==h&&(h=Math.pow(2,m),m++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module&&(module.exports=LZString);

@@ -88,11 +88,11 @@ class SongEditorWebsocket {
                     const json = JSON.parse(e.data);
                     switch(json.type) {
                         case 'history:entry':
-                            // for (let i = 0; i < json.historyActions.length; i++) {
-                            //     const historyAction = json.historyActions[i];
+                            // for (let i = 0; i < json.songHistory.length; i++) {
+                            //     const historyAction = json.songHistory[i];
                             const songModifier = editor.renderer;
-                            songModifier.applyHistoryActions(json.historyActions);
-                            this.status.history.currentStep = json.historyActions[json.historyActions.length-1].step;
+                            songModifier.applyHistoryActions(json.songHistory);
+                            this.status.history.currentStep = json.songHistory[json.songHistory.length-1].step;
                             this.player.loadAllInstruments();
                             this.render();
                             //this.gridSelect(e, 0);

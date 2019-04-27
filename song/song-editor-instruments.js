@@ -16,8 +16,8 @@ class SongEditorInstruments {
     }
 
     loadInstrumentLibrary(URL, onLoad=null) {
-        if(URL === this.editor.status.instrumentLibraryURL) {
-            onLoad && onLoad(this.editor.status.instrumentLibrary);
+        if(URL === this.editor.instrumentLibraryURL) {
+            onLoad && onLoad(this.editor.instrumentLibrary);
             return;
         }
 
@@ -27,9 +27,9 @@ class SongEditorInstruments {
         xhr.onload = () => {
             if(xhr.status !== 200)
                 throw new Error("Instrument list not found");
-            this.editor.status.instrumentLibrary = xhr.response;
-            this.editor.status.instrumentLibraryURL = URL;
-            onLoad && onLoad(this.editor.status.instrumentLibrary);
+            this.editor.instrumentLibrary = xhr.response;
+            this.editor.instrumentLibraryURL = URL;
+            onLoad && onLoad(this.editor.instrumentLibrary);
             this.editor.render();
         };
         xhr.send();

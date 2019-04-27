@@ -62,6 +62,7 @@ clevertreeCMS.ContentRenderer.addGlobalElementSources({
         'song/song-editor-websocket.js',
         'song/song-editor-values.js',
         'song/song-renderer.js',
+        'song/song-storage.js',
         'song/song-editor.element.js',
     ],
     'song-player': [

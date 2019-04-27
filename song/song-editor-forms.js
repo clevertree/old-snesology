@@ -150,7 +150,7 @@ class SongEditorForms {
                     else console.error("Create instruction group canceled");
                     this.editor.render();
                 } else {
-                    this.gridNavigate(form.groupName.value);
+                    this.editor.selectInstructions(form.groupName.value);
                 }
                 break;
 

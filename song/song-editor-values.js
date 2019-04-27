@@ -54,8 +54,8 @@ class SongEditorValues {
                 break;
 
             case 'instruments-available':
-                if(this.editor.status.instrumentLibrary) {
-                    const instrumentLibrary = this.editor.status.instrumentLibrary;
+                if(this.editor.instrumentLibrary) {
+                    const instrumentLibrary = this.editor.instrumentLibrary;
                     if(instrumentLibrary.instruments) {
                         instrumentLibrary.instruments.forEach((pathConfig) => {
                             if (typeof pathConfig !== 'object') pathConfig = {url: pathConfig};

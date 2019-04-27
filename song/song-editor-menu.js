@@ -66,26 +66,26 @@ class SongEditorMenu {
                 e.preventDefault();
                 // let uuid = menuTarget.getAttribute('data-uuid') || null;
                 if(!uuid) uuid = prompt("Enter UUID: ");
-                this.editor.renderer.loadSongFromServer(uuid);
+                this.editor.loadSongFromServer(uuid);
                 this.editor.render();
                 break;
 
             case 'song:load-memory-uuid':
                 e.preventDefault();
                 // let uuid = menuTarget.getAttribute('data-uuid') || null;
-                this.editor.renderer.loadSongFromMemory(uuid);
+                this.editor.loadSongFromMemory(uuid);
                 this.editor.render();
                 break;
 
             case 'save:memory':
                 e.preventDefault();
-                this.editor.renderer.saveSongToMemory();
+                this.editor.saveSongToMemory();
                 this.editor.render();
                 break;
 
             case 'save:file':
                 e.preventDefault();
-                this.editor.renderer.saveSongToFile();
+                this.editor.saveSongToFile();
                 break;
 
 

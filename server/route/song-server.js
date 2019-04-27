@@ -136,8 +136,8 @@ class SongServer {
         this.getOrCreateSongEntry(uuid, (songEntry) => {
 
             let lastStep = songEntry.last_step || 0;
-            for (let i = 0; i < jsonRequest.historyActions.length; i++) {
-                const historyAction = jsonRequest.historyActions[i];
+            for (let i = 0; i < jsonRequest.songHistory.length; i++) {
+                const historyAction = jsonRequest.songHistory[i];
                 if (historyAction.step === lastStep + 1) {
                     lastStep++;
                     // Step is incremented as expected
@@ -159,7 +159,7 @@ class SongServer {
                 const songManipulator = new MusicEditorSongModifier(songContent);
 
                 try {
-                    songManipulator.applyHistoryActions(jsonRequest.historyActions);
+                    songManipulator.applyHistoryActions(jsonRequest.songHistory);
                 } catch (e) {
                     return this.sendError(ws, e);
                 }
@@ -174,8 +174,8 @@ class SongServer {
                 this.db.query(SQL, [lastStep, JSON.stringify(songContent), 'live', uuid], (err) => {if(err) throw err});
 
                 // Insert Historic steps
-                for (let i = 0; i < jsonRequest.historyActions.length; i++) {
-                    const historyAction = jsonRequest.historyActions[i];
+                for (let i = 0; i < jsonRequest.songHistory.length; i++) {
+                    const historyAction = jsonRequest.songHistory[i];
                     const step = historyAction.step;
                     delete historyAction.step;
                     let SQL = `INSERT INTO song_history 
@@ -197,7 +197,7 @@ class SongServer {
                         continue;
                     listener.send(JSON.stringify({
                         type: 'history:entry',
-                        historyActions: [jsonRequest.historyActions]
+                        historyActions: [jsonRequest.songHistory]
                     }));
                 }
             });
