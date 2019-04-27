@@ -109,6 +109,11 @@ class SongEditorMenu {
                 else                    console.error("Rename instruction group canceled");
                 break;
 
+            case 'instruction:new-instrument':
+            case 'instruction:insert-new-instrument':
+                throw new Error("TODO");
+                break;
+
             case 'instruction:insert':
                 e.preventDefault();
                 newInstruction = this.editor.forms.getInstructionFormValues(true);
@@ -366,7 +371,7 @@ class SongEditorMenu {
                                     <a>Add new Instrument &#9658;</a>
                                     <ul class="submenu">
                                         ${this.editor.values.getValues('instruments-available', (value, label) =>
-                                            `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
+                                            `<li><a data-action="instruction:new-instrument" data-instrumentURL="${value}">${label}</a></li>`)}
                                     </ul>
                                 </li>
                         </ul>
@@ -419,7 +424,7 @@ class SongEditorMenu {
                         <a>Add new Instrument &#9658;</a>
                         <ul class="submenu">
                             ${this.editor.values.getValues('instruments-available', (value, label) =>
-                                `<li><a data-action="instruction:instrument-add" data-instrumentURL="${value}">${label}</a></li>`)}
+                                `<li><a data-action="instruction:insert-new-instrument" data-instrumentURL="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
                 </ul>

@@ -542,7 +542,7 @@ class SongRenderer {
         const instrumentList = this.songData.instruments;
         const instrumentID = instrumentList.length;
 
-        this.replaceDataPath(`instruments.${instrumentID}`, config);
+        this.replaceDataPath(['instruments', instrumentID], config);
         this.loadInstrument(instrumentID);
         return instrumentID;
     }
@@ -559,7 +559,7 @@ class SongRenderer {
         if(oldInstrument.name && !config.name)
             config.name = oldInstrument.name;
         // Preserve old instrument name
-        return this.replaceDataPath(`instruments.${instrumentID}`, config)
+        return this.replaceDataPath(['instruments', instrumentID], config)
             .oldData;
     }
 
@@ -571,7 +571,7 @@ class SongRenderer {
         //
         // }
         delete this.loadedInstruments[instrumentID];
-        return this.replaceDataPath(`instruments.${instrumentID}`)
+        return this.replaceDataPath(['instruments', instrumentID])
             .oldData;
     }
 
@@ -581,28 +581,28 @@ class SongRenderer {
         if(!instrumentList[instrumentID])
             throw new Error("Invalid instrument ID: " + instrumentID);
 
-        return this.replaceDataPath(`instruments.${instrumentID}.${paramName}`, paramValue)
+        return this.replaceDataPath(['instruments', instrumentID, paramName], paramValue)
             .oldData;
     }
 
 
-    replaceInstrumentParams(instrumentID, replaceParams) {
-        const instrumentList = this.songData.instruments;
-        if(!instrumentList[instrumentID])
-            throw new Error("Invalid instrument ID: " + instrumentID);
-
-        const oldParams = {};
-        for(const paramName in replaceParams) {
-            if(replaceParams.hasOwnProperty(paramName)) {
-                const paramValue = replaceParams[paramName];
-                const oldData = this.replaceInstrumentParam(instrumentID, paramName, paramValue)
-                    .oldData;
-                if(typeof oldData !== "undefined")
-                    oldParams[paramName] = oldData;
-            }
-        }
-        return oldParams;
-    }
+    // replaceInstrumentParams(instrumentID, replaceParams) {
+    //     const instrumentList = this.songData.instruments;
+    //     if(!instrumentList[instrumentID])
+    //         throw new Error("Invalid instrument ID: " + instrumentID);
+    //
+    //     const oldParams = {};
+    //     for(const paramName in replaceParams) {
+    //         if(replaceParams.hasOwnProperty(paramName)) {
+    //             const paramValue = replaceParams[paramName];
+    //             const oldData = this.replaceInstrumentParam(instrumentID, paramName, paramValue)
+    //                 .oldData;
+    //             if(typeof oldData !== "undefined")
+    //                 oldParams[paramName] = oldData;
+    //         }
+    //     }
+    //     return oldParams;
+    // }
 
     // Playback
 

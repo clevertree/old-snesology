@@ -83,6 +83,10 @@ class SongEditorForms {
         const selectedRange = this.editor.selectedRange;
 
         switch (command) {
+            case 'instrument:add':
+                this.editor.status.currentInstrumentID = this.editor.renderer.addInstrument(form.elements['instrumentURL'].value);
+                // this.editor.update();
+                break;
 
             case 'instruction:insert':
                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
@@ -455,6 +459,16 @@ class SongEditorForms {
                         <optgroup label="Filter By">
                             ${this.renderEditorFormOptions('song-instruments')}
                         </optgroup>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Add Instrument to Song</div>                    
+                <form class="form-add-instrument submit-on-change" data-action="instrument:add">
+                    <select name="instrumentURL" class="themed">
+                        <option value="">Choose Instrument</option>
+                        ${this.editor.forms.renderEditorFormOptions('instruments-available')}
                     </select>
                 </form>
             </div>

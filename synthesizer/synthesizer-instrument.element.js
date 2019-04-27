@@ -307,8 +307,7 @@ class SynthesizerInstrument extends HTMLElement {
                             `<optgroup label="Libraries"}">` +
                             this.librarySelected.libraries.map((libraryConfig) => {
                                 if (typeof libraryConfig !== 'object') libraryConfig = {url: libraryConfig};
-                                if(!libraryConfig.title) libraryConfig.title = libraryConfig.url.split('/').pop();
-                                return `<option value="${libraryConfig.url}">${libraryConfig.title}</option>`;
+                                return `<option value="${libraryConfig.url}">${libraryConfig.title || libraryConfig.url.split('/').pop()}</option>`;
                             }).join("\n")
                             + `</optgroup>`
                         : null}
@@ -316,9 +315,7 @@ class SynthesizerInstrument extends HTMLElement {
                             `<optgroup label="${this.librarySelected.title || 'Unnamed Library'}">` +
                             Object.keys(this.librarySelected.instruments).map((presetName) => {
                                 const instrumentConfig = this.librarySelected.instruments[presetName];
-                                let title = presetName || instrumentConfig.title;
-                                const selected = presetName === this.config.preset ? ` selected="selected"` : '';
-                                return `<option value="${presetName}" ${selected}>${title}</option>`;
+                                return `<option value="${presetName}" ${presetName === this.config.preset ? ` selected="selected"` : ''}>${presetName || instrumentConfig.title}</option>`;
                             }).join("\n")
                             + `</optgroup>`
                         : null}
@@ -326,8 +323,7 @@ class SynthesizerInstrument extends HTMLElement {
                             `<optgroup label="Other Libraries"}">` +
                             this.libraryHistory.map((libraryConfig) => {
                                 if (typeof libraryConfig !== 'object') libraryConfig = {url: libraryConfig};
-                                if(!libraryConfig.title) libraryConfig.title = libraryConfig.url.split('/').pop();
-                                return `<option value="${libraryConfig.url}">${libraryConfig.title}</option>`;
+                                return `<option value="${libraryConfig.url}">${libraryConfig.title || libraryConfig.url.split('/').pop()}</option>`;
                             }).join("\n")
                             + `</optgroup>`
                         : null}

@@ -95,10 +95,6 @@ class SongEditorInstruments {
                     this.editor.instruments.render(); // Renders instrument in 'loading' state if not yet loaded by loadInstrument()
                     break;
 
-                case 'instrument:add':
-                    this.editor.status.currentInstrumentID = this.editor.renderer.addInstrument(form.elements['instrumentURL'].value);
-                    // this.editor.update();
-                    break;
 
                 // case 'change':
                 // case 'blur':
@@ -190,13 +186,13 @@ class SongEditorInstruments {
         addInstrumentDiv.classList.add('instrument-add-container');
         this.renderElement.appendChild(addInstrumentDiv);
 
-        addInstrumentDiv.innerHTML +=
-            `<form class="form-add-instrument submit-on-change" data-action="instrument:add">
-                <select name="instrumentURL" class="themed">
-                    <option value="">Add an Instrument to this song</option>
-                    ${this.editor.forms.renderEditorFormOptions('instruments-available')}
-                </select>
-            </form>`;
+        // addInstrumentDiv.innerHTML +=
+        //     `<form class="form-add-instrument submit-on-change" data-action="instrument:add">
+        //         <select name="instrumentURL" class="themed">
+        //             <option value="">Add Instrument</option>
+        //             ${this.editor.forms.renderEditorFormOptions('instruments-available')}
+        //         </select>
+        //     </form>`;
 
     }
 }

@@ -72,7 +72,7 @@ class SongStorage {
 
     saveSongToFile(songData) {
         // const song = this.getSongData();
-        const jsonString = this.encodeForStorage(songData, null, "\t");
+        const jsonString = JSON.stringify(songData, null, "\t");
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href",     dataStr);

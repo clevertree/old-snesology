@@ -318,6 +318,7 @@ song-editor .editor-forms form.form-render-duration {
 song-editor .editor-forms form.form-render-duration select[name=duration] { min-width: 96px; }
 song-editor .editor-forms form.form-render-octave select[name=octave] {max-width: 37px;}
 song-editor .editor-forms form.form-render-instrument select[name=instrument] { min-width: 135px; }
+song-editor .editor-forms form.form-add-instrument select[name=instrumentURL] {max-width: 145px;}
 
 
 /** Editor Grid **/
@@ -559,8 +560,8 @@ song-editor .editor-grid .grid-row.selected .grid-cell-pause {
 
 song-editor .editor-instruments form.form-add-instrument > select[name=instrumentURL] {
     width: 95%;
-    padding: 0.5em;
-    margin: 0.5em auto;
+    padding: 0.7em 1em;
+    margin: 0.7em;
     /* display: inline-block; */
     font-weight: bold;
     text-align: center;
@@ -579,8 +580,9 @@ song-editor .editor-instruments form.form-change-instrument > select[name=instru
 
 /** Instrument Container **/
 song-editor .instrument-add-container {
-    /* display: inline-block; */
+     display: inline-block;
     text-align: center;
+    /*float: right;*/
 }
 
 song-editor .editor-instruments > form.form-add-instrument,

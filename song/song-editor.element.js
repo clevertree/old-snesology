@@ -252,8 +252,8 @@ class SongEditorElement extends HTMLElement {
         this.innerHTML = ``;
         this.menu.render();
         this.forms.render();
-        this.grid.render();
         this.instruments.render();
+        this.grid.render();
 
     }
 
