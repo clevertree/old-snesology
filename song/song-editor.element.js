@@ -59,11 +59,11 @@ class SongEditorElement extends HTMLElement {
     get selectedRange()     { return this.status.selectedRange; }
     get selectedPauseIndicies()  {
         const instructionList = this.renderer.getInstructions(this.currentGroup);
-        return this.selectedIndicies.filter(index => instructionList[index].command === '!pause')
+        return this.selectedIndicies.filter(index => instructionList[index] && instructionList[index].command === '!pause')
     }
     get selectedNoteIndicies()  {
         const instructionList = this.renderer.getInstructions(this.currentGroup);
-        return this.selectedIndicies.filter(index => instructionList[index].command !== '!pause')
+        return this.selectedIndicies.filter(index => instructionList[index] && instructionList[index].command !== '!pause')
     }
 
     getAudioContext()   { return this.renderer.getAudioContext(); }

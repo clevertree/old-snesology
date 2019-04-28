@@ -92,7 +92,7 @@ class SongRenderer {
         songData = Object.assign({}, {
             instruments: [],
             instructions: {
-                'root': []
+                'root': [4]
             }
         }, songData);
         // TODO: Cleanup
@@ -104,7 +104,7 @@ class SongRenderer {
 
         let loadingInstruments = 0;
         if(songData.instruments.length === 0) {
-            console.warn("Song contains no instruments");
+            // console.warn("Song contains no instruments");
         } else {
             for(let instrumentID=0; instrumentID<songData.instruments.length; instrumentID++) {
                 loadingInstruments++;

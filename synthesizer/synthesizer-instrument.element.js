@@ -140,7 +140,7 @@ class SynthesizerInstrument extends HTMLElement {
             source.setPeriodicWave(buffer);
 
         } else if(buffer instanceof AudioBuffer) {
-            const playbackRate = frequencyValue / (this.getCommandFrequency(sampleConfig.keyRoot) || 440);
+            const playbackRate = frequencyValue / (sampleConfig.keyRoot ? this.getCommandFrequency(sampleConfig.keyRoot) : 440);
             source = destination.context.createBufferSource();
             source.buffer = buffer;
             source.loop = sampleConfig.loop || false;
@@ -187,14 +187,14 @@ class SynthesizerInstrument extends HTMLElement {
             // if(sampleConfig.keyRoot)
             //     sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
 
-            if(typeof sampleConfig.keyRange !== "undefined") {
-                let pair = sampleConfig.keyRange;
-                if(typeof pair === 'string')
-                    pair = pair.split('-');
-                sampleConfig.keyLow = pair[0];
-                sampleConfig.keyHigh = pair[1] || pair[0];
-                delete sampleConfig.keyRange;
-            }
+            // if(typeof sampleConfig.keyRange !== "undefined") {
+            //     let pair = sampleConfig.keyRange;
+            //     if(typeof pair === 'string')
+            //         pair = pair.split('-');
+            //     sampleConfig.keyLow = pair[0];
+            //     sampleConfig.keyHigh = pair[1] || pair[0];
+            //     delete sampleConfig.keyRange;
+            // }
             // if(typeof sampleConfig.keyLow !== "undefined")
             //     sampleConfig.keyLow = this.getCommandFrequency(sampleConfig.keyLow);
             // if(typeof sampleConfig.keyHigh !== "undefined")
@@ -517,17 +517,16 @@ class SynthesizerInstrument extends HTMLElement {
     // }
 
 
-    getFrequencyAlias(command) {
+    getFrequencyAliases() {
+        const aliases = {};
         for(let sampleName in this.config.samples) {
             if (this.config.samples.hasOwnProperty(sampleName)) {
-                if(sampleName !== command)
-                    continue;
                 const sampleConfig = this.config.samples[sampleName];
-                // if(sampleConfig.keyAlias && )
-                return sampleConfig.keyAlias;
+                if(sampleConfig.keyAlias)
+                    aliases[sampleConfig.keyAlias] = sampleName;
             }
         }
-        return null;
+        return aliases;
     }
 
     getCommandFrequency (command) {

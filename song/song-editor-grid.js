@@ -200,6 +200,7 @@ class SongEditorGrid {
 
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
+                                newCommand = this.replaceFrequencyAlias(newCommand, newInstruction.instrument);
                                 newInstruction.command = newCommand;
 
                                 const insertPosition = this.cursorPosition;
@@ -210,9 +211,9 @@ class SongEditorGrid {
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
                                 for(let i=0; i<selectedIndices.length; i++) {
-                                    this.replaceInstructionParams(selectedIndices[i], {
-                                        command: newCommand
-                                    });
+                                    const selectedInstruction = instructionList[selectedIndices[i]];
+                                    const replaceCommand = this.replaceFrequencyAlias(newCommand, selectedInstruction.instrument);
+                                    this.replaceInstructionParam(selectedIndices[i], 'command', replaceCommand);
                                 }
                                 // this.selectInstructions(this.selectedIndices[0]); // TODO: select all
                             }
@@ -411,8 +412,21 @@ class SongEditorGrid {
         return this.editor.renderer.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
     }
 
+    replaceInstructionParam(replaceIndex, paramName, paramValue) {
+        return this.editor.renderer.replaceInstructionParam(this.groupName, replaceIndex, paramName, paramValue);
+    }
     replaceInstructionParams(replaceIndex, replaceParams) {
         return this.editor.renderer.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
+    }
+
+    replaceFrequencyAlias(noteFrequency, instrumentID) {
+        const instrument = this.editor.renderer.getInstrument(instrumentID, false);
+        if(!instrument || !instrument.getFrequencyAliases)
+            return noteFrequency;
+        const aliases = instrument.getFrequencyAliases(noteFrequency);
+        if(typeof aliases[noteFrequency] === "undefined")
+            return noteFrequency;
+        return aliases[noteFrequency];
     }
 
     selectCell(e, cursorCell, clearSelection=true, toggle=false) {
