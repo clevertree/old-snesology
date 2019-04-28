@@ -299,12 +299,13 @@ class SynthesizerInstrument extends HTMLElement {
     render() {
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
-            <form class="instrument-editor submit-on-change" data-action="instrument:preset">
-                <label>Preset
+            <form class="instrument-setting instrument-preset submit-on-change" data-action="instrument:preset">
+                <fieldset class="form-section">
+                    <legend>Preset</legend>
                     <select name="preset" title="Load Preset" class="themed">
                         <option value="">Select Preset</option>
                         ${this.librarySelected && this.librarySelected.libraries ? 
-                            `<optgroup label="Libraries"}">` +
+                            `<optgroup label="Libraries">` +
                             this.librarySelected.libraries.map((libraryConfig) => {
                                 if (typeof libraryConfig !== 'object') libraryConfig = {url: libraryConfig};
                                 return `<option value="${libraryConfig.url}">${libraryConfig.title || libraryConfig.url.split('/').pop()}</option>`;
@@ -320,7 +321,7 @@ class SynthesizerInstrument extends HTMLElement {
                             + `</optgroup>`
                         : null}
                         ${this.libraryHistory ? 
-                            `<optgroup label="Other Libraries"}">` +
+                            `<optgroup label="Other Libraries">` +
                             this.libraryHistory.map((libraryConfig) => {
                                 if (typeof libraryConfig !== 'object') libraryConfig = {url: libraryConfig};
                                 return `<option value="${libraryConfig.url}">${libraryConfig.title || libraryConfig.url.split('/').pop()}</option>`;
@@ -328,7 +329,16 @@ class SynthesizerInstrument extends HTMLElement {
                             + `</optgroup>`
                         : null}
                     </select>
-                </label>
+                </fieldset>
+            </form>
+
+            <form action="#" class="instrument-setting instrument-volume submit-on-change" data-action="song:volume">
+                <fieldset class="form-section">
+                    <legend class="form-section-header">Detune</legend>
+                    <div class="volume-container">
+                        <input name="volume" type="range" min="1" max="100" value="${0}" class="themed">
+                    </div>
+                </fieldset>
             </form>
         `;
 

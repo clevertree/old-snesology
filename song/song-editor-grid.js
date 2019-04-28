@@ -259,9 +259,9 @@ class SongEditorGrid {
                     break;
 
                 case 'contextmenu':
-                    if (e.target.classList.contains('grid-parameter')) {
-                        console.info("TODO: add parameter song at top of context menu: ", e.target);
-                    }
+                    // if (e.target.classList.contains('grid-parameter')) {
+                    //     console.info("TODO: add parameter song at top of context menu: ", e.target); // huh?
+                    // }
                     this.editor.menu.openContextMenu(e);
                     if(!e.altKey) e.preventDefault();
 

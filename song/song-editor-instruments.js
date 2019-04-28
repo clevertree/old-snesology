@@ -137,13 +137,13 @@ class SongEditorInstruments {
 
             instrumentDiv.innerHTML =
                 `<div class="instrument-container-header">
-                    <form class="form-instrument-name submit-on-change" data-action="instrument:name">
+                    <form class="instrument-setting instrument-name submit-on-change" data-action="instrument:name">
                         <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                         <label class="label-instrument-name">${instrumentIDHTML}<!--
                             --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument" ${instrumentPreset.url ? '' : `disabled`}/>
                         </label>
                     </form>
-                    <form class="form-change-instrument submit-on-change" data-action="instrument:change">
+                    <form class="instrument-setting change-instrument submit-on-change" data-action="instrument:change">
                         <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                         <select name="instrumentURL" class="themed">
                             <optgroup label="Change Instrument">
@@ -151,7 +151,7 @@ class SongEditorInstruments {
                             </optgroup>
                         </select>
                     </form>
-                    <form class="form-instrument-remove" data-action="instrument:remove">
+                    <form class="instrument-setting instrument-remove" data-action="instrument:remove">
                         <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                         <button class="remove-instrument">x</button>
                     </form>

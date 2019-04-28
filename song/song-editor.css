@@ -161,17 +161,8 @@ song-editor .editor-forms {
 }
 
 song-editor .editor-forms form {
-    /* border: 1px solid #333; */
-    /* background-color: #CCC; */
     margin: 0px 0px 3px 0px;
-    /* padding: 1px 2px 1px 0px; */
-    /* padding: 0px; */
-    /* padding-top: 2px; */
     display: inline-block;
-}
-song-editor .editor-forms .form-group-selection > form {
-    float: left;
-    padding: 0px 2px 3px 0px;
 }
 
 /** Form Section **/
@@ -558,35 +549,32 @@ song-editor .editor-grid .grid-row.selected .grid-cell-pause {
 
 /** Instrument List **/
 
-song-editor .editor-instruments form.form-add-instrument > select[name=instrumentURL] {
-    width: 95%;
-    padding: 0.7em 1em;
-    margin: 0.7em;
-    /* display: inline-block; */
-    font-weight: bold;
-    text-align: center;
-    text-align-last: center;
+
+
+
+/** Form Section **/
+song-editor .editor-instruments div.form-section-header {
+    font-size: small;
+    border-bottom: 1px solid #BBB;
+    /* text-decoration-color: #AAA; */
+    margin-bottom: 1px;
+}
+
+
+song-editor .editor-instruments div.form-section {
+    background: #DDD;
+    /* border: 1px outset #ffffff8a; */
+    padding: 6px 8px 2px 6px;
+    display: inline-block;
+    vertical-align: middle;
+    /* float: left; */
+    border: 1px inset #FFF;
 }
 
 
 
-song-editor .editor-instruments form.form-change-instrument > select[name=instrumentURL]{
-    max-width: 174px;
-}
-song-editor .editor-instruments form.form-change-instrument > select[name=instrumentURL]:not(:hover):not(:focus) {
-    border-color: transparent;
-    background: transparent;
-}
-
-/** Instrument Container **/
-song-editor .instrument-add-container {
-     display: inline-block;
-    text-align: center;
-    /*float: right;*/
-}
-
-song-editor .editor-instruments > form.form-add-instrument,
 song-editor .instrument-container {
+    background: #DDD;
     position: relative;
     vertical-align: top;
     display: inline-block;
@@ -597,40 +585,57 @@ song-editor .instrument-container {
     border: 1px outset;
 }
 
-song-editor .instrument-container form.form-instrument-name input[name=name] {
+song-editor .instrument-container form {
+    /*display: inline-block;*/
+}
+
+
+song-editor .instrument-container form.instrument-setting {
+    display: inline-block;
+    margin: 0;
+    vertical-align: top;
+}
+song-editor .instrument-container form.instrument-setting > fieldset {
+    margin: 0;
+    padding: 1px;
+    border: 1px inset #FFF;
+    font-size: x-small;
+}
+song-editor .instrument-container form.instrument-name input[name=name] {
     padding: 1px;
     margin: 0 0;
     border: 0px;
     width: 132px;
 }
 
-song-editor .instrument-container form.form-instrument-name > label.label-instrument-name{
-    /*margin: 5px 0px 1px 6px;*/
-    /*display: inline-block;*/
-    /* margin: 0 0; */
-    /* border: 0px; */
-    /* min-width: 28em; */
+song-editor .instrument-container form.instrument-name > label.label-instrument-name{
     font-size: smaller;
 }
 
-song-editor .instrument-container form {
-    margin: 0;
+/** Form Inputs **/
+
+song-editor .instrument-container input,
+song-editor .instrument-container select  {
+    font-size: x-small;
 }
-song-editor .instrument-container > .instrument-container-header {
-    border-bottom: 1px solid #BBB;
-}
-song-editor .instrument-container > .instrument-container-header > form {
-    display: inline-block;
+song-editor .instrument-container input:not(:hover),
+song-editor .instrument-container select:not(:hover)  {
+    border-color: transparent;
+    background: transparent;
 }
 
-song-editor .instrument-container:hover {
-    background-color: #CCC;
-}
-song-editor .instrument-container form.form-instrument-name input[name=name]:not(:hover) {
-    background-color: #0000;
+select.themed {}
+
+select.themed {}
+
+
+song-editor .editor-instruments form.change-instrument > select[name=instrumentURL]{
+    max-width: 174px;
 }
 
-song-editor .instrument-container form.form-instrument-remove button.remove-instrument {
+
+
+song-editor .instrument-container form.instrument-remove button.remove-instrument {
     /* text-align: center; */
     padding: 0px 6px 1px 6px;
     /* margin: 0px 0px 1px 0px; */

@@ -54,7 +54,7 @@ class SongEditorMenu {
         switch(dataCommand) {
             case 'song:new':
                 e.preventDefault();
-                this.editor.renderer.loadNewSongData();
+                this.editor.loadNewSongData();
                 this.editor.render();
                 // document.location = 'song/new';
                 break;

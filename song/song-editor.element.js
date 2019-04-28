@@ -102,7 +102,7 @@ class SongEditorElement extends HTMLElement {
     loadNewSongData() {
         const storage = new SongStorage();
         let songData = storage.generateDefaultSong();
-        this.loadSongData(songData);
+        this.renderer.loadSongData(songData);
     }
 
 
