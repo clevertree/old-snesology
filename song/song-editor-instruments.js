@@ -9,30 +9,44 @@ class SongEditorInstruments {
     get renderElement() {
         let renderElement = this.editor.querySelector('div.editor-instruments');
         if(!renderElement) {
-            this.editor.innerHTML += `<div class="editor-instruments"></div>`;
-            renderElement = this.editor.querySelector('div.editor-instruments');
+            renderElement = document.createElement('div');
+            // renderElement.setAttribute('tabindex', '0')
+            renderElement.classList.add('editor-instruments');
+            this.editor.appendChild(renderElement);
+            // this.editor.innerHTML += `<div class="editor-instruments"></div>`;
+            // renderElement = this.editor.querySelector('div.editor-instruments');
         }
         return renderElement;
     }
 
-    loadInstrumentLibrary(URL, onLoad=null) {
-        if(URL === this.editor.instrumentLibraryURL) {
-            onLoad && onLoad(this.editor.instrumentLibrary);
-            return;
-        }
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', URL, true);
-        xhr.responseType = 'json';
-        xhr.onload = () => {
-            if(xhr.status !== 200)
-                throw new Error("Instrument list not found");
-            this.editor.instrumentLibrary = xhr.response;
-            this.editor.instrumentLibraryURL = URL;
-            onLoad && onLoad(this.editor.instrumentLibrary);
-            this.editor.render();
-        };
-        xhr.send();
+    // Instruments load their own libraries. Libraries may be shared via dispatch
+    async loadInstrumentLibrary(url, force=false) {
+        if (!url)
+            throw new Error("Invalid url");
+        url = new URL(url, document.location) + '';
+        if(!force && this.editor.instrumentLibrary && this.editor.instrumentLibrary.url === url)
+            return this.editor.instrumentLibrary;
+
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url + '', true);
+            xhr.responseType = 'json';
+            xhr.onload = () => {
+                if(xhr.status !== 200)
+                    return reject("Sample library not found: " + url);
+
+                this.editor.instrumentLibrary = xhr.response;
+                this.editor.instrumentLibrary.url = URL+'';
+                // this.editor.render();
+                this.renderElement.dispatchEvent(new CustomEvent('instrument:library', {
+                    detail: this.editor.instrumentLibrary,
+                    bubbles: true
+                }));
+                resolve(this.editor.instrumentLibrary);
+            };
+            xhr.send();
+        });
     }
 
     // get id() { return parseInt(this.getAttribute('id')); }
@@ -134,14 +148,13 @@ class SongEditorInstruments {
             const instrument = this.editor.renderer.getInstrument(instrumentID, false);
             const instrumentPreset = this.editor.renderer.getInstrumentConfig(instrumentID, false) || {name: "Empty Instrument"};
 
-            instrumentDiv.innerHTML =
-                ``;
+            instrumentDiv.innerHTML = ``;
 
             if(!instrumentPreset.url) {
-                instrumentDiv.innerHTML += `Empty`;
+                instrumentDiv.innerHTML = `Invalid URL`;
 
             } else if(!this.editor.renderer.isInstrumentLoaded(instrumentID)) {
-                instrumentDiv.innerHTML += `Loading...`;
+                instrumentDiv.innerHTML = `Loading...`;
 
             } else {
                 try {
@@ -151,21 +164,21 @@ class SongEditorInstruments {
                     } else if (instrument.render) {
                         const renderedHTML = instrument.render(this, instrumentID);
                         if(renderedHTML)
-                            instrumentDiv.innerHTML += renderedHTML;
+                            instrumentDiv.innerHTML = renderedHTML;
                     } else {
                         throw new Error("No Renderer");
                     }
 
                 } catch (e) {
-                    instrumentDiv.innerHTML += e;
+                    instrumentDiv.innerHTML = e;
                 }
             }
         }
 
-        let addInstrumentDiv = document.createElement('div');
-        // addInstrumentDiv.setAttribute('data-id', instrumentID+'');
-        addInstrumentDiv.classList.add('instrument-add-container');
-        this.renderElement.appendChild(addInstrumentDiv);
+        // let addInstrumentDiv = document.createElement('div');
+        // // addInstrumentDiv.setAttribute('data-id', instrumentID+'');
+        // addInstrumentDiv.classList.add('instrument-add-container');
+        // this.renderElement.appendChild(addInstrumentDiv);
 
         // addInstrumentDiv.innerHTML +=
         //     `<form class="form-add-instrument submit-on-change" data-action="instrument:add">

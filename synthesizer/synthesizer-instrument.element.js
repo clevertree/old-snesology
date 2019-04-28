@@ -2,6 +2,7 @@
 class SynthesizerInstrument extends HTMLElement {
     // get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/index.library.json'; }
     get DEFAULT_SAMPLE_LIBRARY_URL() { return '/sample/sample.library.json'; }
+    get DEFAULT_INSTRUMENT_LIBRARY_URL() { return '/synthesizer/instrument.library.json'; }
 
     constructor(config) {
         super();
@@ -13,10 +14,12 @@ class SynthesizerInstrument extends HTMLElement {
             config.samples = {};
         this.config = config;            // TODO: validate config
         this.buffers = {};
-        this.librarySelected = null;
+        this.sampleLibrary = null;
+        this.instrumentLibrary = null;
         this.libraryHistory = [];
         this.audioContext = null;
-        this.loadDefaultLibrary();
+        this.loadDefaultSampleLibrary();
+        this.loadInstrumentLibrary(this.DEFAULT_INSTRUMENT_LIBRARY_URL);
     }
 
     connectedCallback() {
@@ -46,25 +49,27 @@ class SynthesizerInstrument extends HTMLElement {
         this.initSamples(audioContext);
     }
 
-    async loadDefaultLibrary() {
-        if(!this.librarySelected) {
+    async loadDefaultSampleLibrary() {
+        if(!this.sampleLibrary) {
             await this.loadSampleLibrary(this.config.libraryURL || this.DEFAULT_SAMPLE_LIBRARY_URL);
             this.render();
-            await this.loadDefaultLibrary();
+        }
 
-        } else if (this.librarySelected.libraries && !this.librarySelected.instruments && !this.librarySelected.samples) {
-            const firstLibrary = this.librarySelected.libraries[0];
-            firstLibrary.url = new URL(firstLibrary.url, this.librarySelected.url)+'';
-            if(firstLibrary.url !== this.librarySelected.url) {
+        // Load first library
+        if (this.sampleLibrary.libraries && !this.sampleLibrary.instruments && !this.sampleLibrary.samples) {
+            const firstLibrary = this.sampleLibrary.libraries[0];
+            firstLibrary.url = new URL(firstLibrary.url, this.sampleLibrary.url)+'';
+            if(firstLibrary.url !== this.sampleLibrary.url) {
                 await this.loadSampleLibrary(firstLibrary.url);
                 this.render();
-                await this.loadDefaultLibrary();
             }
 
-        } else if(this.librarySelected.instruments) {
-            // Load default sample
+        }
+
+        // Load default sample
+        if(this.sampleLibrary.instruments) {
             if(Object.keys(this.config.samples).length === 0) {
-                const sampleInstrument = Object.keys(this.librarySelected.instruments)[0];
+                const sampleInstrument = Object.keys(this.sampleLibrary.instruments)[0];
 
                 Object.assign(this.config, this.getInstrumentPresetConfig(sampleInstrument));
 //                 console.info("Loaded default sample instrument: " + sampleInstrument, this.config);
@@ -78,18 +83,32 @@ class SynthesizerInstrument extends HTMLElement {
 
 
     play(destination, commandFrequency, startTime, duration) {
-        const frequencyValue = this.getCommandFrequency(commandFrequency);
 
-        // Loop through sample
         const sources = [];
+        if(this.config.samples.hasOwnProperty(commandFrequency)) {
+            const sampleConfig = this.config.samples[commandFrequency];
+
+            if (typeof this.buffers[commandFrequency] === 'undefined')
+                return console.error("Sample not loaded: " + sampleConfig.url);
+            const buffer = this.buffers[commandFrequency];
+
+            let frequencyValue = (this.getCommandFrequency(sampleConfig.keyRoot) || 440);
+            let source = this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
+            if (source)
+                sources.push(sources);
+            return sources;
+        }
+
+        let frequencyValue = this.getCommandFrequency(commandFrequency);
+        // Loop through sample
         for(let sampleName in this.config.samples) {
             if(this.config.samples.hasOwnProperty(sampleName)) {
                 const sampleConfig = this.config.samples[sampleName];
 
                 // Filter sample playback
-                if (sampleConfig.keyLow > frequencyValue)
+                if (sampleConfig.keyLow && this.getCommandFrequency(sampleConfig.keyLow) > frequencyValue)
                     continue;
-                if (sampleConfig.keyHigh && sampleConfig.keyHigh < frequencyValue)
+                if (sampleConfig.keyHigh && this.getCommandFrequency(sampleConfig.keyHigh) < frequencyValue)
                     continue;
 
 
@@ -98,16 +117,7 @@ class SynthesizerInstrument extends HTMLElement {
                 const buffer = this.buffers[sampleName];
 
 
-                let source;
-                if(buffer instanceof PeriodicWave) {
-                    source = this.playPeriodicWave(buffer, destination, frequencyValue, sampleConfig.detune, startTime, duration);
-                } else if(buffer instanceof AudioBuffer) {
-                    const playbackRate = frequencyValue / (sampleConfig.keyRoot || 440);
-                    source = this.playBuffer(buffer, destination, playbackRate, sampleConfig.loop, startTime, duration);
-                } else {
-                    throw new Error("Unknown buffer type");
-                }
-
+                let source = this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
                 if (source)
                     sources.push(sources);
             }
@@ -117,37 +127,28 @@ class SynthesizerInstrument extends HTMLElement {
     }
 
 
+    playBuffer(buffer, destination, frequencyValue, sampleConfig, startTime, duration) {
 
-    playPeriodicWave(periodicWave, destination, frequency, detune, startTime, duration) {
-        // const frequencyValue = this.getCommandFrequency(commandFrequency);
 
-        const osc = destination.context.createOscillator();   // instantiate an oscillator
-        osc.frequency.value = frequency;    // set Frequency (hz)
-        if(typeof detune !== "undefined")
-            osc.detune.value = detune;
+        let source;
+        if(buffer instanceof PeriodicWave) {
+            source = destination.context.createOscillator();   // instantiate an oscillator
+            source.frequency.value = frequencyValue;    // set Frequency (hz)
+            if(typeof sampleConfig.detune !== "undefined")
+                source.detune.value = sampleConfig.detune;
 
-        if(typeof periodicWave === "string") {
-            osc.type = periodicWave;
+            source.setPeriodicWave(buffer);
+
+        } else if(buffer instanceof AudioBuffer) {
+            const playbackRate = frequencyValue / (this.getCommandFrequency(sampleConfig.keyRoot) || 440);
+            source = destination.context.createBufferSource();
+            source.buffer = buffer;
+            source.loop = sampleConfig.loop || false;
+            source.playbackRate.value = playbackRate; //  Math.random()*2;
         } else {
-            osc.setPeriodicWave(periodicWave);
+            throw new Error("Unknown buffer type");
         }
 
-        // Play note
-        if(startTime) {
-            osc.start(startTime);
-            if(duration) {
-                osc.stop(startTime + duration);
-            }
-        }
-        osc.connect(destination);
-        return osc;
-    }
-
-    playBuffer(buffer, destination, playbackRate, loop, startTime, duration) {
-        const source = destination.context.createBufferSource();
-        source.buffer = buffer;
-        source.loop = loop;
-        source.playbackRate.value = playbackRate; //  Math.random()*2;
 
         // songLength = buffer.duration;
         // source.playbackRate.value = playbackControl.value;
@@ -165,13 +166,13 @@ class SynthesizerInstrument extends HTMLElement {
     }
 
     getInstrumentPresetConfig(presetName) {
-        const urlPrefix = this.librarySelected.urlPrefix || '';
+        const urlPrefix = this.sampleLibrary.urlPrefix || '';
         const newConfig = Object.assign({}, this.config);
         newConfig.preset = presetName;
         newConfig.samples = {};
-        if(!this.librarySelected.instruments[presetName])
+        if(!this.sampleLibrary.instruments[presetName])
             throw new Error("Invalid Instrument Preset: " + presetName);
-        const presetConfig = this.librarySelected.instruments[presetName];
+        const presetConfig = this.sampleLibrary.instruments[presetName];
         if(!presetConfig.samples)
             presetConfig.samples = {};
         if(Object.keys(presetConfig.samples).length === 0)
@@ -181,10 +182,10 @@ class SynthesizerInstrument extends HTMLElement {
             const sampleConfig =
                 Object.assign({},
                     presetConfig.samples[sampleName],
-                    this.librarySelected.samples[sampleName]);
-            sampleConfig.url = new URL(urlPrefix + sampleConfig.url, this.librarySelected.url) + '';
-            if(sampleConfig.keyRoot)
-                sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
+                    this.sampleLibrary.samples[sampleName]);
+            sampleConfig.url = new URL(urlPrefix + sampleConfig.url, this.sampleLibrary.url) + '';
+            // if(sampleConfig.keyRoot)
+            //     sampleConfig.keyRoot = this.getCommandFrequency(sampleConfig.keyRoot);
 
             if(typeof sampleConfig.keyRange !== "undefined") {
                 let pair = sampleConfig.keyRange;
@@ -194,10 +195,10 @@ class SynthesizerInstrument extends HTMLElement {
                 sampleConfig.keyHigh = pair[1] || pair[0];
                 delete sampleConfig.keyRange;
             }
-            if(typeof sampleConfig.keyLow !== "undefined")
-                sampleConfig.keyLow = this.getCommandFrequency(sampleConfig.keyLow);
-            if(typeof sampleConfig.keyHigh !== "undefined")
-                sampleConfig.keyHigh = this.getCommandFrequency(sampleConfig.keyHigh);
+            // if(typeof sampleConfig.keyLow !== "undefined")
+            //     sampleConfig.keyLow = this.getCommandFrequency(sampleConfig.keyLow);
+            // if(typeof sampleConfig.keyHigh !== "undefined")
+            //     sampleConfig.keyHigh = this.getCommandFrequency(sampleConfig.keyHigh);
             newConfig.samples[sampleName] = sampleConfig;
         });
 
@@ -279,18 +280,47 @@ class SynthesizerInstrument extends HTMLElement {
                 if(xhr.status !== 200)
                     return reject("Sample library not found: " + url);
 
-                this.librarySelected = xhr.response;
-                this.librarySelected.url = url+'';
+                this.sampleLibrary = xhr.response;
+                this.sampleLibrary.url = url+'';
 
-                if(!this.libraryHistory.find(historyEntry => historyEntry.url === this.librarySelected.url))
+                if(!this.libraryHistory.find(historyEntry => historyEntry.url === this.sampleLibrary.url))
                     this.libraryHistory.push({
-                        url: this.librarySelected.url,
-                        title: this.libraryHistory.length === 0 ? "Home Index" : this.librarySelected.title
-                    })
-//                 console.log("LIBRARY", this.librarySelected);
+                        url: this.sampleLibrary.url,
+                        title: this.libraryHistory.length === 0 ? "Home Index" : this.sampleLibrary.title
+                    });
+//                 console.log("LIBRARY", this.sampleLibrary);
 
                 this.render(); // Re-render
-                resolve(this.librarySelected);
+                resolve(this.sampleLibrary);
+            };
+            xhr.send();
+        });
+    }
+
+    // Instruments load their own libraries. Libraries may be shared via dispatch
+    async loadInstrumentLibrary(url, force=false) {
+        if (!url)
+            throw new Error("Invalid url");
+        url = new URL(url, document.location) + '';
+        if(!force && this.instrumentLibrary && this.instrumentLibrary.url === url)
+            return this.instrumentLibrary;
+
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url + '', true);
+            xhr.responseType = 'json';
+            xhr.onload = () => {
+                if(xhr.status !== 200)
+                    return reject("Sample library not found: " + url);
+
+                this.instrumentLibrary = xhr.response;
+                this.instrumentLibrary.url = URL+'';
+                this.render();
+                this.dispatchEvent(new CustomEvent('instrument:library', {
+                    detail: this.instrumentLibrary,
+                    bubbles: true
+                }));
+                resolve(this.instrumentLibrary);
             };
             xhr.send();
         });
@@ -313,28 +343,31 @@ class SynthesizerInstrument extends HTMLElement {
                 </form>
                 <form class="instrument-setting change-instrument submit-on-change" data-action="instrument:change">
                     <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                    <select name="instrumentURL" class="themed">
+                    <select name="instrumentURL">
                         <optgroup label="Change Instrument">
-                            {this.editor.forms.renderEditorFormOptions('instruments-available', (value) => value === instrumentPreset.url)}
+                            ${this.instrumentLibrary ? this.instrumentLibrary.instruments.map((instrumentConfig) => {
+                                if (typeof instrumentConfig !== 'object') instrumentConfig = {url: instrumentConfig};
+                                return `<option value="${instrumentConfig.url}">${instrumentConfig.title || instrumentConfig.url.split('/').pop()}</option>`;
+                            }).join("\n") : ''}
                         </optgroup>
                     </select>
                 </form>
                 <form class="instrument-setting change-instrument-preset submit-on-change" data-action="instrument:preset">
                     <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                    <select name="preset" title="Load Preset" class="themed">
+                    <select name="preset" title="Load Preset">
                         <option value="">Select Preset</option>
-                        ${this.librarySelected && this.librarySelected.libraries ? 
+                        ${this.sampleLibrary && this.sampleLibrary.libraries ? 
                             `<optgroup label="Libraries">` +
-                            this.librarySelected.libraries.map((libraryConfig) => {
+                            this.sampleLibrary.libraries.map((libraryConfig) => {
                                 if (typeof libraryConfig !== 'object') libraryConfig = {url: libraryConfig};
                                 return `<option value="${libraryConfig.url}">${libraryConfig.title || libraryConfig.url.split('/').pop()}</option>`;
                             }).join("\n")
                             + `</optgroup>`
                         : null}
-                        ${this.librarySelected && this.librarySelected.instruments ? 
-                            `<optgroup label="${this.librarySelected.title || 'Unnamed Library'}">` +
-                            Object.keys(this.librarySelected.instruments).map((presetName) => {
-                                const instrumentConfig = this.librarySelected.instruments[presetName];
+                        ${this.sampleLibrary && this.sampleLibrary.instruments ? 
+                            `<optgroup label="${this.sampleLibrary.title || 'Unnamed Library'}">` +
+                            Object.keys(this.sampleLibrary.instruments).map((presetName) => {
+                                const instrumentConfig = this.sampleLibrary.instruments[presetName];
                                 return `<option value="${presetName}" ${presetName === this.config.preset ? ` selected="selected"` : ''}>${presetName || instrumentConfig.title}</option>`;
                             }).join("\n")
                             + `</optgroup>`
@@ -359,9 +392,9 @@ class SynthesizerInstrument extends HTMLElement {
                     <tr>
                         <th>Sample</th>
                         <th>Detune</th>
-                        <th>Alias</th>
                         <th>Range</th>
                         <th>Root</th>
+                        <th>Alias</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -371,13 +404,36 @@ class SynthesizerInstrument extends HTMLElement {
                         <td>${sampleName}</td>
                         <td>   
                             <form action="#" class="instrument-setting instrument-setting-detune submit-on-change" data-action="song:volume">
-                                <input name="detune" type="range" min="1" max="100" value="${0}" class="themed">
+                                <input name="detune" type="range" min="1" max="100" value="${0}">
+                            </form>
+                        </td>    
+                        <td>   
+                            <form action="#" class="instrument-setting instrument-setting-range submit-on-change" data-action="song:volume">
+                                <input name="keyLow" value="${this.config.samples[sampleName].keyLow || ''}" list="noteFrequencies" placeholder="N/A"> -
+                                <input name="keyHigh" value="${this.config.samples[sampleName].keyHigh || ''}" list="noteFrequencies" placeholder="N/A">
+                            </form>
+                        </td>    
+                        <td>   
+                            <form action="#" class="instrument-setting instrument-setting-root submit-on-change" data-action="song:volume">
+                                <input name="keyRoot" value="${this.config.samples[sampleName].keyRoot || ''}" list="noteFrequencies" placeholder="N/A">
+                            </form>
+                        </td>  
+                        <td>   
+                            <form action="#" class="instrument-setting instrument-setting-alias submit-on-change" data-action="song:volume">
+                                <input name="keyAlias" value="${this.config.samples[sampleName].keyAlias || ''}" list="noteFrequencies" placeholder="N/A">
                             </form>
                         </td>    
                     </tr>`;
             }).join("\n")}
                 </tbody>
             </table>
+            <datalist id="noteFrequencies">
+              <option value="Internet Explorer">
+              <option value="Firefox">
+              <option value="Chrome">
+              <option value="Opera">
+              <option value="Safari">
+            </datalist>
         `;
 
     };
@@ -425,7 +481,7 @@ class SynthesizerInstrument extends HTMLElement {
             case 'instrument:preset':
                 const newPreset = form.elements['preset'].value;
                 if(newPreset.endsWith('.json')) {
-                    const libraryURL = new URL(newPreset, this.librarySelected.url) + '';
+                    const libraryURL = new URL(newPreset, this.sampleLibrary.url) + '';
                     this.loadSampleLibrary(libraryURL);
                 } else {
                     Object.assign(this.config, this.getInstrumentPresetConfig(newPreset));
@@ -461,33 +517,28 @@ class SynthesizerInstrument extends HTMLElement {
     // }
 
 
-    getFrequencyAliases() {
-        const aliases = {
-            // 'kick': 'C1',
-            // 'snare': 'D1',
-        };
+    getFrequencyAlias(command) {
         for(let sampleName in this.config.samples) {
             if (this.config.samples.hasOwnProperty(sampleName)) {
+                if(sampleName !== command)
+                    continue;
                 const sampleConfig = this.config.samples[sampleName];
-                if(sampleConfig.keyAlias)
-                    aliases[sampleName] = sampleConfig.keyAlias;
+                // if(sampleConfig.keyAlias && )
+                return sampleConfig.keyAlias;
             }
         }
-        return aliases;
-
-        // return {
-        //     'kick': 'C1',
-        //     'snare': 'D1',
-        // };
+        return null;
     }
 
     getCommandFrequency (command) {
         if(Number(command) === command && command % 1 !== 0)
             return command;
+        if(!command)
+            return null;
 
-        const aliases = this.getFrequencyAliases();
-        if(typeof aliases[command] !== "undefined")
-            command = aliases[command];
+        // const aliases = this.getFrequencyAliases();
+        // if(typeof aliases[command] !== "undefined")
+        //     command = aliases[command];
 
         const instructions = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
         let octave = command.length === 3 ? command.charAt(2) : command.charAt(1),
@@ -496,6 +547,11 @@ class SynthesizerInstrument extends HTMLElement {
         else                keyNumber = keyNumber + ((octave - 1) * 12) + 1;
         return 440 * Math.pow(2, (keyNumber- 49) / 12);
     }
+
+    get noteFrequencies() {
+        return ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+    }
+
 }
 
 customElements.define('synthesizer-instrument', SynthesizerInstrument);

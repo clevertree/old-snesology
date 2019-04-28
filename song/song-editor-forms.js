@@ -6,8 +6,12 @@ class SongEditorForms {
     get renderElement() {
         let renderElement = this.editor.querySelector('div.editor-forms');
         if(!renderElement) {
-            this.editor.innerHTML += `<div class="editor-forms"></div>`;
-            renderElement = this.editor.querySelector('div.editor-forms');
+            renderElement = document.createElement('div');
+            // renderElement.setAttribute('tabindex', '0')
+            renderElement.classList.add('editor-forms');
+            this.editor.appendChild(renderElement);
+            // this.editor.innerHTML += `<div class="editor-forms"></div>`;
+            // renderElement = this.editor.querySelector('div.editor-forms');
         }
         return renderElement;
     }

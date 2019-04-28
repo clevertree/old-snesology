@@ -49,9 +49,6 @@ synthesizer-instrument select:not(:hover)  {
 }
 
 
-synthesizer-instrument form.change-instrument > select[name=instrumentURL]{
-    max-width: 174px;
-}
 
 
 
@@ -64,13 +61,6 @@ synthesizer-instrument form.instrument-remove button.remove-instrument {
     color: darkred;
 }
 
-synthesizer-instrument form.instrument-name input[name=name] {
-    width: 108px;
-}
-
-synthesizer-instrument form.instrument-setting-detune input[name=detune] {
-    width: 62px;
-}
 
 /** Form Section **/
 synthesizer-instrument div.form-section-header {
@@ -91,3 +81,21 @@ synthesizer-instrument div.form-section {
     border: 1px inset #FFF;
 }
 
+/** Custom Inputs **/
+
+synthesizer-instrument form.change-instrument > select[name=instrumentURL]{
+    max-width: 174px;
+}
+synthesizer-instrument form.instrument-name input[name=name] {
+    width: 108px;
+}
+
+synthesizer-instrument form.instrument-setting-detune input[name=detune] {
+    width: 62px;
+}
+
+synthesizer-instrument form.instrument-setting-root input[name=keyRoot],
+synthesizer-instrument form.instrument-setting-range input[name=keyLow],
+synthesizer-instrument form.instrument-setting-range input[name=keyHigh] {
+    width: 62px;
+}

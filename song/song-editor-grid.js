@@ -8,8 +8,12 @@ class SongEditorGrid {
     get renderElement() {
         let renderElement = this.editor.querySelector('table.editor-grid');
         if(!renderElement) {
-            this.editor.innerHTML += `<table class="editor-grid" tabindex="0"></table>`;
-            renderElement = this.editor.querySelector('table.editor-grid');
+            renderElement = document.createElement('table');
+            renderElement.setAttribute('tabindex', '0')
+            renderElement.classList.add('editor-grid');
+            this.editor.appendChild(renderElement);
+            // this.editor.innerHTML += `<table class="editor-grid" tabindex="0"></table>`;
+            // renderElement = this.editor.querySelector('table.editor-grid');
         }
         return renderElement;
     }

@@ -36,7 +36,8 @@ class SongEditorElement extends HTMLElement {
         };
         this.saveSongToMemoryTimer = null;
         this.instrumentLibrary = null;
-        this.instrumentLibraryURL = null;
+
+        this.longPressTimeout = null;
 
         this.values = new SongEditorValues(this);
         this.webSocket = new SongEditorWebsocket(this);
@@ -45,10 +46,10 @@ class SongEditorElement extends HTMLElement {
         this.forms = new SongEditorForms(this);
         this.grid = new SongEditorGrid(this);
         // this.modifier = new SongModifier(this);
+
         this.instruments = new SongEditorInstruments(this);
-        // this.renderer.addSongEventListener(e => this.onSongEvent(e));
-        this.longPressTimeout = null;
         this.instruments.loadInstrumentLibrary('synthesizer/instrument.library.json');
+
         this.renderer = new SongRenderer(this);
         this.loadRecentSongData();
     }
@@ -87,6 +88,7 @@ class SongEditorElement extends HTMLElement {
         this.addEventListener('song:modified', this.onSongEvent);
         this.addEventListener('instrument:loaded', this.onSongEvent);
         this.addEventListener('instrument:instance', this.onSongEvent);
+        this.addEventListener('instrument:library', this.onSongEvent);
 
         this.render();
 
@@ -213,21 +215,9 @@ class SongEditorElement extends HTMLElement {
             case 'instrument:loaded':
                 console.info("TODO: load instrument instances", e.detail);
                 break;
+            case 'instrument:library':
             case 'instrument:instance':
-                // case 'instrument:initiated':
-                //     this.menu.render(); // Update instrument list
-                //     break;
-                // console.info("Instrument initialized: ", e.detail);
-                // const instance = e.detail.instance;
-                // const instrumentID = e.detail.instrumentID;
-                // if(this.instruments[instrumentID]) {
-                //     this.instruments[instrumentID].render();
-                //     this.menu.render(); // Update instrument list
-                //     // this.render();
-                // } else {
-                //     console.warn("Instrument elm not found. Re-rendering song");
-                this.render(); // Update instrument list
-                // }
+                this.render();
                 break;
         }
     }

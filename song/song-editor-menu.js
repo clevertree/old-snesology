@@ -6,8 +6,12 @@ class SongEditorMenu {
     get renderElement() {
         let renderElement = this.editor.querySelector('ul.editor-menu');
         if(!renderElement) {
-            this.editor.innerHTML += `<ul class="editor-menu" tabindex="0"></ul>`;
-            renderElement = this.editor.querySelector('ul.editor-menu');
+            renderElement = document.createElement('ul');
+            renderElement.setAttribute('tabindex', '0')
+            renderElement.classList.add('editor-menu');
+            this.editor.appendChild(renderElement);
+            // this.editor.innerHTML += `<ul class="editor-menu" tabindex="0"></ul>`;
+            // renderElement = this.editor.querySelector('ul.editor-menu');
         }
         return renderElement;
     }
