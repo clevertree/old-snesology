@@ -123,7 +123,6 @@ class SongEditorInstruments {
         this.renderElement.innerHTML = '';
         const instrumentList = this.editor.renderer.getInstrumentList();
         for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
-            const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + (instrumentID + ":");
 
             let instrumentDiv = document.createElement('div');
             instrumentDiv.setAttribute('data-id', instrumentID+'');
@@ -136,26 +135,7 @@ class SongEditorInstruments {
             const instrumentPreset = this.editor.renderer.getInstrumentConfig(instrumentID, false) || {name: "Empty Instrument"};
 
             instrumentDiv.innerHTML =
-                `<div class="instrument-container-header">
-                    <form class="instrument-setting instrument-name submit-on-change" data-action="instrument:name">
-                        <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                        <label class="label-instrument-name">${instrumentIDHTML}<!--
-                            --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument" ${instrumentPreset.url ? '' : `disabled`}/>
-                        </label>
-                    </form>
-                    <form class="instrument-setting change-instrument submit-on-change" data-action="instrument:change">
-                        <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                        <select name="instrumentURL" class="themed">
-                            <optgroup label="Change Instrument">
-                                ${this.editor.forms.renderEditorFormOptions('instruments-available', (value) => value === instrumentPreset.url)}
-                            </optgroup>
-                        </select>
-                    </form>
-                    <form class="instrument-setting instrument-remove" data-action="instrument:remove">
-                        <input type="hidden" name="instrumentID" value="${instrumentID}"/>
-                        <button class="remove-instrument">x</button>
-                    </form>
-                </div>`;
+                ``;
 
             if(!instrumentPreset.url) {
                 instrumentDiv.innerHTML += `Empty`;
@@ -166,9 +146,10 @@ class SongEditorInstruments {
             } else {
                 try {
                     if (instrument instanceof HTMLElement) {
+                        instrument.setAttribute('data-id', instrumentID+'');
                         instrumentDiv.appendChild(instrument);
                     } else if (instrument.render) {
-                        const renderedHTML = instrument.render(this);
+                        const renderedHTML = instrument.render(this, instrumentID);
                         if(renderedHTML)
                             instrumentDiv.innerHTML += renderedHTML;
                     } else {

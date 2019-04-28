@@ -1,0 +1,90 @@
+
+
+synthesizer-instrument {
+    background: #DDD;
+    position: relative;
+    vertical-align: top;
+    display: inline-block;
+    /* float: left; */
+    /*min-height: 60px;*/
+    margin: 4px;
+    padding: 0px 2px 2px 2px;
+    border: 1px outset;
+}
+
+synthesizer-instrument form {
+    /*display: inline-block;*/
+}
+
+
+synthesizer-instrument form.instrument-setting {
+    display: inline-block;
+    margin: 0;
+    vertical-align: top;
+}
+synthesizer-instrument form.instrument-setting > fieldset {
+    margin: 0;
+    padding: 1px;
+    border: 1px inset #FFF;
+    font-size: x-small;
+}
+synthesizer-instrument form.instrument-name input[name=name] {
+    padding: 1px;
+    margin: 0 0;
+    border: 0px;
+    width: 132px;
+}
+
+synthesizer-instrument form.instrument-name > label.label-instrument-name{
+    font-size: smaller;
+}
+
+/** Form Inputs **/
+
+synthesizer-instrument input,
+synthesizer-instrument select  {
+    font-size: x-small;
+}
+synthesizer-instrument input:not(:hover),
+synthesizer-instrument select:not(:hover)  {
+    border-color: transparent;
+    background: transparent;
+}
+
+
+synthesizer-instrument form.change-instrument > select[name=instrumentURL]{
+    max-width: 174px;
+}
+
+
+
+synthesizer-instrument form.instrument-remove button.remove-instrument {
+    /* text-align: center; */
+    padding: 0px 6px 1px 6px;
+    /* margin: 0px 0px 1px 0px; */
+    border: 1px outset;
+    border-radius: 4px;
+    color: darkred;
+}
+
+
+
+/** Form Section **/
+synthesizer-instrument div.form-section-header {
+    font-size: small;
+    border-bottom: 1px solid #BBB;
+    /* text-decoration-color: #AAA; */
+    margin-bottom: 1px;
+}
+
+
+synthesizer-instrument div.form-section {
+    background: #DDD;
+    /* border: 1px outset #ffffff8a; */
+    padding: 6px 8px 2px 6px;
+    display: inline-block;
+    vertical-align: middle;
+    /* float: left; */
+    border: 1px inset #FFF;
+}
+

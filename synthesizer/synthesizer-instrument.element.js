@@ -297,11 +297,30 @@ class SynthesizerInstrument extends HTMLElement {
     }
 
     render() {
+        const instrumentID = this.getAttribute('data-id');
+        const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + (instrumentID + ":");
+        const instrumentPreset = this.config;
+        // TODO:
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
-            <form class="instrument-setting instrument-preset submit-on-change" data-action="instrument:preset">
-                <fieldset class="form-section">
-                    <legend>Preset</legend>
+            <link type="text/css" rel="stylesheet" href="synthesizer/synthesizer-instrument.css"/>
+            <div class="instrument-container-header">
+                <form class="instrument-setting instrument-name submit-on-change" data-action="instrument:name">
+                    <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                    <label class="label-instrument-name">${instrumentIDHTML}<!--
+                        --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument" ${instrumentPreset.url ? '' : `disabled`}/>
+                    </label>
+                </form>
+                <form class="instrument-setting change-instrument submit-on-change" data-action="instrument:change">
+                    <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                    <select name="instrumentURL" class="themed">
+                        <optgroup label="Change Instrument">
+                            {this.editor.forms.renderEditorFormOptions('instruments-available', (value) => value === instrumentPreset.url)}
+                        </optgroup>
+                    </select>
+                </form>
+                <form class="instrument-setting change-instrument-preset submit-on-change" data-action="instrument:preset">
+                    <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                     <select name="preset" title="Load Preset" class="themed">
                         <option value="">Select Preset</option>
                         ${this.librarySelected && this.librarySelected.libraries ? 
@@ -329,17 +348,23 @@ class SynthesizerInstrument extends HTMLElement {
                             + `</optgroup>`
                         : null}
                     </select>
-                </fieldset>
-            </form>
-
-            <form action="#" class="instrument-setting instrument-volume submit-on-change" data-action="song:volume">
-                <fieldset class="form-section">
-                    <legend class="form-section-header">Detune</legend>
-                    <div class="volume-container">
-                        <input name="volume" type="range" min="1" max="100" value="${0}" class="themed">
-                    </div>
-                </fieldset>
-            </form>
+                </form>
+                <form class="instrument-setting instrument-remove" data-action="instrument:remove">
+                    <input type="hidden" name="instrumentID" value="${instrumentID}"/>
+                    <button class="remove-instrument">x</button>
+                </form>
+            </div>
+            ${Object.keys(this.config.samples).map(sampleName => {
+                return `
+                    <form action="#" class="instrument-setting instrument-volume submit-on-change" data-action="song:volume">
+                        <fieldset class="form-section">
+                            <legend class="form-section-header">Sample: ${sampleName}</legend>
+                            <div class="volume-container">
+                                <input name="volume" type="range" min="1" max="100" value="${0}" class="themed">
+                            </div>
+                        </fieldset>
+                    </form>`;
+            }).join("\n")}
         `;
 
     };
