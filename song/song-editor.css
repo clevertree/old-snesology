@@ -25,6 +25,24 @@ song-editor button{
 }
 
 
+song-editor input[type='range'] {
+    -webkit-appearance: none;
+    background-color: #AAA;
+    border-radius: 15px;
+    height: 10px;
+    margin: 5px;
+}
+song-editor input[type='range']::-webkit-slider-thumb {
+    vertical-align: middle;
+    -webkit-appearance: none;
+    background-color: #444;
+    width: 16px;
+    height: 16px;
+    border-radius: 16px;
+}
+
+
+
 
 
 /** Editor Menu **/
@@ -199,24 +217,6 @@ song-editor .editor-forms:not(.show-insert-instruction-controls) .insert-instruc
 }
 
 /** Form Inputs **/
-
-
-song-editor .editor-forms input[type='range'] {
-    -webkit-appearance: none;
-    background-color: #AAA;
-    border-radius: 15px;
-    height: 10px;
-    margin: 5px;
-}
-song-editor .editor-forms input.themed[type='range']::-webkit-slider-thumb {
-    vertical-align: middle;
-    -webkit-appearance: none;
-    background-color: #444;
-    width: 16px;
-    height: 16px;
-    border-radius: 16px;
-}
-
 
 
 song-editor .editor-forms input[name=volume] {

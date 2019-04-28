@@ -308,7 +308,7 @@ class SynthesizerInstrument extends HTMLElement {
                 <form class="instrument-setting instrument-name submit-on-change" data-action="instrument:name">
                     <input type="hidden" name="instrumentID" value="${instrumentID}"/>
                     <label class="label-instrument-name">${instrumentIDHTML}<!--
-                        --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument" ${instrumentPreset.url ? '' : `disabled`}/>
+                        --><input name="name" type="text" value="${instrumentPreset.name||''}" placeholder="Unnamed Instrument"/>
                     </label>
                 </form>
                 <form class="instrument-setting change-instrument submit-on-change" data-action="instrument:change">
@@ -354,17 +354,30 @@ class SynthesizerInstrument extends HTMLElement {
                     <button class="remove-instrument">x</button>
                 </form>
             </div>
+            <table class="sample-setting-list">
+                <thead>
+                    <tr>
+                        <th>Sample</th>
+                        <th>Detune</th>
+                        <th>Alias</th>
+                        <th>Range</th>
+                        <th>Root</th>
+                    </tr>
+                </thead>
+                <tbody>
             ${Object.keys(this.config.samples).map(sampleName => {
                 return `
-                    <form action="#" class="instrument-setting instrument-volume submit-on-change" data-action="song:volume">
-                        <fieldset class="form-section">
-                            <legend class="form-section-header">Sample: ${sampleName}</legend>
-                            <div class="volume-container">
-                                <input name="volume" type="range" min="1" max="100" value="${0}" class="themed">
-                            </div>
-                        </fieldset>
-                    </form>`;
+                    <tr>
+                        <td>${sampleName}</td>
+                        <td>   
+                            <form action="#" class="instrument-setting instrument-setting-detune submit-on-change" data-action="song:volume">
+                                <input name="detune" type="range" min="1" max="100" value="${0}" class="themed">
+                            </form>
+                        </td>    
+                    </tr>`;
             }).join("\n")}
+                </tbody>
+            </table>
         `;
 
     };
