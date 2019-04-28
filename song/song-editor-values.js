@@ -72,8 +72,8 @@ class SongEditorValues {
                         const instance = this.editor.renderer.getInstrument(instrumentID);
                         if(instance.getFrequencyAliases) {
                             const aliases = instance.getFrequencyAliases();
-                            Object.keys(aliases).forEach((aliasName) =>
-                                valuesHTML += callback(aliasName, aliasName, `data-instrument="${instrumentID}"`));
+                            Object.values(aliases).forEach((aliasValue) =>
+                                valuesHTML += callback(aliasValue, aliasValue, `data-instrument="${instrumentID}"`));
                         }
                     }
                 }

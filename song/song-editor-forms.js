@@ -61,6 +61,7 @@ class SongEditorForms {
         try {
             switch (e.type) {
                 case 'submit':
+                    e.preventDefault();
                     this.onSubmit(e);
                     break;
                 case 'change':
@@ -76,7 +77,6 @@ class SongEditorForms {
     }
 
     onSubmit(e) {
-        e.preventDefault();
         let form = e.target.form || e.target;
         const command = form.getAttribute('data-action');
         const cursorCellIndex = this.editor.cursorCellIndex;
@@ -107,8 +107,12 @@ class SongEditorForms {
                     form['command'].focus();
                     return;
                 }
-                for(let i=0; i<selectedNoteIndices.length; i++)
+                for(let i=0; i<selectedNoteIndices.length; i++) {
                     this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'command', form['command'].value);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
+                }
+                this.fieldInstructionCommand.focus();
+                // setTimeout(() => this.fieldInstructionCommand.focus(), 1);
                 break;
 
             case 'instruction:instrument':

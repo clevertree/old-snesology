@@ -106,6 +106,8 @@ class SynthesizerInstrument extends HTMLElement {
                 const sampleConfig = this.config.samples[sampleName];
 
                 // Filter sample playback
+                if(sampleConfig.keyAlias)
+                    continue;
                 if (sampleConfig.keyLow && this.getCommandFrequency(sampleConfig.keyLow) > frequencyValue)
                     continue;
                 if (sampleConfig.keyHigh && this.getCommandFrequency(sampleConfig.keyHigh) < frequencyValue)
@@ -123,6 +125,8 @@ class SynthesizerInstrument extends HTMLElement {
             }
         }
 
+        if(sources.length === 0)
+            console.warn("No samples were played: ", commandFrequency, this.config);
         return sources;
     }
 
@@ -392,9 +396,9 @@ class SynthesizerInstrument extends HTMLElement {
                     <tr>
                         <th>Sample</th>
                         <th>Detune</th>
-                        <th>Range</th>
                         <th>Root</th>
                         <th>Alias</th>
+                        <th>Range</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -406,13 +410,7 @@ class SynthesizerInstrument extends HTMLElement {
                             <form action="#" class="instrument-setting instrument-setting-detune submit-on-change" data-action="song:volume">
                                 <input name="detune" type="range" min="1" max="100" value="${0}">
                             </form>
-                        </td>    
-                        <td>   
-                            <form action="#" class="instrument-setting instrument-setting-range submit-on-change" data-action="song:volume">
-                                <input name="keyLow" value="${this.config.samples[sampleName].keyLow || ''}" list="noteFrequencies" placeholder="N/A"> -
-                                <input name="keyHigh" value="${this.config.samples[sampleName].keyHigh || ''}" list="noteFrequencies" placeholder="N/A">
-                            </form>
-                        </td>    
+                        </td>     
                         <td>   
                             <form action="#" class="instrument-setting instrument-setting-root submit-on-change" data-action="song:volume">
                                 <input name="keyRoot" value="${this.config.samples[sampleName].keyRoot || ''}" list="noteFrequencies" placeholder="N/A">
@@ -422,7 +420,13 @@ class SynthesizerInstrument extends HTMLElement {
                             <form action="#" class="instrument-setting instrument-setting-alias submit-on-change" data-action="song:volume">
                                 <input name="keyAlias" value="${this.config.samples[sampleName].keyAlias || ''}" list="noteFrequencies" placeholder="N/A">
                             </form>
-                        </td>    
+                        </td>  
+                        <td>   
+                            <form action="#" class="instrument-setting instrument-setting-range submit-on-change" data-action="song:volume">
+                                <input name="keyLow" value="${this.config.samples[sampleName].keyLow || ''}" list="noteFrequencies" placeholder="N/A"> -
+                                <input name="keyHigh" value="${this.config.samples[sampleName].keyHigh || ''}" list="noteFrequencies" placeholder="N/A">
+                            </form>
+                        </td>     
                     </tr>`;
             }).join("\n")}
                 </tbody>

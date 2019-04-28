@@ -792,9 +792,9 @@ class SongRenderer {
             historyAction.push(oldData);
         this.songHistory.push(historyAction);
 
-        setTimeout(() => {
-            this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
-        }, 1);
+        // setTimeout(() => {
+        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
+        // }, 1);
 
         return historyAction;
     }

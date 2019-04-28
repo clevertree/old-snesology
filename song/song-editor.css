@@ -471,6 +471,10 @@ song-editor .editor-grid .grid-parameter.command {
     /* min-width: 10px; */
     /*max-width: 40px;*/
 }
+song-editor .editor-grid .grid-cell:not(.selected) .grid-parameter.command {
+    max-width: 24px;
+}
+
 song-editor .editor-grid .grid-parameter.instrument {
     color: darkblue;
     max-width: 0px;
