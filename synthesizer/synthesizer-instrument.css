@@ -84,13 +84,15 @@ synthesizer-instrument div.form-section {
 
 /** Custom Inputs **/
 
-synthesizer-instrument form.change-instrument > select[name=instrumentURL]  {width: 136px;}
-synthesizer-instrument form.change-instrument-preset > select[name=preset]  {width: 79px;}
-synthesizer-instrument form.instrument-name input[name=name]                { width: 108px; }
+synthesizer-instrument form.change-instrument >             select[name=instrumentURL]  {width: 136px;}
+synthesizer-instrument form.change-instrument-preset >      select[name=preset]     { width: 79px;}
+synthesizer-instrument form.instrument-name                 input[name=name]        { width: 108px; }
 
-synthesizer-instrument form.instrument-setting-detune input[name=detune]    { width: 60px; }
+synthesizer-instrument form.instrument-setting-detune       input[name=detune]      { width: 60px; }
+synthesizer-instrument form.instrument-setting-mixer        input[name=mixer]       { width: 60px; }
 
-synthesizer-instrument form.instrument-setting-root  input[name=keyRoot]    { width: 40px; }
-synthesizer-instrument form.instrument-setting-alias input[name=keyAlias]   { width: 40px; }
-synthesizer-instrument form.instrument-setting-range input[name=keyLow]     { width: 40px; }
-synthesizer-instrument form.instrument-setting-range input[name=keyHigh]    { width: 40px; }
+synthesizer-instrument form.instrument-setting-root         input[name=keyRoot]     { width: 40px; }
+synthesizer-instrument form.instrument-setting-alias        input[name=keyAlias]    { width: 40px; }
+synthesizer-instrument form.instrument-setting-range        input[name=keyLow]      { width: 40px; }
+synthesizer-instrument form.instrument-setting-range        input[name=keyHigh]     { width: 40px; }
+synthesizer-instrument form.instrument-setting-polyphony    input[name=polyphony]   { width: 51px;}

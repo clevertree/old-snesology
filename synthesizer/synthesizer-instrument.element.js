@@ -118,6 +118,8 @@ class SynthesizerInstrument extends HTMLElement {
                 if (sampleConfig.keyHigh && this.getCommandFrequency(sampleConfig.keyHigh) < frequencyValue)
                     continue;
 
+                // TODO: polyphony
+
 
                 if (typeof this.buffers[sampleName] === 'undefined')
                     return console.error("Sample not loaded: " + sampleConfig.url);
@@ -143,8 +145,6 @@ class SynthesizerInstrument extends HTMLElement {
         if(buffer instanceof PeriodicWave) {
             source = destination.context.createOscillator();   // instantiate an oscillator
             source.frequency.value = frequencyValue;    // set Frequency (hz)
-            if(typeof sampleConfig.detune !== "undefined")
-                source.detune.value = sampleConfig.detune;
 
             source.setPeriodicWave(buffer);
 
@@ -159,6 +159,8 @@ class SynthesizerInstrument extends HTMLElement {
             throw new Error("Unknown buffer type");
         }
 
+        if(typeof sampleConfig.detune !== "undefined")
+            source.detune.value = sampleConfig.detune;
 
         // songLength = buffer.duration;
         // source.playbackRate.value = playbackControl.value;
@@ -340,6 +342,18 @@ class SynthesizerInstrument extends HTMLElement {
         const instrumentID = this.getAttribute('data-id');
         const instrumentIDHTML = (instrumentID < 10 ? "0" : "") + (instrumentID + ":");
         const instrumentPreset = this.config;
+
+
+        const noteFrequencies = this.noteFrequencies;
+        let noteFrequencyOptionsHTML = '';
+        for(let i=1; i<=6; i++)
+            for(let j=0; j<noteFrequencies.length; j++)
+                noteFrequencyOptionsHTML += `<option>${noteFrequencies[j] + i}</option>`;
+
+        let polyphonyOptionsHTML = [1,2,3,4,5,6,7,8,10,12,16,24,32,48,64,128,256,512]
+            .map(polyphonyCount => `<option>${polyphonyCount}</option>`)
+
+
         // TODO:
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
@@ -400,11 +414,26 @@ class SynthesizerInstrument extends HTMLElement {
             <table class="sample-setting-list">
                 <thead>
                     <tr>
+                        <th>Polyphony</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <form action="#" class="instrument-setting instrument-setting-polyphony submit-on-change" data-action="instrument:polyphony">
+                                <input type="number" name="polyphony" placeholder="Infinite" list="polyphonyOptions" min="0" max="9999" />
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="sample-setting-list">
+                <thead>
+                    <tr>
                         <th>Sample</th>
+                        <th>Mix</th>
                         <th>Detune</th>
-                        <th>Root</th>
-                        <th>Alias</th>
-                        <th>Range</th>
+                        <th>Config</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -413,40 +442,49 @@ class SynthesizerInstrument extends HTMLElement {
                     <tr>
                         <td>${sampleName}</td>
                         <td>   
-                            <form action="#" class="instrument-setting instrument-setting-detune submit-on-change" data-action="song:volume">
-                                <input name="detune" type="range" min="1" max="100" value="${0}">
+                            <form action="#" class="instrument-setting instrument-setting-mixer submit-on-change" data-action="instrument:mixer">
+                                <input type="hidden" name="sample" value="${sampleName}"/>
+                                <input name="mixer" type="range" min="1" max="100" value="${100}">
                             </form>
-                        </td>     
+                        </td>    
                         <td>   
-                            <form action="#" class="instrument-setting instrument-setting-root submit-on-change" data-action="song:volume">
+                            <form action="#" class="instrument-setting instrument-setting-detune submit-on-change" data-action="instrument:detune">
+                                <input type="hidden" name="sample" value="${sampleName}"/>
+                                <input name="detune" type="range" min="-100" max="100" value="${0}">
+                            </form>
+                        </td>      
+                        <td>   
+                            <form action="#" class="instrument-setting instrument-setting-root submit-on-change" data-action="instrument:keyRoot">
+                                <input type="hidden" name="sample" value="${sampleName}"/>
                                 <input name="keyRoot" value="${this.config.samples[sampleName].keyRoot || ''}" list="noteFrequencies" placeholder="N/A">
                             </form>
-                        </td>  
-                        <td>   
-                            <form action="#" class="instrument-setting instrument-setting-alias submit-on-change" data-action="song:volume">
+                            <form action="#" class="instrument-setting instrument-setting-alias submit-on-change" data-action="instrument:keyAlias">
+                                <input type="hidden" name="sample" value="${sampleName}"/>
                                 <input name="keyAlias" value="${this.config.samples[sampleName].keyAlias || ''}" list="noteFrequencies" placeholder="N/A">
                             </form>
                         </td>  
-                        <td>   
-                            <form action="#" class="instrument-setting instrument-setting-range submit-on-change" data-action="song:volume">
-                                <input name="keyLow" value="${this.config.samples[sampleName].keyLow || ''}" list="noteFrequencies" placeholder="N/A"> -
-                                <input name="keyHigh" value="${this.config.samples[sampleName].keyHigh || ''}" list="noteFrequencies" placeholder="N/A">
-                            </form>
-                        </td>     
+     
                     </tr>`;
             }).join("\n")}
                 </tbody>
             </table>
             <datalist id="noteFrequencies">
-              <option value="Internet Explorer">
-              <option value="Firefox">
-              <option value="Chrome">
-              <option value="Opera">
-              <option value="Safari">
+                ${noteFrequencyOptionsHTML}
+            </datalist>
+            <datalist id="polyphonyOptions">
+                ${polyphonyOptionsHTML}
             </datalist>
         `;
 
     };
+
+    // <td>
+    //     <form action="#" class="instrument-setting instrument-setting-range submit-on-change" data-action="instrument:keyRange">
+    //         <input type="hidden" name="sample" value="${sampleName}"/>
+    //         <input name="keyLow" value="${this.config.samples[sampleName].keyLow || ''}" list="noteFrequencies" placeholder="N/A"> -
+    //         <input name="keyHigh" value="${this.config.samples[sampleName].keyHigh || ''}" list="noteFrequencies" placeholder="N/A">
+    //     </form>
+    // </td>
 
     onInput(e) {
         if (!this.contains(e.target))
