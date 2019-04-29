@@ -100,6 +100,11 @@ class SynthesizerInstrument extends HTMLElement {
         }
 
         let frequencyValue = this.getCommandFrequency(commandFrequency);
+        if(Number.isNaN(frequencyValue)) {
+            console.warn("Invalid command frequency: ", commandFrequency, this.config);
+            return sources;
+        }
+
         // Loop through sample
         for(let sampleName in this.config.samples) {
             if(this.config.samples.hasOwnProperty(sampleName)) {
@@ -149,6 +154,7 @@ class SynthesizerInstrument extends HTMLElement {
             source.buffer = buffer;
             source.loop = sampleConfig.loop || false;
             source.playbackRate.value = playbackRate; //  Math.random()*2;
+            // source.playbackRate.linearRampToValueAtTime(3.0, startTime + 0.05)
         } else {
             throw new Error("Unknown buffer type");
         }

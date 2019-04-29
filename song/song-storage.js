@@ -35,7 +35,7 @@ class SongStorage {
         let encodedString = JSON.stringify(json, replacer, space);
         if(SongStorage.COMPRESSOR) {
             const compressedString = SongStorage.COMPRESSOR.compress(encodedString);
-            console.log(`Compression: ${compressedString.length} / ${encodedString.length} = ${Math.round((compressedString.length / encodedString.length)*100)/100}`);
+//             console.log(`Compression: ${compressedString.length} / ${encodedString.length} = ${Math.round((compressedString.length / encodedString.length)*100)/100}`);
             return compressedString;
         }
         return encodedString;

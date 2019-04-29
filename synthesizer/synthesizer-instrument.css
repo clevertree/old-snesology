@@ -15,10 +15,6 @@ synthesizer-instrument {
 synthesizer-instrument form {
     /*display: inline-block;*/
 }
-synthesizer-instrument table.sample-setting-list {
-    width: 100%;
-}
-
 
 synthesizer-instrument form.instrument-setting {
     display: inline-block;
@@ -48,7 +44,12 @@ synthesizer-instrument select:not(:hover)  {
     background: transparent;
 }
 
-
+/** Sample Table **/
+synthesizer-instrument table.sample-setting-list {
+    /* width: 100%; */
+    font-size: small;
+    text-align: left;
+}
 
 
 
@@ -83,12 +84,9 @@ synthesizer-instrument div.form-section {
 
 /** Custom Inputs **/
 
-synthesizer-instrument form.change-instrument > select[name=instrumentURL]{
-    max-width: 174px;
-}
-synthesizer-instrument form.instrument-name input[name=name] {
-    width: 108px;
-}
+synthesizer-instrument form.change-instrument > select[name=instrumentURL]  {width: 136px;}
+synthesizer-instrument form.change-instrument-preset > select[name=preset]  {width: 79px;}
+synthesizer-instrument form.instrument-name input[name=name]                { width: 108px; }
 
 synthesizer-instrument form.instrument-setting-detune input[name=detune]    { width: 60px; }
 

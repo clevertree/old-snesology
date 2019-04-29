@@ -86,7 +86,7 @@ song-editor ul.submenu {
     margin: 0 -0.3em -0.3em -0.3em;
     padding: 0 0.3em 0.3em 0.3em;
     /*max-height: 0px;*/
-    transition: all 0.1s 0.4s ease-in;
+    transition: all 0.1s 0.2s ease-in;
     border-radius: 2px;
     white-space: nowrap;
     transform: scaleY(0);
@@ -547,3 +547,11 @@ song-editor .editor-grid .grid-row.selected .grid-cell-pause {
 
 }
 
+/** Instruments **/
+
+song-editor .editor-instruments .instrument-container {
+    float: left;
+    /* display: inline-block; */
+}
+
+.instrument-container {}

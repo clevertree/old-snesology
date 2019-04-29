@@ -107,8 +107,14 @@ class SongEditorForms {
                     form['command'].focus();
                     return;
                 }
+                const newCommand = form['command'].value;
+                let newInstrument = null;
+                if(form.elements['command'].selectedOptions[0] && form.elements['command'].selectedOptions[0].hasAttribute('data-instrument'))
+                    newInstrument = parseInt(form.elements['command'].selectedOptions[0].getAttribute('data-instrument'));
                 for(let i=0; i<selectedNoteIndices.length; i++) {
-                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'command', form['command'].value);
+                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'command', newCommand);
+                    if(newInstrument !== null)
+                        this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'instrument', newInstrument);
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
                 }
                 this.fieldInstructionCommand.focus();
