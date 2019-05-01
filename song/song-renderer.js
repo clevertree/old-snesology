@@ -133,15 +133,19 @@ class SongRenderer {
     // REFACTOR
     processInstruction(instruction) {
         if (typeof instruction === 'number')
-            instruction = {command: '!pause', duration: instruction};
-        if (typeof instruction === 'string')
+            instruction = [instruction]; // Single entry array means pause
+        // instruction = {command: '!pause', duration: instruction};
+        if (typeof instruction === 'string') {
             instruction = instruction.split(':');
-        if (Array.isArray(instruction))
-            instruction = function(args) {
-                const instruction = {command: args[0]};
-                if(args.length>1)   instruction.duration = args[1];
-                return instruction;
-            }(instruction);
+            instruction[0] = parseFloat(instruction[0]);
+            instruction[1] = parseInt(instruction[1])
+        }
+        // if (Array.isArray(instruction))
+        //     instruction = function(args) {
+        //         const instruction = {command: args[0]};
+        //         if(args.length>1)   instruction.duration = args[1];
+        //         return instruction;
+        //     }(instruction);
         return instruction;
     }
 
