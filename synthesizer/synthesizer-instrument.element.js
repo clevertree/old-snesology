@@ -23,6 +23,7 @@ class SynthesizerInstrument extends HTMLElement {
     }
 
     connectedCallback() {
+        this.loadCSS();
         // this.song = this.closest('music-song'); // Don't rely on this !!!
         this.addEventListener('change', this.onInput);
         // this.addEventListener('input', this.onSubmit);
@@ -358,7 +359,6 @@ class SynthesizerInstrument extends HTMLElement {
         // TODO:
         // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';
         this.innerHTML = `
-            <link type="text/css" rel="stylesheet" href="synthesizer/synthesizer-instrument.css"/>
             <div class="instrument-container-header">
                 <form class="instrument-setting instrument-name submit-on-change" data-action="instrument:name">
                     <input type="hidden" name="instrumentID" value="${instrumentID}"/>
@@ -603,6 +603,17 @@ class SynthesizerInstrument extends HTMLElement {
 
     get noteFrequencies() {
         return ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+    }
+
+
+    loadCSS() {
+        if(document.head.querySelector('link[href$="synthesizer-instrument.css"]'))
+            return;
+        let cssLink=document.createElement("link");
+        cssLink.setAttribute("rel", "stylesheet");
+        cssLink.setAttribute("type", "text/css");
+        cssLink.setAttribute("href", '/synthesizer/synthesizer-instrument.css');
+        document.head.appendChild(cssLink);
     }
 
 }

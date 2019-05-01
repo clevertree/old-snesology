@@ -15,7 +15,7 @@ song-editor {
 
 /** Inputs **/
 
-song-editor input[type=text],
+song-editor input:not([type=checkbox]):not([type=radio]):not([type=range]),
 song-editor select,
 song-editor button{
     padding: 2px 4px;

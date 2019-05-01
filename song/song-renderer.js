@@ -130,6 +130,7 @@ class SongRenderer {
         }
     }
 
+    // REFACTOR
     processInstruction(instruction) {
         if (typeof instruction === 'number')
             instruction = {command: '!pause', duration: instruction};
@@ -943,29 +944,6 @@ class SongRenderer {
         });
     }
 
-    /** Formatting **/
-
-    format(input, type) {
-        switch(type) {
-            case 'duration':
-                if(typeof input !== 'number')
-                    throw new Error("Invalid Duration");
-                if(input === 1/64) return '1/64';
-                if(input === 1/32) return '1/32';
-                if(input === 1/16) return '1/16';
-                if(input === 1/8) return '1/8';
-                if(input === 1/4) return '1/4';
-                if(input === 1/2) return '1/2';
-                input = parseFloat(input).toFixed(2);
-                return input.replace('.00', 'B');
-
-            case 'instrument':
-                if(typeof input !== 'number')
-                    throw new Error("Invalid Instrument");
-                return input < 10 ? "0" + input : "" + input;
-
-        }
-    }
 
     // TODO: remove path
     static sanitizeInput(value) {

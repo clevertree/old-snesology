@@ -175,6 +175,10 @@ class SongEditorForms {
                 }
                 break;
 
+            case 'song:load':
+                this.editor.loadSongFromFile(form['loadSong']);
+                break;
+
             case 'song:edit':
                 this.editor.renderer.replaceDataPath('beatsPerMinute', form['beats-per-minute'].value);
                 this.editor.renderer.replaceDataPath('beatsPerMeasure', form['beats-per-measure'].value);
@@ -242,6 +246,14 @@ class SongEditorForms {
         // let tabIndex = 2;
         this.renderElement.innerHTML =
             `
+            <div class="form-section">
+                <div class="form-section-header">Load</div>
+                <form action="#" class="form-song-play submit-on-change" data-action="song:load">
+                    <input type="file" name="loadSong" accept=".json,.mid,.midi" />
+                </form>
+            </div>
+                                         
+            
             <div class="form-section">
                 <div class="form-section-header">Playback Controls</div>
                 <form action="#" class="form-song-play" data-action="song:play">

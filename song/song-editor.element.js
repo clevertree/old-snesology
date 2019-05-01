@@ -152,7 +152,14 @@ class SongEditorElement extends HTMLElement {
         const songHistory = storage.loadSongHistoryFromMemory(songGUID);
         this.renderer.loadSongData(songData, songHistory);
         console.info("Song loaded from memory: " + songGUID, songData, songHistory);
+    }
 
+
+    async loadSongFromFile(srcFile) {
+        const storage = new SongStorage();
+        const songData = await storage.loadSongFromFile(srcFile);
+        this.renderer.loadSongData(songData, songData.history || null);
+        console.info("Song loaded from file: " + srcFile, songData);
     }
     // Input
 
@@ -297,9 +304,6 @@ class SongEditorElement extends HTMLElement {
         this.update();
         this.grid.focus();
     }
-
-
-
 
 }
 customElements.define('song-editor', SongEditorElement);

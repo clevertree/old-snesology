@@ -47,7 +47,7 @@ class SongEditorValues {
                     for (let instrumentID = 0; instrumentID < instrumentList.length; instrumentID++) {
                         const instrumentInfo = instrumentList[instrumentID] || {name: "No Instrument Loaded"};
                         // const instrument = this.editor.renderer.getInstrument(instrumentID);
-                        valuesHTML += callback(instrumentID, this.editor.renderer.format(instrumentID, 'instrument')
+                        valuesHTML += callback(instrumentID, this.editor.values.format(instrumentID, 'instrument')
                             + ': ' + (instrumentInfo.name ? instrumentInfo.name : instrumentInfo.url.split('/').pop()));
                     }
                 }
@@ -162,6 +162,31 @@ class SongEditorValues {
                 break;
         }
         return valuesHTML;
+    }
+
+    /** Formatting **/
+
+    format(input, type) {
+        switch(type) {
+            case 'duration':
+                if(typeof input !== 'number')
+                    throw new Error("Invalid Duration");
+                let stringValue;
+                this.getValues('durations', (duration, durationString) => {
+                    if(input === duration)
+                        stringValue = durationString;
+                });
+                if(stringValue)
+                    return stringValue;
+                input = parseFloat(input).toFixed(2);
+                return input.replace('.00', 'B');
+
+            case 'instrument':
+                if(typeof input !== 'number')
+                    throw new Error("Invalid Instrument");
+                return input < 10 ? "0" + input : "" + input;
+
+        }
     }
 
     getCommandFromMIDINote(midiNote) {

@@ -93,7 +93,7 @@ class SongEditorGrid {
 
             switch (e.type) {
                 case 'midimessage':
-                    console.log("MIDI", e.data, e);
+//                     console.log("MIDI", e.data, e);
                     switch(e.data[0]) {
                         case 144:   // Note On
                             e.preventDefault();
@@ -130,6 +130,7 @@ class SongEditorGrid {
                             // e.preventDefault();
                             break;
                         case 128:   // Note Off
+                            // TODO: turn off playing note, optionally set duration of note
                             break;
                     }
                     break;
@@ -536,7 +537,7 @@ class SongEditorGrid {
                                        ${rowHTML}
                                    </td>
                                    <td class="grid-data-pause">
-                                       ${this.editor.renderer.format(subDuration, 'duration')}
+                                       ${this.editor.values.format(subDuration, 'duration')}
                                    </td>
                                 </tr>`;
                             rowHTML = '';
@@ -555,9 +556,9 @@ class SongEditorGrid {
                 rowHTML +=
                     `<div class="grid-cell grid-cell-instruction" data-index="${index}" data-position="${songPosition}">
                         <div class="grid-parameter command">${instruction.command}</div>
-                        ${typeof instruction.instrument !== "undefined" ? `<div class="grid-parameter instrument">${this.editor.renderer.format(instruction.instrument, 'instrument')}</div>` : ''}
+                        ${typeof instruction.instrument !== "undefined" ? `<div class="grid-parameter instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>` : ''}
                         ${typeof instruction.velocity !== "undefined" ? `<div class="grid-parameter velocity">${instruction.velocity}</div>` : ''}
-                        ${typeof instruction.duration !== "undefined" ? `<div class="grid-parameter duration">${this.editor.renderer.format(instruction.duration, 'duration')}</div>` : ''}
+                        ${typeof instruction.duration !== "undefined" ? `<div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
                     </div>`;
             }
         });
