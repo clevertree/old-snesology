@@ -20,7 +20,7 @@ class SongEditorMenu {
         // console.info(e.type, e);
         if(e.defaultPrevented)
             return;
-        if(!this.renderElement.contains(e.target))
+        if(e.target instanceof Node && !this.renderElement.contains(e.target))
             return;
 
         // let targetClassList = e.target.classList;
@@ -447,6 +447,7 @@ class SongEditorMenu {
             <li>
                 <a><span class="key">V</span>iew</a>
                 <ul class="submenu">
+                    <li><a data-action="view:instruments">&#10003; View <span class="key">I</span>nstruments</a></li>
                 </ul>
             </li>
             <li>

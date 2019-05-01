@@ -31,6 +31,7 @@ class SynthesizerInstrument extends HTMLElement {
         this.render();
     }
 
+
     async initSamples(audioContext) {
         for(let sampleName in this.config.samples) {
             if (this.config.samples.hasOwnProperty(sampleName)) {
@@ -411,14 +412,20 @@ class SynthesizerInstrument extends HTMLElement {
                     <button class="remove-instrument">x</button>
                 </form>
             </div>
-            <table class="sample-setting-list">
+            <table class="instrument-setting-list">
                 <thead>
                     <tr>
+                        <th>Samples</th>
                         <th>Polyphony</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <td>
+                            <form action="#" class="instrument-setting instrument-setting-sample-view" data-action="sample:view">
+                                <button name="toggle-sample-view">Manage</button>
+                            </form>
+                        </td>
                         <td>
                             <form action="#" class="instrument-setting instrument-setting-polyphony submit-on-change" data-action="instrument:polyphony">
                                 <input type="number" name="polyphony" placeholder="Infinite" list="polyphonyOptions" min="0" max="9999" />
@@ -430,7 +437,7 @@ class SynthesizerInstrument extends HTMLElement {
             <table class="sample-setting-list">
                 <thead>
                     <tr>
-                        <th>Sample</th>
+                        <th>Samples</th>
                         <th>Mix</th>
                         <th>Detune</th>
                         <th>Config</th>
@@ -443,27 +450,26 @@ class SynthesizerInstrument extends HTMLElement {
                         <td>${sampleName}</td>
                         <td>   
                             <form action="#" class="instrument-setting instrument-setting-mixer submit-on-change" data-action="instrument:mixer">
-                                <input type="hidden" name="sample" value="${sampleName}"/>
-                                <input name="mixer" type="range" min="1" max="100" value="${100}">
+                                <input type="hidden" name="sample" value="${sampleName}" />
+                                <input name="mixer" type="range" min="1" max="100" value="${100}" />
                             </form>
                         </td>    
                         <td>   
                             <form action="#" class="instrument-setting instrument-setting-detune submit-on-change" data-action="instrument:detune">
-                                <input type="hidden" name="sample" value="${sampleName}"/>
-                                <input name="detune" type="range" min="-100" max="100" value="${0}">
+                                <input type="hidden" name="sample" value="${sampleName}" />
+                                <input name="detune" type="range" min="-100" max="100" value="${0}" />
                             </form>
                         </td>      
                         <td>   
                             <form action="#" class="instrument-setting instrument-setting-root submit-on-change" data-action="instrument:keyRoot">
-                                <input type="hidden" name="sample" value="${sampleName}"/>
-                                <input name="keyRoot" value="${this.config.samples[sampleName].keyRoot || ''}" list="noteFrequencies" placeholder="N/A">
+                                <input type="hidden" name="sample" value="${sampleName}" />
+                                <input name="keyRoot" value="${this.config.samples[sampleName].keyRoot || ''}" list="noteFrequencies" placeholder="N/A" />
                             </form>
                             <form action="#" class="instrument-setting instrument-setting-alias submit-on-change" data-action="instrument:keyAlias">
-                                <input type="hidden" name="sample" value="${sampleName}"/>
-                                <input name="keyAlias" value="${this.config.samples[sampleName].keyAlias || ''}" list="noteFrequencies" placeholder="N/A">
+                                <input type="hidden" name="sample" value="${sampleName}" />
+                                <input name="keyAlias" value="${this.config.samples[sampleName].keyAlias || ''}" list="noteFrequencies" placeholder="N/A" />
                             </form>
                         </td>  
-     
                     </tr>`;
             }).join("\n")}
                 </tbody>

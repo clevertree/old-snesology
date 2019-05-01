@@ -55,7 +55,7 @@ class SongEditorForms {
     onInput(e) {
         if (e.defaultPrevented)
             return;
-        if (!this.renderElement.contains(e.target))
+        if(e.target instanceof Node && !this.renderElement.contains(e.target))
             return;
 
         try {

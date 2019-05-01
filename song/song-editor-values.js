@@ -10,7 +10,7 @@ class SongEditorValues {
     }
 
     get noteFrequencies() {
-        return ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+        return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     }
 
     get keyboardLayout() {
@@ -153,4 +153,10 @@ class SongEditorValues {
         return valuesHTML;
     }
 
+    getCommandFromMIDINote(midiNote) {
+        // midiNote -= 24;
+        const octave = Math.floor(midiNote / 12)
+        const pitch = midiNote % 12;
+        return this.noteFrequencies[pitch] + octave;
+    }
 }

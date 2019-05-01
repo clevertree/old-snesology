@@ -96,3 +96,9 @@ synthesizer-instrument form.instrument-setting-alias        input[name=keyAlias]
 synthesizer-instrument form.instrument-setting-range        input[name=keyLow]      { width: 40px; }
 synthesizer-instrument form.instrument-setting-range        input[name=keyHigh]     { width: 40px; }
 synthesizer-instrument form.instrument-setting-polyphony    input[name=polyphony]   { width: 51px;}
+
+/** Sample Editor **/
+
+synthesizer-instrument table.sample-setting-list {
+    display: none;
+}

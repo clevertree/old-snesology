@@ -82,15 +82,54 @@ class SongEditorGrid {
     onInput(e) {
         if (e.defaultPrevented)
             return;
-        if(!this.renderElement.contains(e.target))
+        if(e.target instanceof Node && !this.renderElement.contains(e.target))
             return;
 
         this.focus();
 
         try {
             let selectedIndices = this.selectedIndices;
+            const instructionList = this.editor.renderer.getInstructions(this.groupName);
 
             switch (e.type) {
+                case 'midimessage':
+                    console.log("MIDI", e.data, e);
+                    switch(e.data[0]) {
+                        case 144:   // Note On
+                            e.preventDefault();
+                            let newMidiCommand = this.editor.values.getCommandFromMIDINote(e.data[1]);
+
+                            if (this.cursorCell.classList.contains('grid-cell-new')) {
+                                let newInstruction = this.editor.forms.getInstructionFormValues(true);
+                                newMidiCommand = this.replaceFrequencyAlias(newMidiCommand, newInstruction.instrument);
+                                newInstruction.command = newMidiCommand;
+
+                                const insertPosition = this.cursorPosition;
+                                const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
+                                // this.render();
+                                this.selectInstructions(insertIndex);
+                                selectedIndices = [insertIndex];
+                                // cursorInstruction = instructionList[insertIndex];
+                            } else {
+                                for(let i=0; i<selectedIndices.length; i++) {
+                                    const selectedInstruction = instructionList[selectedIndices[i]];
+                                    const replaceCommand = this.replaceFrequencyAlias(newMidiCommand, selectedInstruction.instrument);
+                                    this.replaceInstructionParam(selectedIndices[i], 'command', replaceCommand);
+                                }
+                                // this.selectInstructions(this.selectedIndices[0]); // TODO: select all
+                            }
+
+                            // this.render();
+                            for(let i=0; i<selectedIndices.length; i++)
+                                this.editor.renderer.playInstruction(instructionList[selectedIndices[i]]);
+
+                            // song.gridSelectInstructions([selectedInstruction]);
+                            // e.preventDefault();
+                            break;
+                        case 128:   // Note Off
+                            break;
+                    }
+                    break;
                 case 'keydown':
 
                     let keyEvent = e.key;
@@ -101,7 +140,6 @@ class SongEditorGrid {
 
                     // let keydownCellElm = this.cursorCell;
 
-                    const instructionList = this.editor.renderer.getInstructions(this.groupName);
                     switch (keyEvent) {
                         case 'Delete':
                             e.preventDefault();

@@ -66,7 +66,7 @@ class SongEditorInstruments {
 
 
     onInput(e) {
-        if (!this.renderElement.contains(e.target))
+        if(e.target instanceof Node && !this.renderElement.contains(e.target))
             return;
 
         try {

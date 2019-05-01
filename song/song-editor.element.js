@@ -99,7 +99,22 @@ class SongEditorElement extends HTMLElement {
         this.focus();
         // this.initWebSocket(uuid);
 
+        navigator.requestMIDIAccess().then(
+            (MIDI) => {
+                console.log("MIDI initialized", MIDI);
+                MIDI.inputs.forEach(
+                    (inputDevice) => {
+                        console.log("detected MIDI input device " + inputDevice.name, inputDevice);
+                        inputDevice.addEventListener('midimessage', e => this.onInput(e));
+                    }
+                );
+            },
+            (err) => { this.onError("error initializing MIDI: " + err); }
+        );
+
     }
+
+
 
     loadNewSongData() {
         const storage = new SongStorage();

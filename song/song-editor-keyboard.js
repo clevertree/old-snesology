@@ -9,27 +9,6 @@ class SongEditorKeyboard {
         this.editor = editor;
     }
 
-    onInput(e) {
-        // console.info(e.type, e);
-        if(e.defaultPrevented)
-            return;
-
-        // let targetClassList = e.target.classList;
-        switch(e.type) {
-            // case 'keydown':
-            //     switch(e.key) {
-            //         case 'Tab': break;
-            //         case ' ': this.player.play(); e.preventDefault(); break;
-            //         case 'Escape': this.grid.focus(); break;
-            //         default:
-            //     }
-            //     break;
-
-            default:
-                console.error("Unhandled " + e.type, e);
-        }
-    }
-
     getKeyboardCommand(key) {
         const keyboardLayout = this.editor.values.keyboardLayout;
         if(typeof keyboardLayout[key] === 'undefined')
