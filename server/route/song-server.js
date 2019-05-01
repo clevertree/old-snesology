@@ -343,10 +343,7 @@ class SongServer {
                 "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js", // Default instrument
             }],
             "instructions": {
-                "root": [{
-                    command: '!pause',
-                    duration: 8
-                }]
+                "root": [8]
             }
         };
     }

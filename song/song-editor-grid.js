@@ -103,8 +103,8 @@ class SongEditorGrid {
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newMIDICommand = this.replaceFrequencyAlias(newMIDICommand, newInstruction.instrument);
-                                newInstruction.command = newMIDICommand;
-                                newInstruction.velocity = newMIDIVelocity;
+                                newInstruction[1] = newMIDICommand;
+                                newInstruction[3] = newMIDIVelocity;
 
                                 const insertPosition = this.cursorPosition;
                                 const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
@@ -116,8 +116,8 @@ class SongEditorGrid {
                                 for(let i=0; i<selectedIndicies.length; i++) {
                                     const selectedInstruction = instructionList[selectedIndicies[i]];
                                     const replaceCommand = this.replaceFrequencyAlias(newMIDICommand, selectedInstruction.instrument);
-                                    this.replaceInstructionParam(selectedIndicies[i], 'command', replaceCommand);
-                                    this.replaceInstructionParam(selectedIndicies[i], 'velocity', newMIDIVelocity);
+                                    this.editor.renderer.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
+                                    this.editor.renderer.replaceInstructionVelocity(selectedIndicies[i], newMIDIVelocity);
                                 }
                                 // this.selectInstructions(this.selectedIndicies[0]); // TODO: select all
                             }
@@ -243,7 +243,7 @@ class SongEditorGrid {
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newCommand = this.replaceFrequencyAlias(newCommand, newInstruction.instrument);
-                                newInstruction.command = newCommand;
+                                newInstruction[1] = newCommand;
 
                                 const insertPosition = this.cursorPosition;
                                 const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
@@ -255,7 +255,7 @@ class SongEditorGrid {
                                 for(let i=0; i<selectedIndicies.length; i++) {
                                     const selectedInstruction = instructionList[selectedIndicies[i]];
                                     const replaceCommand = this.replaceFrequencyAlias(newCommand, selectedInstruction.instrument);
-                                    this.replaceInstructionParam(selectedIndicies[i], 'command', replaceCommand);
+                                    this.editor.renderer.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
                                 }
                                 // this.selectInstructions(this.selectedIndicies[0]); // TODO: select all
                             }
@@ -432,13 +432,11 @@ class SongEditorGrid {
         const instructionList = this.instructionList;
         let lastIndex = instructionList.length - 1;
         let lastInstruction = instructionList[lastIndex];
-        if(lastInstruction.command !== '!pause') {
+        // if(lastInstruction.command !== '!pause') {
             throw new Error("TODO: Insert new pause");
-        }
+        // }
         const defaultDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
-        this.replaceInstructionParams(lastIndex, {
-            duration: lastInstruction.duration + defaultDuration
-        });
+        this.editor.renderer.replaceInstructionDuration(lastInstruction.duration + defaultDuration);
         this.render();
     }
 
@@ -454,12 +452,12 @@ class SongEditorGrid {
         return this.editor.renderer.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
     }
 
-    replaceInstructionParam(replaceIndex, paramName, paramValue) {
-        return this.editor.renderer.replaceInstructionParam(this.groupName, replaceIndex, paramName, paramValue);
-    }
-    replaceInstructionParams(replaceIndex, replaceParams) {
-        return this.editor.renderer.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
-    }
+    // replaceInstructionParam(replaceIndex, paramName, paramValue) {
+    //     return this.editor.renderer.replaceInstructionParam(this.groupName, replaceIndex, paramName, paramValue);
+    // }
+    // replaceInstructionParams(replaceIndex, replaceParams) {
+    //     return this.editor.renderer.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
+    // }
 
     replaceFrequencyAlias(noteFrequency, instrumentID) {
         const instrument = this.editor.renderer.getInstrument(instrumentID, false);
@@ -511,46 +509,47 @@ class SongEditorGrid {
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // console.log(index, instruction);
 
-            if (instruction.command[0] === '!') {
-                const functionName = instruction.command.substr(1);
-                switch (functionName) {
-                    case 'pause':
+            if (instruction[0] !== 0) {
+                // const functionName = instruction[1].substr(1);
+                // switch (functionName) {
+                //     case 'pause':
                         // editorHTML += this.renderGridRow(instruction, rowInstructions, odd);
 
 
                         // TODO: ignore pause if no commands. add duration to next pause
-                        for(let subPause=0; subPause<instruction.duration; subPause+=gridDuration) {
-                            let subDuration = gridDuration;
-                            if(subPause + gridDuration > instruction.duration)
-                                subDuration = subPause + gridDuration - instruction.duration;
+                const pauseDuration = instruction[0];
+                for(let subPause=0; subPause<pauseDuration; subPause+=gridDuration) {
+                    let subDuration = gridDuration;
+                    if(subPause + gridDuration > pauseDuration)
+                        subDuration = subPause + gridDuration - pauseDuration;
 
-                            // if(cursorCellIndex === songPosition)
-                            // const cursorCellIndexClass = cursorCellIndex === songPosition ? ' selected' : '';
-                            rowHTML +=
-                                `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-index="${index}">
-                                    <div class="grid-parameter command">+</div>
-                                </div>`;
+                    // if(cursorCellIndex === songPosition)
+                    // const cursorCellIndexClass = cursorCellIndex === songPosition ? ' selected' : '';
+                    rowHTML +=
+                        `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-index="${index}">
+                            <div class="grid-parameter command">+</div>
+                        </div>`;
 
-                            editorHTML +=
-                                `<tr class="grid-row" data-index="${index}" data-position="${songPosition}">
-                                   <td class="grid-data">
-                                       ${rowHTML}
-                                   </td>
-                                   <td class="grid-data-pause">
-                                       ${this.editor.values.format(subDuration, 'duration')}
-                                   </td>
-                                </tr>`;
-                            rowHTML = '';
-                            songPosition += subDuration;
-                        }
-
-
-                        break;
-
-                    default:
-                        console.error("Unknown function: " + instruction.command);
-                        break;
+                    editorHTML +=
+                        `<tr class="grid-row" data-index="${index}" data-position="${songPosition}">
+                           <td class="grid-data">
+                               ${rowHTML}
+                           </td>
+                           <td class="grid-data-pause">
+                               ${this.editor.values.format(subDuration, 'duration')}
+                           </td>
+                        </tr>`;
+                    rowHTML = '';
+                    songPosition += subDuration;
                 }
+
+
+                    //     break;
+                    //
+                    // default:
+                    //     console.error("Unknown function: " + instruction.command);
+                    //     break;
+                // }
             } else {
                 // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
                 rowHTML +=

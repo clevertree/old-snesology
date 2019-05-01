@@ -39,9 +39,8 @@ class SongEditorMenu {
         // let form = e.target.form || e.target;
         // const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
-        const selectedIndicies = this.editor.selectedIndicies;
         const selectedRange = this.editor.selectedRange;
-        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
+        const selectedIndicies = this.editor.selectedIndicies;
 
         let menuTarget = e.target;
         if(menuTarget.nodeName.toLowerCase() !== 'a')
@@ -120,14 +119,12 @@ class SongEditorMenu {
                 if(newInstrumentURL === null)
                     throw new Error("Missing instrument ID");
                 newInstrumentID = this.editor.renderer.addInstrument(newInstrumentURL);
-                for(let i=0; i<selectedNoteIndicies.length; i++) {
-                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
-                        instrument: newInstrumentID
-                    });
-                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                for(let i=0; i<selectedIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionInstrument(newInstrumentID);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
                 break;
 
             case 'instrument:add':
@@ -153,10 +150,10 @@ class SongEditorMenu {
                     return console.info("Insert canceled");
                 newCommand = menuTarget.getAttribute('data-command');
                 if(!newCommand)
-                    newCommand = prompt("Set Command:", newInstruction.command);
+                    newCommand = prompt("Set Command:", newInstruction[1]);
                 if(!newCommand)
                     return console.info("Insert canceled");
-                newInstruction.command = newCommand;
+                newInstruction[1] = newCommand;
                 insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
                 this.editor.render();
                 this.editor.renderer.playInstruction(newInstruction);
@@ -172,14 +169,12 @@ class SongEditorMenu {
                     newCommand = prompt("Set Command:", this.editor.forms.fieldInstructionCommand.value);
                 if(!newCommand)
                     return console.info("Insert canceled");
-                for(let i=0; i<selectedNoteIndicies.length; i++) {
-                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
-                        command: newCommand
-                    });
-                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                for(let i=0; i<selectedIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionCommand(currentGroup, selectedIndicies[i], newCommand);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
                 break;
 
             case 'instruction:instrument':
@@ -189,14 +184,12 @@ class SongEditorMenu {
                 if(newInstrumentID === null)
                     throw new Error("Missing instrument ID");
                 newInstrumentID = parseFloat(newInstrumentID);
-                for(let i=0; i<selectedNoteIndicies.length; i++) {
-                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
-                        instrument: newInstrumentID
-                    });
-                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                for(let i=0; i<selectedIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedIndicies[i], newInstrumentID);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
                 break;
 
             case 'instruction:duration':
@@ -208,14 +201,12 @@ class SongEditorMenu {
                 newDuration = parseFloat(newDuration);
                 if(isNaN(newDuration) || newDuration < 0)
                     throw new Error("Invalid duration value");
-                for(let i=0; i<selectedNoteIndicies.length; i++) {
-                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
-                        duration: newDuration
-                    });
-                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                for(let i=0; i<selectedIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionDuration(currentGroup, selectedIndicies[i], newDuration);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
                 break;
 
             case 'instruction:velocity':
@@ -227,24 +218,22 @@ class SongEditorMenu {
                 newVelocity = parseFloat(newVelocity);
                 if(isNaN(newVelocity) || newVelocity < 0)
                     throw new Error("Invalid velocity value");
-                for(let i=0; i<selectedNoteIndicies.length; i++) {
-                    this.editor.renderer.replaceInstructionParams(currentGroup, selectedNoteIndicies[i], {
-                        velocity: newVelocity
-                    });
-                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                for(let i=0; i<selectedIndicies.length; i++) {
+                    this.editor.renderer.replaceInstructionVelocity(currentGroup, selectedIndicies[i], newVelocity);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedNoteIndicies, selectedRange);
+                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
                 break;
 
 
             case 'instruction:delete':
                 e.preventDefault();
-                for(let i=0; i<selectedNoteIndicies.length; i++) {
-                    this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedNoteIndicies[i]);
+                for(let i=0; i<selectedIndicies.length; i++) {
+                    this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedNoteIndicies[0], selectedRange);
+                this.editor.selectInstructions(currentGroup, selectedIndicies[0], selectedRange);
                 break;
 
             case 'menu:toggle':
@@ -260,10 +249,10 @@ class SongEditorMenu {
 
 
     update() {
-        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
+        const selectedIndicies = this.editor.selectedIndicies;
 
         this.renderElement.classList.remove('show-modify-instruction-controls');
-        if(selectedNoteIndicies.length > 0) {
+        if(selectedIndicies.length > 0) {
             // Note is selected
             this.renderElement.classList.add('show-modify-instruction-controls');
         }

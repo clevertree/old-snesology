@@ -40,17 +40,18 @@ class SongEditorForms {
             // this.fieldInsertInstructionCommand.focus();
             return false;
         }
-        let newInstruction = {
-            command: isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value
-        };
+        let newInstruction = [
+            0,
+            isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value
+        ];
 
         if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
-            newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
+            newInstruction[2] = parseInt(this.fieldInstructionInstrument.value);
         if(this.fieldInstructionDuration.value)
-            newInstruction.duration = parseFloat(this.fieldInstructionDuration.value);
+            newInstruction[3] = parseFloat(this.fieldInstructionDuration.value);
         const velocityValue = parseInt(this.fieldInstructionVelocity.value);
         if(velocityValue && velocityValue !== 100)
-            newInstruction.velocity = velocityValue;
+            newInstruction[4] = velocityValue;
 
         return newInstruction;
     }
@@ -85,7 +86,7 @@ class SongEditorForms {
         const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
         // const selectedIndicies = this.editor.status.selectedIndicies;
-        const selectedNoteIndices = this.editor.selectedNoteIndicies;
+        const selectedNoteIndices = this.editor.selectedIndicies;
         const selectedPauseIndices = this.editor.selectedPauseIndicies;
         const selectedRange = this.editor.selectedRange;
 
@@ -115,9 +116,9 @@ class SongEditorForms {
                 if(form.elements['command'].selectedOptions[0] && form.elements['command'].selectedOptions[0].hasAttribute('data-instrument'))
                     newInstrument = parseInt(form.elements['command'].selectedOptions[0].getAttribute('data-instrument'));
                 for(let i=0; i<selectedNoteIndices.length; i++) {
-                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'command', newCommand);
+                    this.editor.renderer.replaceInstructionCommand(currentGroup, selectedNoteIndices[i], newCommand);
                     if(newInstrument !== null)
-                        this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'instrument', newInstrument);
+                        this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedNoteIndices[i], newInstrument);
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
                 }
                 this.fieldInstructionCommand.focus();
@@ -127,20 +128,20 @@ class SongEditorForms {
             case 'instruction:instrument':
                 let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
                 for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'instrument', instrumentID);
+                    this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedNoteIndices[i], instrumentID);
                 this.editor.status.currentInstrumentID = instrumentID;
                 break;
 
             case 'instruction:duration':
                 const duration = parseFloat(form.duration.value) || null;
                 for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'duration', duration);
+                    this.editor.renderer.replaceInstructionDuration(currentGroup, selectedNoteIndices[i], duration);
                 break;
 
             case 'instruction:velocity':
                 const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
                 for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.replaceInstructionParam(currentGroup, selectedNoteIndices[i], 'velocity', velocity);
+                    this.editor.renderer.replaceInstructionVelocity(currentGroup, selectedNoteIndices[i], velocity);
                 break;
 
             case 'instruction:delete':
@@ -148,13 +149,13 @@ class SongEditorForms {
                     this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
                 break;
 
-            case 'row:edit':
-                this.editor.renderer.replaceInstructionParams(currentGroup, selectedPauseIndices, {
-                    command: '!pause',
-                    duration: parseFloat(form.duration.value)
-                });
-                // this.gridSelect([instruction]);
-                break;
+            // case 'row:edit':
+            //     this.editor.renderer.replaceInstructionParams(currentGroup, selectedPauseIndices, {
+            //         command: '!pause',
+            //         duration: parseFloat(form.duration.value)
+            //     });
+            //     // this.gridSelect([instruction]);
+            //     break;
 
             case 'row:duplicate':
                 if (!selectedRange)
@@ -464,10 +465,10 @@ class SongEditorForms {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
         const cursorIndex = this.editor.cursorCellIndex;
-        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
+        const selectedIndicies = this.editor.selectedIndicies;
         const selectedPauseIndicies = this.editor.selectedPauseIndicies;
         const groupName = this.editor.currentGroup;
-        const selectedInstructionList = this.editor.renderer.getInstructions(groupName, selectedNoteIndicies);
+        const selectedInstructionList = this.editor.renderer.getInstructions(groupName, selectedIndicies);
         let combinedInstruction = null; //, instrumentList = [];
         if(selectedInstructionList.length > 0) {
             for(let i=0; i<selectedInstructionList.length; i++) {
@@ -489,10 +490,10 @@ class SongEditorForms {
         this.renderElement.classList.remove('show-modify-instruction-controls');
         if(combinedInstruction) {
             // Note Instruction
-            this.fieldInstructionCommand.value = combinedInstruction.command;
-            this.fieldInstructionInstrument.value = combinedInstruction.instrument;
-            this.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
-            this.fieldInstructionDuration.value = combinedInstruction.duration;
+            this.fieldInstructionCommand.value = combinedInstruction[1];
+            this.fieldInstructionInstrument.value = combinedInstruction[2];
+            this.fieldInstructionVelocity.value = typeof combinedInstruction[4] === 'undefined' ? '' : combinedInstruction[4];
+            this.fieldInstructionDuration.value = combinedInstruction[3];
             this.renderElement.classList.add('show-modify-instruction-controls');
 
         } else if(selectedPauseIndicies.length > 0) {
@@ -513,7 +514,7 @@ class SongEditorForms {
         // if(!this.fieldInsertInstructionCommand.value)
         //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
 
-        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedNoteIndicies.length > 1 ? '(s)' : ''));
+        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedIndicies.length > 1 ? '(s)' : ''));
 
         // Status Fields
 

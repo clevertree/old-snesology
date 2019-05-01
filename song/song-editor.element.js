@@ -57,14 +57,14 @@ class SongEditorElement extends HTMLElement {
     get currentGroup()      { return this.status.currentGroup; }
     get selectedIndicies()  { return this.status.selectedIndicies; }
     get selectedRange()     { return this.status.selectedRange; }
-    get selectedPauseIndicies()  {
-        const instructionList = this.renderer.getInstructions(this.currentGroup);
-        return this.selectedIndicies.filter(index => instructionList[index] && instructionList[index].command === '!pause')
-    }
-    get selectedNoteIndicies()  {
-        const instructionList = this.renderer.getInstructions(this.currentGroup);
-        return this.selectedIndicies.filter(index => instructionList[index] && instructionList[index].command !== '!pause')
-    }
+    // get selectedPauseIndicies()  {
+    //     const instructionList = this.renderer.getInstructions(this.currentGroup);
+    //     return this.selectedIndicies.filter(index => instructionList[index] && instructionList[index].command === '!pause')
+    // }
+    // get selectedIndicies()  {
+    //     const instructionList = this.renderer.getInstructions(this.currentGroup);
+    //     return this.selectedIndicies.filter(index => instructionList[index] && instructionList[index].command !== '!pause')
+    // }
 
     getAudioContext()   { return this.renderer.getAudioContext(); }
     getSongData()       { return this.renderer.getSongData(); }
