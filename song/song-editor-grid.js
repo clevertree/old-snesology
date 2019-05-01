@@ -36,7 +36,7 @@ class SongEditorGrid {
     get cursorPosition() {
         return parseFloat(this.cursorCell.getAttribute('data-position'));
     }
-    get selectedIndices() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
+    get selectedIndicies() { return [].map.call(this.selectedCells, (elm => parseInt(elm.getAttribute('data-index')))); }
     // get selectedRows() { return this.renderElement.querySelectorAll('.grid-row.selected'); }
     // get selectedPauseIndices() { return [].map.call(this.selectedRows, (elm => parseInt(elm.getAttribute('data-index')))); }
 
@@ -88,7 +88,7 @@ class SongEditorGrid {
         this.focus();
 
         try {
-            let selectedIndices = this.selectedIndices;
+            let selectedIndicies = this.selectedIndicies;
             const instructionList = this.editor.renderer.getInstructions(this.groupName);
 
             switch (e.type) {
@@ -97,31 +97,34 @@ class SongEditorGrid {
                     switch(e.data[0]) {
                         case 144:   // Note On
                             e.preventDefault();
-                            let newMidiCommand = this.editor.values.getCommandFromMIDINote(e.data[1]);
+                            let newMIDICommand = this.editor.values.getCommandFromMIDINote(e.data[1]);
+                            let newMIDIVelocity = Math.round((e.data[2] / 128) * 100);
 
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
-                                newMidiCommand = this.replaceFrequencyAlias(newMidiCommand, newInstruction.instrument);
-                                newInstruction.command = newMidiCommand;
+                                newMIDICommand = this.replaceFrequencyAlias(newMIDICommand, newInstruction.instrument);
+                                newInstruction.command = newMIDICommand;
+                                newInstruction.velocity = newMIDIVelocity;
 
                                 const insertPosition = this.cursorPosition;
                                 const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
                                 // this.render();
                                 this.selectInstructions(insertIndex);
-                                selectedIndices = [insertIndex];
+                                selectedIndicies = [insertIndex];
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
-                                for(let i=0; i<selectedIndices.length; i++) {
-                                    const selectedInstruction = instructionList[selectedIndices[i]];
-                                    const replaceCommand = this.replaceFrequencyAlias(newMidiCommand, selectedInstruction.instrument);
-                                    this.replaceInstructionParam(selectedIndices[i], 'command', replaceCommand);
+                                for(let i=0; i<selectedIndicies.length; i++) {
+                                    const selectedInstruction = instructionList[selectedIndicies[i]];
+                                    const replaceCommand = this.replaceFrequencyAlias(newMIDICommand, selectedInstruction.instrument);
+                                    this.replaceInstructionParam(selectedIndicies[i], 'command', replaceCommand);
+                                    this.replaceInstructionParam(selectedIndicies[i], 'velocity', newMIDIVelocity);
                                 }
-                                // this.selectInstructions(this.selectedIndices[0]); // TODO: select all
+                                // this.selectInstructions(this.selectedIndicies[0]); // TODO: select all
                             }
 
                             // this.render();
-                            for(let i=0; i<selectedIndices.length; i++)
-                                this.editor.renderer.playInstruction(instructionList[selectedIndices[i]]);
+                            for(let i=0; i<selectedIndicies.length; i++)
+                                this.editor.renderer.playInstruction(instructionList[selectedIndicies[i]]);
 
                             // song.gridSelectInstructions([selectedInstruction]);
                             // e.preventDefault();
@@ -143,8 +146,8 @@ class SongEditorGrid {
                     switch (keyEvent) {
                         case 'Delete':
                             e.preventDefault();
-                            for(let i=0; i<selectedIndices.length; i++) {
-                                this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndices[i]);
+                            for(let i=0; i<selectedIndicies.length; i++) {
+                                this.editor.renderer.deleteInstructionAtIndex(this.groupName, selectedIndicies[i]);
                             }
                             // this.render();
                             // song.render(true);
@@ -175,14 +178,14 @@ class SongEditorGrid {
                             //     //thisSelect(e, 0);
                             //     //this.focus();
                             // } else {
-                            for(let i=0; i<selectedIndices.length; i++)
+                            for(let i=0; i<selectedIndicies.length; i++)
                                 this.editor.renderer.playInstruction(instructionList[i]);
                             // }
                             break;
 
                         case 'Play':
                             e.preventDefault();
-                            for(let i=0; i<selectedIndices.length; i++) {
+                            for(let i=0; i<selectedIndicies.length; i++) {
                                 this.editor.renderer.playInstruction(instructionList[i]);
                             }
                             break;
@@ -245,20 +248,20 @@ class SongEditorGrid {
                                 const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
                                 // this.render();
                                 this.selectInstructions(insertIndex);
-                                selectedIndices = [insertIndex];
+                                selectedIndicies = [insertIndex];
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
-                                for(let i=0; i<selectedIndices.length; i++) {
-                                    const selectedInstruction = instructionList[selectedIndices[i]];
+                                for(let i=0; i<selectedIndicies.length; i++) {
+                                    const selectedInstruction = instructionList[selectedIndicies[i]];
                                     const replaceCommand = this.replaceFrequencyAlias(newCommand, selectedInstruction.instrument);
-                                    this.replaceInstructionParam(selectedIndices[i], 'command', replaceCommand);
+                                    this.replaceInstructionParam(selectedIndicies[i], 'command', replaceCommand);
                                 }
-                                // this.selectInstructions(this.selectedIndices[0]); // TODO: select all
+                                // this.selectInstructions(this.selectedIndicies[0]); // TODO: select all
                             }
 
                             // this.render();
-                            for(let i=0; i<selectedIndices.length; i++)
-                                this.editor.renderer.playInstruction(instructionList[selectedIndices[i]]);
+                            for(let i=0; i<selectedIndicies.length; i++)
+                                this.editor.renderer.playInstruction(instructionList[selectedIndicies[i]]);
 
                             // song.gridSelectInstructions([selectedInstruction]);
                             // e.preventDefault();
@@ -569,6 +572,8 @@ class SongEditorGrid {
 
     update() {
         let cellList = this.renderElement.querySelectorAll('.grid-cell'); //,.grid-row
+        if(cellList.length === 0)
+            return;
 
         // const cursorCellIndex = this.cursorCellIndex;
         const selectedIndicies = this.editor.selectedIndicies;

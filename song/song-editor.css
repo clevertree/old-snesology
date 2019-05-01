@@ -311,6 +311,12 @@ song-editor .editor-forms form.form-render-octave select[name=octave] {max-width
 song-editor .editor-forms form.form-render-instrument select[name=instrument] { min-width: 135px; }
 song-editor .editor-forms form.form-add-instrument select[name=instrumentURL] {max-width: 145px;}
 
+song-editor .editor-forms form.form-selected-indicies input[name=indicies] {max-width: 55px;}
+song-editor .editor-forms form.form-selected-range input[name=rangeStart],
+song-editor .editor-forms form.form-selected-range input[name=rangeEnd] {
+    max-width: 32px;
+}
+
 
 /** Editor Grid **/
 

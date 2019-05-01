@@ -2,6 +2,11 @@
  * Player requires a modern browser
  */
 
+
+// TODO: midi import/export
+//  use server for export http://grimmdude.com/MidiWriterJS/docs/index.html https://github.com/colxi/midi-parser-js/blob/master/src/midi-parser.js
+    // TODO: midi file and jsf as data url
+
 class SongStorage {
     constructor() {
     }

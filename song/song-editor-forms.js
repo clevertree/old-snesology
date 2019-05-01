@@ -30,6 +30,9 @@ class SongEditorForms {
     get fieldRenderOctave() { return this.renderElement.querySelector('form.form-render-octave select[name=octave]'); }
 
     get fieldAddInstrumentInstrument() { return this.renderElement.querySelector('form.form-add-instrument select[name=instrument]'); }
+    get fieldSelectedIndicies() { return this.renderElement.querySelector('form.form-selected-indicies input[name=indicies]'); }
+    get fieldSelectedRangeStart() { return this.renderElement.querySelector('form.form-selected-range input[name=rangeStart]'); }
+    get fieldSelectedRangeEnd() { return this.renderElement.querySelector('form.form-selected-range input[name=rangeEnd]'); }
 
     // get grid() { return this.song.grid; } // Grid associated with menu
     getInstructionFormValues(isNewInstruction) {
@@ -232,66 +235,6 @@ class SongEditorForms {
         // }
     }
 
-    update() {
-
-        // const gridDuration = this.fieldRenderDuration.value || 1;
-        const cursorIndex = this.editor.cursorCellIndex;
-        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
-        const selectedPauseIndicies = this.editor.selectedPauseIndicies;
-        const groupName = this.editor.currentGroup;
-        const selectedInstructionList = this.editor.renderer.getInstructions(groupName, selectedNoteIndicies);
-        let combinedInstruction = null; //, instrumentList = [];
-        if(selectedInstructionList.length > 0) {
-            for(let i=0; i<selectedInstructionList.length; i++) {
-                combinedInstruction = Object.assign({}, selectedInstructionList[i], combinedInstruction || {})
-            }
-        }
-        // console.log("Combined Instruction", combinedInstruction);
-
-        // Row Instructions
-
-        // Group Buttons
-        this.renderElement.querySelectorAll('button[name=groupName]')
-            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
-
-
-        this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
-
-        this.renderElement.classList.remove('show-insert-instruction-controls');
-        this.renderElement.classList.remove('show-modify-instruction-controls');
-        if(combinedInstruction) {
-            // Note Instruction
-            this.fieldInstructionCommand.value = combinedInstruction.command;
-            this.fieldInstructionInstrument.value = combinedInstruction.instrument;
-            this.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
-            this.fieldInstructionDuration.value = combinedInstruction.duration;
-            this.renderElement.classList.add('show-modify-instruction-controls');
-
-        } else if(selectedPauseIndicies.length > 0) {
-            this.fieldInstructionInstrument.value = this.editor.status.currentInstrumentID;
-            // console.log(this.editor.status.currentInstrumentID);
-
-            this.renderElement.classList.add('show-insert-instruction-controls');
-        }
-
-        this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
-            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
-        this.fieldInsertInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
-            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
-
-        // const oldInsertCommand = this.fieldInsertInstructionCommand.value;
-        // this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
-        // this.fieldInsertInstructionCommand.value = oldInsertCommand;
-        // if(!this.fieldInsertInstructionCommand.value)
-        //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
-
-        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedNoteIndicies.length > 1 ? '(s)' : ''));
-
-        // Status Fields
-
-        this.fieldRenderOctave.value = this.editor.status.currentOctave;
-    }
-
     // ${this.renderEditorMenuLoadFromMemory()}
     render() {
         const renderer = this.editor.renderer;
@@ -486,8 +429,88 @@ class SongEditorForms {
                     </select>
                 </form>
             </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Sel Range</div>                    
+                <form class="form-selected-range submit-on-change" data-action="grid:selected">
+                    <input name="rangeStart" placeholder="N/A" />-<!--
+                 --><input name="rangeEnd" placeholder="N/A" />
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Sel Index</div>                    
+                <form class="form-selected-indicies submit-on-change" data-action="grid:selected">
+                    <input name="indicies" placeholder="No indicies selection" />
+                </form>
+            </div>
         `;
         this.update();
+    }
+
+    update() {
+
+        // const gridDuration = this.fieldRenderDuration.value || 1;
+        const cursorIndex = this.editor.cursorCellIndex;
+        const selectedNoteIndicies = this.editor.selectedNoteIndicies;
+        const selectedPauseIndicies = this.editor.selectedPauseIndicies;
+        const groupName = this.editor.currentGroup;
+        const selectedInstructionList = this.editor.renderer.getInstructions(groupName, selectedNoteIndicies);
+        let combinedInstruction = null; //, instrumentList = [];
+        if(selectedInstructionList.length > 0) {
+            for(let i=0; i<selectedInstructionList.length; i++) {
+                combinedInstruction = Object.assign({}, selectedInstructionList[i], combinedInstruction || {})
+            }
+        }
+        // console.log("Combined Instruction", combinedInstruction);
+
+        // Row Instructions
+
+        // Group Buttons
+        this.renderElement.querySelectorAll('button[name=groupName]')
+            .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
+
+
+        this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
+
+        this.renderElement.classList.remove('show-insert-instruction-controls');
+        this.renderElement.classList.remove('show-modify-instruction-controls');
+        if(combinedInstruction) {
+            // Note Instruction
+            this.fieldInstructionCommand.value = combinedInstruction.command;
+            this.fieldInstructionInstrument.value = combinedInstruction.instrument;
+            this.fieldInstructionVelocity.value = typeof combinedInstruction.velocity === 'undefined' ? '' : combinedInstruction.velocity;
+            this.fieldInstructionDuration.value = combinedInstruction.duration;
+            this.renderElement.classList.add('show-modify-instruction-controls');
+
+        } else if(selectedPauseIndicies.length > 0) {
+            this.fieldInstructionInstrument.value = this.editor.status.currentInstrumentID;
+            // console.log(this.editor.status.currentInstrumentID);
+
+            this.renderElement.classList.add('show-insert-instruction-controls');
+        }
+
+        this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
+            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
+        this.fieldInsertInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>
+            option.classList.toggle('hidden', this.fieldInstructionInstrument.value !== option.getAttribute('data-instrument')));
+
+        // const oldInsertCommand = this.fieldInsertInstructionCommand.value;
+        // this.fieldInsertInstructionCommand.querySelector('.instrument-frequencies').innerHTML = instructionCommandOptGroup.innerHTML;
+        // this.fieldInsertInstructionCommand.value = oldInsertCommand;
+        // if(!this.fieldInsertInstructionCommand.value)
+        //     this.fieldInsertInstructionCommand.value-this.fieldInsertInstructionCommand.options[0].value
+
+        this.renderElement.querySelectorAll('.multiple-count-text').forEach((elm) => elm.innerHTML = (selectedNoteIndicies.length > 1 ? '(s)' : ''));
+
+        // Status Fields
+
+        this.fieldRenderOctave.value = this.editor.status.currentOctave;
+
+
+        this.fieldSelectedIndicies.value = this.editor.selectedIndicies.join(',');
+        this.fieldSelectedRangeStart.value = this.editor.selectedRange[0];
+        this.fieldSelectedRangeEnd.value = this.editor.selectedRange[1];
     }
 
 
