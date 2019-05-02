@@ -116,8 +116,8 @@ class SongEditorGrid {
                                 for(let i=0; i<selectedIndicies.length; i++) {
                                     const selectedInstruction = instructionList[selectedIndicies[i]];
                                     const replaceCommand = this.replaceFrequencyAlias(newMIDICommand, selectedInstruction.instrument);
-                                    this.editor.renderer.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
-                                    this.editor.renderer.replaceInstructionVelocity(selectedIndicies[i], newMIDIVelocity);
+                                    this.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
+                                    this.replaceInstructionVelocity(selectedIndicies[i], newMIDIVelocity);
                                 }
                                 // this.selectInstructions(this.selectedIndicies[0]); // TODO: select all
                             }
@@ -255,7 +255,7 @@ class SongEditorGrid {
                                 for(let i=0; i<selectedIndicies.length; i++) {
                                     const selectedInstruction = instructionList[selectedIndicies[i]];
                                     const replaceCommand = this.replaceFrequencyAlias(newCommand, selectedInstruction.instrument);
-                                    this.editor.renderer.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
+                                    this.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
                                 }
                                 // this.selectInstructions(this.selectedIndicies[0]); // TODO: select all
                             }
@@ -452,9 +452,12 @@ class SongEditorGrid {
         return this.editor.renderer.deleteInstructionAtIndex(this.groupName, deleteIndex, 1);
     }
 
-    // replaceInstructionParam(replaceIndex, paramName, paramValue) {
-    //     return this.editor.renderer.replaceInstructionParam(this.groupName, replaceIndex, paramName, paramValue);
-    // }
+    replaceInstructionCommand(replaceIndex, newCommand) {
+        return this.editor.renderer.replaceInstructionCommand(this.groupName, replaceIndex, newCommand);
+    }
+    replaceInstructionVelocity(replaceIndex, newVelocity) {
+        return this.editor.renderer.replaceInstructionVelocity(this.groupName, replaceIndex, newVelocity);
+    }
     // replaceInstructionParams(replaceIndex, replaceParams) {
     //     return this.editor.renderer.replaceInstructionParams(this.groupName, replaceIndex, replaceParams);
     // }
@@ -545,9 +548,9 @@ class SongEditorGrid {
             rowHTML +=
                 `<div class="grid-cell grid-cell-instruction" data-index="${index}" data-position="${songPosition}">
                     <div class="grid-parameter command">${instruction.command}</div>
-                    <div class="grid-parameter instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>
-                    <div class="grid-parameter velocity">${this.editor.values.format(instruction.velocity, 'velocity')}</div>
-                    <div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>
+                    ${instruction.instrument !== null ? `<div class="grid-parameter instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>` : ''}
+                    ${instruction.velocity !== null ? `<div class="grid-parameter velocity">${this.editor.values.format(instruction.velocity, 'velocity')}</div>` : ''}
+                    ${instruction.duration !== null ? `<div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
                 </div>`;
             lastIndex = index;
         });

@@ -213,10 +213,10 @@ song-editor .editor-forms div.form-section-divide {
     clear: both;
 }
 song-editor .editor-forms div.form-section-divide > form > button > div {
-    transform: rotateZ(90deg);
+    transform: rotateZ(-90deg);
     height: 27px;
     width: 37px;
-    margin: 7px -8px 10px -19px;
+    margin: 7px -19px 10px -9px;
     padding: 0px 0px 0px 0px;
     font-weight: bold;
 }
@@ -309,7 +309,7 @@ song-editor .editor-forms form.form-add-instrument select[name=instrument] { min
 
 /** Modify Instruction Forms **/
 
-song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 203px;}
+song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 68px;}
 song-editor .editor-forms form.form-instruction-command select[name=frequency] { max-width: 42px; }
 song-editor .editor-forms form.form-instruction-command select[name=command] {max-width: 68px;}
 song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 69px;}
@@ -325,7 +325,7 @@ song-editor .editor-forms form.form-render-duration {
 song-editor .editor-forms form.form-render-duration select[name=duration] { min-width: 96px; }
 song-editor .editor-forms form.form-render-octave select[name=octave] {max-width: 37px;}
 song-editor .editor-forms form.form-render-instrument select[name=instrument] { min-width: 135px; }
-song-editor .editor-forms form.form-add-instrument select[name=instrumentURL] {max-width: 145px;}
+song-editor .editor-forms form.form-add-instrument select[name=instrumentURL] {max-width: 68px;}
 
 song-editor .editor-forms form.form-selected-indicies input[name=indicies] {max-width: 55px;}
 song-editor .editor-forms form.form-selected-range input[name=rangeStart],

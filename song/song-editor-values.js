@@ -114,25 +114,23 @@ class SongEditorValues {
                 break;
 
             case 'durations':
-                valuesHTML += callback(1/64,        '1/64');
-                valuesHTML += callback(1/64+1/128,  '1/64d');
-                valuesHTML += callback(1/48,        '1/64t');
-                valuesHTML += callback(1/32,        '1/32');
-                valuesHTML += callback(1/32+1/64,   '1/32d');
-                valuesHTML += callback(1/24,        '1/32t');
-                valuesHTML += callback(1/16,        '1/16');
-                valuesHTML += callback(1/16+1/32,   '1/16d');
-                valuesHTML += callback(1/12,        '1/16t');
-                valuesHTML += callback(1/8,         '1/8');
-                valuesHTML += callback(1/8+1/16,    '1/8d');
-                valuesHTML += callback(1/6,         '1/2t');
-                valuesHTML += callback(1/4,         '1/4');
-                valuesHTML += callback(1/4+1/8,     '1/4d');
-                valuesHTML += callback(1/3,         '1/2t');
-                valuesHTML += callback(1/2,         '1/2');
-                valuesHTML += callback(1/2+1/4,     '1/2d');
+                for(let i=64; i>1; i/=2) {
+                    valuesHTML += callback((1/i)/1.5,   `1/${i}t`);
+                    valuesHTML += callback(1/i,         `1/${i}`);
+                    valuesHTML += callback(1/i*1.5,     `1/${i}d`);
+                }
                 for(let i=1; i<=16; i++)
                     valuesHTML += callback(i, i+'B');
+                break;
+
+            case 'named-durations':
+                for(let i=64; i>1; i/=2) {
+                    valuesHTML += callback(`1/${i}t`,`1/${i}t`);
+                    valuesHTML += callback(`1/${i}`,`1/${i}`);
+                    valuesHTML += callback(`1/${i}d`,`1/${i}d`);
+                }
+                for(let i=1; i<=16; i++)
+                    valuesHTML += callback(i+'B',i+'B');
                 break;
 
             case 'beats-per-measure':
@@ -169,11 +167,9 @@ class SongEditorValues {
     format(input, type) {
         switch(type) {
             case 'duration':
-                if(typeof input !== 'number')
-                    return 'N/A'; // throw new Error("Invalid Duration");
                 let stringValue;
                 this.getValues('durations', (duration, durationString) => {
-                    if(input === duration)
+                    if(input === duration || input === durationString)
                         stringValue = durationString;
                 });
                 if(stringValue)

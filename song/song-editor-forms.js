@@ -133,7 +133,7 @@ class SongEditorForms {
                 break;
 
             case 'instruction:duration':
-                const duration = parseFloat(form.duration.value) || null;
+                const duration = (form.duration.value) || null;
                 for(let i=0; i<selectedNoteIndices.length; i++)
                     this.editor.renderer.replaceInstructionDuration(currentGroup, selectedNoteIndices[i], duration);
                 break;
@@ -254,18 +254,7 @@ class SongEditorForms {
                         <div>Song</div>
                     </button>
                 </form>
-            </div>
-            
-            <div class="form-section">
-                <div class="form-section-header">Load</div>
-                <form action="#" class="form-song-load submit-on-change" data-action="song:load">
-                    <label>
-                        <div class="input-style">File</div>
-                        <input type="file" name="file" accept=".json,.mid,.midi" style="display: none" />
-                    </label>
-                </form>
-            </div>
-                                         
+            </div>               
             
             <div class="form-section">
                 <div class="form-section-header">Playback Controls</div>
@@ -289,6 +278,17 @@ class SongEditorForms {
                     </div>
                 </form>
             </div>
+            
+            <div class="form-section">
+                <div class="form-section-header">Load</div>
+                <form action="#" class="form-song-load submit-on-change" data-action="song:load">
+                    <label>
+                        <div class="input-style">File</div>
+                        <input type="file" name="file" accept=".json,.mid,.midi" style="display: none" />
+                    </label>
+                </form>
+            </div>
+                          
                                          
             
             <div class="form-section">
@@ -307,10 +307,10 @@ class SongEditorForms {
              
             
             <div class="form-section">
-                <div class="form-section-header">Add Instrument to Song</div>                    
+                <div class="form-section-header">Add Instrument</div>                    
                 <form class="form-add-instrument submit-on-change" data-action="instrument:add">
                     <select name="instrumentURL" class="themed">
-                        <option value="">Choose Instrument</option>
+                        <option value="">Select Instrument</option>
                         ${this.editor.forms.renderEditorFormOptions('instruments-available')}
                     </select>
                 </form>
@@ -388,7 +388,7 @@ class SongEditorForms {
                         <option value="">Empty</option>
                         <optgroup label="Note Duration">
                             <option value="">Duration (Default)</option>
-                            ${this.renderEditorFormOptions('durations')}
+                            ${this.renderEditorFormOptions('named-durations')}
                         </optgroup>
                     </select>
                 </form>
@@ -528,9 +528,9 @@ class SongEditorForms {
         if(cursorInstruction) {
             // Note Instruction
             this.fieldInstructionCommand.value = cursorInstruction.command;
-            this.fieldInstructionInstrument.value = cursorInstruction.instrument || '';
-            this.fieldInstructionVelocity.value = cursorInstruction.velocity || '';
-            this.fieldInstructionDuration.value = cursorInstruction.duration || '';
+            this.fieldInstructionInstrument.value = cursorInstruction.instrument !== null ? cursorInstruction.instrument : '';
+            this.fieldInstructionVelocity.value = cursorInstruction.velocity !== null ? cursorInstruction.velocity : '';
+            this.fieldInstructionDuration.value = cursorInstruction.duration !== null ? cursorInstruction.duration : '';
             this.renderElement.classList.add('show-modify-instruction-controls');
 
         } else if(selectedIndicies.length > 0) {

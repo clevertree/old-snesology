@@ -370,7 +370,7 @@ class SongRenderer {
         const destination = this.getVolumeGain();
 
         let velocityGain = context.createGain();
-        velocityGain.gain.value = noteVelocity / 100;
+        velocityGain.gain.value = parseFloat(noteVelocity || 100) / 100;
         velocityGain.connect(destination);
 
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
@@ -739,8 +739,8 @@ class SongRenderer {
         let oldData = null;
 
         if(typeof newData !== "undefined") {
-            if(typeof pathInfo.key === 'number' && pathInfo.parent.length < pathInfo.key)
-                throw new Error(`Replace position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${pathList}`);
+            // if(typeof pathInfo.key === 'number' && pathInfo.parent.length < pathInfo.key)
+            //     throw new Error(`Replace position out of index: ${pathInfo.parent.length} < ${pathInfo.key} for path: ${pathList}`);
             if(typeof pathInfo.parent[pathInfo.key] !== "undefined")
                 oldData = pathInfo.parent[pathInfo.key];
             pathInfo.parent[pathInfo.key] = newData
@@ -985,28 +985,28 @@ class SongInstruction {
     }
     get command()           { return this.data[1] || null; }
     set command(newCommand) { this.data[1] = newCommand; }
-    get instrument()    { return this.data[2] || null; }
+    get instrument()    { return typeof this.data[2] === "undefined" ? null : this.data[2]; }
     set instrument(newInstrumentID) {
         newInstrumentID = parseInt(newInstrumentID);
         if(Number.isNaN(newInstrumentID))
             throw new Error("Invalid Instrument ID");
         this.data[2] = newInstrumentID;
     }
-    get duration()      { return this.data[3] || null; }
+    get duration()    { return typeof this.data[3] === "undefined" ? null : this.data[3]; }
     set duration(newDuration) {
         newDuration = parseFloat(newDuration);
         if(Number.isNaN(newDuration))
             throw new Error("Invalid Duration");
         this.data[3] = newDuration;
     }
-    get velocity()      { return this.data[4] || null; }
+    get velocity()    { return typeof this.data[4] === "undefined" ? null : this.data[4]; }
     set velocity(newVelocity) {
         newVelocity = parseInt(newVelocity);
         if(Number.isNaN(newVelocity))
             throw new Error("Invalid Velocity");
         this.data[4] = newVelocity;
     }
-    get panning()       { return this.data[5] || null; }
+    get panning()    { return typeof this.data[5] === "undefined" ? null : this.data[5]; }
     set panning(newPanning) {
         newPanning = parseInt(newPanning);
         if(Number.isNaN(newPanning))
