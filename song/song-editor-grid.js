@@ -72,10 +72,10 @@ class SongEditorGrid {
     }
 
     focus() {
-        if(this.renderElement !== document.activeElement) {
+        // if(this.renderElement !== document.activeElement) {
 //             console.log("Focus", document.activeElement);
-            this.renderElement.focus();
-        }
+//             this.renderElement.focus();
+//         }
 
     }
 

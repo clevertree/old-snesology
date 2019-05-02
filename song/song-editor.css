@@ -233,10 +233,6 @@ song-editor .editor-forms:not(.show-insert-instruction-controls) .insert-instruc
 /** Form Inputs **/
 
 
-song-editor .editor-forms input[name=volume] {
-    max-width: 71px;
-    /* max-height: 10px; */
-}
 
 song-editor .editor-forms div.volume-container {
      /*border: 1px solid #AAA;*/
@@ -298,9 +294,10 @@ song-editor .editor-forms ul.submenu-item-checkbox {
 
 /** Song Info Form **/
 
-song-editor .editor-forms form.form-song-load input[name=file] {max-width: 96px;}
-song-editor .editor-forms form.form-song-version input[name=version] {max-width: 64px;}
-song-editor .editor-forms form.form-song-title input[name=title] {width: 160px;}
+song-editor .editor-forms form.form-song-volume input[name=volume]      { max-width: 71px; }
+song-editor .editor-forms form.form-song-load input[name=file]          { max-width: 96px; }
+song-editor .editor-forms form.form-song-version input[name=version]    { max-width: 64px; }
+song-editor .editor-forms form.form-song-title input[name=title]        { width: 160px; }
 
 /** Add Instrument Form **/
 
@@ -309,11 +306,11 @@ song-editor .editor-forms form.form-add-instrument select[name=instrument] { min
 
 /** Modify Instruction Forms **/
 
-song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 68px;}
+song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 120px;}
 song-editor .editor-forms form.form-instruction-command select[name=frequency] { max-width: 42px; }
 song-editor .editor-forms form.form-instruction-command select[name=command] {max-width: 68px;}
 song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 69px;}
-song-editor .editor-forms form.form-instruction-velocity select[name=velocity] {max-width: 56px;}
+song-editor .editor-forms form.form-instruction-velocity input[name=velocity] {max-width: 56px;}
 song-editor .editor-forms form.form-instruction-delete button[name=delete] {}
 
 /** Grid Render Forms **/

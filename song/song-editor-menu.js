@@ -175,6 +175,7 @@ class SongEditorMenu {
                 }
                 this.editor.render();
                 this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.forms.fieldInstructionCommand.focus();
                 break;
 
             case 'instruction:instrument':
@@ -190,6 +191,7 @@ class SongEditorMenu {
                 }
                 this.editor.render();
                 this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.forms.fieldInstructionInstrument.focus();
                 break;
 
             case 'instruction:duration':
@@ -207,6 +209,7 @@ class SongEditorMenu {
                 }
                 this.editor.render();
                 this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.forms.fieldInstructionDuration.focus();
                 break;
 
             case 'instruction:velocity':
@@ -224,6 +227,7 @@ class SongEditorMenu {
                 }
                 this.editor.render();
                 this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.forms.fieldInstructionVelocity.focus();
                 break;
 
 

@@ -21,7 +21,7 @@ class SongEditorForms {
     get fieldInstructionInstrument() { return this.renderElement.querySelector('form.form-instruction-instrument select[name=instrument]'); }
     get fieldInstructionDuration() { return this.renderElement.querySelector('form.form-instruction-duration select[name=duration]'); }
     get fieldInstructionCommand() { return this.renderElement.querySelector('form.form-instruction-command select[name=command]'); }
-    get fieldInstructionVelocity() { return this.renderElement.querySelector('form.form-instruction-velocity select[name=velocity]'); }
+    get fieldInstructionVelocity() { return this.renderElement.querySelector('form.form-instruction-velocity input[name=velocity]'); }
 
     get fieldRowDuration() { return this.renderElement.querySelector('form.form-row-duration select[name=duration]'); }
 
@@ -42,7 +42,8 @@ class SongEditorForms {
         }
         let newInstruction = [
             0,
-            isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value
+            isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value,
+            0
         ];
 
         if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
@@ -83,11 +84,11 @@ class SongEditorForms {
     onSubmit(e) {
         let form = e.target.form || e.target;
         const command = form.getAttribute('data-action');
-        const cursorCellIndex = this.editor.cursorCellIndex;
+        // const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
         // const selectedIndicies = this.editor.status.selectedIndicies;
-        const selectedNoteIndices = this.editor.selectedIndicies;
-        const selectedPauseIndices = this.editor.selectedPauseIndicies;
+        const selectedIndices = this.editor.selectedIndicies;
+        // const selectedPauseIndices = this.editor.selectedPauseIndicies;
         const selectedRange = this.editor.selectedRange;
 
         switch (command) {
@@ -115,11 +116,11 @@ class SongEditorForms {
                 let newInstrument = null;
                 if(form.elements['command'].selectedOptions[0] && form.elements['command'].selectedOptions[0].hasAttribute('data-instrument'))
                     newInstrument = parseInt(form.elements['command'].selectedOptions[0].getAttribute('data-instrument'));
-                for(let i=0; i<selectedNoteIndices.length; i++) {
-                    this.editor.renderer.replaceInstructionCommand(currentGroup, selectedNoteIndices[i], newCommand);
+                for(let i=0; i<selectedIndices.length; i++) {
+                    this.editor.renderer.replaceInstructionCommand(currentGroup, selectedIndices[i], newCommand);
                     if(newInstrument !== null)
-                        this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedNoteIndices[i], newInstrument);
-                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
+                        this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedIndices[i], newInstrument);
+                    this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndices[i]);
                 }
                 this.fieldInstructionCommand.focus();
                 // setTimeout(() => this.fieldInstructionCommand.focus(), 1);
@@ -127,26 +128,29 @@ class SongEditorForms {
 
             case 'instruction:instrument':
                 let instrumentID = form.instrument.value === '' ? null : parseInt(form.instrument.value);
-                for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedNoteIndices[i], instrumentID);
+                for(let i=0; i<selectedIndices.length; i++)
+                    this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedIndices[i], instrumentID);
                 this.editor.status.currentInstrumentID = instrumentID;
+                this.fieldInstructionInstrument.focus();
                 break;
 
             case 'instruction:duration':
                 const duration = (form.duration.value) || null;
-                for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.replaceInstructionDuration(currentGroup, selectedNoteIndices[i], duration);
+                for(let i=0; i<selectedIndices.length; i++)
+                    this.editor.renderer.replaceInstructionDuration(currentGroup, selectedIndices[i], duration);
+                this.fieldInstructionDuration.focus();
                 break;
 
             case 'instruction:velocity':
                 const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
-                for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.replaceInstructionVelocity(currentGroup, selectedNoteIndices[i], velocity);
+                for(let i=0; i<selectedIndices.length; i++)
+                    this.editor.renderer.replaceInstructionVelocity(currentGroup, selectedIndices[i], velocity);
+                this.fieldInstructionVelocity.focus();
                 break;
 
             case 'instruction:delete':
-                for(let i=0; i<selectedNoteIndices.length; i++)
-                    this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedNoteIndices[i]);
+                for(let i=0; i<selectedIndices.length; i++)
+                    this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedIndices[i]);
                 break;
 
             // case 'row:edit':
@@ -362,13 +366,6 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section modify-instruction-controls">
-                <div class="form-section-header">Delete</div>
-                <form action="#" class="form-instruction-delete" data-action="instruction:delete">
-                    <button name="delete" class="themed" title="Delete Instruction">X</button>
-                </form>
-            </div>
-            
             <div class="form-section">
                 <div class="form-section-header">Instrument</div>
                 <form action="#" class="form-instruction-instrument submit-on-change" data-action="instruction:instrument">
@@ -382,31 +379,34 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
+                <div class="form-section-header">Velocity</div>
+                <form action="#" class="form-instruction-velocity submit-on-change" data-action="instruction:velocity">
+                    <input type="range" name="velocity" min="1" max="100" class="themed" />
+                </form>
+            </div>
+            
+            
+            <div class="form-section">
                 <div class="form-section-header">Duration</div>
                 <form action="#" class="form-instruction-duration submit-on-change" data-action="instruction:duration">
                     <select name="duration" title="Instruction Duration" class="themed">
-                        <option value="">Empty</option>
+                        <option value="">None</option>
                         <optgroup label="Note Duration">
-                            <option value="">Duration (Default)</option>
                             ${this.renderEditorFormOptions('named-durations')}
                         </optgroup>
                     </select>
                 </form>
             </div>
-            
-            <div class="form-section">
-                <div class="form-section-header">Velocity</div>
-                <form action="#" class="form-instruction-velocity submit-on-change" data-action="instruction:velocity">
-                    <select name="velocity" title="Instruction Velocity" class="themed">
-                        <option value="">Max (Default)</option>
-                        <optgroup label="Velocity">
-                            ${this.renderEditorFormOptions('velocities')}
-                        </optgroup>
-                    </select>
+             
+            <div class="form-section modify-instruction-controls">
+                <div class="form-section-header">Delete</div>
+                <form action="#" class="form-instruction-delete" data-action="instruction:delete">
+                    <button name="delete" class="themed" title="Delete Instruction">X</button>
                 </form>
             </div>
             
-             
+            
+            
              
             <div class="form-section-divide">
                 <form action="#" class="form-instruction-toggle" data-action="show-control:render">
