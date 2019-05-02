@@ -15,12 +15,14 @@ song-editor {
 
 /** Inputs **/
 
+song-editor .input-style,
 song-editor input:not([type=checkbox]):not([type=radio]):not([type=range]),
 song-editor select,
 song-editor button{
     padding: 2px 4px;
     border: 1px outset #FFF;
     border-radius: 2px;
+    font-size: smaller;
     /* max-width: 200px; */
 }
 
@@ -174,12 +176,12 @@ song-editor ul.editor-context-menu.open-context-menu {
 
 /** Forms **/
 song-editor .editor-forms {
-    display: flex;
+    /*display: flex;*/
     flex-wrap: wrap;
 }
 
 song-editor .editor-forms form {
-    margin: 0px 0px 3px 0px;
+    margin: 0px 0px 0px 0px;
     display: inline-block;
 }
 
@@ -200,12 +202,24 @@ song-editor .editor-forms div.form-section {
     background: #DDD;
     /* border: 1px outset #ffffff8a; */
     padding: 6px 8px 2px 6px;
-    display: inline-block;
+    /*display: inline-block;*/
     vertical-align: middle;
-    /* float: left; */
+    float: left;
     border: 1px outset #FFF;
+    min-height: 40px;
 }
-
+song-editor .editor-forms div.form-section-divide {
+    float: left;
+    clear: both;
+}
+song-editor .editor-forms div.form-section-divide > form > button > div {
+    transform: rotateZ(90deg);
+    height: 27px;
+    width: 37px;
+    margin: 7px -8px 10px -19px;
+    padding: 0px 0px 0px 0px;
+    font-weight: bold;
+}
 
 /** Form Visibility **/
 
@@ -284,6 +298,7 @@ song-editor .editor-forms ul.submenu-item-checkbox {
 
 /** Song Info Form **/
 
+song-editor .editor-forms form.form-song-load input[name=file] {max-width: 96px;}
 song-editor .editor-forms form.form-song-version input[name=version] {max-width: 64px;}
 song-editor .editor-forms form.form-song-title input[name=title] {width: 160px;}
 
@@ -296,9 +311,10 @@ song-editor .editor-forms form.form-add-instrument select[name=instrument] { min
 
 song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 203px;}
 song-editor .editor-forms form.form-instruction-command select[name=frequency] { max-width: 42px; }
-song-editor .editor-forms form.form-instruction-command select[name=command] { max-width: 88px; }
-song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 80px;}
-song-editor .editor-forms form.form-instruction-velocity select[name=velocity] {max-width: 78px;}
+song-editor .editor-forms form.form-instruction-command select[name=command] {max-width: 68px;}
+song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 69px;}
+song-editor .editor-forms form.form-instruction-velocity select[name=velocity] {max-width: 56px;}
+song-editor .editor-forms form.form-instruction-delete button[name=delete] {}
 
 /** Grid Render Forms **/
 

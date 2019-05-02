@@ -827,25 +827,6 @@ class SongRenderer {
         return lastPauseIndex;
     }
 
-    // splitPauseInstruction(groupName, pauseIndex, splitDuration, insertInstruction) {
-    //     let instructionList = this.songData.instructions[groupName];
-    //     const pauseInstruction = new SongInstruction(instructionList[pauseIndex]);
-    //     if(pauseInstruction.command !== '!pause')
-    //         throw new Error("Invalid Pause Instruction at : " + pauseIndex);
-    //     if(pauseInstruction.duration <= splitDuration)
-    //         throw new Error("Split duration must be within pause duration");
-    //     const splitDuration2 = pauseInstruction.duration - splitDuration;
-    //     this.replaceInstructionDuration(groupName, pauseIndex, splitDuration);
-    //     if(insertInstruction)
-    //         this.insertInstructionAtIndex(groupName, ++pauseIndex, insertInstruction);
-    //
-    //     this.insertInstructionAtIndex(groupName, ++pauseIndex, {
-    //         command: '!pause',
-    //         duration: splitDuration2
-    //     });
-    //
-    //     return pauseIndex - 1; // we want the instruction, not the pause
-    // }
 
 
     insertInstructionAtIndex(groupName, insertIndex, insertInstruction) {

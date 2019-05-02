@@ -177,7 +177,7 @@ class SongEditorForms {
                 break;
 
             case 'song:load':
-                this.editor.loadSongFromFile(form['loadSong']);
+                this.editor.loadSongFromFile(form['file']);
                 break;
 
             case 'song:edit':
@@ -247,10 +247,22 @@ class SongEditorForms {
         // let tabIndex = 2;
         this.renderElement.innerHTML =
             `
+             
+            <div class="form-section-divide">
+                <form action="#" class="form-instruction-toggle" data-action="show-control:song">
+                    <button name="toggle" class="themed" title="Show/Hide Song Controls">
+                        <div>Song</div>
+                    </button>
+                </form>
+            </div>
+            
             <div class="form-section">
                 <div class="form-section-header">Load</div>
-                <form action="#" class="form-song-play submit-on-change" data-action="song:load">
-                    <input type="file" name="loadSong" accept=".json,.mid,.midi" />
+                <form action="#" class="form-song-load submit-on-change" data-action="song:load">
+                    <label>
+                        <div class="input-style">File</div>
+                        <input type="file" name="file" accept=".json,.mid,.midi" style="display: none" />
+                    </label>
                 </form>
             </div>
                                          
@@ -293,7 +305,26 @@ class SongEditorForms {
                 </form>
             </div>                
              
-            <br style="clear: both;"/>
+            
+            <div class="form-section">
+                <div class="form-section-header">Add Instrument to Song</div>                    
+                <form class="form-add-instrument submit-on-change" data-action="instrument:add">
+                    <select name="instrumentURL" class="themed">
+                        <option value="">Choose Instrument</option>
+                        ${this.editor.forms.renderEditorFormOptions('instruments-available')}
+                    </select>
+                </form>
+            </div>
+             
+             
+             
+            <div class="form-section-divide">
+                <form action="#" class="form-instruction-toggle" data-action="show-control:note">
+                    <button name="toggle" class="themed" title="Show/Hide Note Controls">
+                        <div>Notes</div>
+                    </button>
+                </form>
+            </div>
  
             <div class="form-section insert-instruction-controls">
                 <div class="form-section-header">Insert Instruction</div>
@@ -314,7 +345,7 @@ class SongEditorForms {
             </div>
             
             <div class="form-section modify-instruction-controls">
-                <div class="form-section-header">Modify Instruction</div>
+                <div class="form-section-header">Instruction</div>
                 <form action="#" class="form-instruction-command submit-on-change" data-action="instruction:command">
                     <select name="command" title="Instruction Command" class="themed" required="required">
                         <option value="">Command (Choose)</option>
@@ -329,15 +360,20 @@ class SongEditorForms {
                         </optgroup>
                     </select>
                 </form>
+            </div>
+            
+            <div class="form-section modify-instruction-controls">
+                <div class="form-section-header">Delete</div>
                 <form action="#" class="form-instruction-delete" data-action="instruction:delete">
-                    <button name="delete" class="themed" title="Delete Instruction">-</button>
+                    <button name="delete" class="themed" title="Delete Instruction">X</button>
                 </form>
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Note Instrument</div>
+                <div class="form-section-header">Instrument</div>
                 <form action="#" class="form-instruction-instrument submit-on-change" data-action="instruction:instrument">
                     <select name="instrument" title="Instruction Instrument" class="themed">
+                        <option value="">None</option>
                         <optgroup label="Song Instruments">
                             ${this.renderEditorFormOptions('song-instruments')}
                         </optgroup>
@@ -346,9 +382,10 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Note Duration</div>
+                <div class="form-section-header">Duration</div>
                 <form action="#" class="form-instruction-duration submit-on-change" data-action="instruction:duration">
                     <select name="duration" title="Instruction Duration" class="themed">
+                        <option value="">Empty</option>
                         <optgroup label="Note Duration">
                             <option value="">Duration (Default)</option>
                             ${this.renderEditorFormOptions('durations')}
@@ -358,31 +395,26 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Note Velocity</div>
+                <div class="form-section-header">Velocity</div>
                 <form action="#" class="form-instruction-velocity submit-on-change" data-action="instruction:velocity">
                     <select name="velocity" title="Instruction Velocity" class="themed">
+                        <option value="">Max (Default)</option>
                         <optgroup label="Velocity">
-                            <option value="">Velocity (Default)</option>
                             ${this.renderEditorFormOptions('velocities')}
                         </optgroup>
                     </select>
                 </form>
             </div>
             
-            <div class="form-section">
-                <div class="form-section-header">Modify Row</div>
-                <form action="#" class="form-row-insert" data-action="row:insert">
-                    <button name="insert" disabled="disabled" class="themed">+</button>
+             
+             
+            <div class="form-section-divide">
+                <form action="#" class="form-instruction-toggle" data-action="show-control:render">
+                    <button name="toggle" class="themed" title="Show/Hide Render Controls">
+                        <div>Grid</div>
+                    </button>
                 </form>
-                <form action="#" class="form-row-delete" data-action="row:delete">
-                    <button name="delete" disabled="disabled" class="themed">-</button>
-                </form>
-                <form action="#" class="form-row-duplicate" data-action="row:duplicate">
-                    <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>
-                </form>
-            </div>                
-
-            <br style="clear: both;"/>
+            </div>
             
             
             <div class="form-section">
@@ -434,16 +466,6 @@ class SongEditorForms {
             </div>
             
             <div class="form-section">
-                <div class="form-section-header">Add Instrument to Song</div>                    
-                <form class="form-add-instrument submit-on-change" data-action="instrument:add">
-                    <select name="instrumentURL" class="themed">
-                        <option value="">Choose Instrument</option>
-                        ${this.editor.forms.renderEditorFormOptions('instruments-available')}
-                    </select>
-                </form>
-            </div>
-            
-            <div class="form-section">
                 <div class="form-section-header">Sel Range</div>                    
                 <form class="form-selected-range submit-on-change" data-action="grid:selected">
                     <input name="rangeStart" placeholder="N/A" />-<!--
@@ -461,20 +483,35 @@ class SongEditorForms {
         this.update();
     }
 
+// <div class="form-section">
+//         <div class="form-section-header">Modify Row</div>
+// <form action="#" class="form-row-insert" data-action="row:insert">
+//         <button name="insert" disabled="disabled" class="themed">+</button>
+//         </form>
+//         <form action="#" class="form-row-delete" data-action="row:delete">
+//         <button name="delete" disabled="disabled" class="themed">-</button>
+//         </form>
+//         <form action="#" class="form-row-duplicate" data-action="row:duplicate">
+//         <button name="duplicate" disabled="disabled" class="themed">Duplicate</button>
+//         </form>
+//         </div>
+//
+
     update() {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
         const cursorIndex = this.editor.cursorCellIndex;
         const selectedIndicies = this.editor.selectedIndicies;
-        const selectedPauseIndicies = this.editor.selectedPauseIndicies;
+        // const selectedPauseIndicies = this.editor.selectedPauseIndicies;
         const groupName = this.editor.currentGroup;
         const selectedInstructionList = this.editor.renderer.getInstructions(groupName, selectedIndicies);
-        let combinedInstruction = null; //, instrumentList = [];
-        if(selectedInstructionList.length > 0) {
-            for(let i=0; i<selectedInstructionList.length; i++) {
-                combinedInstruction = Object.assign({}, selectedInstructionList[i], combinedInstruction || {})
-            }
-        }
+        let cursorInstruction = selectedInstructionList[0];
+        // let combinedInstruction = null; //, instrumentList = [];
+        // if(selectedInstructionList.length > 0) {
+        //     for(let i=0; i<selectedInstructionList.length; i++) {
+        //         combinedInstruction = Object.assign({}, selectedInstructionList[i], combinedInstruction || {})
+        //     }
+        // }
         // console.log("Combined Instruction", combinedInstruction);
 
         // Row Instructions
@@ -488,15 +525,15 @@ class SongEditorForms {
 
         this.renderElement.classList.remove('show-insert-instruction-controls');
         this.renderElement.classList.remove('show-modify-instruction-controls');
-        if(combinedInstruction) {
+        if(cursorInstruction) {
             // Note Instruction
-            this.fieldInstructionCommand.value = combinedInstruction[1];
-            this.fieldInstructionInstrument.value = combinedInstruction[2];
-            this.fieldInstructionVelocity.value = typeof combinedInstruction[4] === 'undefined' ? '' : combinedInstruction[4];
-            this.fieldInstructionDuration.value = combinedInstruction[3];
+            this.fieldInstructionCommand.value = cursorInstruction.command;
+            this.fieldInstructionInstrument.value = cursorInstruction.instrument || '';
+            this.fieldInstructionVelocity.value = cursorInstruction.velocity || '';
+            this.fieldInstructionDuration.value = cursorInstruction.duration || '';
             this.renderElement.classList.add('show-modify-instruction-controls');
 
-        } else if(selectedPauseIndicies.length > 0) {
+        } else if(selectedIndicies.length > 0) {
             this.fieldInstructionInstrument.value = this.editor.status.currentInstrumentID;
             // console.log(this.editor.status.currentInstrumentID);
 
