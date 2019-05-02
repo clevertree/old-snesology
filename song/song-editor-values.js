@@ -170,7 +170,7 @@ class SongEditorValues {
         switch(type) {
             case 'duration':
                 if(typeof input !== 'number')
-                    throw new Error("Invalid Duration");
+                    return 'N/A'; // throw new Error("Invalid Duration");
                 let stringValue;
                 this.getValues('durations', (duration, durationString) => {
                     if(input === duration)
@@ -183,8 +183,13 @@ class SongEditorValues {
 
             case 'instrument':
                 if(typeof input !== 'number')
-                    throw new Error("Invalid Instrument");
+                    return 'N/A'; // throw new Error("Invalid Instrument");
                 return input < 10 ? "0" + input : "" + input;
+
+            case 'velocity':
+                if(typeof input !== 'number')
+                    return 'N/A'; // throw new Error("Invalid Instrument");
+                return input === 100 ? "Max" : input+'';
 
         }
     }

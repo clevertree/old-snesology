@@ -262,7 +262,7 @@ class SongEditorGrid {
 
                             // this.render();
                             for(let i=0; i<selectedIndicies.length; i++)
-                                this.editor.renderer.playInstruction(instructionList[selectedIndicies[i]]);
+                                this.editor.renderer.playInstructionAtIndex(this.groupName, selectedIndicies[i]);
 
                             // song.gridSelectInstructions([selectedInstruction]);
                             // e.preventDefault();
@@ -504,65 +504,55 @@ class SongEditorGrid {
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
         // const cursorCellIndex = this.editor.cursorCellIndex;
-        let editorHTML = '', rowHTML='', songPosition=0, odd=false; // , lastPause = 0;
+        let editorHTML = '', rowHTML='', songPosition=0, lastIndex, odd=false; // , lastPause = 0;
+
+        const renderRow = (rowIndex, deltaDuration) => {
+            for(let subPause=0; subPause<deltaDuration; subPause+=gridDuration) {
+                let subDuration = gridDuration;
+                if(subPause + gridDuration > deltaDuration)
+                    subDuration = subPause + gridDuration - deltaDuration;
+
+                rowHTML +=
+                    `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-index="${rowIndex}">
+                        <div class="grid-parameter command">+</div>
+                    </div>`;
+
+                editorHTML +=
+                   `<tr class="grid-row" data-index="${rowIndex}" data-position="${songPosition}">
+                       <td class="grid-data">
+                           ${rowHTML}
+                       </td>
+                       <td class="grid-data-pause">
+                           ${this.editor.values.format(subDuration, 'duration')}
+                       </td>
+                    </tr>`;
+                rowHTML = '';
+                // if(cursorCellIndex === songPosition)
+                // const cursorCellIndexClass = cursorCellIndex === songPosition ? ' selected' : '';
+                songPosition += subDuration;
+            }
+        };
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // console.log(index, instruction);
 
-            if (instruction[0] !== 0) {
-                // const functionName = instruction[1].substr(1);
-                // switch (functionName) {
-                //     case 'pause':
-                        // editorHTML += this.renderGridRow(instruction, rowInstructions, odd);
 
-
-                        // TODO: ignore pause if no commands. add duration to next pause
-                const pauseDuration = instruction[0];
-                for(let subPause=0; subPause<pauseDuration; subPause+=gridDuration) {
-                    let subDuration = gridDuration;
-                    if(subPause + gridDuration > pauseDuration)
-                        subDuration = subPause + gridDuration - pauseDuration;
-
-                    // if(cursorCellIndex === songPosition)
-                    // const cursorCellIndexClass = cursorCellIndex === songPosition ? ' selected' : '';
-                    rowHTML +=
-                        `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-index="${index}">
-                            <div class="grid-parameter command">+</div>
-                        </div>`;
-
-                    editorHTML +=
-                        `<tr class="grid-row" data-index="${index}" data-position="${songPosition}">
-                           <td class="grid-data">
-                               ${rowHTML}
-                           </td>
-                           <td class="grid-data-pause">
-                               ${this.editor.values.format(subDuration, 'duration')}
-                           </td>
-                        </tr>`;
-                    rowHTML = '';
-                    songPosition += subDuration;
-                }
-
-
-                    //     break;
-                    //
-                    // default:
-                    //     console.error("Unknown function: " + instruction.command);
-                    //     break;
-                // }
-            } else {
-                // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
-                rowHTML +=
-                    `<div class="grid-cell grid-cell-instruction" data-index="${index}" data-position="${songPosition}">
-                        <div class="grid-parameter command">${instruction.command}</div>
-                        ${typeof instruction.instrument !== "undefined" ? `<div class="grid-parameter instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>` : ''}
-                        ${typeof instruction.velocity !== "undefined" ? `<div class="grid-parameter velocity">${instruction.velocity}</div>` : ''}
-                        ${typeof instruction.duration !== "undefined" ? `<div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
-                    </div>`;
+            if (instruction.deltaDuration !== 0) {
+                renderRow(index, instruction.deltaDuration);
             }
+
+                // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
+            rowHTML +=
+                `<div class="grid-cell grid-cell-instruction" data-index="${index}" data-position="${songPosition}">
+                    <div class="grid-parameter command">${instruction.command}</div>
+                    <div class="grid-parameter instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>
+                    <div class="grid-parameter velocity">${this.editor.values.format(instruction.velocity, 'velocity')}</div>
+                    <div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>
+                </div>`;
+            lastIndex = index;
         });
 
-
+        renderRow(lastIndex, 1);
 
         const currentScrollPosition = this.scrollTop || 0; // Save scroll position
         this.renderElement.innerHTML = editorHTML;

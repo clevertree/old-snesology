@@ -100,7 +100,7 @@ class SongRenderer {
         this.songHistory = songHistory || [];
 
         Object.keys(songData.instructions).map((groupName, i) =>
-            this.processInstructions(groupName));
+            this.processAllInstructionData(groupName));
 
         let loadingInstruments = 0;
         if(songData.instruments.length === 0) {
@@ -122,36 +122,25 @@ class SongRenderer {
         }
     }
 
-    processInstructions(groupName) {
-        const instructionList = this.getInstructions(groupName);
+    processAllInstructionData(groupName) {
+        const instructionList = this.songData.instructions[groupName];
         for(let i=0; i<instructionList.length; i++) {
             const instruction = instructionList[i];
-            instructionList[i] = this.processInstruction(instruction);
+            instructionList[i] = this.processInstructionData(instruction);
         }
     }
 
     // REFACTOR
-    processInstruction(instruction) {
-        if (typeof instruction === 'number')
-            instruction = [instruction]; // Single entry array means pause
-        // instruction = {command: '!pause', duration: instruction};
-        if (typeof instruction === 'string') {
-            instruction = instruction.split(':');
-            instruction[0] = parseFloat(instruction[0]);
-            instruction[1] = parseInt(instruction[1])
-        }
-        // if (Array.isArray(instruction))
-        //     instruction = function(args) {
-        //         const instruction = {command: args[0]};
-        //         if(args.length>1)   instruction.duration = args[1];
-        //         return instruction;
-        //     }(instruction);
-        return instruction;
+    processInstructionData(instructionData) {
+        const instruction = SongInstruction.parse(instructionData);
+        return instruction.data;
     }
 
 
 
     findInstructionGroup(instruction) {
+        if(instruction instanceof SongInstruction)
+            instruction = instruction.data;
         if(typeof instruction !== 'object')
             throw new Error("Invalid instruction object");
         for(let groupName in this.songData.instructions) {
@@ -167,12 +156,15 @@ class SongRenderer {
         let instructionList = this.songData.instructions[groupName];
         if(!instructionList)
             throw new Error("Instruction groupName not found: " + groupName);
-        if(!indicies)
-            return instructionList;
-        return instructionList.filter((instruction, index) => indicies.indexOf(index) !== -1)
+        if(indicies)
+            instructionList = instructionList.filter((instruction, index) => indicies.indexOf(index) !== -1);
+        return instructionList
+            .map(instructionData => new SongInstruction(instructionData))
     }
 
     getInstructionIndex(instruction, groupName) {
+        if(instruction instanceof SongInstruction)
+            instruction = instruction.data;
         const instructionList = this.songData.instructions[groupName];
         const p = instructionList.indexOf(instruction);
         if(p === -1)
@@ -220,9 +212,9 @@ class SongRenderer {
         // }
 
         const currentTime = this.getAudioContext().currentTime;
-        let instrumentID = instruction[2];
-        let noteFrequency = instruction[1];
-        let noteVelocity = typeof instruction[4] !== 'undefined' ? instruction[4] : 100;
+        let instrumentID = instruction.instrument;
+        let noteFrequency = instruction.command;
+        let noteVelocity = instruction.velocity;
         let bpm = 60;
 
         if(stats) {
@@ -234,7 +226,7 @@ class SongRenderer {
                     instrumentID = stats.groupInstruction.instrument;
             }
         }
-        const noteDuration = (instruction[3] || 1) * (60 / bpm);
+        const noteDuration = (instruction.duration || 1) * (60 / bpm);
 
         if(!instrumentID && instrumentID !== 0) {
             console.warn("No instrument set for instruction. Using instrument 0");
@@ -300,7 +292,8 @@ class SongRenderer {
 
     eachInstruction(rootGroup, callback) {
         rootGroup = rootGroup || 'root';
-        const instructionList = this.getInstructions(rootGroup);
+        let instructionList = this.songData.instructions[rootGroup];
+        // const instructionList = this.getInstructions(rootGroup);
         const currentBPM = this.getStartingBeatsPerMinute();
         return playGroup.call(this, instructionList, {
             "parentBPM": currentBPM,
@@ -319,20 +312,20 @@ class SongRenderer {
             stats.groupPlaytime = 0;
             let maxPlaytime = 0;
             for(let i=0; i<instructionList.length; i++) {
-                let instruction = instructionList[i];
+                let instruction = new SongInstruction(instructionList[i]);
                 if(typeof instruction === 'number')
                     instruction = [instruction];
 
                 // if(typeof instruction.command !== "undefined") {
-                if (instruction[0] > 0) { // Delta
-                    stats.groupPosition += instruction[0];
-                    stats.groupPlaytime += instruction[0] * (60 / stats.currentBPM);
+                if (instruction.deltaDuration > 0) { // Delta
+                    stats.groupPosition += instruction.deltaDuration;
+                    stats.groupPlaytime += instruction.deltaDuration * (60 / stats.currentBPM);
                     if(stats.groupPlaytime > maxPlaytime)
                         maxPlaytime = stats.groupPlaytime;
                 }
 
-                if (instruction[1] && instruction[1][0] === '@') {
-                    let groupName = instruction[1].substr(1);
+                if (instruction.isGroupCommand()) {
+                    let groupName = instruction.getGroupFromCommand();
                     let instructionGroupList = this.songData.instructions[groupName];
                     if (!instructionGroupList)
                         throw new Error("Instruction groupName not found: " + groupName);
@@ -631,14 +624,14 @@ class SongRenderer {
             setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
         } else{
 
-            setTimeout(function() {
+            setTimeout(() => {
                 console.log("Song finished. Play time: ", totalPlayTime);
                 this.seekPosition = 0;
                 this.playing = false;
 
                 // Update UI
                 this.dispatchEvent(new CustomEvent('song:end'));
-            }.bind(this), totalPlayTime - currentTime)
+            }, totalPlayTime - currentTime)
         }
     }
 
@@ -669,7 +662,7 @@ class SongRenderer {
             }
         }
         this.songHistory = [];
-        this.processAllInstructions();
+        this.processAllInstructionData();
     }
 
     findDataPath(pathList) {
@@ -769,43 +762,54 @@ class SongRenderer {
             historyAction.push(oldData);
         this.songHistory.push(historyAction);
 
-        // setTimeout(() => {
-        this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
-        // }, 1);
+        setTimeout(() => {
+            this.dispatchEvent(new CustomEvent('song:modified', {detail: historyAction}), 1);
+        }, 1);
 
         return historyAction;
     }
 
-    insertInstructionAtPosition(groupName, insertPosition, insertInstruction) {
-        throw new Error(" TODO new split")
-        if(!insertInstruction)
+    insertInstructionAtPosition(groupName, insertPosition, insertInstructionData) {
+        if(!insertInstructionData)
             throw new Error("Invalid insert instruction");
+        const insertInstruction = SongInstruction.parse(insertInstructionData);
         let instructionList = this.songData.instructions[groupName];
 
-        let groupPosition = 0;
+        let groupPosition = 0, lastDeltaInstructionIndex;
         for(let i=0; i<instructionList.length; i++) {
-            const instruction = instructionList[i];
-            if(instruction[0] > 0) {
+            const instruction = new SongInstruction(instructionList[i]);
+            if(instruction.deltaDuration > 0) {
 
-                if(groupPosition + instruction[0] >= insertPosition) {
+                if(groupPosition + instruction.deltaDuration > insertPosition) {
+                    // Delta note appears after note to be inserted
+                    const splitDuration = [
+                        insertPosition - groupPosition,
+                        groupPosition + instruction.deltaDuration - insertPosition
+                    ];
 
-                    if(groupPosition + instruction[0] === insertPosition) {
-                        // Pause Position equals insert position, append after
+                    // Make following delta note smaller
+                    this.replaceInstructionDeltaDuration(groupName, i, splitDuration[1]);
 
-                        let lastInsertIndex;
-                        // Search for last insert position
-                        for(lastInsertIndex=i+1; lastInsertIndex<instructionList.length; lastInsertIndex++)
-                            if(instructionList[lastInsertIndex][0] > 0)
-                                break;
+                    // Insert new note before delta note.
+                    insertInstruction.deltaDuration = splitDuration[0];                     // Make new note equal the rest of the duration
+                    this.insertInstructionAtIndex(groupName, i, insertInstruction);
 
-                        this.insertInstructionAtIndex(groupName, lastInsertIndex, insertInstruction);
-                        return lastInsertIndex;
-                    }
+                    return i; // this.splitPauseInstruction(groupName, i,insertPosition - groupPosition , insertInstruction);
 
-                    // Pause Position is before insert position, split the pause
-                    return this.splitPauseInstruction(groupName, i,insertPosition - groupPosition , insertInstruction);
+                } else if(groupPosition + instruction.deltaDuration === insertPosition) {
+                    // Delta note plays at the same time as new note, append after
+
+                    let lastInsertIndex;
+                    // Search for last insert position
+                    for(lastInsertIndex=i+1; lastInsertIndex<instructionList.length; lastInsertIndex++)
+                        if(new SongInstruction(instructionList[lastInsertIndex]).deltaDuration > 0)
+                            break;
+
+                    this.insertInstructionAtIndex(groupName, lastInsertIndex, insertInstruction);
+                    return lastInsertIndex;
                 }
-                groupPosition += instruction[0];
+                groupPosition += instruction.deltaDuration;
+                lastDeltaInstructionIndex = i;
             }
         }
 
@@ -813,38 +817,40 @@ class SongRenderer {
             throw new Error ("Something went wrong");
         // Insert a new pause at the end of the song, lasting until the new note
         let lastPauseIndex = instructionList.length;
-        this.insertInstructionAtIndex(groupName, lastPauseIndex, {
-            command: '!pause',
-            duration: insertPosition - groupPosition
-        });
+        // this.insertInstructionAtIndex(groupName, lastPauseIndex, {
+        //     command: '!pause',
+        //     duration: insertPosition - groupPosition
+        // });
         // Insert new note
+        insertInstruction.deltaDuration = insertPosition - groupPosition;
         this.insertInstructionAtIndex(groupName, lastPauseIndex, insertInstruction);
         return lastPauseIndex;
     }
 
-    splitPauseInstruction(groupName, pauseIndex, splitDuration, insertInstruction) {
-        throw new Error("TODO split")
-        let instructionList = this.songData.instructions[groupName];
-        const pauseInstruction = instructionList[pauseIndex];
-        if(pauseInstruction.command !== '!pause')
-            throw new Error("Invalid Pause Instruction at : " + pauseIndex);
-        if(pauseInstruction.duration <= splitDuration)
-            throw new Error("Split duration must be within pause duration");
-        const splitDuration2 = pauseInstruction.duration - splitDuration;
-        this.replaceInstructionDuration(groupName, pauseIndex, splitDuration);
-        if(insertInstruction)
-            this.insertInstructionAtIndex(groupName, ++pauseIndex, insertInstruction);
-
-        this.insertInstructionAtIndex(groupName, ++pauseIndex, {
-            command: '!pause',
-            duration: splitDuration2
-        });
-
-        return pauseIndex - 1; // we want the instruction, not the pause
-    }
+    // splitPauseInstruction(groupName, pauseIndex, splitDuration, insertInstruction) {
+    //     let instructionList = this.songData.instructions[groupName];
+    //     const pauseInstruction = new SongInstruction(instructionList[pauseIndex]);
+    //     if(pauseInstruction.command !== '!pause')
+    //         throw new Error("Invalid Pause Instruction at : " + pauseIndex);
+    //     if(pauseInstruction.duration <= splitDuration)
+    //         throw new Error("Split duration must be within pause duration");
+    //     const splitDuration2 = pauseInstruction.duration - splitDuration;
+    //     this.replaceInstructionDuration(groupName, pauseIndex, splitDuration);
+    //     if(insertInstruction)
+    //         this.insertInstructionAtIndex(groupName, ++pauseIndex, insertInstruction);
+    //
+    //     this.insertInstructionAtIndex(groupName, ++pauseIndex, {
+    //         command: '!pause',
+    //         duration: splitDuration2
+    //     });
+    //
+    //     return pauseIndex - 1; // we want the instruction, not the pause
+    // }
 
 
     insertInstructionAtIndex(groupName, insertIndex, insertInstruction) {
+        if(insertInstruction instanceof SongInstruction)
+            insertInstruction = insertInstruction.data;
         if(!insertInstruction)
             throw new Error("Invalid insert instruction");
         this.insertDataPath(['instructions', groupName, insertIndex], insertInstruction);
@@ -857,7 +863,7 @@ class SongRenderer {
     }
 
 
-    replaceInstructionDelta(groupName, replaceIndex, newDelta) {
+    replaceInstructionDeltaDuration(groupName, replaceIndex, newDelta) {
         return this.replaceInstructionParam(groupName, replaceIndex, 0, newDelta);
     }
     replaceInstructionCommand(groupName, replaceIndex, newCommand) {
@@ -928,15 +934,6 @@ class SongRenderer {
     }
 
 
-    processAllInstructions() {
-        Object.keys(this.songData.instructions).map((groupName, i) => {
-            let instructionList = this.songData.instructions[groupName];
-            for (let i = 0; i < instructionList.length; i++)
-                instructionList[i] = SongRenderer.processInstruction(instructionList[i]);
-        });
-    }
-
-
     // TODO: remove path
     static sanitizeInput(value) {
         if(Array.isArray(value)) {
@@ -993,3 +990,70 @@ class SongRenderer {
 
 }
 SongRenderer.DEFAULT_VOLUME = 0.7;
+
+class SongInstruction {
+    constructor(instructionData) {
+        this.data = instructionData;
+    }
+    get deltaDuration() { return this.data[0]; }
+    set deltaDuration(newDeltaDuration) {
+        newDeltaDuration = parseFloat(newDeltaDuration);
+        if(Number.isNaN(newDeltaDuration))
+            throw new Error("Invalid Delta Duration");
+        this.data[0] = newDeltaDuration;
+    }
+    get command()           { return this.data[1] || null; }
+    set command(newCommand) { this.data[1] = newCommand; }
+    get instrument()    { return this.data[2] || null; }
+    set instrument(newInstrumentID) {
+        newInstrumentID = parseInt(newInstrumentID);
+        if(Number.isNaN(newInstrumentID))
+            throw new Error("Invalid Instrument ID");
+        this.data[2] = newInstrumentID;
+    }
+    get duration()      { return this.data[3] || null; }
+    set duration(newDuration) {
+        newDuration = parseFloat(newDuration);
+        if(Number.isNaN(newDuration))
+            throw new Error("Invalid Duration");
+        this.data[3] = newDuration;
+    }
+    get velocity()      { return this.data[4] || null; }
+    set velocity(newVelocity) {
+        newVelocity = parseInt(newVelocity);
+        if(Number.isNaN(newVelocity))
+            throw new Error("Invalid Velocity");
+        this.data[4] = newVelocity;
+    }
+    get panning()       { return this.data[5] || null; }
+    set panning(newPanning) {
+        newPanning = parseInt(newPanning);
+        if(Number.isNaN(newPanning))
+            throw new Error("Invalid Panning");
+        this.data[5] = newPanning;
+    }
+
+    isGroupCommand()        { return this.command && this.command[0] === '@'; }
+
+    getGroupFromCommand()   { return this.command.substr(1); }
+
+    static parse(instruction) {
+        if (typeof instruction === 'number')
+            instruction = [instruction]; // Single entry array means pause
+        // instruction = {command: '!pause', duration: instruction};
+        if (typeof instruction === 'string') {
+            instruction = instruction.split(':');
+            instruction[0] = parseFloat(instruction[0]);
+            instruction[1] = parseInt(instruction[1])
+        }
+        if(typeof instruction[0] === 'string')
+            instruction.unshift(0);
+        // if (Array.isArray(instruction))
+        //     instruction = function(args) {
+        //         const instruction = {command: args[0]};
+        //         if(args.length>1)   instruction.duration = args[1];
+        //         return instruction;
+        //     }(instruction);
+        return new SongInstruction(instruction);
+    }
+}
