@@ -150,8 +150,8 @@ song-editor ul.editor-menu hr {
 
 
 song-editor .editor-menu:not(.show-no-instruction-controls) .no-instruction-controls,
-song-editor .editor-menu:not(.show-modify-instruction-controls) .modify-instruction-controls {
-/*song-editor .editor-menu:not(.show-insert-instruction-controls) .insert-instruction-controls {*/
+song-editor .editor-menu:not(.show-control-note-modify) .control-note-modify {
+/*song-editor .editor-menu:not(.show-control-note-insert) .control-note-insert {*/
     display: none;
 }
 
@@ -208,26 +208,52 @@ song-editor .editor-forms div.form-section {
     border: 1px outset #FFF;
     min-height: 40px;
 }
-song-editor .editor-forms div.form-section-divide {
+song-editor div.form-section-divide {
     float: left;
-    clear: both;
+    /* clear: both; */
 }
-song-editor .editor-forms div.form-section-divide > form > button > div {
-    transform: rotateZ(-90deg);
-    height: 27px;
-    width: 37px;
-    margin: 7px -19px 10px -9px;
-    padding: 0px 0px 0px 0px;
+song-editor div.form-section-divide > form > button {
+    width: 21px;
+    height: 50px;
     font-weight: bold;
+    cursor: pointer;
+}
+song-editor div.form-section-divide > form > button > div {
+    transform-origin: 16px -2px;
+    transform: rotate(90deg);
+    width: 50px;
+    font-weight: bold;
+}
+
+song-editor div.form-section-divide > form.form-control-note-toggle > button {
+    height: 90px;
+}
+song-editor div.form-section-divide > form.form-control-note-toggle > button > div {
+    transform-origin: 22px -9px;
+}
+
+song-editor .hide-control-song form.form-song-toggle > button,
+song-editor .hide-control-note form.form-note-toggle > button,
+song-editor .hide-control-grid form.form-grid-toggle > button,
+song-editor .hide-control-instrument form.form-control-note-toggle > button {
+    border: 1px inset;
 }
 
 /** Form Visibility **/
 
 song-editor:not(.playing)   form.show-on-song-playing,
 song-editor:not(.paused)    form.show-on-song-playing,
-song-editor .editor-forms:not(.show-modify-instruction-controls) .modify-instruction-controls,
-song-editor .editor-forms:not(.show-insert-instruction-controls) .insert-instruction-controls {
+song-editor .editor-forms:not(.show-control-note-modify) .control-note-modify,
+song-editor .editor-forms:not(.show-control-note-insert) .control-note-insert,
+song-editor .editor-forms.hide-control-song .control-song,
+song-editor .editor-forms.hide-control-note .control-note,
+song-editor .editor-forms.hide-control-grid .control-grid,
+song-editor .editor-instruments.hide-control-instrument .control-instrument {
     display: none;
+}
+
+song-editor .editor-instruments {
+    display: inline-block;
 }
 
 /** Form Inputs **/
@@ -307,8 +333,8 @@ song-editor .editor-forms form.form-add-instrument select[name=instrument] { min
 /** Modify Instruction Forms **/
 
 song-editor .editor-forms form.form-instruction-instrument select[name=instrument] {max-width: 120px;}
-song-editor .editor-forms form.form-instruction-command select[name=frequency] { max-width: 42px; }
-song-editor .editor-forms form.form-instruction-command select[name=command] {max-width: 68px;}
+song-editor .editor-forms form.form-note-command select[name=frequency] { max-width: 42px; }
+song-editor .editor-forms form.form-note-command select[name=command] {max-width: 68px;}
 song-editor .editor-forms form.form-instruction-duration select[name=duration] {max-width: 69px;}
 song-editor .editor-forms form.form-instruction-velocity input[name=velocity] {max-width: 56px;}
 song-editor .editor-forms form.form-instruction-delete button[name=delete] {}

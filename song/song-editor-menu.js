@@ -255,10 +255,10 @@ class SongEditorMenu {
     update() {
         const selectedIndicies = this.editor.selectedIndicies;
 
-        this.renderElement.classList.remove('show-modify-instruction-controls');
+        this.renderElement.classList.remove('show-control-note-modify');
         if(selectedIndicies.length > 0) {
             // Note is selected
-            this.renderElement.classList.add('show-modify-instruction-controls');
+            this.renderElement.classList.add('show-control-note-modify');
         }
     }
 
@@ -319,7 +319,7 @@ class SongEditorMenu {
             <li>
                 <a><span class="key">E</span>dit</a>
                 <ul class="submenu editor-context-menu">
-                    <li class="insert-instruction-controls">
+                    <li class="control-note-insert">
                         <a>Insert <span class="key">N</span>ew Command &#9658;</a>
                         <ul class="submenu">
                             <li>
@@ -354,7 +354,7 @@ class SongEditorMenu {
                             </li>
                         </ul>
                     </li>
-                    <li class="modify-instruction-controls">
+                    <li class="control-note-modify">
                         <a>Set <span class="key">C</span>ommand &#9658;</a>
                         <ul class="submenu">
                             <li>
@@ -387,7 +387,7 @@ class SongEditorMenu {
                             <li><a data-action="instruction:command">Custom Command</a></li>
                         </ul>
                     </li>
-                    <li class="modify-instruction-controls">
+                    <li class="control-note-modify">
                         <a>Set <span class="key">I</span>nstrument &#9658;</a>
                         <ul class="submenu">
                             ${this.editor.values.getValues('song-instruments', (value, label) =>
@@ -401,7 +401,7 @@ class SongEditorMenu {
                                 </li>
                         </ul>
                     </li>
-                    <li class="modify-instruction-controls">
+                    <li class="control-note-modify">
                         <a>Set <span class="key">D</span>uration &#9658</a>
                         <ul class="submenu">
                             <li><a data-action="instruction:duration">Custom Duration</a></li>
@@ -409,7 +409,7 @@ class SongEditorMenu {
                                 `<li><a data-action="instruction:duration" data-duration="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
-                    <li class="modify-instruction-controls">
+                    <li class="control-note-modify">
                         <a>Set <span class="key">V</span>elocity &#9658</a>
                         <ul class="submenu">
                             <li><a data-action="instruction:velocity">Custom Velocity</a></li>
@@ -417,8 +417,8 @@ class SongEditorMenu {
                                 `<li><a data-action="instruction:velocity" data-velocity="${value}">${label}</a></li>`)}
                         </ul>
                     </li>
-                    <li class="modify-instruction-controls"><a data-action="instruction:panning" class="disabled">Set <span class="key">P</span>anning</a></li>
-                    <li class="modify-instruction-controls"><a data-action="instruction:delete"><span class="key">D</span>elete Note</a></li>
+                    <li class="control-note-modify"><a data-action="instruction:panning" class="disabled">Set <span class="key">P</span>anning</a></li>
+                    <li class="control-note-modify"><a data-action="instruction:delete"><span class="key">D</span>elete Note</a></li>
                     <hr/>
                     <li>
                         <a>Edit <span class="key">R</span>ow &#9658;</a>

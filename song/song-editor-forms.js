@@ -20,7 +20,7 @@ class SongEditorForms {
 
     get fieldInstructionInstrument() { return this.renderElement.querySelector('form.form-instruction-instrument select[name=instrument]'); }
     get fieldInstructionDuration() { return this.renderElement.querySelector('form.form-instruction-duration select[name=duration]'); }
-    get fieldInstructionCommand() { return this.renderElement.querySelector('form.form-instruction-command select[name=command]'); }
+    get fieldInstructionCommand() { return this.renderElement.querySelector('form.form-note-command select[name=command]'); }
     get fieldInstructionVelocity() { return this.renderElement.querySelector('form.form-instruction-velocity input[name=velocity]'); }
 
     get fieldRowDuration() { return this.renderElement.querySelector('form.form-row-duration select[name=duration]'); }
@@ -235,6 +235,18 @@ class SongEditorForms {
                 this.editor.renderer.setSongVersion(form['version'].value);
                 break;
 
+            case 'toggle:control-song':
+                this.renderElement.classList.toggle('hide-control-song');
+                break;
+
+            case 'toggle:control-note':
+                this.renderElement.classList.toggle('hide-control-note');
+                break;
+
+            case 'toggle:control-grid':
+                this.renderElement.classList.toggle('hide-control-grid');
+                break;
+
             default:
                 console.warn("Unhandled " + e.type + ": ", command);
                 break;
@@ -253,14 +265,14 @@ class SongEditorForms {
             `
              
             <div class="form-section-divide">
-                <form action="#" class="form-instruction-toggle" data-action="show-control:song">
+                <form action="#" class="form-song-toggle" data-action="toggle:control-song">
                     <button name="toggle" class="themed" title="Show/Hide Song Controls">
                         <div>Song</div>
                     </button>
                 </form>
             </div>               
             
-            <div class="form-section">
+            <div class="form-section control-song">
                 <div class="form-section-header">Playback Controls</div>
                 <form action="#" class="form-song-play" data-action="song:play">
                     <button type="submit" name="play" class="themed">Play</button>
@@ -274,7 +286,7 @@ class SongEditorForms {
             </div>
                                          
             
-            <div class="form-section">
+            <div class="form-section control-song">
                 <div class="form-section-header">Volume</div>
                 <form action="#" class="form-song-volume submit-on-change" data-action="song:volume">
                     <div class="volume-container">
@@ -283,7 +295,7 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-song">
                 <div class="form-section-header">Load</div>
                 <form action="#" class="form-song-load submit-on-change" data-action="song:load">
                     <label>
@@ -295,14 +307,14 @@ class SongEditorForms {
                           
                                          
             
-            <div class="form-section">
+            <div class="form-section control-song">
                 <div class="form-section-header">Song Title</div>
                 <form action="#" class="form-song-title submit-on-change" data-action="song:set-title">
                     <input name="title" type="text" class="themed" value="${songData.title}" />
                 </form>
             </div>     
             
-            <div class="form-section">
+            <div class="form-section control-song">
                 <div class="form-section-header">Version</div>
                 <form action="#" class="form-song-version submit-on-change" data-action="song:set-version">
                     <input name="version" type="text" class="themed" value="${songData.version}" />
@@ -310,7 +322,7 @@ class SongEditorForms {
             </div>                
              
             
-            <div class="form-section">
+            <div class="form-section control-song">
                 <div class="form-section-header">Add Instrument</div>                    
                 <form class="form-add-instrument submit-on-change" data-action="instrument:add">
                     <select name="instrumentURL" class="themed">
@@ -320,17 +332,18 @@ class SongEditorForms {
                 </form>
             </div>
              
+            <div style="clear: both;" class="control-song"></div>
              
              
             <div class="form-section-divide">
-                <form action="#" class="form-instruction-toggle" data-action="show-control:note">
+                <form action="#" class="form-note-toggle" data-action="toggle:control-note">
                     <button name="toggle" class="themed" title="Show/Hide Note Controls">
                         <div>Notes</div>
                     </button>
                 </form>
             </div>
  
-            <div class="form-section insert-instruction-controls">
+            <div class="form-section control-note-insert control-note">
                 <div class="form-section-header">Insert Instruction</div>
                 <form action="#" class="form-instruction-insert" data-action="instruction:insert">
                     <select name="command" title="Instruction Command" class="themed" required="required">
@@ -348,9 +361,9 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section modify-instruction-controls">
+            <div class="form-section control-note-modify control-note">
                 <div class="form-section-header">Instruction</div>
-                <form action="#" class="form-instruction-command submit-on-change" data-action="instruction:command">
+                <form action="#" class="form-note-command submit-on-change" data-action="instruction:command">
                     <select name="command" title="Instruction Command" class="themed" required="required">
                         <option value="">Command (Choose)</option>
                         <optgroup label="Custom Frequencies" class="instrument-frequencies">
@@ -366,7 +379,7 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-note">
                 <div class="form-section-header">Instrument</div>
                 <form action="#" class="form-instruction-instrument submit-on-change" data-action="instruction:instrument">
                     <select name="instrument" title="Instruction Instrument" class="themed">
@@ -378,7 +391,7 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-note">
                 <div class="form-section-header">Velocity</div>
                 <form action="#" class="form-instruction-velocity submit-on-change" data-action="instruction:velocity">
                     <input type="range" name="velocity" min="1" max="100" class="themed" />
@@ -386,7 +399,7 @@ class SongEditorForms {
             </div>
             
             
-            <div class="form-section">
+            <div class="form-section control-note">
                 <div class="form-section-header">Duration</div>
                 <form action="#" class="form-instruction-duration submit-on-change" data-action="instruction:duration">
                     <select name="duration" title="Instruction Duration" class="themed">
@@ -398,7 +411,7 @@ class SongEditorForms {
                 </form>
             </div>
              
-            <div class="form-section modify-instruction-controls">
+            <div class="form-section control-note-modify control-note">
                 <div class="form-section-header">Delete</div>
                 <form action="#" class="form-instruction-delete" data-action="instruction:delete">
                     <button name="delete" class="themed" title="Delete Instruction">X</button>
@@ -407,9 +420,10 @@ class SongEditorForms {
             
             
             
+            <div style="clear: both;" class="control-note"></div>
              
             <div class="form-section-divide">
-                <form action="#" class="form-instruction-toggle" data-action="show-control:render">
+                <form action="#" class="form-grid-toggle" data-action="toggle:control-grid">
                     <button name="toggle" class="themed" title="Show/Hide Render Controls">
                         <div>Grid</div>
                     </button>
@@ -417,7 +431,7 @@ class SongEditorForms {
             </div>
             
             
-            <div class="form-section">
+            <div class="form-section control-grid">
                 <div class="form-section-header">Octave</div>
                 <form action="#" class="form-render-octave submit-on-change" data-action="status:octave">
                     <select name="octave" class="themed">
@@ -428,7 +442,7 @@ class SongEditorForms {
                 </form>
             </div>     
             
-            <div class="form-section">
+            <div class="form-section control-grid">
                 <div class="form-section-header">Render Group</div>
                 ${this.editor.values.getValues('groups', (value, label) =>
                     `<form action="#" class="form-group" data-action="group:edit">`
@@ -441,7 +455,7 @@ class SongEditorForms {
                 
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-grid">
                 <div class="form-section-header">Render Duration</div>
                 <form action="#" class="form-render-duration submit-on-change" data-action="grid:duration">
                     <select name="duration" title="Render Duration" class="themed">
@@ -453,7 +467,7 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-grid">
                 <div class="form-section-header">Filter By Instrument</div>                    
                 <form action="#" class="form-render-instrument submit-on-change" data-action="grid:instrument">
                     <select name="instrument" class="themed"->
@@ -465,7 +479,7 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-grid">
                 <div class="form-section-header">Sel Range</div>                    
                 <form class="form-selected-range submit-on-change" data-action="grid:selected">
                     <input name="rangeStart" placeholder="N/A" />-<!--
@@ -473,12 +487,15 @@ class SongEditorForms {
                 </form>
             </div>
             
-            <div class="form-section">
+            <div class="form-section control-grid">
                 <div class="form-section-header">Sel Index</div>                    
                 <form class="form-selected-indicies submit-on-change" data-action="grid:selected">
                     <input name="indicies" placeholder="No indicies selection" />
                 </form>
             </div>
+            
+            <div style="clear: both;" class="control-grid"></div>
+ 
         `;
         this.update();
     }
@@ -523,21 +540,21 @@ class SongEditorForms {
 
         this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
 
-        this.renderElement.classList.remove('show-insert-instruction-controls');
-        this.renderElement.classList.remove('show-modify-instruction-controls');
+        this.renderElement.classList.remove('show-control-note-insert');
+        this.renderElement.classList.remove('show-control-note-modify');
         if(cursorInstruction) {
             // Note Instruction
             this.fieldInstructionCommand.value = cursorInstruction.command;
             this.fieldInstructionInstrument.value = cursorInstruction.instrument !== null ? cursorInstruction.instrument : '';
             this.fieldInstructionVelocity.value = cursorInstruction.velocity !== null ? cursorInstruction.velocity : '';
             this.fieldInstructionDuration.value = cursorInstruction.duration !== null ? cursorInstruction.duration : '';
-            this.renderElement.classList.add('show-modify-instruction-controls');
+            this.renderElement.classList.add('show-control-note-modify');
 
         } else if(selectedIndicies.length > 0) {
             this.fieldInstructionInstrument.value = this.editor.status.currentInstrumentID;
             // console.log(this.editor.status.currentInstrumentID);
 
-            this.renderElement.classList.add('show-insert-instruction-controls');
+            this.renderElement.classList.add('show-control-note-insert');
         }
 
         this.fieldInstructionCommand.querySelectorAll('.instrument-frequencies option').forEach((option) =>

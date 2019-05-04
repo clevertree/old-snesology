@@ -110,6 +110,10 @@ class SongEditorInstruments {
                     break;
 
 
+                case 'toggle:control-instrument':
+                    this.renderElement.classList.toggle('hide-control-instrument');
+                    break;
+
                 // case 'change':
                 // case 'blur':
                 // case 'submit':
@@ -134,13 +138,23 @@ class SongEditorInstruments {
     }
 
     render() {
-        this.renderElement.innerHTML = '';
+        this.renderElement.innerHTML = `
+            <div style="clear: both;" class="control-instrument"></div>
+            <div class="form-section-divide">
+                <form action="#" class="form-control-note-toggle" data-action="toggle:control-instrument">
+                    <button name="toggle" class="themed" title="Show/Hide Note Controls">
+                        <div>Instruments</div>
+                    </button>
+                </form>
+            </div>
+        `;
         const instrumentList = this.editor.renderer.getInstrumentList();
         for(let instrumentID=0; instrumentID<instrumentList.length; instrumentID++) {
 
             let instrumentDiv = document.createElement('div');
             instrumentDiv.setAttribute('data-id', instrumentID+'');
             instrumentDiv.classList.add('instrument-container');
+            instrumentDiv.classList.add('control-instrument');
             this.renderElement.appendChild(instrumentDiv);
 
             // const defaultSampleLibraryURL = new URL('/sample/', NAMESPACE) + '';

@@ -7,7 +7,7 @@ synthesizer-instrument {
     display: inline-block;
     /* float: left; */
     /*min-height: 60px;*/
-    margin: 4px;
+    /* margin: 4px; */
     padding: 0px 2px 2px 2px;
     border: 1px outset;
 }
@@ -40,7 +40,7 @@ synthesizer-instrument select  {
 }
 synthesizer-instrument input:not(:hover):not([type=range]),
 synthesizer-instrument select:not(:hover)  {
-    border-color: transparent;
+    border-color: transparent !important;
     background: transparent;
 }
 
