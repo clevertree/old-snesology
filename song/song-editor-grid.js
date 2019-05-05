@@ -501,7 +501,7 @@ class SongEditorGrid {
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
         // const cursorCellIndex = this.editor.cursorCellIndex;
-        let editorHTML = '', rowHTML='', songPosition=0, lastIndex, totalDuration, odd=false; // , lastPause = 0;
+        let editorHTML = '', rowHTML='', songPosition=0, lastIndex, totalDuration=0, odd=false; // , lastPause = 0;
 
         const renderRow = (rowIndex, deltaDuration) => {
             for(let subPause=0; subPause<deltaDuration; subPause+=gridDuration) {
@@ -532,7 +532,13 @@ class SongEditorGrid {
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // console.log(index, instruction);
-
+            // if(instruction.command[0] === '@') {
+            //     return;
+            // }
+            if(stats.currentGroup !== this.groupName) {
+                // TODO: show sub group notes? maybe in 2nd column?
+                return;
+            }
 
             if (instruction.deltaDuration !== 0) {
                 renderRow(index, instruction.deltaDuration);

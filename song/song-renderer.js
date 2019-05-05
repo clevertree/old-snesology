@@ -105,7 +105,7 @@ class SongRenderer {
         this.songData.instructions = newInstructions;
         newInstructions.root = [];
         for(let trackID=0; trackID<midiData.track.length; trackID++) {
-            newInstructions.root.push(`@track` + trackID);
+            newInstructions.root.push([0, `@track` + trackID]);
             const newTrack = [];
             const instrumentID = trackID;
             newInstructions['track' + trackID] = newTrack;
@@ -124,10 +124,11 @@ class SongRenderer {
                         let newMIDICommandOff = this.getCommandFromMIDINote(trackEvent.data[0]);
                         // let newMIDIVelocityOff = Math.round((trackEvent.data[1] / 128) * 100);
                         if(lastNote[newMIDICommandOff]) {
-                            let duration = trackPosition - lastNote[newMIDICommandOff][0];
-                            lastNote[newMIDICommandOff][3] = duration;
+                            let noteDuration = trackPosition - lastNote[newMIDICommandOff][0];
+                            lastNote[newMIDICommandOff][1][0] += deltaDuration;
+                            lastNote[newMIDICommandOff][1][3] = noteDuration;
 
-                            console.log("OFF", duration, newMIDICommandOff);
+                            console.log("OFF", noteDuration, newMIDICommandOff);
                             delete lastNote[newMIDICommandOff];
                         }
                         break;
