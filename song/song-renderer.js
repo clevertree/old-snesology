@@ -24,6 +24,18 @@ class SongRenderer {
     }
     // addSongEventListener(callback) { this.eventListeners.push(callback); }
 
+    get noteFrequencies() {
+        return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    }
+
+
+    getCommandFromMIDINote(midiNote) {
+        // midiNote -= 24;
+        const octave = Math.floor(midiNote / 12);
+        const pitch = midiNote % 12;
+        return this.noteFrequencies[pitch] + octave;
+    }
+
     getAudioContext() {
         if(this.audioContext)
             return this.audioContext;
@@ -89,16 +101,31 @@ class SongRenderer {
     loadSongFromMIDIData(midiData) {
         console.log(midiData);
 
-        this.songData.instructions = {};
-        this.songData.instructions.root = [];
+        const newInstructions = {};
+        this.songData.instructions = newInstructions;
+        newInstructions.root = [];
         for(let trackID=0; trackID<midiData.track.length; trackID++) {
-            this.songData.instructions.root.push(`@track` + trackID);
+            newInstructions.root.push(`@track` + trackID);
             const newTrack = [];
-            this.songData.instructions['track' + trackID] = newTrack;
+            newInstructions['track' + trackID] = newTrack;
 
             const trackEvents = midiData.track[trackID].event;
             for(let eventID=0; eventID<trackEvents.length; eventID++) {
+                const trackEvent = trackEvents[eventID];
                 // newTrack.push
+                switch(trackEvent.type) {
+                    case 8:
+                        let newMIDICommandOff = this.getCommandFromMIDINote(trackEvent.data[0]);
+                        let newMIDIVelocityOff = Math.round((trackEvent.data[1] / 128) * 100);
+                        console.log("OFF", newMIDICommandOff, newMIDIVelocityOff);
+                        break;
+                    case 9:
+                        let newMIDICommandOn = this.getCommandFromMIDINote(trackEvent.data[0]);
+                        let newMIDIVelocityOn = Math.round((trackEvent.data[1] / 128) * 100);
+                        console.log("ON ", newMIDICommandOn, newMIDIVelocityOn);
+
+                        break;
+                }
             }
         }
 

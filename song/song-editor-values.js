@@ -9,9 +9,9 @@ class SongEditorValues {
         this.editor = editor;
     }
 
-    get noteFrequencies() {
-        return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    }
+    // get noteFrequencies() {
+    //     return this.editor.renderer.noteFrequencies; // ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    // }
 
     /** Form Options **/
 
@@ -67,7 +67,7 @@ class SongEditorValues {
                 break;
 
             case 'note-frequencies':
-                noteFrequencies = this.editor.values.noteFrequencies;
+                noteFrequencies = this.editor.renderer.noteFrequencies;
                 // for(let i=1; i<=6; i++) {
                 for(let j=0; j<noteFrequencies.length; j++) {
                     const noteFrequency = noteFrequencies[j]; //  + i
@@ -78,7 +78,7 @@ class SongEditorValues {
 
 
             case 'note-frequencies-all':
-                noteFrequencies = this.editor.values.noteFrequencies;
+                noteFrequencies = this.editor.renderer.noteFrequencies;
                 for(let i=1; i<=6; i++) {
                     for(let j=0; j<noteFrequencies.length; j++) {
                         const noteFrequency = noteFrequencies[j] + i;
@@ -175,12 +175,5 @@ class SongEditorValues {
                 return input === 100 ? "Max" : input+'';
 
         }
-    }
-
-    getCommandFromMIDINote(midiNote) {
-        // midiNote -= 24;
-        const octave = Math.floor(midiNote / 12);
-        const pitch = midiNote % 12;
-        return this.noteFrequencies[pitch] + octave;
     }
 }

@@ -98,7 +98,7 @@ class SongEditorGrid {
                     switch(e.data[0]) {
                         case 144:   // Note On
                             e.preventDefault();
-                            let newMIDICommand = this.editor.values.getCommandFromMIDINote(e.data[1]);
+                            let newMIDICommand = this.editor.renderer.getCommandFromMIDINote(e.data[1]);
                             let newMIDIVelocity = Math.round((e.data[2] / 128) * 100);
 
                             if (this.cursorCell.classList.contains('grid-cell-new')) {
