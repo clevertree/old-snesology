@@ -86,7 +86,23 @@ class SongRenderer {
 
     /** Loading **/
 
+    loadSongFromMIDIData(midiData) {
+        console.log(midiData);
 
+        this.songData.instructions = {};
+        this.songData.instructions.root = [];
+        for(let trackID=0; trackID<midiData.track.length; trackID++) {
+            this.songData.instructions.root.push(`@track` + trackID);
+            const newTrack = [];
+            this.songData.instructions['track' + trackID] = newTrack;
+
+            const trackEvents = midiData.track[trackID].event;
+            for(let eventID=0; eventID<trackEvents.length; eventID++) {
+                // newTrack.push
+            }
+        }
+
+    }
 
     loadSongData(songData, songHistory=[]) {
         songData = Object.assign({}, {

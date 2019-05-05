@@ -109,7 +109,7 @@ class SongStorage {
         // console.info("Song loaded from memory: " + songGUID, songData, this.songHistory);
     }
 
-    async loadSongFromFile(source) {
+    async loadMIDIFile(source) {
 
         if(typeof MIDIParser === "undefined") {
             await new Promise((resolve, reject) => {
@@ -128,9 +128,8 @@ class SongStorage {
             };
         });
 
-        // Support midi deltas?
-        const midiData = MIDIParser.parse( new Uint8Array(fileResult));
-        console.log(midiData);
+        // Move to renderer
+        return MIDIParser.parse(new Uint8Array(fileResult));
     }
 
     //

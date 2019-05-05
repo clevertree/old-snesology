@@ -154,12 +154,15 @@ class SongEditorElement extends HTMLElement {
         console.info("Song loaded from memory: " + songGUID, songData, songHistory);
     }
 
-
     async loadSongFromFile(srcFile) {
+        this.loadSongFromMIDIFile(srcFile);
+    }
+
+    async loadSongFromMIDIFile(srcFile) {
         const storage = new SongStorage();
-        const songData = await storage.loadSongFromFile(srcFile);
-        this.renderer.loadSongData(songData, songData.history || null);
-        console.info("Song loaded from file: " + srcFile, songData);
+        const midiData = await storage.loadMIDIFile(srcFile);
+        this.renderer.loadSongFromMIDIData(midiData);
+        console.info("Song loaded from midi: " + srcFile, midiData);
     }
     // Input
 
