@@ -107,23 +107,38 @@ class SongRenderer {
         for(let trackID=0; trackID<midiData.track.length; trackID++) {
             newInstructions.root.push(`@track` + trackID);
             const newTrack = [];
+            const instrumentID = trackID;
             newInstructions['track' + trackID] = newTrack;
 
+            const lastNote = {};
             const trackEvents = midiData.track[trackID].event;
+            let trackPosition = 0;
             for(let eventID=0; eventID<trackEvents.length; eventID++) {
                 const trackEvent = trackEvents[eventID];
+                let deltaDuration = trackEvent.deltaTime / midiData.timeDivision;
+                trackPosition += deltaDuration;
+
                 // newTrack.push
                 switch(trackEvent.type) {
                     case 8:
                         let newMIDICommandOff = this.getCommandFromMIDINote(trackEvent.data[0]);
-                        let newMIDIVelocityOff = Math.round((trackEvent.data[1] / 128) * 100);
-                        console.log("OFF", newMIDICommandOff, newMIDIVelocityOff);
+                        // let newMIDIVelocityOff = Math.round((trackEvent.data[1] / 128) * 100);
+                        if(lastNote[newMIDICommandOff]) {
+                            let duration = trackPosition - lastNote[newMIDICommandOff][0];
+                            lastNote[newMIDICommandOff][3] = duration;
+
+                            console.log("OFF", duration, newMIDICommandOff);
+                            delete lastNote[newMIDICommandOff];
+                        }
                         break;
                     case 9:
                         let newMIDICommandOn = this.getCommandFromMIDINote(trackEvent.data[0]);
                         let newMIDIVelocityOn = Math.round((trackEvent.data[1] / 128) * 100);
                         console.log("ON ", newMIDICommandOn, newMIDIVelocityOn);
-
+                        const newInstruction = [deltaDuration, newMIDICommandOn, instrumentID, 0, newMIDIVelocityOn];
+                        lastNote[newMIDICommandOn] = [trackPosition, newInstruction];
+                        newTrack.push(newInstruction);
+                        // newTrack.push
                         break;
                 }
             }

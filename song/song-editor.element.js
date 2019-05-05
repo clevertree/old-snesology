@@ -162,7 +162,8 @@ class SongEditorElement extends HTMLElement {
         const storage = new SongStorage();
         const midiData = await storage.loadMIDIFile(srcFile);
         this.renderer.loadSongFromMIDIData(midiData);
-        console.info("Song loaded from midi: " + srcFile, midiData);
+        console.info("Song loaded from midi: " + srcFile, midiData, this.renderer.songData);
+        this.render();
     }
     // Input
 
