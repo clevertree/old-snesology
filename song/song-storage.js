@@ -24,6 +24,7 @@ class SongStorage {
             version: '0.0.1',
             root: 'root',
             created: new Date().getTime(),
+            timeDivision: 96*4,
             beatsPerMinute: 160,
             beatsPerMeasure: 4,
             instruments: [{
@@ -114,7 +115,7 @@ class SongStorage {
         if(typeof MIDIParser === "undefined") {
             await new Promise((resolve, reject) => {
                 const newScriptElm = document.createElement('script');
-                newScriptElm.src = 'https://gitcdn.link/repo/colxi/midi-parser-js/master/src/midi-parser.js';
+                newScriptElm.src = 'https://cdn.jsdelivr.net/gh/colxi/midi-parser-js/src/midi-parser.js';
                 newScriptElm.onload = e => resolve();
                 document.head.appendChild(newScriptElm);
             });

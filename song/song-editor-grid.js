@@ -432,7 +432,7 @@ class SongEditorGrid {
 
     increaseGridSize() {
         // TODO: sloppy
-        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+        this.editor.renderer.eachInstruction(this.groupName, null, (index, instruction, stats) => {
             if(this.minimumGridDeltaDuration < stats.groupPosition)
                 this.minimumGridDeltaDuration = stats.groupPosition;
         });
@@ -495,6 +495,8 @@ class SongEditorGrid {
         return this.renderElement.querySelector(`.grid-cell[data-index='${instructionIndex}'`);
     }
 
+    // Song position/duration in quarter notes (beats.
+    // Delta PPQN in clock ticks
     render() {
         // console.log("RENDER GRID");
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
@@ -530,7 +532,7 @@ class SongEditorGrid {
             }
         };
 
-        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+        this.editor.renderer.eachInstruction(this.groupName, null, (index, instruction, stats) => {
             // console.log(index, instruction);
             // if(instruction.command[0] === '@') {
             //     return;

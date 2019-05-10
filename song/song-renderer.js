@@ -103,6 +103,7 @@ class SongRenderer {
 
         const newInstructions = {};
         this.songData.instructions = newInstructions;
+        this.songData.timeDivision = midiData.timeDivision;
         newInstructions.root = [];
         for(let trackID=0; trackID<midiData.track.length; trackID++) {
             newInstructions.root.push([0, `@track` + trackID]);
@@ -112,33 +113,34 @@ class SongRenderer {
 
             const lastNote = {};
             const trackEvents = midiData.track[trackID].event;
-            let trackPosition = 0;
+            let deltaPosition = 0, lastInsertDeltaPosition=0;
             for(let eventID=0; eventID<trackEvents.length; eventID++) {
                 const trackEvent = trackEvents[eventID];
-                let deltaDuration = trackEvent.deltaTime / midiData.timeDivision;
-                trackPosition += deltaDuration;
+                // let deltaDuration = trackEvent.deltaTime; // midiData.timeDivision;
+                deltaPosition += trackEvent.deltaTime;
 
                 // newTrack.push
                 switch(trackEvent.type) {
                     case 8:
                         let newMIDICommandOff = this.getCommandFromMIDINote(trackEvent.data[0]);
-                        // let newMIDIVelocityOff = Math.round((trackEvent.data[1] / 128) * 100);
                         if(lastNote[newMIDICommandOff]) {
-                            let noteDuration = trackPosition - lastNote[newMIDICommandOff][0];
-                            lastNote[newMIDICommandOff][1][0] += deltaDuration;
+                            let noteDuration = deltaPosition - lastNote[newMIDICommandOff][0];
+                            // lastNote[newMIDICommandOff][1][0] = trackEvent.deltaTime; // Don't modify note start
                             lastNote[newMIDICommandOff][1][3] = noteDuration;
 
-                            console.log("OFF", noteDuration, newMIDICommandOff);
+                            console.log("OFF", trackEvent.deltaTime, newMIDICommandOff, noteDuration);
                             delete lastNote[newMIDICommandOff];
                         }
                         break;
                     case 9:
                         let newMIDICommandOn = this.getCommandFromMIDINote(trackEvent.data[0]);
-                        let newMIDIVelocityOn = Math.round((trackEvent.data[1] / 128) * 100);
-                        console.log("ON ", newMIDICommandOn, newMIDIVelocityOn);
-                        const newInstruction = [deltaDuration, newMIDICommandOn, instrumentID, 0, newMIDIVelocityOn];
-                        lastNote[newMIDICommandOn] = [trackPosition, newInstruction];
+                        let newMIDIVelocityOn = trackEvent.data[1]; // Math.round((trackEvent.data[1] / 128) * 100);
+                        let newInstructionDelta = trackEvent.deltaTime + (deltaPosition - lastInsertDeltaPosition);
+                        lastInsertDeltaPosition = deltaPosition;
+                        const newInstruction = [newInstructionDelta, newMIDICommandOn, instrumentID, 0, newMIDIVelocityOn];
+                        lastNote[newMIDICommandOn] = [deltaPosition, newInstruction];
                         newTrack.push(newInstruction);
+                        console.log("ON ", newInstructionDelta, newMIDICommandOn);
                         // newTrack.push
                         break;
                 }
@@ -248,7 +250,7 @@ class SongRenderer {
         if(!Array.isArray(selectedIndicies))
             selectedIndicies = [selectedIndicies];
         let min=null, max=null;
-        this.eachInstruction(groupName, (i, instruction, stats) => {
+        this.eachInstruction(groupName, null, (i, instruction, stats) => {
             if(selectedIndicies.indexOf(i) !== -1) {
                 if(min === null || stats.groupPosition < min)
                     min = stats.groupPosition;
@@ -276,15 +278,15 @@ class SongRenderer {
         let noteVelocity = instruction.velocity;
         let bpm = 60;
 
-        if(stats) {
-            bpm = stats.currentBPM;
-            if(stats.groupInstruction) {
-                if(typeof stats.groupInstruction.velocity !== 'undefined')
-                    noteVelocity *= stats.groupInstruction.velocity/100;
-                if(typeof instrumentID === 'undefined' && typeof stats.groupInstruction.instrument !== 'undefined')
-                    instrumentID = stats.groupInstruction.instrument;
-            }
-        }
+        // if(stats) {
+        //     bpm = stats.currentBPM;
+        //     if(stats.groupInstruction) {
+        //         if(typeof stats.groupInstruction.velocity !== 'undefined')
+        //             noteVelocity *= stats.groupInstruction.velocity/100;
+        //         if(typeof instrumentID === 'undefined' && typeof stats.groupInstruction.instrument !== 'undefined')
+        //             instrumentID = stats.groupInstruction.instrument;
+        //     }
+        // }
         const noteDuration = (instruction.duration || 1) * (60 / bpm);
 
         if(!instrumentID && instrumentID !== 0) {
@@ -303,31 +305,31 @@ class SongRenderer {
 
         this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
 
-        const noteEventData = {
-            // audioNode: audioNode,
-            frequency: noteFrequency,
-            startTime: noteStartTime,
-            duration: noteDuration,
-            instrumentPreset: this.songData.instruments[instrumentID],
-            instruction: instruction,
-            // groupInstruction: stats.groupInstruction,
-            stats: stats || {}
-        };
-
-        if(noteStartTime > currentTime)
-            setTimeout(() => {
-                this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-            }, (noteStartTime - currentTime) * 1000);
-        else {
-            // Start immediately
-            this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-        }
-
-        if(noteDuration) {
-            setTimeout(() => {
-                this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
-            }, (noteStartTime - currentTime + noteDuration) * 1000);
-        }
+        // const noteEventData = {
+        //     // audioNode: audioNode,
+        //     frequency: noteFrequency,
+        //     startTime: noteStartTime,
+        //     duration: noteDuration,
+        //     instrumentPreset: this.songData.instruments[instrumentID],
+        //     instruction: instruction,
+        //     // groupInstruction: stats.groupInstruction,
+        //     stats: stats || {}
+        // };
+        //
+        // if(noteStartTime > currentTime)
+        //     setTimeout(() => {
+        //         this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
+        //     }, (noteStartTime - currentTime) * 1000);
+        // else {
+        //     // Start immediately
+        //     this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
+        // }
+        //
+        // if(noteDuration) {
+        //     setTimeout(() => {
+        //         this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
+        //     }, (noteStartTime - currentTime + noteDuration) * 1000);
+        // }
 
     }
 
@@ -335,21 +337,76 @@ class SongRenderer {
         playbackPosition = playbackPosition || 0;
         currentTime = currentTime || this.getAudioContext().currentTime;
         // instructionList = instructionList || this.songData.instructions;
-        return this.eachInstruction(instructionGroup, (i, instruction, stats) => {
+        var startTime = new Date().getTime();
+        const playTime = this.eachInstruction(instructionGroup, [playbackPosition, playbackLength], (i, instruction, stats) => {
             const absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
-            if(absolutePlaytime < playbackPosition)
+            if(absolutePlaytime < playbackPosition) {
+                console.warn("Instructions were already played");
                 return;   // Instructions were already played
-            if(playbackLength && absolutePlaytime >= playbackPosition + playbackLength)
+            }
+            if(playbackLength && absolutePlaytime >= playbackPosition + playbackLength) {
+                console.warn("Instructions are beyond buffer position");
                 return;
+            }
             // if(instruction.command[0] === '!')
             //     return;
             // console.log("Note played", noteInstruction, stats, seekPosition, seekLength);
             this.playInstruction(instruction, currentTime + absolutePlaytime, stats);
         });
+
+        console.log("playInstructions ", new Date().getTime() - startTime);
+        return playTime;
     }
+    eachInstruction(groupName, range, callback) {
+        let instructionList = this.songData.instructions[groupName];
+        // const instructionList = this.getInstructions(rootGroup);
+        const currentBPM = this.getStartingBeatsPerMinute();
+        let groupPosition = 0, groupPlaytime = 0, maxPlaytime=0;
+        for(let i=0; i<instructionList.length; i++) {
+            let instruction = new SongInstruction(instructionList[i]);
+            // if(typeof instruction.command !== "undefined") {
+            if (instruction.deltaDuration) { // Delta
+                groupPosition += instruction.deltaDuration;
+                groupPlaytime += instruction.deltaDuration * (60 / currentBPM);
+                if(groupPlaytime > maxPlaytime)
+                    maxPlaytime = groupPlaytime;
+            }
 
 
-    eachInstruction(rootGroup, callback) {
+            if (instruction.isGroupCommand()) {
+                let subGroupName = instruction.getGroupFromCommand();
+                let instructionGroupList = this.songData.instructions[subGroupName];
+                if (!instructionGroupList)
+                    throw new Error("Instruction groupName not found: " + subGroupName);
+                if (subGroupName === groupName) { // TODO group stack
+                    console.error("Recursive group call. Skipping group '" + subGroupName + "'");
+                    continue;
+                }
+                const subGroupPlayTime = this.eachInstruction(subGroupName, range, callback);
+                // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
+                // const subGroupPlayTime = playGroup.call(this, instructionGroupList, {
+                //     "parentBPM": currentBPM,
+                //     "parentPosition": groupPosition + parentPosition,
+                //     "parentPlaytime": groupPlaytime + parentPlaytime,
+                //     "currentGroup": subGroupName,
+                //     "groupInstruction": instruction,
+                //     "parentStats": stats
+                // });
+                if (subGroupPlayTime > maxPlaytime)
+                    maxPlaytime = subGroupPlayTime;
+
+            }
+
+            // Callback all notes, including commands and groups
+
+            if(range && (groupPosition < range[0] || groupPosition > range[1]))
+                continue;
+            callback(i, instruction, groupName, groupPosition);
+        }
+        return maxPlaytime;
+    }
+    // TODO: Refactor: inefficient
+    eachInstruction2(rootGroup, callback) {
         rootGroup = rootGroup || 'root';
         let instructionList = this.songData.instructions[rootGroup];
         // const instructionList = this.getInstructions(rootGroup);
@@ -372,8 +429,8 @@ class SongRenderer {
             let maxPlaytime = 0;
             for(let i=0; i<instructionList.length; i++) {
                 let instruction = new SongInstruction(instructionList[i]);
-                if(typeof instruction === 'number')
-                    instruction = [instruction];
+                // if(typeof instruction === 'number')
+                //     instruction = [instruction];
 
                 // if(typeof instruction.command !== "undefined") {
                 if (instruction.deltaDuration > 0) { // Delta
@@ -432,6 +489,7 @@ class SongRenderer {
         velocityGain.gain.value = parseFloat(noteVelocity || 100) / 100;
         velocityGain.connect(destination);
 
+        console.log('play', noteFrequency, noteStartTime, noteDuration);
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
     }
 
