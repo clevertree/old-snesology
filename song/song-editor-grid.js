@@ -3,14 +3,15 @@ class SongEditorGrid {
         this.editor = editor;
         this.groupName = groupName;
         this.cursorCellIndex = 0;
-        this.minimumGridDeltaDuration = 4;
+        this.minimumGridLengthTicks = null;
+
     }
 
     get renderElement() {
         let renderElement = this.editor.querySelector('table.editor-grid');
         if(!renderElement) {
             renderElement = document.createElement('table');
-            renderElement.setAttribute('tabindex', '0')
+            renderElement.setAttribute('tabindex', '0');
             renderElement.classList.add('editor-grid');
             this.editor.appendChild(renderElement);
             // this.editor.innerHTML += `<table class="editor-grid" tabindex="0"></table>`;
@@ -432,13 +433,13 @@ class SongEditorGrid {
 
     increaseGridSize() {
         // TODO: sloppy
-        this.editor.renderer.eachInstruction(this.groupName, null, (index, instruction, stats) => {
-            if(this.minimumGridDeltaDuration < stats.groupPosition)
-                this.minimumGridDeltaDuration = stats.groupPosition;
+        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+            if (this.minimumGridLengthTicks < stats.groupPosition)
+                this.minimumGridLengthTicks = stats.groupPosition;
         });
 
-        const defaultDuration = parseFloat(this.editor.forms.fieldRenderDuration.value) || 1;
-        this.minimumGridDeltaDuration += defaultDuration*4;
+        const defaultDuration = this.editor.forms.fieldRenderDuration.value;
+        this.minimumGridLengthTicks += defaultDuration;
         this.render();
     }
 
@@ -503,7 +504,7 @@ class SongEditorGrid {
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
         // const cursorCellIndex = this.editor.cursorCellIndex;
-        let editorHTML = '', rowHTML='', songPosition=0, lastIndex, totalDuration=0, odd=false; // , lastPause = 0;
+        let editorHTML = '', rowHTML='', songPosition=0, lastIndex, tickTotal=0, odd=false; // , lastPause = 0;
 
         const renderRow = (rowIndex, deltaDuration) => {
             for(let subPause=0; subPause<deltaDuration; subPause+=gridDuration) {
@@ -532,12 +533,12 @@ class SongEditorGrid {
             }
         };
 
-        this.editor.renderer.eachInstruction(this.groupName, null, (index, instruction, stats) => {
+        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, groupName, groupPosition) => {
             // console.log(index, instruction);
             // if(instruction.command[0] === '@') {
             //     return;
             // }
-            if(stats.currentGroup !== this.groupName) {
+            if (groupName !== this.groupName) {
                 // TODO: show sub group notes? maybe in 2nd column?
                 return;
             }
@@ -546,7 +547,7 @@ class SongEditorGrid {
                 renderRow(index, instruction.deltaDuration);
             }
 
-                // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
+            // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
             rowHTML +=
                 `<div class="grid-cell grid-cell-instruction" data-index="${index}" data-position="${songPosition}">
                     <div class="grid-parameter command">${instruction.command}</div>
@@ -555,10 +556,16 @@ class SongEditorGrid {
                     ${instruction.duration !== null ? `<div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
                 </div>`;
             lastIndex = index;
-            totalDuration = stats.groupPosition;
+            tickTotal = groupPosition;
         });
 
-        let remainingDuration = this.minimumGridDeltaDuration - totalDuration;
+        if(!this.minimumGridLengthTicks) {
+            const songData = this.editor.getSongData();
+            const timeDivision = songData.timeDivision || 96 * 4;
+            this.minimumGridLengthTicks = 4 * timeDivision;
+        }
+
+        let remainingDuration = this.minimumGridLengthTicks - tickTotal;
         if(remainingDuration <= 0)
             remainingDuration = gridDuration;
         renderRow(lastIndex, remainingDuration);

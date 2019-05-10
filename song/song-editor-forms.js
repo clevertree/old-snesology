@@ -459,7 +459,7 @@ class SongEditorForms {
                 <div class="form-section-header">Render Duration</div>
                 <form action="#" class="form-render-duration submit-on-change" data-action="grid:duration">
                     <select name="duration" title="Render Duration" class="themed">
-                        <option value="1.0">Default (1B)</option>
+                        <option value="">Default Duration (1B)</option>
                         <optgroup label="Render Duration">
                             ${this.renderEditorFormOptions('durations')}
                         </optgroup>
@@ -538,7 +538,10 @@ class SongEditorForms {
             .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
 
 
-        this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
+        if(!this.fieldRenderDuration.value)
+            this.fieldRenderDuration.value = this.editor.renderer.getSongTimeDivision();
+
+        // this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
 
         this.renderElement.classList.remove('show-control-note-insert');
         this.renderElement.classList.remove('show-control-note-modify');

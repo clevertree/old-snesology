@@ -19,6 +19,7 @@ class SongEditorValues {
         let noteFrequencies;
         let valuesHTML = '';
         const songData = this.editor.getSongData() || {};
+        const timeDivision = this.editor.renderer.getSongTimeDivision();
 
         switch(valueType) {
             case 'server-recent-uuid':
@@ -102,12 +103,12 @@ class SongEditorValues {
 
             case 'durations':
                 for(let i=64; i>1; i/=2) {
-                    valuesHTML += callback((1/i)/1.5,   `1/${i}t`);
-                    valuesHTML += callback(1/i,         `1/${i}`);
-                    valuesHTML += callback(1/i*1.5,     `1/${i}d`);
+                    valuesHTML += callback((1/i)/1.5    * timeDivision, `1/${i}t`);
+                    valuesHTML += callback(1/i          * timeDivision, `1/${i}`);
+                    valuesHTML += callback(1/i*1.5      * timeDivision, `1/${i}d`);
                 }
                 for(let i=1; i<=16; i++)
-                    valuesHTML += callback(i, i+'B');
+                    valuesHTML += callback(i            * timeDivision, i+'B');
                 break;
 
             case 'named-durations':
@@ -152,6 +153,9 @@ class SongEditorValues {
     /** Formatting **/
 
     format(input, type) {
+        // const songData = this.editor.getSongData() || {};
+        // const timeDivision = songData.timeDivision || 96*4;
+
         switch(type) {
             case 'duration':
                 let stringValue;
@@ -162,7 +166,7 @@ class SongEditorValues {
                 if(stringValue)
                     return stringValue;
                 input = parseFloat(input).toFixed(2);
-                return input.replace('.00', 'B');
+                return input.replace('.00', 't');
 
             case 'instrument':
                 if(typeof input !== 'number')
