@@ -25,7 +25,7 @@ class SongStorage {
             root: 'root',
             created: new Date().getTime(),
             timeDivision: 96*4,
-            beatsPerMinute: 160,
+            beatsPerMinute: 120,
             beatsPerMeasure: 4,
             instruments: [{
                 "url": "/synthesizer/synthesizer-instrument.element.js",

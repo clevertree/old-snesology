@@ -335,22 +335,23 @@ class SongRenderer {
             // TODO: play groups too
         // }
 
-        const currentTime = this.getAudioContext().currentTime;
+        // const currentTime = this.getAudioContext().currentTime;
         let instrumentID = instruction.instrument;
         let noteFrequency = instruction.command;
         let noteVelocity = instruction.velocity;
-        let bpm = 60;
+        let bpm = this.getStartingBeatsPerMinute();
 
-        // if(stats) {
-        //     bpm = stats.currentBPM;
+        if(stats) {
+            bpm = stats.currentBPM;
         //     if(stats.groupInstruction) {
         //         if(typeof stats.groupInstruction.velocity !== 'undefined')
         //             noteVelocity *= stats.groupInstruction.velocity/100;
         //         if(typeof instrumentID === 'undefined' && typeof stats.groupInstruction.instrument !== 'undefined')
         //             instrumentID = stats.groupInstruction.instrument;
         //     }
-        // }
-        const noteDuration = (instruction.duration || 1) * (60 / bpm);
+        }
+        // const noteDuration = (instruction.duration || 1) * (60 / bpm);
+        const noteDuration = (instruction.duration / this.getSongTimeDivision()) / (bpm / 60);
 
         if(!instrumentID && instrumentID !== 0) {
             console.warn("No instrument set for instruction. Using instrument 0");
@@ -402,39 +403,49 @@ class SongRenderer {
 
         var statTime = new Date().getTime();
 
-        const playTime = this.eachInstruction(instructionGroup, (i, instruction, groupName, songPositionInTicks, songPlaybackTime) => {
+        const playTime = this.eachInstruction(instructionGroup, (i, instruction, stats) => {
             // const absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
-            if (songPlaybackTime < playbackRangeStart) {
+            if (stats.songPlaybackTime < playbackRangeStart) {
                 console.warn("Instructions were already played");
                 return;   // Instructions were already played
             }
-            if (playbackRangeLength && songPlaybackTime >= playbackRangeStart + playbackRangeLength) {
-                console.warn(`Instructions are beyond buffer position: ${songPlaybackTime} >= ${playbackRangeStart} + ${playbackRangeLength}`);
+            if (playbackRangeLength && stats.songPlaybackTime >= playbackRangeStart + playbackRangeLength) {
+                console.warn(`Instructions are beyond buffer position: ${stats.songPlaybackTime} >= ${playbackRangeStart} + ${playbackRangeLength}`);
                 return;
             }
+            if(instruction.isGroupCommand())
+                return;
             // if(instruction.command[0] === '!')
             //     return;
-            console.log("Note played", instruction, songPlaybackTime);
-            this.playInstruction(instruction, currentTime + songPlaybackTime);
+            console.log("Note played", instruction, stats);
+            this.playInstruction(instruction, currentTime + stats.songPlaybackTime, stats);
         });
 
-        console.log("playInstructions ", new Date().getTime() - statTime);
+        console.log("playInstructions ", playTime, new Date().getTime() - statTime);
         return playTime;
     }
 
-    eachInstruction(groupName, callback, songPositionInTicks=0, songPlaybackTime=0) {
+    eachInstruction(groupName, callback, parentStats=null) {
         let instructionList = this.songData.instructions[groupName];
         // const instructionList = this.getInstructions(rootGroup);
-        let currentBPM = this.getStartingBeatsPerMinute();
         const timeDivision = this.getSongTimeDivision();
         let maxPlayTime = 0;
+        const stats = Object.assign({
+            songPositionInTicks:0,
+            songPlaybackTime:0,
+            currentBPM: this.getStartingBeatsPerMinute()
+        }, parentStats || {}, {
+            groupName,
+        });
+
         // let songPosition = 0, groupPlaytime = 0, maxPlaytime=0;
         for(let i=0; i<instructionList.length; i++) {
             let instruction = new SongInstruction(instructionList[i]);
             // if(typeof instruction.command !== "undefined") {
             if (instruction.deltaDuration) { // Delta
-                songPositionInTicks += instruction.deltaDuration;
-                songPlaybackTime += (instruction.deltaDuration / timeDivision) * currentBPM / 60000;
+                stats.songPositionInTicks += instruction.deltaDuration;
+                const elapsedTime = (instruction.deltaDuration / timeDivision) / (stats.currentBPM / 60);
+                stats.songPlaybackTime += elapsedTime;
                 // groupPlaytime += instruction.deltaDuration * (60 / currentBPM);
                 // if(groupPlaytime > maxPlaytime)
                 //     maxPlaytime = groupPlaytime;
@@ -450,9 +461,9 @@ class SongRenderer {
                     console.error("Recursive group call. Skipping group '" + subGroupName + "'");
                     continue;
                 }
-                const subGroupPlayTime = this.eachInstruction(subGroupName, callback, songPositionInTicks, songPlaybackTime);
-                // if (subGroupPlayTime > maxPlayTime)
-                //     maxPlayTime = subGroupPlayTime;
+                const subGroupPlayTime = this.eachInstruction(subGroupName, callback, stats);
+                if (subGroupPlayTime > maxPlayTime)
+                    maxPlayTime = subGroupPlayTime;
 
                 // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
                 // const subGroupPlayTime = playGroup.call(this, instructionGroupList, {
@@ -468,9 +479,11 @@ class SongRenderer {
             // Callback all notes, including commands and groups
             // if(range && (groupPosition < range[0] || groupPosition > range[1]))
             //     continue;
-            callback(i, instruction, groupName, songPositionInTicks, songPlaybackTime);
+            callback(i, instruction, stats);
         }
-        return songPlaybackTime;
+        if (stats.songPlaybackTime > maxPlayTime)
+            maxPlayTime = stats.songPlaybackTime;
+        return maxPlayTime;
     }
 
     // TODO: Refactor: inefficient
