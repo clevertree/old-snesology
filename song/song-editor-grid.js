@@ -533,12 +533,12 @@ class SongEditorGrid {
             }
         };
 
-        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, groupName, groupPosition) => {
+        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // console.log(index, instruction);
             // if(instruction.command[0] === '@') {
             //     return;
             // }
-            if (groupName !== this.groupName) {
+            if (stats.groupName !== this.groupName) {
                 // TODO: show sub group notes? maybe in 2nd column?
                 return;
             }
@@ -556,7 +556,7 @@ class SongEditorGrid {
                     ${instruction.duration !== null ? `<div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
                 </div>`;
             lastIndex = index;
-            tickTotal = groupPosition;
+            tickTotal = stats.songPositionInTicks;
         });
 
         if(!this.minimumGridLengthTicks) {

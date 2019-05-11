@@ -9,7 +9,7 @@ class SongRenderer {
         this.songData = {};
         this.loadedInstruments = [];
         this.loadedInstrumentClasses = {};
-        this.seekLength = 4;
+        this.seekLength = 12;
         this.seekPosition = 0;
         this.volumeGain = null;
         this.playing = false;
@@ -30,6 +30,7 @@ class SongRenderer {
 
 
     getCommandFromMIDINote(midiNote) {
+        midiNote -= 4;
         // midiNote -= 24;
         const octave = Math.floor(midiNote / 12);
         const pitch = midiNote % 12;
@@ -126,7 +127,6 @@ class SongRenderer {
                         let newMIDICommandOff = this.getCommandFromMIDINote(trackEvent.data[0]);
                         if(lastNote[newMIDICommandOff]) {
                             let noteDuration = deltaPosition - lastNote[newMIDICommandOff][0];
-                            // lastNote[newMIDICommandOff][1][0] = trackEvent.deltaTime; // Don't modify note start
                             lastNote[newMIDICommandOff][1][3] = noteDuration;
 
                             console.log("OFF", trackEvent.deltaTime, newMIDICommandOff, noteDuration);
@@ -136,12 +136,24 @@ class SongRenderer {
                     case 9:
                         let newMIDICommandOn = this.getCommandFromMIDINote(trackEvent.data[0]);
                         let newMIDIVelocityOn = trackEvent.data[1]; // Math.round((trackEvent.data[1] / 128) * 100);
+                        if(newMIDIVelocityOn === 0) {
+                            // Note Off
+                            if (lastNote[newMIDICommandOn]) {
+                                let noteDuration = deltaPosition - lastNote[newMIDICommandOn][0];
+                                lastNote[newMIDICommandOn][1][3] = noteDuration;
+
+                                console.log("OFF", trackEvent.deltaTime, newMIDICommandOn, noteDuration);
+                                delete lastNote[newMIDICommandOn];
+                                break;
+                            }
+                        }
+
                         let newInstructionDelta = trackEvent.deltaTime + (deltaPosition - lastInsertDeltaPosition);
                         lastInsertDeltaPosition = deltaPosition;
                         const newInstruction = [newInstructionDelta, newMIDICommandOn, instrumentID, 0, newMIDIVelocityOn];
                         lastNote[newMIDICommandOn] = [deltaPosition, newInstruction];
                         newTrack.push(newInstruction);
-                        console.log("ON ", newInstructionDelta, newMIDICommandOn);
+                        console.log("ON ", newInstructionDelta, newMIDICommandOn, newMIDIVelocityOn);
                         // newTrack.push
                         break;
                 }
@@ -401,27 +413,29 @@ class SongRenderer {
         playbackRangeStart = playbackRangeStart || 0;
         currentTime = currentTime || this.getAudioContext().currentTime;
 
-        var statTime = new Date().getTime();
+        // var statTime = new Date().getTime();
 
+        console.time('playInstructions');
         const playTime = this.eachInstruction(instructionGroup, (i, instruction, stats) => {
             // const absolutePlaytime = stats.groupPlaytime + stats.parentPlaytime;
             if (stats.songPlaybackTime < playbackRangeStart) {
-                console.warn("Instructions were already played");
+                // console.warn("Instructions were already played: " + i);
                 return;   // Instructions were already played
             }
             if (playbackRangeLength && stats.songPlaybackTime >= playbackRangeStart + playbackRangeLength) {
-                console.warn(`Instructions are beyond buffer position: ${stats.songPlaybackTime} >= ${playbackRangeStart} + ${playbackRangeLength}`);
+                // console.warn(`Instructions are beyond buffer position: ${stats.songPlaybackTime} >= ${playbackRangeStart} + ${playbackRangeLength}`);
                 return;
             }
             if(instruction.isGroupCommand())
                 return;
             // if(instruction.command[0] === '!')
             //     return;
-            console.log("Note played", instruction, stats);
+            // console.log("Note played", instruction, stats);
             this.playInstruction(instruction, currentTime + stats.songPlaybackTime, stats);
         });
+        console.timeEnd('playInstructions');
 
-        console.log("playInstructions ", playTime, new Date().getTime() - statTime);
+        // console.log("playInstructions ", new Date().getTime() - statTime);
         return playTime;
     }
 
@@ -570,7 +584,7 @@ class SongRenderer {
         velocityGain.gain.value = parseFloat(noteVelocity || 100) / 100;
         velocityGain.connect(destination);
 
-        console.log('play', noteFrequency, noteStartTime, noteDuration);
+//         console.log('play', noteFrequency, noteStartTime, noteDuration);
         return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
     }
 
