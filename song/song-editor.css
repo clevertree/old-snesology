@@ -448,8 +448,7 @@ song-editor .editor-grid > tbody > tr > td:last-child {
 
 /** Grid Cell **/
 
-song-editor .editor-grid .grid-cell.instruction,
-song-editor .editor-grid .grid-cell.new {
+song-editor .editor-grid div.instruction {
     /* display: inline-block; */
     float: left;
     overflow: hidden;
@@ -463,48 +462,48 @@ song-editor .editor-grid .grid-cell.new {
     /* z-index: 1; */
 }
 
-song-editor .editor-grid .grid-cell.new {
+song-editor .editor-grid div.instruction.new {
     opacity: 0;
     transition: opacity 0.25s;
     padding: 0 3px;
 }
-song-editor .editor-grid .grid-cell.new.cursor,
-song-editor .editor-grid > tbody > tr.selected .grid-cell.new {
+song-editor .editor-grid div.instruction.new.cursor,
+song-editor .editor-grid > tbody > tr.selected div.instruction.new {
     opacity: 1;
 }
 
-song-editor .editor-grid .grid-cell.instruction:last-child {
+song-editor .editor-grid div.instruction:last-child {
     margin-right: 0;
 }
 
-song-editor .editor-grid .grid-cell.instruction.playing {
+song-editor .editor-grid div.instruction.playing {
     font-weight: bold;
 }
 
 
-song-editor .editor-grid .grid-cell.instruction.cursor,
-song-editor .editor-grid .grid-cell.instruction.selected {
+song-editor .editor-grid div.instruction.cursor,
+song-editor .editor-grid div.instruction.selected {
     font-weight: bold;
     max-width: 1000px;
     box-shadow: #6b6b6b 0 0px 3px;
     z-index: 2;
     /* position: relative; */
 }
-song-editor .editor-grid .grid-cell.selected {
+song-editor .editor-grid div.instruction.selected {
     background-color: white;
 }
 
-song-editor .editor-grid .grid-cell.cursor {
+song-editor .editor-grid div.instruction.cursor {
     border-color: red;
     box-shadow: darkred 0 0 12px;
 }
 
 /** Grid Cell Parameters **/
 
-song-editor .editor-grid .grid-cell.instruction > .command,
-song-editor .editor-grid .grid-cell.instruction > .instrument,
-song-editor .editor-grid .grid-cell.instruction > .velocity,
-song-editor .editor-grid .grid-cell.instruction > .duration {
+song-editor .editor-grid div.instruction > .command,
+song-editor .editor-grid div.instruction > .instrument,
+song-editor .editor-grid div.instruction > .velocity,
+song-editor .editor-grid div.instruction > .duration {
     display: table-cell;
     overflow: hidden;
     vertical-align: top;
@@ -518,41 +517,41 @@ song-editor .editor-grid .grid-parameter:not(:first-child) {
     /* max-width: 40px; */
 }
 
-song-editor .editor-grid .grid-cell > .command {
+song-editor .editor-grid div.instruction > .command {
     color: darkred;
     /* min-width: 10px; */
     /*max-width: 40px;*/
 }
-song-editor .editor-grid .grid-cell:not(.selected) > .command {
+song-editor .editor-grid div.instruction:not(.selected) > .command {
     max-width: 24px;
 }
 
-song-editor .editor-grid .grid-cell > .instrument {
+song-editor .editor-grid div.instruction > .instrument {
     color: darkblue;
     max-width: 0px;
 }
-song-editor .editor-grid .grid-cell > .duration {
+song-editor .editor-grid div.instruction > .duration {
     color: purple;
     max-width: 0px;
 }
-song-editor .editor-grid .grid-cell > .velocity {
+song-editor .editor-grid div.instruction > .velocity {
     color: green;
     max-width: 0px;
 }
-song-editor.show-parameter-instrument .grid-cell > .instrument,
-song-editor .editor-grid .grid-cell.selected > .instrument,
-song-editor .editor-grid .grid-cell.cursor > .instrument,
-song-editor .editor-grid .grid-cell.playing > .instrument,
+song-editor.show-parameter-instrument div.instruction > .instrument,
+song-editor .editor-grid div.instruction.selected > .instrument,
+song-editor .editor-grid div.instruction.cursor > .instrument,
+song-editor .editor-grid div.instruction.playing > .instrument,
 
 song-editor.show-parameter-duration > .duration,
-song-editor .editor-grid .grid-cell.selected > .duration,
-song-editor .editor-grid .grid-cell.cursor > .duration,
-song-editor .editor-grid .grid-cell.playing > .duration,
+song-editor .editor-grid div.instruction.selected > .duration,
+song-editor .editor-grid div.instruction.cursor > .duration,
+song-editor .editor-grid div.instruction.playing > .duration,
 
 song-editor.show-parameter-velocity > .velocity,
-song-editor .editor-grid .grid-cell.selected > .velocity,
-song-editor .editor-grid .grid-cell.cursor > .velocity,
-song-editor .editor-grid .grid-cell.playing > .velocity{
+song-editor .editor-grid div.instruction.selected > .velocity,
+song-editor .editor-grid div.instruction.cursor > .velocity,
+song-editor .editor-grid div.instruction.playing > .velocity{
     max-width: 40px;
     border-left: 1px solid #888;
     /*margin: 0px;*/
@@ -566,7 +565,7 @@ song-editor .editor-grid .measure-end {
     /* border-bottom: 1px solid #666; */
 }
 
-song-editor .editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
+song-editor .editor-grid div.instruction:not(.selected):not(.playing) .grid-parameter.duration.matches-pause {
     max-width: 0px;
     margin-left: 0px;
     padding-left: 0;
@@ -575,7 +574,7 @@ song-editor .editor-grid .grid-cell:not(.selected):not(.playing) .grid-parameter
     transition-delay: 0.25s;
 }
 
-song-editor .editor-grid .grid-cell-pause {
+song-editor .editor-grid div.instruction-pause {
     /* position: absolute; */
     /* top: 1px; */
     /* right: 5px; */
@@ -583,18 +582,18 @@ song-editor .editor-grid .grid-cell-pause {
     /* z-index: 1; */
     /*opacity: 0.3;*/
 }
-song-editor .editor-grid .grid-cell-pause.duration-large {
+song-editor .editor-grid div.instruction-pause.duration-large {
     color: #00A;
 }
-song-editor .editor-grid .grid-cell-pause.duration-medium {
+song-editor .editor-grid div.instruction-pause.duration-medium {
     color: #050;
     /* font-size: small; */
 }
-song-editor .editor-grid .grid-cell-pause.duration-small {
+song-editor .editor-grid div.instruction-pause.duration-small {
     color: #050;
     font-size: smaller;
 }
-song-editor .editor-grid > tbody > tr.selected .grid-cell-pause {
+song-editor .editor-grid > tbody > tr.selected div.instruction-pause {
     opacity: 1;
 
 }

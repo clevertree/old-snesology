@@ -278,11 +278,10 @@ class SongEditorGrid {
 
                 case 'mousedown':
                     this.editor.menu.closeMenu();
-                    if (e.target.classList.contains('grid-cell')
-                        || e.target.parentNode.classList.contains('grid-cell')) {
+                    if (e.target.matches('.grid-cell,.grid-cell > div')) {
                         return this.onCellInput(e);
                     }
-                    if (e.target.nodeName.toLowerCase() === 'td') { // classList.contains('grid-row')) {
+                    if (e.target.matches('td,tr')) { // classList.contains('grid-row')) {
                         return this.onRowInput(e);
                     }
                     // e.preventDefault();
@@ -325,13 +324,28 @@ class SongEditorGrid {
     }
 
     onRowInput(e) {
-        // TODO: create new instruction element and select it. 
         e.preventDefault();
         let selectedRow = e.target;
-        if(selectedRow.classList.contains('grid-data'))
+        if(e.target.matches('td'))
             selectedRow = selectedRow.parentNode;
-        const selectedCell = selectedRow.querySelector('.grid-cell-new');
-        this.selectCell(e, selectedCell);
+        this.renderElement.querySelectorAll('div.instruction.new')
+            .forEach((elm) => elm.parentNode.removeChild(elm));
+
+        const newInstructionElm = document.createElement('div');
+        newInstructionElm.classList.add('instruction', 'new', 'cursor', 'selected');
+        newInstructionElm.setAttribute('data-position', selectedRow.getAttribute('data-position'));
+        newInstructionElm.innerHTML = `<div class="command">+</div>`;
+        selectedRow.firstElementChild.appendChild(newInstructionElm);
+        // const songPositionInTicks = parseFloat(selectedRow.getAttribute('data-position'));
+        // this.editor.selectInstructions(this.groupName, (index, instruction, stats) => {
+        //
+        // });
+
+        // TODO: create new instruction element and select it.
+        // if(selectedRow.classList.contains('grid-data'))
+        //     selectedRow = selectedRow.parentNode;
+        // const selectedCell = selectedRow.querySelector('.grid-cell-new');
+        // this.selectCell(e, selectedCell);
     }
 
     onCellInput(e) {
@@ -504,32 +518,32 @@ class SongEditorGrid {
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
         // const cursorCellIndex = this.editor.cursorCellIndex;
-        let editorHTML = '', rowHTML='', songPosition=0, lastIndex, tickTotal=0, odd=false; // , lastPause = 0;
+        let editorHTML = '', rowHTML='', songPositionInTicks=0, lastIndex, tickTotal=0, odd=false; // , lastPause = 0;
 
         const renderRow = (rowIndex, deltaDuration) => {
             for(let subPause=0; subPause<deltaDuration; subPause+=gridDuration) {
-                let subDuration = gridDuration;
+                let subDurationInTicks = gridDuration;
                 if(subPause + gridDuration > deltaDuration)
-                    subDuration = subPause + gridDuration - deltaDuration;
+                    subDurationInTicks = subPause + gridDuration - deltaDuration;
 
                 // rowHTML +=
-                //     `<div class="grid-cell new">
-                //         <div class="grid-parameter command">+</div>
+                //     `<div class="instruction new">
+                //         <div class="command">+</div>
                 //     </div>`;
 
                 editorHTML +=
-                   `<tr data-position="${songPosition}">
+                   `<tr data-position="${songPositionInTicks}">
                        <td>
                            ${rowHTML}
                        </td>
                        <td>
-                           ${this.editor.values.format(subDuration, 'duration')}
+                           ${this.editor.values.format(subDurationInTicks, 'duration')}
                        </td>
                     </tr>`;
                 rowHTML = '';
                 // if(cursorCellIndex === songPosition)
                 // const cursorCellIndexClass = cursorCellIndex === songPosition ? ' selected' : '';
-                songPosition += subDuration;
+                songPositionInTicks += subDurationInTicks;
             }
         };
 
@@ -549,7 +563,7 @@ class SongEditorGrid {
 
             // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
             rowHTML +=
-                `<div class="grid-cell instruction">
+                `<div class="instruction" data-index="${index}">
                     <div class="command">${instruction.command}</div>
                     ${instruction.instrument !== null ? `<div class="instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>` : ''}
                     ${instruction.velocity !== null ? `<div class="velocity">${this.editor.values.format(instruction.velocity, 'velocity')}</div>` : ''}

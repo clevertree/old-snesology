@@ -283,7 +283,26 @@ class SongEditorElement extends HTMLElement {
         this.instruments.update();
     }
 
-    selectInstructions(groupName, selectedIndicies=null, selectedRange=null) {
+    async selectInstructions(groupName, callback) {
+        if(this.status.currentGroup !== groupName) {
+            this.status.groupHistory = this.status.groupHistory.filter(historyGroup => historyGroup === this.status.currentGroup);
+            this.status.groupHistory.unshift(this.status.currentGroup);
+            this.status.currentGroup = groupName;
+            console.log("Group Change: ", groupName, this.status.groupHistory);
+            this.grid = new SongEditorGrid(this, groupName);
+            this.render();
+        }
+        this.status.selectedIndicies = [];
+        if(callback) {
+            await this.renderer.eachInstruction(groupName, async (index, instruction, stats) => {
+                if (callback(index, instruction, stats))
+                    this.status.selectedIndicies.push(index);
+            });
+        }
+        this.update();
+        this.grid.focus();
+    }
+    selectInstructions2(groupName, selectedRange=null, selectedIndicies=null) {
         if(selectedIndicies === null)
             selectedIndicies = [0]
         if (!Array.isArray(selectedIndicies))
