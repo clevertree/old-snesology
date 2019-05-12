@@ -84,7 +84,7 @@ class SynthesizerInstrument extends HTMLElement {
 
 
 
-    play(destination, commandFrequency, startTime, duration) {
+    play(destination, commandFrequency, startTime, duration, velocity) {
 
         // const sources = [];
         if(this.config.samples.hasOwnProperty(commandFrequency)) {
@@ -95,7 +95,7 @@ class SynthesizerInstrument extends HTMLElement {
             const buffer = this.buffers[commandFrequency];
 
             let frequencyValue = (this.getCommandFrequency(sampleConfig.keyRoot) || 440);
-            this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
+            this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration, velocity);
             // if (source)
             //     sources.push(sources);
             return null;
@@ -128,7 +128,7 @@ class SynthesizerInstrument extends HTMLElement {
                 const buffer = this.buffers[sampleName];
 
 
-                 this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
+                 this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration, velocity);
                 // if (source)
                 //     sources.push(sources);
             }
@@ -140,7 +140,7 @@ class SynthesizerInstrument extends HTMLElement {
     }
 
 
-    playBuffer(buffer, destination, frequencyValue, sampleConfig, startTime, duration) {
+    playBuffer(buffer, destination, frequencyValue, sampleConfig, startTime, duration, velocity) {
 
 
         let source;
@@ -164,6 +164,7 @@ class SynthesizerInstrument extends HTMLElement {
         if(typeof sampleConfig.detune !== "undefined")
             source.detune.value = sampleConfig.detune;
 
+
         // songLength = buffer.duration;
         // source.playbackRate.value = playbackControl.value;
 
@@ -174,11 +175,60 @@ class SynthesizerInstrument extends HTMLElement {
                 source.stop(startTime + duration);
             }
         }
+
+        if(velocity) {
+            let velocityGain = destination.context.createGain();
+            velocityGain.gain.value = parseFloat(velocity || 127) / 127;
+            velocityGain.connect(destination);
+            destination = velocityGain;
+        }
+
         source.connect(destination);
+
 
         // console.log("Buffer Play: ", playbackRate);
         return source;
     }
+
+
+
+
+// Experiment with various ways of applying an envelope.
+//     function startTone( mode )
+//     {
+//         var now = audioContext.currentTime;
+//         gainNode.gain.cancelScheduledValues( now );
+//
+//         // Anchor beginning of ramp at current value.
+//         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+//         if( mode == 1 )
+//         {
+//             // Ramp slowly up with a 1 second duration.
+//             gainNode.gain.linearRampToValueAtTime(1.0, now + 1.0);
+//         }
+//         else if( mode == 2 )
+//         {
+//             // Ramp up and down.
+//             gainNode.gain.linearRampToValueAtTime(1.0, now + 0.5);
+//             gainNode.gain.linearRampToValueAtTime(0.0, now + 1.0);
+//             gainNode.gain.linearRampToValueAtTime(1.0, now + 1.5);
+//             gainNode.gain.linearRampToValueAtTime(0.0, now + 2.0);
+//             gainNode.gain.linearRampToValueAtTime(1.0, now + 2.5);
+//         }
+//         else if( mode == 3 )
+//         {
+//             // Ramp quickly up.
+//             gainNode.gain.linearRampToValueAtTime(1.0, now + 0.1);
+//             // Then decay down to a sustain level.
+//             gainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.3);
+//         }
+//         else if( mode == 4 )
+//         {
+//             gainNode.gain.setTargetValueAtTime(1.0, now, 0.2 );
+//         }
+//     }
+
+
 
     getInstrumentPresetConfig(presetName) {
         const urlPrefix = this.sampleLibrary.urlPrefix || '';

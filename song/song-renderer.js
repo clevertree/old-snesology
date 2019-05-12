@@ -352,13 +352,13 @@ class SongRenderer {
 
         const activeSubGroups = [];
         await this.eachInstruction(instructionGroup, async (i, instruction, stats) => {
-            const playbackTime = startTime + stats.songPlaybackTime;
-            const currentTime = (this.getAudioContext().currentTime - startTime);
-            if(currentTime + this.seekLength < playbackTime) {
-                const waitTime = playbackTime - (currentTime + this.seekLength);
-                console.info("Waiting ", waitTime*1000);
+            // const instructionStartTime = startTime + stats.songPlaybackTime;
+            const elapsedTime = (this.getAudioContext().currentTime - startTime);
+            if(elapsedTime + this.seekLength < stats.songPlaybackTime) {
+                const waitTime = Math.floor((stats.songPlaybackTime - (elapsedTime + this.seekLength)) * 1000 * 0.9);
+                console.info("Waiting ", waitTime);
                 await new Promise((resolve, reject) => {
-                   setTimeout(resolve, waitTime*1000);
+                   setTimeout(resolve, waitTime);
                 });
             }
 
@@ -371,7 +371,7 @@ class SongRenderer {
                     console.error("Recursive group call. Skipping group '" + subGroupName + "'");
                     return;
                 }
-                const promise = this.playInstructions(subGroupName, playbackTime);
+                const promise = this.playInstructions(subGroupName, startTime + stats.songPlaybackTime);
                 activeSubGroups.push(promise);
 
                 return;
@@ -380,7 +380,7 @@ class SongRenderer {
             // if(instruction.command[0] === '!')
             //     return;
             console.log("Note played", instruction, stats);
-            this.playInstruction(instruction, playbackTime, stats);
+            this.playInstruction(instruction, startTime + stats.songPlaybackTime, stats);
         });
         for(let i=0; i<activeSubGroups.length; i++)
             await activeSubGroups[i];
@@ -562,15 +562,12 @@ class SongRenderer {
         //     noteFrequency = instrument.getNamedFrequency(noteFrequency);
         // noteFrequency = this.getInstructionFrequency(noteFrequency);
 
-        const context = this.getAudioContext();
+        // const context = this.getAudioContext();
         const destination = this.getVolumeGain();
 
-        let velocityGain = context.createGain();
-        velocityGain.gain.value = parseFloat(noteVelocity || 100) / 100;
-        velocityGain.connect(destination);
 
 //         console.log('play', noteFrequency, noteStartTime, noteDuration);
-        return instrument.play(velocityGain, noteFrequency, noteStartTime, noteDuration);
+        return instrument.play(destination, noteFrequency, noteStartTime, noteDuration, noteVelocity);
     }
 
     getInstrumentConfig(instrumentID, throwException=true) {
