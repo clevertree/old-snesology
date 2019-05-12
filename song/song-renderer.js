@@ -419,67 +419,67 @@ class SongRenderer {
         return maxPlayTime;
     }
 
-
-    eachInstruction2(groupName, callback, parentStats=null) {
-        let instructionList = this.songData.instructions[groupName];
-        // const instructionList = this.getInstructions(rootGroup);
-        const timeDivision = this.getSongTimeDivision();
-        let maxPlayTime = 0;
-        const stats = Object.assign({
-            songPositionInTicks:0,
-            songPlaybackTime:0,
-            currentBPM: this.getStartingBeatsPerMinute()
-        }, parentStats || {}, {
-            groupName,
-        });
-
-        // let songPosition = 0, groupPlaytime = 0, maxPlaytime=0;
-        for(let i=0; i<instructionList.length; i++) {
-            let instruction = new SongInstruction(instructionList[i]);
-            // if(typeof instruction.command !== "undefined") {
-            if (instruction.deltaDuration) { // Delta
-                stats.songPositionInTicks += instruction.deltaDuration;
-                const elapsedTime = (instruction.deltaDuration / timeDivision) / (stats.currentBPM / 60);
-                stats.songPlaybackTime += elapsedTime;
-                // groupPlaytime += instruction.deltaDuration * (60 / currentBPM);
-                // if(groupPlaytime > maxPlaytime)
-                //     maxPlaytime = groupPlaytime;
-            }
-
-
-            if (instruction.isGroupCommand()) {
-                let subGroupName = instruction.getGroupFromCommand();
-                let instructionGroupList = this.songData.instructions[subGroupName];
-                if (!instructionGroupList)
-                    throw new Error("Instruction groupName not found: " + subGroupName);
-                if (subGroupName === groupName) { // TODO group stack
-                    console.error("Recursive group call. Skipping group '" + subGroupName + "'");
-                    continue;
-                }
-                const subGroupPlayTime = this.eachInstruction(subGroupName, callback, stats);
-                if (subGroupPlayTime > maxPlayTime)
-                    maxPlayTime = subGroupPlayTime;
-
-                // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
-                // const subGroupPlayTime = playGroup.call(this, instructionGroupList, {
-                //     "parentBPM": currentBPM,
-                //     "parentPosition": groupPosition + parentPosition,
-                //     "parentPlaytime": groupPlaytime + parentPlaytime,
-                //     "currentGroup": subGroupName,
-                //     "groupInstruction": instruction,
-                //     "parentStats": stats
-                // });
-            }
-
-            // Callback all notes, including commands and groups
-            // if(range && (groupPosition < range[0] || groupPosition > range[1]))
-            //     continue;
-            callback(i, instruction, stats);
-        }
-        if (stats.songPlaybackTime > maxPlayTime)
-            maxPlayTime = stats.songPlaybackTime;
-        return maxPlayTime;
-    }
+    //
+    // eachInstruction2(groupName, callback, parentStats=null) {
+    //     let instructionList = this.songData.instructions[groupName];
+    //     // const instructionList = this.getInstructions(rootGroup);
+    //     const timeDivision = this.getSongTimeDivision();
+    //     let maxPlayTime = 0;
+    //     const stats = Object.assign({
+    //         songPositionInTicks:0,
+    //         songPlaybackTime:0,
+    //         currentBPM: this.getStartingBeatsPerMinute()
+    //     }, parentStats || {}, {
+    //         groupName,
+    //     });
+    //
+    //     // let songPosition = 0, groupPlaytime = 0, maxPlaytime=0;
+    //     for(let i=0; i<instructionList.length; i++) {
+    //         let instruction = new SongInstruction(instructionList[i]);
+    //         // if(typeof instruction.command !== "undefined") {
+    //         if (instruction.deltaDuration) { // Delta
+    //             stats.songPositionInTicks += instruction.deltaDuration;
+    //             const elapsedTime = (instruction.deltaDuration / timeDivision) / (stats.currentBPM / 60);
+    //             stats.songPlaybackTime += elapsedTime;
+    //             // groupPlaytime += instruction.deltaDuration * (60 / currentBPM);
+    //             // if(groupPlaytime > maxPlaytime)
+    //             //     maxPlaytime = groupPlaytime;
+    //         }
+    //
+    //
+    //         if (instruction.isGroupCommand()) {
+    //             let subGroupName = instruction.getGroupFromCommand();
+    //             let instructionGroupList = this.songData.instructions[subGroupName];
+    //             if (!instructionGroupList)
+    //                 throw new Error("Instruction groupName not found: " + subGroupName);
+    //             if (subGroupName === groupName) { // TODO group stack
+    //                 console.error("Recursive group call. Skipping group '" + subGroupName + "'");
+    //                 continue;
+    //             }
+    //             const subGroupPlayTime = this.eachInstruction(subGroupName, callback, stats);
+    //             if (subGroupPlayTime > maxPlayTime)
+    //                 maxPlayTime = subGroupPlayTime;
+    //
+    //             // console.log("Group Offset", instruction.groupName, currentGroupPlayTime);
+    //             // const subGroupPlayTime = playGroup.call(this, instructionGroupList, {
+    //             //     "parentBPM": currentBPM,
+    //             //     "parentPosition": groupPosition + parentPosition,
+    //             //     "parentPlaytime": groupPlaytime + parentPlaytime,
+    //             //     "currentGroup": subGroupName,
+    //             //     "groupInstruction": instruction,
+    //             //     "parentStats": stats
+    //             // });
+    //         }
+    //
+    //         // Callback all notes, including commands and groups
+    //         // if(range && (groupPosition < range[0] || groupPosition > range[1]))
+    //         //     continue;
+    //         callback(i, instruction, stats);
+    //     }
+    //     if (stats.songPlaybackTime > maxPlayTime)
+    //         maxPlayTime = stats.songPlaybackTime;
+    //     return maxPlayTime;
+    // }
 
     playInstructionAtIndex(groupName, instructionIndex, noteStartTime=null, stats=null) {
         const instruction = this.getInstruction(groupName, instructionIndex);

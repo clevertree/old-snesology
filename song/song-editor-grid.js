@@ -10,10 +10,13 @@ class SongEditorGrid {
     get renderElement() {
         let renderElement = this.editor.querySelector('table.editor-grid');
         if(!renderElement) {
+            const renderElementContainer = document.createElement('div');
+            renderElementContainer.classList.add('editor-grid-container');
+            this.editor.appendChild(renderElementContainer);
             renderElement = document.createElement('table');
             renderElement.setAttribute('tabindex', '0');
             renderElement.classList.add('editor-grid');
-            this.editor.appendChild(renderElement);
+            renderElementContainer.appendChild(renderElement);
             // this.editor.innerHTML += `<table class="editor-grid" tabindex="0"></table>`;
             // renderElement = this.editor.querySelector('table.editor-grid');
         }
@@ -87,7 +90,7 @@ class SongEditorGrid {
         if(e.target instanceof Node && !this.renderElement.contains(e.target))
             return;
 
-        this.focus();
+        // this.focus();
 
         try {
             let selectedIndicies = this.selectedIndicies;
@@ -275,16 +278,11 @@ class SongEditorGrid {
 
                 case 'mousedown':
                     this.editor.menu.closeMenu();
-                    if (e.target.classList.contains('grid-parameter')) {
+                    if (e.target.classList.contains('grid-cell')
+                        || e.target.parentNode.classList.contains('grid-cell')) {
                         return this.onCellInput(e);
                     }
-                    if (e.target.classList.contains('grid-cell')) {
-                        return this.onCellInput(e);
-                    }
-                    if (e.target.classList.contains('grid-data')) {
-                        return this.onRowInput(e);
-                    }
-                    if (e.target.classList.contains('grid-row')) {
+                    if (e.target.nodeName.toLowerCase() === 'td') { // classList.contains('grid-row')) {
                         return this.onRowInput(e);
                     }
                     // e.preventDefault();
@@ -327,6 +325,7 @@ class SongEditorGrid {
     }
 
     onRowInput(e) {
+        // TODO: create new instruction element and select it. 
         e.preventDefault();
         let selectedRow = e.target;
         if(selectedRow.classList.contains('grid-data'))
@@ -498,7 +497,8 @@ class SongEditorGrid {
 
     // Song position/duration in quarter notes (beats.
     // Delta PPQN in clock ticks
-    render() {
+    async render() {
+        console.time('grid: calculate render');
         // console.log("RENDER GRID");
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
@@ -512,17 +512,17 @@ class SongEditorGrid {
                 if(subPause + gridDuration > deltaDuration)
                     subDuration = subPause + gridDuration - deltaDuration;
 
-                rowHTML +=
-                    `<div class="grid-cell grid-cell-new" data-position="${songPosition}" data-insert-index="${rowIndex}">
-                        <div class="grid-parameter command">+</div>
-                    </div>`;
+                // rowHTML +=
+                //     `<div class="grid-cell new">
+                //         <div class="grid-parameter command">+</div>
+                //     </div>`;
 
                 editorHTML +=
-                   `<tr class="grid-row" data-position="${songPosition}">
-                       <td class="grid-data">
+                   `<tr data-position="${songPosition}">
+                       <td>
                            ${rowHTML}
                        </td>
-                       <td class="grid-data-pause">
+                       <td>
                            ${this.editor.values.format(subDuration, 'duration')}
                        </td>
                     </tr>`;
@@ -533,7 +533,7 @@ class SongEditorGrid {
             }
         };
 
-        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+        await this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // console.log(index, instruction);
             // if(instruction.command[0] === '@') {
             //     return;
@@ -549,11 +549,11 @@ class SongEditorGrid {
 
             // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
             rowHTML +=
-                `<div class="grid-cell grid-cell-instruction" data-index="${index}" data-position="${songPosition}">
-                    <div class="grid-parameter command">${instruction.command}</div>
-                    ${instruction.instrument !== null ? `<div class="grid-parameter instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>` : ''}
-                    ${instruction.velocity !== null ? `<div class="grid-parameter velocity">${this.editor.values.format(instruction.velocity, 'velocity')}</div>` : ''}
-                    ${instruction.duration !== null ? `<div class="grid-parameter duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
+                `<div class="grid-cell instruction">
+                    <div class="command">${instruction.command}</div>
+                    ${instruction.instrument !== null ? `<div class="instrument">${this.editor.values.format(instruction.instrument, 'instrument')}</div>` : ''}
+                    ${instruction.velocity !== null ? `<div class="velocity">${this.editor.values.format(instruction.velocity, 'velocity')}</div>` : ''}
+                    ${instruction.duration !== null ? `<div class="duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
                 </div>`;
             lastIndex = index;
             tickTotal = stats.songPositionInTicks;
@@ -570,8 +570,22 @@ class SongEditorGrid {
             remainingDuration = gridDuration;
         renderRow(lastIndex, remainingDuration);
 
+        console.timeEnd('grid: calculate render');
         const currentScrollPosition = this.scrollTop || 0; // Save scroll position
-        this.renderElement.innerHTML = editorHTML;
+        console.time('grid: render');
+        this.renderElement.innerHTML =
+            `
+            <thead>
+                <tr>
+                    <th>${this.groupName}</th>
+                    <th class="grid-row-delta">Delta</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${editorHTML}
+            </tbody>
+            `;
+        console.timeEnd('grid: render');
         this.scrollTop = currentScrollPosition;             // Restore scroll position
         this.update();
     }
