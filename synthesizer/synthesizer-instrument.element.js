@@ -86,7 +86,7 @@ class SynthesizerInstrument extends HTMLElement {
 
     play(destination, commandFrequency, startTime, duration) {
 
-        const sources = [];
+        // const sources = [];
         if(this.config.samples.hasOwnProperty(commandFrequency)) {
             const sampleConfig = this.config.samples[commandFrequency];
 
@@ -95,10 +95,10 @@ class SynthesizerInstrument extends HTMLElement {
             const buffer = this.buffers[commandFrequency];
 
             let frequencyValue = (this.getCommandFrequency(sampleConfig.keyRoot) || 440);
-            let source = this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
-            if (source)
-                sources.push(sources);
-            return sources;
+            this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
+            // if (source)
+            //     sources.push(sources);
+            return null;
         }
 
         let frequencyValue = this.getCommandFrequency(commandFrequency);
@@ -128,15 +128,15 @@ class SynthesizerInstrument extends HTMLElement {
                 const buffer = this.buffers[sampleName];
 
 
-                let source = this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
-                if (source)
-                    sources.push(sources);
+                 this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration);
+                // if (source)
+                //     sources.push(sources);
             }
         }
 
-        if(sources.length === 0)
-            console.warn("No samples were played: ", commandFrequency, this.config);
-        return sources;
+        // if(sources.length === 0)
+        //     console.warn("No samples were played: ", commandFrequency, this.config);
+        // return sources;
     }
 
 
@@ -175,6 +175,7 @@ class SynthesizerInstrument extends HTMLElement {
             }
         }
         source.connect(destination);
+
         // console.log("Buffer Play: ", playbackRate);
         return source;
     }
