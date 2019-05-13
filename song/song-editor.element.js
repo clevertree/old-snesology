@@ -283,50 +283,64 @@ class SongEditorElement extends HTMLElement {
         this.instruments.update();
     }
 
-    async selectInstructions(groupName, callback) {
-        if(this.status.currentGroup !== groupName) {
-            this.status.groupHistory = this.status.groupHistory.filter(historyGroup => historyGroup === this.status.currentGroup);
-            this.status.groupHistory.unshift(this.status.currentGroup);
-            this.status.currentGroup = groupName;
-            console.log("Group Change: ", groupName, this.status.groupHistory);
-            this.grid = new SongEditorGrid(this, groupName);
-            this.render();
-        }
-        this.status.selectedIndicies = [];
-        if(callback) {
-            await this.renderer.eachInstruction(groupName, async (index, instruction, stats) => {
-                if (callback(index, instruction, stats))
-                    this.status.selectedIndicies.push(index);
-            });
-        }
-        this.update();
-        this.grid.focus();
+    selectGroup(groupName) {
+        this.status.groupHistory = this.status.groupHistory.filter(historyGroup => historyGroup === this.status.currentGroup);
+        this.status.groupHistory.unshift(this.status.currentGroup);
+        this.status.currentGroup = groupName;
+        console.log("Group Change: ", groupName, this.status.groupHistory);
+        this.grid = new SongEditorGrid(this, groupName);
+        this.render();
     }
-    selectInstructions2(groupName, selectedRange=null, selectedIndicies=null) {
-        if(selectedIndicies === null)
-            selectedIndicies = [0]
-        if (!Array.isArray(selectedIndicies))
-            selectedIndicies = [selectedIndicies];
-        this.status.selectedIndicies = selectedIndicies;
-        if(this.status.currentGroup !== groupName) {
-            this.status.groupHistory = this.status.groupHistory.filter(historyGroup => historyGroup === this.status.currentGroup);
-            this.status.groupHistory.unshift(this.status.currentGroup);
-            this.status.currentGroup = groupName;
-            console.log("Group Change: ", groupName, this.status.groupHistory);
-            this.grid = new SongEditorGrid(this, groupName);
-            this.render();
-        }
-        if(selectedRange !== null) {
-            if(selectedRange && !Array.isArray(selectedRange))
-                selectedRange = [selectedRange,selectedRange];
-            this.status.selectedRange = selectedRange;
-        } else {
-            this.status.selectedRange = this.renderer.getInstructionRange(groupName, selectedIndicies);
-        }
 
+    selectInstructions(indicies=null) {
+        this.status.selectedIndicies = [];
+        if(indicies) {
+            if(typeof indicies === "number") {
+                this.status.selectedIndicies = [indicies];
+            } else             if(Array.isArray(indicies)) {
+                this.status.selectedIndicies = indicies;
+            } else if (typeof indicies === "function") {
+                let selectedIndicies = [];
+                this.renderer.eachInstruction(this.status.currentGroup, async (index, instruction, stats) => {
+                    if (indicies(index, instruction, stats))
+                        selectedIndicies.push(index);
+                }).then(() => {
+                    this.selectedIndicies(selectedIndicies);
+                });
+                return;
+            } else {
+                throw console.error("Invalid indicies", indicies);
+            }
+        }
         this.update();
         this.grid.focus();
+        console.log("selectInstructions", this.status.selectedIndicies);
     }
+    // selectInstructions2(groupName, selectedRange=null, selectedIndicies=null) {
+    //     if(selectedIndicies === null)
+    //         selectedIndicies = [0]
+    //     if (!Array.isArray(selectedIndicies))
+    //         selectedIndicies = [selectedIndicies];
+    //     this.status.selectedIndicies = selectedIndicies;
+    //     if(this.status.currentGroup !== groupName) {
+    //         this.status.groupHistory = this.status.groupHistory.filter(historyGroup => historyGroup === this.status.currentGroup);
+    //         this.status.groupHistory.unshift(this.status.currentGroup);
+    //         this.status.currentGroup = groupName;
+    //         console.log("Group Change: ", groupName, this.status.groupHistory);
+    //         this.grid = new SongEditorGrid(this, groupName);
+    //         this.render();
+    //     }
+    //     if(selectedRange !== null) {
+    //         if(selectedRange && !Array.isArray(selectedRange))
+    //             selectedRange = [selectedRange,selectedRange];
+    //         this.status.selectedRange = selectedRange;
+    //     } else {
+    //         this.status.selectedRange = this.renderer.getInstructionRange(groupName, selectedIndicies);
+    //     }
+    //
+    //     this.update();
+    //     this.grid.focus();
+    // }
 
 }
 customElements.define('song-editor', SongEditorElement);

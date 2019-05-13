@@ -124,7 +124,7 @@ class SongEditorMenu {
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.selectInstructions(selectedIndicies, selectedRange);
                 break;
 
             case 'instrument:add':
@@ -140,7 +140,7 @@ class SongEditorMenu {
                 // insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
                 this.editor.render();
                 // this.editor.renderer.playInstruction(newInstruction);
-                // this.editor.selectInstructions(currentGroup, insertIndex, selectedRange);
+                // this.editor.selectInstructions(insertIndex, selectedRange);
                 break;
 
             case 'instruction:insert':
@@ -157,7 +157,7 @@ class SongEditorMenu {
                 insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
                 this.editor.render();
                 this.editor.renderer.playInstruction(newInstruction);
-                this.editor.selectInstructions(currentGroup, insertIndex, selectedRange);
+                this.editor.selectInstructions(insertIndex, selectedRange);
                 break;
 
 
@@ -174,7 +174,7 @@ class SongEditorMenu {
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.selectInstructions(selectedIndicies, selectedRange);
                 this.editor.forms.fieldInstructionCommand.focus();
                 break;
 
@@ -190,7 +190,7 @@ class SongEditorMenu {
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.selectInstructions(selectedIndicies, selectedRange);
                 this.editor.forms.fieldInstructionInstrument.focus();
                 break;
 
@@ -208,7 +208,7 @@ class SongEditorMenu {
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.selectInstructions(selectedIndicies, selectedRange);
                 this.editor.forms.fieldInstructionDuration.focus();
                 break;
 
@@ -226,7 +226,7 @@ class SongEditorMenu {
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedIndicies, selectedRange);
+                this.editor.selectInstructions(selectedIndicies, selectedRange);
                 this.editor.forms.fieldInstructionVelocity.focus();
                 break;
 
@@ -237,7 +237,7 @@ class SongEditorMenu {
                     this.editor.renderer.deleteInstructionAtIndex(currentGroup, selectedIndicies[i]);
                 }
                 this.editor.render();
-                this.editor.selectInstructions(currentGroup, selectedIndicies[0], selectedRange);
+                this.editor.selectInstructions(selectedIndicies[0], selectedRange);
                 break;
 
             case 'menu:toggle':

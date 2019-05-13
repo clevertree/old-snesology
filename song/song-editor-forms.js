@@ -104,7 +104,7 @@ class SongEditorForms {
                 let insertIndex = this.editor.renderer.insertInstructionAtPosition(currentGroup, selectedRange[0], newInstruction);
                 this.editor.render();
                 this.editor.renderer.playInstruction(newInstruction);
-                this.editor.selectInstructions(this.editor.currentGroup, insertIndex, selectedRange);
+                this.editor.selectInstructions(insertIndex);
                 break;
 
             case 'instruction:command':
@@ -176,7 +176,7 @@ class SongEditorForms {
                     else console.error("Create instruction group canceled");
                     this.editor.render();
                 } else {
-                    this.editor.selectInstructions(form.groupName.value);
+                    this.editor.selectGroup(form.groupName.value);
                 }
                 break;
 
