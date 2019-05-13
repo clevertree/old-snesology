@@ -294,23 +294,21 @@ class SongEditorElement extends HTMLElement {
 
     selectInstructions(indicies=null) {
         this.status.selectedIndicies = [];
-        if(indicies) {
-            if(typeof indicies === "number") {
-                this.status.selectedIndicies = [indicies];
-            } else             if(Array.isArray(indicies)) {
-                this.status.selectedIndicies = indicies;
-            } else if (typeof indicies === "function") {
-                let selectedIndicies = [];
-                this.renderer.eachInstruction(this.status.currentGroup, async (index, instruction, stats) => {
-                    if (indicies(index, instruction, stats))
-                        selectedIndicies.push(index);
-                }).then(() => {
-                    this.selectedIndicies(selectedIndicies);
-                });
-                return;
-            } else {
-                throw console.error("Invalid indicies", indicies);
-            }
+        if(typeof indicies === "number") {
+            this.status.selectedIndicies = [indicies];
+        } else             if(Array.isArray(indicies)) {
+            this.status.selectedIndicies = indicies;
+        } else if (typeof indicies === "function") {
+            let selectedIndicies = [];
+            this.renderer.eachInstruction(this.status.currentGroup, async (index, instruction, stats) => {
+                if (indicies(index, instruction, stats))
+                    selectedIndicies.push(index);
+            }).then(() => {
+                this.selectedIndicies(selectedIndicies);
+            });
+            return;
+        } else {
+            throw console.error("Invalid indicies", indicies);
         }
         this.update();
         this.grid.focus();

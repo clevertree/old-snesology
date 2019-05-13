@@ -90,54 +90,6 @@ class SongEditorGrid {
     //     return null;
     // }
 
-    selectNextCell(e) {
-        const cursorCell = this.cursorCell;
-        if(cursorCell.nextElementSibling && cursorCell.nextElementSibling.matches('.instruction'))
-            return this.selectCell(e, cursorCell.nextElementSibling);
-
-        // If no previous row cell, create new instruction cell
-        if(!cursorCell.matches('.new')) {
-            const currentRowElm = this.cursorCell.parentNode.parentNode;
-            return this.selectCell(e, this.createNewInstructionCell(currentRowElm));
-        }
-
-        this.selectNextRowCell(e);
-    }
-    selectNextRowCell(e) {
-        const cursorRow = this.cursorCell.parentNode.parentNode;
-        if(!cursorRow.nextElementSibling) {
-            this.increaseGridSize();
-            if(!cursorRow.nextElementSibling)
-                throw new Error("New row was not created");
-        }
-
-        const nextRowElm = cursorRow.nextElementSibling;
-        let nextCell = nextRowElm.querySelector('.instruction');
-        if(nextCell) {
-            return this.selectCell(e, nextCell);
-        }
-
-        this.selectCell(e, this.createNewInstructionCell(nextRowElm));
-    }
-
-    selectPreviousCell(e) {
-        const cursorCell = this.cursorCell;
-        if(cursorCell.previousElementSibling && cursorCell.previousElementSibling.matches('.instruction'))
-            return this.selectCell(e, cursorCell.previousElementSibling);
-
-        this.selectPreviousRowCell(e);
-    }
-    selectPreviousRowCell(e) {
-        const cursorRow = this.cursorCell.parentNode.parentNode;
-
-        if(!cursorRow.previousElementSibling)
-            throw new Error("Previous row not available");
-        const previousRowElm = cursorRow.previousElementSibling;
-
-        this.selectCell(e, this.createNewInstructionCell(previousRowElm));
-    }
-
-
     focus() {
         // if(this.renderElement !== document.activeElement) {
 //             console.log("Focus", document.activeElement);
@@ -351,8 +303,10 @@ class SongEditorGrid {
                     // if (e.target.classList.contains('grid-parameter')) {
                     //     console.info("TODO: add parameter song at top of context menu: ", e.target); // huh?
                     // }
-                    this.editor.menu.openContextMenu(e);
-                    if(!e.altKey) e.preventDefault();
+                    if(!e.altKey) {
+                        e.preventDefault();
+                        this.editor.menu.openContextMenu(e);
+                    }
 
                     break;
 
@@ -441,21 +395,64 @@ class SongEditorGrid {
         }
     }
 
-    selectCell(e, cursorCell, clearSelection=true, toggle=false) {
-        this.renderElement.querySelectorAll('div.instruction.cursor')
-            .forEach((elm) => elm.classList.remove('cursor', 'selected'));
-        cursorCell.classList.add('cursor', 'selected');
+    selectNextCell(e) {
+        const cursorCell = this.cursorCell;
+        if(cursorCell.nextElementSibling && cursorCell.nextElementSibling.matches('.instruction'))
+            return this.selectCell(e, cursorCell.nextElementSibling);
 
-        // const cellList = this.renderElement.querySelectorAll('.instruction');
-        // this.cursorCellIndex = this.cursorCell ? [].indexOf.call(cellList, cursorCell) : 0;
-        if(cursorCell.getAttribute('data-index')) {
-            const index = parseInt(cursorCell.getAttribute('data-index'));
-            // const position = parseFloat(cursorCell.getAttribute('data-position'));
-            this.editor.selectInstructions(index);
-        } else {
-            this.editor.selectInstructions();
+        // If no previous row cell, create new instruction cell
+        if(!cursorCell.matches('.new')) {
+            const currentRowElm = this.cursorCell.parentNode.parentNode;
+            return this.selectCell(e, this.createNewInstructionCell(currentRowElm));
         }
-        // this.update();
+
+        this.selectNextRowCell(e);
+    }
+    selectNextRowCell(e) {
+        const cursorRow = this.cursorCell.parentNode.parentNode;
+        if(!cursorRow.nextElementSibling) {
+            this.increaseGridSize();
+            if(!cursorRow.nextElementSibling)
+                throw new Error("New row was not created");
+        }
+
+        const nextRowElm = cursorRow.nextElementSibling;
+        let nextCell = nextRowElm.querySelector('.instruction');
+        if(nextCell) {
+            return this.selectCell(e, nextCell);
+        }
+
+        this.selectCell(e, this.createNewInstructionCell(nextRowElm));
+    }
+
+    selectPreviousCell(e) {
+        const cursorCell = this.cursorCell;
+        if(cursorCell.previousElementSibling && cursorCell.previousElementSibling.matches('.instruction'))
+            return this.selectCell(e, cursorCell.previousElementSibling);
+
+        this.selectPreviousRowCell(e);
+    }
+    selectPreviousRowCell(e) {
+        const cursorRow = this.cursorCell.parentNode.parentNode;
+
+        if(!cursorRow.previousElementSibling)
+            throw new Error("Previous row not available");
+        const previousRowElm = cursorRow.previousElementSibling;
+
+        // If parallel column cell is available, select it
+
+        this.selectCell(e, this.createNewInstructionCell(previousRowElm));
+    }
+
+
+    selectCell(e, cursorCell, clearSelection=true, toggle=false) {
+        this.renderElement.querySelectorAll('.instruction.cursor,.instruction.selected')
+            .forEach((elm) => elm.classList.remove('cursor', 'selected'));
+        cursorCell.classList.add('cursor');
+        if(cursorCell.hasAttribute('data-index'))
+            cursorCell.classList.add('selected');
+
+        this.editor.selectInstructions(this.selectedIndicies);
         this.renderElement.focus();
     }
 
@@ -653,43 +650,30 @@ class SongEditorGrid {
     }
 
     update() {
-        return;
-
-
-
-
-
         let cellList = this.renderElement.querySelectorAll('.instruction'); //,.grid-row
         if(cellList.length === 0)
             return;
 
-        // const cursorCellIndex = this.cursorCellIndex;
         const selectedIndicies = this.editor.selectedIndicies;
-        // console.log(cursorCellIndex);
-        // const selectedIndexCursor = this.editor.status.;
         for (let i = 0; i < cellList.length; i++) {
             const cell = cellList[i];
-            // const position = parseFloat(cell.getAttribute('data-position'));
             const index = parseInt(cell.getAttribute('data-index'));
             // cell.classList.toggle('cursor', selectedIndicies[0] === index);
-            cell.classList.remove('cursor');
             cell.classList.remove('selected');
             if (selectedIndicies.indexOf(index) !== -1) {
                 cell.classList.add('selected');
-                // cell.classList.toggle('cursor', selectedIndicies[0] === index);
             }
-            // cell.classList.toggle('cursor', this.cursorCellIndex === i);
         }
 
         // Check for missing cursor
-        if(selectedIndicies.length > 0) {
-            let missingCell = this.renderElement.querySelector('.instruction.selected');
-            if (!missingCell)
-                this.renderElement.querySelector('.instruction').classList.add('selected');
-            missingCell = this.renderElement.querySelector('.instruction.cursor');
-            if (!missingCell)
-                this.renderElement.querySelector('.instruction.selected').classList.add('cursor');
-        }
+        // if(selectedIndicies.length > 0) {
+        //     let missingCell = this.renderElement.querySelector('.instruction.selected');
+        //     if (!missingCell)
+        //         this.renderElement.querySelector('.instruction').classList.add('selected');
+        //     missingCell = this.renderElement.querySelector('.instruction.cursor');
+        //     if (!missingCell)
+        //         this.renderElement.querySelector('.instruction.selected').classList.add('cursor');
+        // }
     }
 }
 // customElements.define('music-song-grid', SongEditorGrid);
