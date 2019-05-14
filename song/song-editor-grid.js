@@ -212,18 +212,22 @@ class SongEditorGrid {
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
+                            e.preventDefault();
                             this.selectNextCell(e);
                             break;
 
                         case 'ArrowLeft':
+                            e.preventDefault();
                             this.selectPreviousCell(e);
                             break;
 
                         case 'ArrowDown':
+                            e.preventDefault();
                             this.selectNextRowCell(e);
                             break;
 
                         case 'ArrowUp':
+                            e.preventDefault();
                             this.selectPreviousRowCell(e);
                             break;
 
@@ -409,7 +413,9 @@ class SongEditorGrid {
         this.selectNextRowCell(e);
     }
     selectNextRowCell(e) {
-        const cursorRow = this.cursorCell.parentNode.parentNode;
+        const cursorCell = this.cursorCell;
+        const cursorRow = cursorCell.parentNode.parentNode;
+        const cellPosition = [].indexOf.call(cursorCell.parentNode.children, cursorCell);
         if(!cursorRow.nextElementSibling) {
             this.increaseGridSize();
             if(!cursorRow.nextElementSibling)
@@ -417,10 +423,15 @@ class SongEditorGrid {
         }
 
         const nextRowElm = cursorRow.nextElementSibling;
+        for(let i=cellPosition; i>=0; i--)
+            if(nextRowElm.firstElementChild.children[i])
+                return this.selectCell(e, nextRowElm.firstElementChild.children[i]);
+
         let nextCell = nextRowElm.querySelector('.instruction');
         if(nextCell) {
             return this.selectCell(e, nextCell);
         }
+
 
         this.selectCell(e, this.createNewInstructionCell(nextRowElm));
     }
@@ -433,11 +444,17 @@ class SongEditorGrid {
         this.selectPreviousRowCell(e);
     }
     selectPreviousRowCell(e) {
-        const cursorRow = this.cursorCell.parentNode.parentNode;
+        const cursorCell = this.cursorCell;
+        const cursorRow = cursorCell.parentNode.parentNode;
+        const cellPosition = [].indexOf.call(cursorCell.parentNode.children, cursorCell);
 
-        if(!cursorRow.previousElementSibling)
-            throw new Error("Previous row not available");
-        const previousRowElm = cursorRow.previousElementSibling;
+        let previousRowElm = cursorRow.previousElementSibling;
+        if(!previousRowElm)
+            previousRowElm = cursorRow.parentNode.lastElementChild; // throw new Error("Previous row not available");
+
+        if(previousRowElm.firstElementChild.children[cellPosition]) {
+            return this.selectCell(e, previousRowElm.firstElementChild.children[cellPosition]);
+        }
 
         // If parallel column cell is available, select it
 
@@ -454,6 +471,8 @@ class SongEditorGrid {
 
         this.editor.selectInstructions(this.selectedIndicies);
         this.renderElement.focus();
+
+        // TODO: scroll to
     }
 
 
