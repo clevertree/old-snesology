@@ -390,15 +390,14 @@ class SongRenderer {
     }
 
     eachInstruction(groupName, callback, parentStats) {
-        let instructionList = this.songData.instructions[groupName];
-        let timeDivision = this.getSongTimeDivision();
-        let currentBPM = this.getStartingBeatsPerMinute();
-        let groupPositionInTicks = 0;
-        if(parentStats) {
-            currentBPM = parentStats.currentBPM;
-            groupPositionInTicks = parentStats.groupPositionInTicks;
-        }
-        const instructionIterator = new SongGroupIterator(instructionList, groupName, timeDivision, currentBPM, groupPositionInTicks);
+        if(!this.songData.instructions[groupName])
+            throw new Error("Invalid group: " + groupName)
+        const instructionIterator = new SongGroupIterator(
+            this.songData.instructions[groupName],
+            groupName,
+            parentStats ? parentStats.timeDivision : this.getSongTimeDivision(),
+            parentStats ? parentStats.currentBPM : this.getStartingBeatsPerMinute(),
+            parentStats ? parentStats.groupPositionInTicks : 0);
         let instruction = instructionIterator.nextInstruction();
         while(instruction) {
             callback(instructionIterator.currentIndex, instruction, instructionIterator);
@@ -409,15 +408,14 @@ class SongRenderer {
 
 
     async eachInstructionAsync(groupName, callback, parentStats) {
-        let instructionList = this.songData.instructions[groupName];
-        let timeDivision = this.getSongTimeDivision();
-        let currentBPM = this.getStartingBeatsPerMinute();
-        let groupPositionInTicks = 0;
-        if(parentStats) {
-            currentBPM = parentStats.currentBPM;
-            groupPositionInTicks = parentStats.groupPositionInTicks;
-        }
-        const instructionIterator = new SongGroupIterator(instructionList, groupName, timeDivision, currentBPM, groupPositionInTicks);
+        if(!this.songData.instructions[groupName])
+            throw new Error("Invalid group: " + groupName)
+        const instructionIterator = new SongGroupIterator(
+            this.songData.instructions[groupName],
+            groupName,
+            parentStats ? parentStats.timeDivision : this.getSongTimeDivision(),
+            parentStats ? parentStats.currentBPM : this.getStartingBeatsPerMinute(),
+            parentStats ? parentStats.groupPositionInTicks : 0);
         let instruction = instructionIterator.nextInstruction();
         while(instruction) {
             await callback(instructionIterator.currentIndex, instruction, instructionIterator);
@@ -525,6 +523,8 @@ class SongRenderer {
     }
 
     playInstruction(instruction, noteStartTime=null, stats=null) {
+        if(Array.isArray(instruction))
+            instruction = new SongInstruction(instruction);
         // if (instruction.command[0] === '@') {
         //     const commandGroup = instruction.command.substr(1);
         // TODO: play groups too

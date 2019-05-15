@@ -90,12 +90,19 @@ class SongEditorGrid {
     //     return null;
     // }
 
-    focus() {
-        // if(this.renderElement !== document.activeElement) {
-//             console.log("Focus", document.activeElement);
-//             this.renderElement.focus();
-//         }
+//     focus() {
+//         // if(this.renderElement !== document.activeElement) {
+// //             console.log("Focus", document.activeElement);
+// //             this.renderElement.focus();
+// //         }
+//
+//     }
 
+    playSelectedInstructions() {
+        const selectedIndicies = this.selectedIndicies;
+        for(let i=0; i<selectedIndicies.length; i++) {
+            this.editor.renderer.playInstructionAtIndex(this.groupName, selectedIndicies[i]);
+        }
     }
 
     onInput(e) {
@@ -198,37 +205,43 @@ class SongEditorGrid {
                             //     //thisSelect(e, 0);
                             //     //this.focus();
                             // } else {
-                            for(let i=0; i<selectedIndicies.length; i++)
-                                this.editor.renderer.playInstruction(instructionList[i]);
-                            // }
+                            this.playSelectedInstructions(e);
+                            // for(let i=0; i<selectedIndicies.length; i++)
+                            //     this.editor.renderer.playInstruction(instructionList[i]);
+                            // // }
                             break;
 
                         case 'Play':
                             e.preventDefault();
-                            for(let i=0; i<selectedIndicies.length; i++) {
-                                this.editor.renderer.playInstruction(instructionList[i]);
-                            }
+                            this.playSelectedInstructions(e);
+                            // for(let i=0; i<selectedIndicies.length; i++) {
+                            //     this.editor.renderer.playInstruction(instructionList[i]);
+                            // }
                             break;
 
                         // ctrlKey && metaKey skips a measure. shiftKey selects a range
                         case 'ArrowRight':
                             e.preventDefault();
                             this.selectNextCell(e);
+                            this.playSelectedInstructions(e);
                             break;
 
                         case 'ArrowLeft':
                             e.preventDefault();
                             this.selectPreviousCell(e);
+                            this.playSelectedInstructions(e);
                             break;
 
                         case 'ArrowDown':
                             e.preventDefault();
                             this.selectNextRowCell(e);
+                            this.playSelectedInstructions(e);
                             break;
 
                         case 'ArrowUp':
                             e.preventDefault();
                             this.selectPreviousRowCell(e);
+                            this.playSelectedInstructions(e);
                             break;
 
                         case ' ':
@@ -345,7 +358,8 @@ class SongEditorGrid {
 
         this.editor.selectInstructions([]);
         const newInstructionElm = this.createNewInstructionCell(selectedRow);
-        this.selectCell(e, newInstructionElm);    }
+        this.selectCell(e, newInstructionElm);
+    }
 
     onCellInput(e) {
         e.preventDefault();
@@ -353,6 +367,7 @@ class SongEditorGrid {
         if(selectedCell.matches('.instruction > div'))
             selectedCell = selectedCell.parentNode;
         this.selectCell(e, selectedCell);
+        this.playSelectedInstructions();
     }
 
     onSongEvent(e) {
@@ -412,14 +427,15 @@ class SongEditorGrid {
 
         this.selectNextRowCell(e);
     }
-    selectNextRowCell(e) {
+    selectNextRowCell(e, increaseGridSize=true) {
         const cursorCell = this.cursorCell;
         const cursorRow = cursorCell.parentNode.parentNode;
         const cellPosition = [].indexOf.call(cursorCell.parentNode.children, cursorCell);
         if(!cursorRow.nextElementSibling) {
-            this.increaseGridSize();
-            if(!cursorRow.nextElementSibling)
+            if(!increaseGridSize)
                 throw new Error("New row was not created");
+            return this.increaseGridSize(e);
+            // return this.selectNextRowCell(e, false);
         }
 
         const nextRowElm = cursorRow.nextElementSibling;
@@ -514,16 +530,20 @@ class SongEditorGrid {
     }
 
 
-    async increaseGridSize() {
+    increaseGridSize(e, selectNewRow=true) {
         // TODO: sloppy
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             if (this.minimumGridLengthTicks < stats.groupPositionInTicks)
                 this.minimumGridLengthTicks = stats.groupPositionInTicks;
         });
 
-        const defaultDuration = this.editor.forms.fieldRenderDuration.value;
+        const defaultDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
         this.minimumGridLengthTicks += defaultDuration;
-        await this.render();
+        this.render();
+        if(selectNewRow) {
+            const lastRowElm = this.renderElement.querySelector('tbody > tr:last-child');
+            this.selectCell(e, this.createNewInstructionCell(lastRowElm));
+        }
     }
 
 
@@ -583,12 +603,12 @@ class SongEditorGrid {
     // Delta PPQN in clock ticks
     render() {
         console.time('grid: calculate render');
+        // let cursorCellIndex = this.cursorCellIndex || 0;
         this.renderElement.innerHTML = 'Loading...';
         // console.log("RENDER GRID");
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
-        // const cursorCellIndex = this.editor.cursorCellIndex;
         let editorHTML = '', rowHTML='', songPositionInTicks=0, lastIndex, tickTotal=0, odd=false; // , lastPause = 0;
 
         const renderRow = (rowIndex, deltaDuration) => {
@@ -672,6 +692,12 @@ class SongEditorGrid {
             `;
         console.timeEnd('grid: render');
         this.scrollTop = currentScrollPosition;             // Restore scroll position
+
+
+        // const cellList = this.renderElement.querySelectorAll('.instruction');
+        // if(cursorCellIndex >= cellList.length)
+        //     cursorCellIndex = cellList.length - 1;
+        // cellList[cursorCellIndex].classList.add('cursor');
         this.update();
     }
 
