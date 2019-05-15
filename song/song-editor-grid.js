@@ -463,6 +463,7 @@ class SongEditorGrid {
 
 
     selectCell(e, cursorCell, clearSelection=true, toggle=false) {
+        console.time('selectCell');
         this.renderElement.querySelectorAll('.instruction.cursor,.instruction.selected')
             .forEach((elm) => elm.classList.remove('cursor', 'selected'));
         cursorCell.classList.add('cursor');
@@ -472,7 +473,13 @@ class SongEditorGrid {
         this.editor.selectInstructions(this.selectedIndicies);
         this.renderElement.focus();
 
-        // TODO: scroll to
+        const container = cursorCell.closest('.editor-grid-container');
+        if(container.scrollTop < cursorCell.parentNode.offsetTop - container.offsetHeight)
+            container.scrollTop = cursorCell.parentNode.offsetTop - container.offsetHeight;
+
+        if(container.scrollTop > cursorCell.parentNode.offsetTop)
+            container.scrollTop = cursorCell.parentNode.offsetTop;
+        console.timeEnd('selectCell');
     }
 
 
@@ -507,16 +514,16 @@ class SongEditorGrid {
     }
 
 
-    increaseGridSize() {
+    async increaseGridSize() {
         // TODO: sloppy
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
-            if (this.minimumGridLengthTicks < stats.groupPosition)
-                this.minimumGridLengthTicks = stats.groupPosition;
+            if (this.minimumGridLengthTicks < stats.groupPositionInTicks)
+                this.minimumGridLengthTicks = stats.groupPositionInTicks;
         });
 
         const defaultDuration = this.editor.forms.fieldRenderDuration.value;
         this.minimumGridLengthTicks += defaultDuration;
-        this.render();
+        await this.render();
     }
 
 
@@ -574,7 +581,7 @@ class SongEditorGrid {
 
     // Song position/duration in quarter notes (beats.
     // Delta PPQN in clock ticks
-    async render() {
+    render() {
         console.time('grid: calculate render');
         this.renderElement.innerHTML = 'Loading...';
         // console.log("RENDER GRID");
@@ -611,7 +618,7 @@ class SongEditorGrid {
             }
         };
 
-        await this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+        this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
             // console.log(index, instruction);
             // if(instruction.command[0] === '@') {
             //     return;
@@ -634,7 +641,7 @@ class SongEditorGrid {
                     ${instruction.duration !== null ? `<div class="duration">${this.editor.values.format(instruction.duration, 'duration')}</div>` : ''}
                 </div>`;
             lastIndex = index;
-            tickTotal = stats.songPositionInTicks;
+            tickTotal = stats.groupPositionInTicks;
         });
 
         if(!this.minimumGridLengthTicks) {

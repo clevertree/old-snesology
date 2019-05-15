@@ -265,10 +265,11 @@ class SongRenderer {
         let min=null, max=null;
         this.eachInstruction(groupName, (i, instruction, stats) => {
             if (selectedIndicies.indexOf(i) !== -1) {
-                if (min === null || stats.groupPosition < min)
-                    min = stats.groupPosition;
-                if (max === null || stats.groupPosition > max)
-                    max = stats.groupPosition;
+                if (min === null || stats.groupPositionInTicks < min)
+                    min = stats.groupPositionInTicks;
+                if (max === null || stats.groupPositionInTicks > max)
+                    max = stats.groupPositionInTicks
+                    ;
             }
         });
         return [min, max];
@@ -351,11 +352,11 @@ class SongRenderer {
         // var statTime = new Date().getTime();
 
         const activeSubGroups = [];
-        await this.eachInstruction(instructionGroup, async (i, instruction, stats) => {
-            // const instructionStartTime = startTime + stats.songPlaybackTime;
+        await this.eachInstructionAsync(instructionGroup, async (i, instruction, stats) => {
+            // const instructionStartTime = startTime + stats.groupPlaybackTime;
             const elapsedTime = (this.getAudioContext().currentTime - startTime);
-            if(elapsedTime + this.seekLength < stats.songPlaybackTime) {
-                const waitTime = Math.floor((stats.songPlaybackTime - (elapsedTime + this.seekLength)) * 1000 * 0.9);
+            if(elapsedTime + this.seekLength < stats.groupPlaybackTime) {
+                const waitTime = Math.floor((stats.groupPlaybackTime - (elapsedTime + this.seekLength)) * 1000 * 0.9);
                 console.info("Waiting ", waitTime);
                 await new Promise((resolve, reject) => {
                    setTimeout(resolve, waitTime);
@@ -371,7 +372,7 @@ class SongRenderer {
                     console.error("Recursive group call. Skipping group '" + subGroupName + "'");
                     return;
                 }
-                const promise = this.playInstructions(subGroupName, startTime + stats.songPlaybackTime);
+                const promise = this.playInstructions(subGroupName, startTime + stats.groupPlaybackTime);
                 activeSubGroups.push(promise);
 
                 return;
@@ -380,7 +381,7 @@ class SongRenderer {
             // if(instruction.command[0] === '!')
             //     return;
             console.log("Note played", instruction, stats);
-            this.playInstruction(instruction, startTime + stats.songPlaybackTime, stats);
+            this.playInstruction(instruction, startTime + stats.groupPlaybackTime, stats);
         });
         for(let i=0; i<activeSubGroups.length; i++)
             await activeSubGroups[i];
@@ -388,36 +389,73 @@ class SongRenderer {
         console.timeEnd("Group:"+instructionGroup);
     }
 
-    // TODO: do not loop groups
-    async eachInstruction(groupName, callback, parentStats=null) {
+    eachInstruction(groupName, callback, parentStats) {
         let instructionList = this.songData.instructions[groupName];
-        // const instructionList = this.getInstructions(rootGroup);
-        const timeDivision = this.getSongTimeDivision();
-        let maxPlayTime = 0;
-        const stats = Object.assign({
-            songPositionInTicks:0,
-            songPlaybackTime:0,
-            currentBPM: this.getStartingBeatsPerMinute()
-        }, parentStats || {}, {
-            groupName,
-        });
-
-        // let songPosition = 0, groupPlaytime = 0, maxPlaytime=0;
-        for(let i=0; i<instructionList.length; i++) {
-            let instruction = new SongInstruction(instructionList[i]);
-            // if(typeof instruction.command !== "undefined") {
-            if (instruction.deltaDuration) { // Delta
-                stats.songPositionInTicks += instruction.deltaDuration;
-                const elapsedTime = (instruction.deltaDuration / timeDivision) / (stats.currentBPM / 60);
-                stats.songPlaybackTime += elapsedTime;
-            }
-
-            await callback(i, instruction, stats);
+        let timeDivision = this.getSongTimeDivision();
+        let currentBPM = this.getStartingBeatsPerMinute();
+        let groupPositionInTicks = 0;
+        if(parentStats) {
+            currentBPM = parentStats.currentBPM;
+            groupPositionInTicks = parentStats.groupPositionInTicks;
         }
-        if (stats.songPlaybackTime > maxPlayTime)
-            maxPlayTime = stats.songPlaybackTime;
-        return maxPlayTime;
+        const instructionIterator = new SongGroupIterator(instructionList, groupName, timeDivision, currentBPM, groupPositionInTicks);
+        let instruction = instructionIterator.nextInstruction();
+        while(instruction) {
+            callback(instructionIterator.currentIndex, instruction, instructionIterator);
+            instruction = instructionIterator.nextInstruction();
+        }
+        return instructionIterator.groupPlaybackTime;
     }
+
+
+    async eachInstructionAsync(groupName, callback, parentStats) {
+        let instructionList = this.songData.instructions[groupName];
+        let timeDivision = this.getSongTimeDivision();
+        let currentBPM = this.getStartingBeatsPerMinute();
+        let groupPositionInTicks = 0;
+        if(parentStats) {
+            currentBPM = parentStats.currentBPM;
+            groupPositionInTicks = parentStats.groupPositionInTicks;
+        }
+        const instructionIterator = new SongGroupIterator(instructionList, groupName, timeDivision, currentBPM, groupPositionInTicks);
+        let instruction = instructionIterator.nextInstruction();
+        while(instruction) {
+            await callback(instructionIterator.currentIndex, instruction, instructionIterator);
+            instruction = instructionIterator.nextInstruction();
+        }
+        return instructionIterator.groupPlaybackTime;
+    }
+
+    // // TODO: do not loop groups
+    // async eachInstructionAsync(groupName, callback, parentStats=null) {
+    //     let instructionList = this.songData.instructions[groupName];
+    //     // const instructionList = this.getInstructions(rootGroup);
+    //     const timeDivision = this.getSongTimeDivision();
+    //     let maxPlayTime = 0;
+    //     const stats = Object.assign({
+    //         songPositionInTicks:0,
+    //         songPlaybackTime:0,
+    //         currentBPM: this.getStartingBeatsPerMinute()
+    //     }, parentStats || {}, {
+    //         groupName,
+    //     });
+    //
+    //     // let songPosition = 0, groupPlaytime = 0, maxPlaytime=0;
+    //     for(let i=0; i<instructionList.length; i++) {
+    //         let instruction = new SongInstruction(instructionList[i]);
+    //         // if(typeof instruction.command !== "undefined") {
+    //         if (instruction.deltaDuration) { // Delta
+    //             stats.groupPositionInTicks += instruction.deltaDuration;
+    //             const elapsedTime = (instruction.deltaDuration / timeDivision) / (stats.currentBPM / 60);
+    //             stats.groupPlaybackTime += elapsedTime;
+    //         }
+    //
+    //         await callback(i, instruction, stats);
+    //     }
+    //     if (stats.groupPlaybackTime > maxPlayTime)
+    //         maxPlayTime = stats.groupPlaybackTime;
+    //     return maxPlayTime;
+    // }
 
     //
     // eachInstruction2(groupName, callback, parentStats=null) {
@@ -438,9 +476,9 @@ class SongRenderer {
     //         let instruction = new SongInstruction(instructionList[i]);
     //         // if(typeof instruction.command !== "undefined") {
     //         if (instruction.deltaDuration) { // Delta
-    //             stats.songPositionInTicks += instruction.deltaDuration;
+    //             stats.groupPositionInTicks += instruction.deltaDuration;
     //             const elapsedTime = (instruction.deltaDuration / timeDivision) / (stats.currentBPM / 60);
-    //             stats.songPlaybackTime += elapsedTime;
+    //             stats.groupPlaybackTime += elapsedTime;
     //             // groupPlaytime += instruction.deltaDuration * (60 / currentBPM);
     //             // if(groupPlaytime > maxPlaytime)
     //             //     maxPlaytime = groupPlaytime;
@@ -476,8 +514,8 @@ class SongRenderer {
     //         //     continue;
     //         callback(i, instruction, stats);
     //     }
-    //     if (stats.songPlaybackTime > maxPlayTime)
-    //         maxPlayTime = stats.songPlaybackTime;
+    //     if (stats.groupPlaybackTime > maxPlayTime)
+    //         maxPlayTime = stats.groupPlaybackTime;
     //     return maxPlayTime;
     // }
 
@@ -1171,4 +1209,32 @@ class SongInstruction {
         //     }(instruction);
         return new SongInstruction(instruction);
     }
+}
+
+class SongGroupIterator {
+    constructor(instructionList, groupName, timeDivision, currentBPM, groupPositionInTicks=0) {
+        this.instructionList = instructionList;
+        this.groupName = groupName;
+        this.timeDivision = timeDivision;
+        this.currentBPM = currentBPM;
+        this.groupPositionInTicks = groupPositionInTicks;
+        this.groupPlaybackTime = 0;
+        this.currentIndex = 0;
+    }
+
+    nextInstruction() {
+        if(!this.instructionList[this.currentIndex])
+            return null;
+
+        let instruction = new SongInstruction(this.instructionList[this.currentIndex]);
+        if (instruction.deltaDuration) { // Delta
+            this.groupPositionInTicks += instruction.deltaDuration;
+            const elapsedTime = (instruction.deltaDuration / this.timeDivision) / (this.currentBPM / 60);
+            this.groupPlaybackTime += elapsedTime;
+        }
+
+        this.currentIndex++;
+        return instruction;
+    }
+
 }
