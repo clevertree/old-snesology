@@ -128,7 +128,7 @@ class SynthesizerInstrument extends HTMLElement {
                 const buffer = this.buffers[sampleName];
 
 
-                 this.playBuffer(buffer, destination, frequencyValue, sampleConfig.loop, startTime, duration, velocity);
+                 this.playBuffer(buffer, destination, frequencyValue, sampleConfig, startTime, duration, velocity);
                 // if (source)
                 //     sources.push(sources);
             }
@@ -168,20 +168,23 @@ class SynthesizerInstrument extends HTMLElement {
         // songLength = buffer.duration;
         // source.playbackRate.value = playbackControl.value;
 
+        const ADSR = sampleConfig.ADSR || [0,0,0,0.1];
+
         // Play note
         if(startTime) {
             source.start(startTime);
             if(duration) {
-                source.stop(startTime + duration);
+                source.stop(startTime + duration + ADSR[3]);
             }
         }
 
-        if(velocity) {
-            let velocityGain = destination.context.createGain();
-            velocityGain.gain.value = parseFloat(velocity || 127) / 127;
-            velocityGain.connect(destination);
-            destination = velocityGain;
-        }
+        let velocityGain = destination.context.createGain();
+        velocityGain.gain.value = parseFloat(velocity || 127) / 127;
+        velocityGain.connect(destination);
+        destination = velocityGain;
+
+        velocityGain.gain.linearRampToValueAtTime(velocityGain.gain.value, startTime + duration);
+        velocityGain.gain.linearRampToValueAtTime(0, startTime + duration + ADSR[3]);
 
         source.connect(destination);
 

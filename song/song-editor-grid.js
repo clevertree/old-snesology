@@ -105,6 +105,13 @@ class SongEditorGrid {
         }
     }
 
+    getInstructions(indicies=null) {
+        return this.editor.renderer.getInstructions(this.groupName, indicies);
+    }
+    getInstruction(index) {
+        return this.editor.renderer.getInstruction(this.groupName, index);
+    }
+
     onInput(e) {
         if (e.defaultPrevented)
             return;
@@ -115,7 +122,7 @@ class SongEditorGrid {
 
         try {
             let selectedIndicies = this.selectedIndicies;
-            const instructionList = this.editor.renderer.getInstructions(this.groupName);
+            // const instructionList = this.getInstructions();
 
             switch (e.type) {
                 case 'midimessage':
@@ -140,7 +147,7 @@ class SongEditorGrid {
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
                                 for(let i=0; i<selectedIndicies.length; i++) {
-                                    const selectedInstruction = instructionList[selectedIndicies[i]];
+                                    const selectedInstruction = this.getInstructions(selectedIndicies[i]);
                                     const replaceCommand = this.replaceFrequencyAlias(newMIDICommand, selectedInstruction.instrument);
                                     this.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
                                     this.replaceInstructionVelocity(selectedIndicies[i], newMIDIVelocity);
@@ -150,7 +157,7 @@ class SongEditorGrid {
 
                             // this.render();
                             for(let i=0; i<selectedIndicies.length; i++)
-                                this.editor.renderer.playInstruction(instructionList[selectedIndicies[i]]);
+                                this.editor.renderer.playInstructionAtIndex(selectedIndicies[i]);
 
                             // song.gridSelectInstructions([selectedInstruction]);
                             // e.preventDefault();
@@ -258,6 +265,7 @@ class SongEditorGrid {
                             e.preventDefault();
 
                             if (this.cursorCell.matches('.new')) {
+                                console.time("new");
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newCommand = this.replaceFrequencyAlias(newCommand, newInstruction.instrument);
                                 newInstruction[1] = newCommand;
@@ -267,10 +275,11 @@ class SongEditorGrid {
                                 // this.render();
                                 this.editor.selectInstructions(insertIndex);
                                 selectedIndicies = [insertIndex];
+                                console.timeEnd("new");
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
                                 for(let i=0; i<selectedIndicies.length; i++) {
-                                    const selectedInstruction = instructionList[selectedIndicies[i]];
+                                    const selectedInstruction = this.getInstruction(selectedIndicies[i]);
                                     const replaceCommand = this.replaceFrequencyAlias(newCommand, selectedInstruction.instrument);
                                     this.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
                                 }
@@ -599,8 +608,7 @@ class SongEditorGrid {
         return this.renderElement.querySelector(`.instruction[data-index='${instructionIndex}'`);
     }
 
-    // Song position/duration in quarter notes (beats.
-    // Delta PPQN in clock ticks
+    // TODO: render only visible section. render total row count in single divs
     render() {
         console.time('grid: calculate render');
         // let cursorCellIndex = this.cursorCellIndex || 0;
@@ -611,11 +619,11 @@ class SongEditorGrid {
         // const selectedIndicies = this.editor.status.selectedIndicies;
         let editorHTML = '', rowHTML='', songPositionInTicks=0, lastIndex, tickTotal=0, odd=false; // , lastPause = 0;
 
-        const renderRow = (rowIndex, deltaDuration) => {
+        const renderRow = (deltaDuration) => {
             for(let subPause=0; subPause<deltaDuration; subPause+=gridDuration) {
                 let subDurationInTicks = gridDuration;
                 if(subPause + gridDuration > deltaDuration)
-                    subDurationInTicks = subPause + gridDuration - deltaDuration;
+                    subDurationInTicks = deltaDuration - subPause;
 
                 // rowHTML +=
                 //     `<div class="instruction new">
@@ -639,6 +647,8 @@ class SongEditorGrid {
         };
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
+            // if(index > 100)
+            //     return;
             // console.log(index, instruction);
             // if(instruction.command[0] === '@') {
             //     return;
@@ -649,7 +659,7 @@ class SongEditorGrid {
             }
 
             if (instruction.deltaDuration !== 0) {
-                renderRow(index, instruction.deltaDuration);
+                renderRow(instruction.deltaDuration);
             }
 
             // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
@@ -673,7 +683,7 @@ class SongEditorGrid {
         let remainingDuration = this.minimumGridLengthTicks - tickTotal;
         if(remainingDuration <= 0)
             remainingDuration = gridDuration;
-        renderRow(lastIndex, remainingDuration);
+        renderRow(remainingDuration);
 
         console.timeEnd('grid: calculate render');
         const currentScrollPosition = this.scrollTop || 0; // Save scroll position
@@ -718,14 +728,14 @@ class SongEditorGrid {
         }
 
         // Check for missing cursor
-        // if(selectedIndicies.length > 0) {
-        //     let missingCell = this.renderElement.querySelector('.instruction.selected');
-        //     if (!missingCell)
-        //         this.renderElement.querySelector('.instruction').classList.add('selected');
-        //     missingCell = this.renderElement.querySelector('.instruction.cursor');
-        //     if (!missingCell)
-        //         this.renderElement.querySelector('.instruction.selected').classList.add('cursor');
-        // }
+        if(selectedIndicies.length > 0) {
+            // let missingCell = this.renderElement.querySelector('.instruction.selected');
+            // if (!missingCell)
+            //     this.renderElement.querySelector('.instruction').classList.add('selected');
+            let missingCell = this.renderElement.querySelector('.instruction.cursor');
+            if (!missingCell)
+                this.renderElement.querySelector('.instruction.selected').classList.add('cursor');
+        }
     }
 }
 // customElements.define('music-song-grid', SongEditorGrid);

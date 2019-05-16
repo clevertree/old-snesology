@@ -230,8 +230,11 @@ class SongRenderer {
         let instructionList = this.songData.instructions[groupName];
         if(!instructionList)
             throw new Error("Instruction groupName not found: " + groupName);
-        if(indicies)
+        if(indicies) {
+            if(typeof indicies === "number")
+                indicies = [indicies];
             instructionList = instructionList.filter((instruction, index) => indicies.indexOf(index) !== -1);
+        }
         return instructionList
             .map(instructionData => new SongInstruction(instructionData))
     }
@@ -256,7 +259,7 @@ class SongRenderer {
             if (!instructionList[index])
                 throw new Error(`Instruction not found at index: ${index} for groupName: ${groupName}`);
         }
-        return instructionList[index];
+        return new SongInstruction(instructionList[index]);
     }
 
     getInstructionRange(groupName, selectedIndicies) {
@@ -1219,10 +1222,11 @@ class SongGroupIterator {
         this.currentBPM = currentBPM;
         this.groupPositionInTicks = groupPositionInTicks;
         this.groupPlaybackTime = 0;
-        this.currentIndex = 0;
+        this.currentIndex = -1;
     }
 
     nextInstruction() {
+        this.currentIndex++;
         if(!this.instructionList[this.currentIndex])
             return null;
 
@@ -1233,7 +1237,6 @@ class SongGroupIterator {
             this.groupPlaybackTime += elapsedTime;
         }
 
-        this.currentIndex++;
         return instruction;
     }
 
