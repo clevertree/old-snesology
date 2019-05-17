@@ -429,7 +429,9 @@ class SongEditorGrid {
             return this.selectCell(e, this.createNewInstructionCell(currentRowElm));
         }
 
-        this.selectNextRowCell(e, 0);
+        const cursorRow = cursorCell.parentNode;
+        const nextRowElm = cursorRow.nextElementSibling;
+        this.selectCell(e, this.createNewInstructionCell(nextRowElm));
     }
     selectNextRowCell(e, cellPosition=null, increaseGridSize=true) {
         const cursorCell = this.cursorCell;
@@ -473,7 +475,7 @@ class SongEditorGrid {
         if(!previousRowElm)
             previousRowElm = cursorRow.parentNode.lastElementChild; // throw new Error("Previous row not available");
 
-        if(previousRowElm.children[cellPosition]) {
+        if(previousRowElm.children[cellPosition] && previousRowElm.children[cellPosition].matches('.instruction')) {
             return this.selectCell(e, previousRowElm.children[cellPosition]);
         }
 
@@ -491,8 +493,8 @@ class SongEditorGrid {
         if(cursorCell.hasAttribute('data-index'))
             cursorCell.classList.add('selected');
 
-        this.editor.selectInstructions(this.selectedIndicies);
-        // this.renderElement.focus();
+        this.editor.selectInstructions(this.selectedIndicies); // TODO: timeout
+        this.renderElement.focus();
 
         const container = this.renderElement; // cursorCell.closest('.editor-grid-container');
         if(container.scrollTop < cursorCell.parentNode.offsetTop - container.offsetHeight)
