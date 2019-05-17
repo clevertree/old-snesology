@@ -99,15 +99,18 @@ class SongEditorElement extends HTMLElement {
         this.focus();
         // this.initWebSocket(uuid);
 
+        // TODO: wait for user input
         navigator.requestMIDIAccess().then(
             (MIDI) => {
                 console.log("MIDI initialized", MIDI);
+                const inputDevices = [];
                 MIDI.inputs.forEach(
                     (inputDevice) => {
-                        console.log("detected MIDI input device " + inputDevice.name, inputDevice);
+                        inputDevices.push(inputDevice);
                         inputDevice.addEventListener('midimessage', e => this.onInput(e));
                     }
                 );
+                console.log("MIDI input devices detected: " + inputDevices.map(d => d.name).join(', '));
             },
             (err) => { this.onError("error initializing MIDI: " + err); }
         );
@@ -151,7 +154,7 @@ class SongEditorElement extends HTMLElement {
         const songData = storage.loadSongFromMemory(songGUID);
         const songHistory = storage.loadSongHistoryFromMemory(songGUID);
         this.renderer.loadSongData(songData, songHistory);
-        console.info("Song loaded from memory: " + songGUID, songData, songHistory);
+        console.info("Song loaded from memory: " + songGUID, songData);
     }
 
     async loadSongFromFile(srcFile) {
@@ -187,14 +190,16 @@ class SongEditorElement extends HTMLElement {
         switch(e.type) {
             case 'mousedown':
                 // Longpress
-                clearTimeout(this.longPressTimeout);
-                this.longPressTimeout = setTimeout(function() {
-                    e.target.dispatchEvent(new CustomEvent('longpress', {
-                        detail: {originalEvent: e},
-                        cancelable: true,
-                        bubbles: true
-                    }));
-                }, this.status.longPressTimeout);
+                if(!e.altKey) { // TODO: fix scroll
+                    clearTimeout(this.longPressTimeout);
+                    this.longPressTimeout = setTimeout(function () {
+                        e.target.dispatchEvent(new CustomEvent('longpress', {
+                            detail: {originalEvent: e},
+                            cancelable: true,
+                            bubbles: true
+                        }));
+                    }, this.status.longPressTimeout);
+                }
                 break;
 
             case 'mouseup':
@@ -243,7 +248,8 @@ class SongEditorElement extends HTMLElement {
                 break;
             case 'instrument:library':
             case 'instrument:instance':
-                this.render();
+                this.instruments.render();
+                this.forms.render();
                 break;
         }
     }
@@ -265,7 +271,7 @@ class SongEditorElement extends HTMLElement {
     // Rendering
 
     render() {
-        this.innerHTML = ``;
+        // this.innerHTML = ``;
         this.menu.render();
         this.forms.render();
         this.instruments.render();

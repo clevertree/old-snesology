@@ -112,10 +112,10 @@ class SongStorage {
 
     async loadMIDIFile(source) {
 
-        if(typeof MIDIParser === "undefined") {
+        if(typeof MidiParser === "undefined") {
             await new Promise((resolve, reject) => {
                 const newScriptElm = document.createElement('script');
-                newScriptElm.src = 'https://cdn.jsdelivr.net/gh/colxi/midi-parser-js/src/midi-parser.js';
+                newScriptElm.src = 'https://cdn.jsdelivr.net/gh/colxi/midi-parser-js/src/main.js';
                 newScriptElm.onload = e => resolve();
                 document.head.appendChild(newScriptElm);
             });
@@ -130,7 +130,7 @@ class SongStorage {
         });
 
         // Move to renderer
-        return MIDIParser.parse(new Uint8Array(fileResult));
+        return MidiParser.parse(new Uint8Array(fileResult));
     }
 
     //

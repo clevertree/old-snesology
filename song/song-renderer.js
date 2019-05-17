@@ -9,10 +9,11 @@ class SongRenderer {
         this.songData = {};
         this.loadedInstruments = [];
         this.loadedInstrumentClasses = {};
-        this.seekLength = 4;
+        this.seekLength = 1;
         this.seekPosition = 0;
         this.volumeGain = null;
         this.playing = false;
+        this.activeGroups = {};
         // this.config = {
         //     volume: 0.3
         // };
@@ -30,7 +31,7 @@ class SongRenderer {
 
 
     getCommandFromMIDINote(midiNote) {
-        midiNote -= 4;
+        // midiNote -= 4;
         // midiNote -= 24;
         const octave = Math.floor(midiNote / 12);
         const pitch = midiNote % 12;
@@ -108,10 +109,10 @@ class SongRenderer {
         this.songData.timeDivision = midiData.timeDivision;
         newInstructions.root = [];
         for(let trackID=0; trackID<midiData.track.length; trackID++) {
-            newInstructions.root.push([0, `@track` + trackID]);
-            const newTrack = [];
+            // newInstructions.root.push([0, `@track` + trackID]);
+            const currentGroup = newInstructions.root;
             const instrumentID = trackID;
-            newInstructions['track' + trackID] = newTrack;
+            // newInstructions['track' + trackID] = newTrack;
 
             const lastNote = {};
             const trackEvents = midiData.track[trackID].event;
@@ -152,7 +153,7 @@ class SongRenderer {
                         lastInsertDeltaPosition = deltaPosition;
                         const newInstruction = [newInstructionDelta, newMIDICommandOn, instrumentID, 0, newMIDIVelocityOn];
                         lastNote[newMIDICommandOn] = [deltaPosition, newInstruction];
-                        newTrack.push(newInstruction);
+                        currentGroup.push(newInstruction);
                         console.log("ON ", newInstructionDelta, newMIDICommandOn, newMIDIVelocityOn);
                         // newTrack.push
                         break;
@@ -345,9 +346,18 @@ class SongRenderer {
     }
 
 
+    stopAllPlayback() {
+        for(const key in this.activeGroups) {
+            if(this.activeGroups.hasOwnProperty(key)) {
+                this.activeGroups[key] = false;
+            }
+        }
+    }
 
     // async/await each group playback
     async playInstructions(instructionGroup, startTime) {
+        const activeGroupKey = instructionGroup+startTime;
+        this.activeGroups[activeGroupKey] = true;
         console.time("Group:"+instructionGroup);
         // playbackRangeStart = playbackRangeStart || 0;
         startTime = startTime || this.getAudioContext().currentTime;
@@ -356,11 +366,13 @@ class SongRenderer {
 
         const activeSubGroups = [];
         await this.eachInstructionAsync(instructionGroup, async (i, instruction, stats) => {
+            if(!this.activeGroups[activeGroupKey])
+                return false;
             // const instructionStartTime = startTime + stats.groupPlaybackTime;
             const elapsedTime = (this.getAudioContext().currentTime - startTime);
             if(elapsedTime + this.seekLength < stats.groupPlaybackTime) {
                 const waitTime = Math.floor((stats.groupPlaybackTime - (elapsedTime + this.seekLength)) * 1000 * 0.9);
-                console.info("Waiting ", waitTime);
+                // console.info("Waiting ", waitTime);
                 await new Promise((resolve, reject) => {
                    setTimeout(resolve, waitTime);
                 });
@@ -383,12 +395,14 @@ class SongRenderer {
             // playInstructions.push(instruction);
             // if(instruction.command[0] === '!')
             //     return;
-            console.log("Note played", instruction, stats);
+            // console.log("Note played", instruction, stats);
+            // noinspection JSIgnoredPromiseFromCall
             this.playInstruction(instruction, startTime + stats.groupPlaybackTime, stats);
         });
         for(let i=0; i<activeSubGroups.length; i++)
             await activeSubGroups[i];
-        console.log("Active subgroups", activeSubGroups);
+        delete this.activeGroups[activeGroupKey];
+        // console.log("Active subgroups", activeSubGroups);
         console.timeEnd("Group:"+instructionGroup);
     }
 
@@ -525,13 +539,14 @@ class SongRenderer {
         this.playInstruction(instruction, noteStartTime, stats)
     }
 
-    playInstruction(instruction, noteStartTime=null, stats=null) {
+    async playInstruction(instruction, noteStartTime=null, stats=null) {
         if(Array.isArray(instruction))
             instruction = new SongInstruction(instruction);
-        // if (instruction.command[0] === '@') {
-        //     const commandGroup = instruction.command.substr(1);
-        // TODO: play groups too
-        // }
+
+        if(instruction.isGroupCommand()) {
+
+            return await this.playInstructions(instruction.getGroupFromCommand(), noteStartTime);
+        }
 
         // const currentTime = this.getAudioContext().currentTime;
         let instrumentID = instruction.instrument;
@@ -1148,7 +1163,7 @@ SongRenderer.DEFAULT_VOLUME = 0.7;
 
 class SongInstruction {
     constructor(instructionData) {
-        this.data = instructionData;
+        this.data = instructionData || [0, '', 0];
         // this.playbackTime = null;
     }
     get deltaDuration() { return this.data[0]; }
@@ -1194,22 +1209,21 @@ class SongInstruction {
     getGroupFromCommand()   { return this.command.substr(1); }
 
     static parse(instruction) {
+        if(instruction instanceof SongInstruction)
+            return instruction;
+
         if (typeof instruction === 'number')
             instruction = [instruction]; // Single entry array means pause
-        // instruction = {command: '!pause', duration: instruction};
+
         if (typeof instruction === 'string') {
             instruction = instruction.split(':');
             instruction[0] = parseFloat(instruction[0]);
             instruction[1] = parseInt(instruction[1])
         }
+
         if(typeof instruction[0] === 'string')
             instruction.unshift(0);
-        // if (Array.isArray(instruction))
-        //     instruction = function(args) {
-        //         const instruction = {command: args[0]};
-        //         if(args.length>1)   instruction.duration = args[1];
-        //         return instruction;
-        //     }(instruction);
+
         return new SongInstruction(instruction);
     }
 }

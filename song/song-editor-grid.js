@@ -29,9 +29,10 @@ class SongEditorGrid {
 
     get selectedCells() { return this.renderElement.querySelectorAll('.instruction.selected'); }
     get cursorCell() { return this.renderElement.querySelector('.instruction.cursor'); }
+    get cursorInstruction() { return this.getInstruction(this.cursorCellIndex); }
     get cursorCellIndex() {
         const cellList = this.renderElement.querySelectorAll('.instruction');
-        return this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : 0;
+        return this.cursorCell ? [].indexOf.call(cellList, this.cursorCell) : -1;
     }
     get cursorPosition() {
         return parseFloat(this.cursorCell.getAttribute('data-position'));
@@ -94,6 +95,7 @@ class SongEditorGrid {
 //     }
 
     playSelectedInstructions() {
+        this.editor.renderer.stopAllPlayback();
         const selectedIndicies = this.selectedIndicies;
         for(let i=0; i<selectedIndicies.length; i++) {
             this.editor.renderer.playInstructionAtIndex(this.groupName, selectedIndicies[i]);
@@ -131,8 +133,8 @@ class SongEditorGrid {
                             if (this.cursorCell.matches('.new')) {
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newMIDICommand = this.replaceFrequencyAlias(newMIDICommand, newInstruction.instrument);
-                                newInstruction[1] = newMIDICommand;
-                                newInstruction[3] = newMIDIVelocity;
+                                newInstruction.command = newMIDICommand;
+                                newInstruction.velocity = newMIDIVelocity;
 
                                 const insertPosition = this.cursorPosition;
                                 const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
@@ -142,7 +144,7 @@ class SongEditorGrid {
                                 // cursorInstruction = instructionList[insertIndex];
                             } else {
                                 for(let i=0; i<selectedIndicies.length; i++) {
-                                    const selectedInstruction = this.getInstructions(selectedIndicies[i]);
+                                    const selectedInstruction = this.getInstruction(selectedIndicies[i]);
                                     const replaceCommand = this.replaceFrequencyAlias(newMIDICommand, selectedInstruction.instrument);
                                     this.replaceInstructionCommand(selectedIndicies[i], replaceCommand);
                                     this.replaceInstructionVelocity(selectedIndicies[i], newMIDIVelocity);
@@ -151,8 +153,7 @@ class SongEditorGrid {
                             }
 
                             // this.render();
-                            for(let i=0; i<selectedIndicies.length; i++)
-                                this.editor.renderer.playInstructionAtIndex(selectedIndicies[i]);
+                            this.playSelectedInstructions(e);
 
                             // song.gridSelectInstructions([selectedInstruction]);
                             // e.preventDefault();
@@ -201,16 +202,13 @@ class SongEditorGrid {
                                 this.editor.selectInstructions(insertIndex);
                             }
 
-                            // if (cursorInstruction.command[0] === '@') {
-                            //     const groupName = cursorInstruction.command.substr(1);
-                            //     this.navigate(groupName, cursorInstruction);
-                            //     //thisSelect(e, 0);
-                            //     //this.focus();
-                            // } else {
-                            this.playSelectedInstructions(e);
-                            // for(let i=0; i<selectedIndicies.length; i++)
-                            //     this.editor.renderer.playInstruction(instructionList[i]);
-                            // // }
+                            let cursorInstruction = this.cursorInstruction;
+                            if(cursorInstruction.isGroupCommand()) {
+                                const groupName = cursorInstruction.command.substr(1);
+                                this.editor.selectGroup(groupName);
+                            } else {
+                                this.playSelectedInstructions(e);
+                            }
                             break;
 
                         case 'Play':
@@ -263,7 +261,7 @@ class SongEditorGrid {
                                 console.time("new");
                                 let newInstruction = this.editor.forms.getInstructionFormValues(true);
                                 newCommand = this.replaceFrequencyAlias(newCommand, newInstruction.instrument);
-                                newInstruction[1] = newCommand;
+                                newInstruction.command = newCommand;
 
                                 const insertPosition = this.cursorPosition;
                                 const insertIndex = this.insertInstructionAtPosition(insertPosition, newInstruction);
@@ -549,7 +547,7 @@ class SongEditorGrid {
         this.minimumGridLengthTicks += defaultDuration;
         this.render();
         if(selectNewRow) {
-            const lastRowElm = this.renderElement.querySelector('tbody > tr:last-child');
+            const lastRowElm = this.renderElement.querySelector('.editor-grid > div:last-child');
             this.selectCell(e, this.createNewInstructionCell(lastRowElm));
         }
     }
@@ -617,7 +615,7 @@ class SongEditorGrid {
     }
 
     getRowHTML(songPositionInTicks, subDurationInTicks, rowHTML) {
-        return `<div class="row" data-position="${songPositionInTicks}">
+        return `<div data-position="${songPositionInTicks}">
                    ${rowHTML}
                    <div class="delta">${this.editor.values.format(subDurationInTicks, 'duration')}</div>
                 </div>`;
@@ -627,14 +625,14 @@ class SongEditorGrid {
     render() {
         console.time('grid: calculate render');
         // let cursorCellIndex = this.cursorCellIndex || 0;
-        const lastScrollPosition = this.renderElement.scrollTop;
-        console.log("Scroll Position", lastScrollPosition);
-        this.renderElement.innerHTML = `Loading...`;
+        // const lastScrollPosition = this.renderElement.scrollTop;
+        // console.log("Scroll Position", lastScrollPosition);
+        // this.renderElement.innerHTML = `Loading...`;
         // console.log("RENDER GRID");
         const gridDuration = parseFloat(this.editor.forms.fieldRenderDuration.value);
 
         // const selectedIndicies = this.editor.status.selectedIndicies;
-        let editorHTML = '', rowHTML='', songPositionInTicks=0, lastIndex, tickTotal=0, odd=false; // , lastPause = 0;
+        let editorHTML = '', rowHTML='', songPositionInTicks=0, tickTotal=0, odd=false; // , lastPause = 0;
 
         const renderRow = (deltaDuration) => {
             for(let subPause=0; subPause<deltaDuration; subPause+=gridDuration) {
@@ -648,18 +646,11 @@ class SongEditorGrid {
         };
 
         this.editor.renderer.eachInstruction(this.groupName, (index, instruction, stats) => {
-            if (stats.groupName !== this.groupName) {
-                // TODO: show sub group notes? maybe in 2nd column?
-                return;
-            }
-
             if (instruction.deltaDuration !== 0) {
                 renderRow(instruction.deltaDuration);
             }
 
-            // const selectedIndexClass = selectedIndicies.indexOf(index) !== -1 ? ' selected' : '';
             rowHTML += this.getInstructionHTML(index, instruction);
-            lastIndex = index;
             tickTotal = stats.groupPositionInTicks;
         });
 
@@ -676,9 +667,11 @@ class SongEditorGrid {
 
         console.timeEnd('grid: calculate render');
         const currentScrollPosition = this.scrollTop || 0; // Save scroll position
+        // if(this.renderElement.innerHTML !== editorHTML) {
         console.time('grid: render');
         this.renderElement.innerHTML = editorHTML;
         console.timeEnd('grid: render');
+        // }
         this.scrollTop = currentScrollPosition;             // Restore scroll position
 
 

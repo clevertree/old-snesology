@@ -439,7 +439,7 @@ song-editor .editor-grid div.instruction {
     border: solid 1px #666;
     border-radius: 4px;
     background-color: #CCC;
-    /* position: relative; */
+    position: relative;
     /* z-index: 1; */
 }
 
@@ -468,7 +468,7 @@ song-editor .editor-grid div.instruction.selected {
     max-width: 1000px;
     box-shadow: #6b6b6b 0 0px 3px;
     z-index: 2;
-    /* position: relative; */
+    /* position: inherit; */
 }
 song-editor .editor-grid div.instruction.selected {
     background-color: white;

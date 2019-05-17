@@ -40,19 +40,16 @@ class SongEditorForms {
             // this.fieldInsertInstructionCommand.focus();
             return false;
         }
-        let newInstruction = [
-            0,
-            isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value,
-            0
-        ];
+        let newInstruction = new SongInstruction();
+        newInstruction.command = isNewInstruction ? this.fieldInsertInstructionCommand.value : this.fieldInstructionCommand.value;
 
         if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
-            newInstruction[2] = parseInt(this.fieldInstructionInstrument.value);
+            newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
         if(this.fieldInstructionDuration.value)
-            newInstruction[3] = parseFloat(this.fieldInstructionDuration.value);
+            newInstruction.duration = parseFloat(this.fieldInstructionDuration.value);
         const velocityValue = parseInt(this.fieldInstructionVelocity.value);
         if(velocityValue && velocityValue !== 100)
-            newInstruction[4] = velocityValue;
+            newInstruction.velocity = velocityValue;
 
         return newInstruction;
     }
@@ -480,15 +477,7 @@ class SongEditorForms {
             </div>
             
             <div class="form-section control-grid">
-                <div class="form-section-header">Sel Range</div>                    
-                <form class="form-selected-range submit-on-change" data-action="grid:selected">
-                    <input name="rangeStart" placeholder="N/A" />-<!--
-                 --><input name="rangeEnd" placeholder="N/A" />
-                </form>
-            </div>
-            
-            <div class="form-section control-grid">
-                <div class="form-section-header">Sel Index</div>                    
+                <div class="form-section-header">Selection</div>                    
                 <form class="form-selected-indicies submit-on-change" data-action="grid:selected">
                     <input name="indicies" placeholder="No indicies selection" />
                 </form>
@@ -500,6 +489,14 @@ class SongEditorForms {
         this.update();
     }
 
+
+// <div class="form-section control-grid">
+//         <div class="form-section-header">Sel Range</div>
+// <form class="form-selected-range submit-on-change" data-action="grid:selected">
+//         <input name="rangeStart" placeholder="N/A" />-<!--
+//                  --><input name="rangeEnd" placeholder="N/A" />
+//         </form>
+//         </div>
 // <div class="form-section">
 //         <div class="form-section-header">Modify Row</div>
 // <form action="#" class="form-row-insert" data-action="row:insert">
@@ -579,8 +576,8 @@ class SongEditorForms {
 
 
         this.fieldSelectedIndicies.value = this.editor.selectedIndicies.join(',');
-        this.fieldSelectedRangeStart.value = this.editor.selectedRange[0];
-        this.fieldSelectedRangeEnd.value = this.editor.selectedRange[1];
+        // this.fieldSelectedRangeStart.value = this.editor.selectedRange[0];
+        // this.fieldSelectedRangeEnd.value = this.editor.selectedRange[1];
     }
 
 
