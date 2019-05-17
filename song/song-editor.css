@@ -360,37 +360,21 @@ song-editor .editor-forms form.form-selected-range input[name=rangeEnd] {
 /** Editor Grid **/
 
 
-/** Grid Container **/
-song-editor .editor-grid-container {
-    max-height: 600px;
-    overflow-y: auto;
-}
 
 
 /** Grid **/
 song-editor .editor-grid {
-    /* display: block; */
-    /*cursor: pointer;*/
-    /* display: block; */
-    /* border-collapse: collapse; */
-    /* display: table; */
-    width: 100%;
+    /*width: 100%;*/
     position: relative;
     clear: both;
-    border-spacing: 0px;
+    max-height: 600px;
+    overflow-y: auto;
+    /* font-size: 12px; */
 }
 
-song-editor .editor-grid > table {
-    border-collapse: collapse;
-}
 
 /** Grid Header **/
 
-song-editor .editor-grid > thead > tr > th {
-    /* font-size: small; */
-    /*text-align: left;*/
-    /*padding: 0px 0px;*/
-}
 song-editor .editor-grid .grid-header {
     min-width: 126px;
 }
@@ -401,7 +385,7 @@ song-editor .editor-grid .grid-header-pause {
 
 /** Grid Row **/
 
-song-editor .editor-grid > tbody > tr {
+song-editor .editor-grid > div {
     cursor: pointer;
     background-color: #C0C0C0;
     height: 1.45em;
@@ -409,21 +393,24 @@ song-editor .editor-grid > tbody > tr {
     /* border-top: 1px solid #BBB; */
     position: relative;
     transition: background-color 0.1s ease-out;
+    border: 1px outset #FFF;
+    /* border-right: 0px solid #888; */
+    padding: 0px;
 }
 
-song-editor .editor-grid > tbody > tr:nth-child(odd) {
+song-editor .editor-grid > div:nth-child(odd) {
     background-color: #D0D0D0;
     /* padding: 0; */
     /* margin: 0; */
 }
 
-song-editor .editor-grid > tbody > tr.selected {
+song-editor .editor-grid > div.selected {
     background-color: #ffeedd;
     position: relative;
     box-shadow: #ffeedd 0px 0px 9px;
     z-index: 2;
 }
-song-editor .editor-grid > tbody > tr.playing {
+song-editor .editor-grid > div.playing {
     transition: background-color 0s;
     background-color: #609060;
     position: relative;
@@ -431,19 +418,13 @@ song-editor .editor-grid > tbody > tr.playing {
     z-index: 1;
 }
 
-/** Grid Data **/
+/** Grid Row Delta **/
 
-song-editor .editor-grid > tbody > tr > td {
-    border: 1px outset #FFF;
-    /* border-right: 0px solid #888; */
-    padding: 0px;
-}
-
-song-editor .editor-grid .grid-row-delta,
-song-editor .editor-grid > tbody > tr > td:last-child {
+song-editor .editor-grid > div > div.delta {
+    float: right;
     width: 30px;
+    padding: 2px;
     text-align: center;
-    font-size: smaller;
 }
 
 /** Grid Cell **/
@@ -453,7 +434,7 @@ song-editor .editor-grid div.instruction {
     float: left;
     overflow: hidden;
     padding: 1px;
-    margin: 0px 0px 0px 0px;
+    margin: 0;
     color: #666;
     border: solid 1px #666;
     border-radius: 4px;
@@ -468,7 +449,7 @@ song-editor .editor-grid div.instruction.new {
     padding: 0 3px;
 }
 song-editor .editor-grid div.instruction.new.cursor,
-song-editor .editor-grid > tbody > tr.selected div.instruction.new {
+song-editor .editor-grid > div.selected div.instruction.new {
     opacity: 1;
 }
 
@@ -593,7 +574,7 @@ song-editor .editor-grid div.instruction-pause.duration-small {
     color: #050;
     font-size: smaller;
 }
-song-editor .editor-grid > tbody > tr.selected div.instruction-pause {
+song-editor .editor-grid > div.selected div.instruction-pause {
     opacity: 1;
 
 }
