@@ -46,7 +46,7 @@ class SongEditorForms {
         if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
             newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
         if(this.fieldInstructionDuration.value) // TODO: refactor DURATIONS
-            newInstruction.duration = this.fieldInstructionDuration.value;
+            newInstruction.duration = parseFloat(this.fieldInstructionDuration.value);
         const velocityValue = parseInt(this.fieldInstructionVelocity.value);
         if(velocityValue && velocityValue !== 100)
             newInstruction.velocity = velocityValue;
@@ -120,6 +120,7 @@ class SongEditorForms {
                         this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedIndices[i], newInstrument);
                     this.editor.renderer.playInstructionAtIndex(currentGroup, selectedIndices[i]);
                 }
+                // this.editor.playSelectedInstructions();
                 this.fieldInstructionCommand.focus();
                 // setTimeout(() => this.fieldInstructionCommand.focus(), 1);
                 break;
@@ -129,13 +130,15 @@ class SongEditorForms {
                 for(let i=0; i<selectedIndices.length; i++)
                     this.editor.renderer.replaceInstructionInstrument(currentGroup, selectedIndices[i], instrumentID);
                 this.editor.status.currentInstrumentID = instrumentID;
+                this.editor.playSelectedInstructions();
                 this.fieldInstructionInstrument.focus();
                 break;
 
             case 'instruction:duration':
-                const duration = (form.duration.value) || null;
+                const duration = parseFloat(form.duration.value) || null;
                 for(let i=0; i<selectedIndices.length; i++)
                     this.editor.renderer.replaceInstructionDuration(currentGroup, selectedIndices[i], duration);
+                this.editor.playSelectedInstructions();
                 this.fieldInstructionDuration.focus();
                 break;
 
@@ -143,6 +146,7 @@ class SongEditorForms {
                 const velocity = form.velocity.value === "0" ? 0 : parseInt(form.velocity.value) || null;
                 for(let i=0; i<selectedIndices.length; i++)
                     this.editor.renderer.replaceInstructionVelocity(currentGroup, selectedIndices[i], velocity);
+                this.editor.playSelectedInstructions();
                 this.fieldInstructionVelocity.focus();
                 break;
 
@@ -206,6 +210,7 @@ class SongEditorForms {
                 break;
 
             case 'grid:duration':
+                this.editor.status.currentRenderDuration = this.fieldRenderDuration.value;
                 this.editor.grid.render();
                 break;
 
@@ -401,8 +406,9 @@ class SongEditorForms {
                 <div class="form-section-header">Duration</div>
                 <form action="#" class="form-instruction-duration submit-on-change" data-action="instruction:duration">
                     <select name="duration" title="Instruction Duration" class="themed">
+                        <option value="">No Duration</option>
                         <optgroup label="Note Duration">
-                            ${this.renderEditorFormOptions('named-durations')}
+                            ${this.renderEditorFormOptions('durations')}
                         </optgroup>
                     </select>
                 </form>
@@ -456,7 +462,7 @@ class SongEditorForms {
                 <div class="form-section-header">Render Duration</div>
                 <form action="#" class="form-render-duration submit-on-change" data-action="grid:duration">
                     <select name="duration" title="Render Duration" class="themed">
-                        <option value="">Default Duration (1B)</option>
+                        <option value="">No Duration</option>
                         <optgroup label="Render Duration">
                             ${this.renderEditorFormOptions('durations')}
                         </optgroup>
@@ -514,7 +520,8 @@ class SongEditorForms {
     update() {
 
         // const gridDuration = this.fieldRenderDuration.value || 1;
-        const cursorIndex = this.editor.cursorCellIndex;
+        const timeDivision = this.editor.renderer.getSongTimeDivision();
+        // const cursorIndex = this.editor.cursorCellIndex;
         const selectedIndicies = this.editor.selectedIndicies;
         // const selectedPauseIndicies = this.editor.selectedPauseIndicies;
         const groupName = this.editor.currentGroup;
@@ -535,8 +542,6 @@ class SongEditorForms {
             .forEach(button => button.classList.toggle('selected', button.getAttribute('value') === groupName));
 
 
-        if(!this.fieldRenderDuration.value)
-            this.fieldRenderDuration.value = '1B'; // this.editor.renderer.getSongTimeDivision();
 
         // this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
 
@@ -547,7 +552,7 @@ class SongEditorForms {
             this.fieldInstructionCommand.value = cursorInstruction.command;
             this.fieldInstructionInstrument.value = cursorInstruction.instrument !== null ? cursorInstruction.instrument : '';
             this.fieldInstructionVelocity.value = cursorInstruction.velocity !== null ? cursorInstruction.velocity : '';
-            this.fieldInstructionDuration.value = cursorInstruction.duration !== null ? cursorInstruction.duration : '1B';
+            this.fieldInstructionDuration.value = cursorInstruction.duration !== null ? cursorInstruction.duration : '';
             this.renderElement.classList.add('show-control-note-modify');
 
         } else if(selectedIndicies.length > 0) {
@@ -573,6 +578,11 @@ class SongEditorForms {
         // Status Fields
 
         this.fieldRenderOctave.value = this.editor.status.currentOctave;
+
+        if(!this.fieldRenderDuration.value)
+            this.fieldRenderDuration.value = this.editor.status.currentRenderDuration || timeDivision; // this.editor.renderer.getSongTimeDivision();
+        if(!this.fieldInstructionDuration.value)
+            this.fieldInstructionDuration.value = this.fieldRenderDuration.value;
 
 
         this.fieldSelectedIndicies.value = this.editor.selectedIndicies.join(',');

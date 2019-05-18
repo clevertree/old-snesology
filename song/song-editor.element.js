@@ -19,6 +19,7 @@ class SongEditorElement extends HTMLElement {
 
             currentOctave: 3,
             currentInstrumentID: 0,
+            currentRenderDuration: null,
 
             // history: {
             //     currentStep: 0,
@@ -323,6 +324,14 @@ class SongEditorElement extends HTMLElement {
         this.update();
         // this.grid.focus();
         // console.log("selectInstructions", this.status.selectedIndicies);
+    }
+
+    playSelectedInstructions() {
+        this.renderer.stopAllPlayback();
+        const selectedIndicies = this.status.selectedIndicies;
+        for(let i=0; i<selectedIndicies.length; i++) {
+            this.renderer.playInstructionAtIndex(this.status.currentGroup, selectedIndicies[i]);
+        }
     }
     // selectInstructions2(groupName, selectedRange=null, selectedIndicies=null) {
     //     if(selectedIndicies === null)
