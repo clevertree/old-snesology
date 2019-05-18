@@ -4,7 +4,7 @@
 			"url": "/synthesizer/synthesizer-instrument.element.js",
 			"samples": {
 				"acoustic_bass": {
-					"url": "https://snesology.net/sample/snes/ffvi/acoustic_bass.wav",
+					"url": "/sample/snes/ffvi/acoustic_bass.wav",
 					"keyRoot": "C5",
 					"loop": true
 				}
@@ -15,7 +15,7 @@
 			"url": "/synthesizer/synthesizer-instrument.element.js",
 			"samples": {
 				"piano": {
-					"url": "https://snesology.net/sample/snes/ffvi/piano.wav",
+					"url": "/sample/snes/ffvi/piano.wav",
 					"keyRoot": "C5",
 					"loop": true
 				}

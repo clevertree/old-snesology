@@ -388,6 +388,9 @@ class SongEditorGrid {
                 if(instructionElm) {
                     instructionElm.classList.add('playing');
                     instructionElm.parentNode.classList.add('playing');
+//                     console.log("SCROLL", instructionElm.parentNode.offsetTop, this.renderElement.scrollTop);
+                    if(this.renderElement.scrollTop - 50 < instructionElm.parentNode.offsetTop - this.renderElement.offsetHeight)
+                        this.renderElement.scrollTop = 50 + instructionElm.parentNode.offsetTop - this.renderElement.offsetHeight;
                     // console.log("show", instructionElm);
                 }
                 if(groupElm) {
