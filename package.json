@@ -33,6 +33,6 @@
     "unzip": "^0.1.11",
     "crc": "^3.8.0",
     "bad-words": "^3.0.0",
-    "clevertree-cms": "^1.1.4"
+    "clevertree-cms": "^1.1.6"
   }
 }

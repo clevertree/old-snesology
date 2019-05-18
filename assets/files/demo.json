@@ -4,7 +4,7 @@
 			"url": "/synthesizer/synthesizer-instrument.element.js",
 			"samples": {
 				"acoustic_bass": {
-					"url": "http://localhost:8092/sample/snes/ffvi/acoustic_bass.wav",
+					"url": "https://snesology.net/sample/snes/ffvi/acoustic_bass.wav",
 					"keyRoot": "C5",
 					"loop": true
 				}
@@ -15,7 +15,7 @@
 			"url": "/synthesizer/synthesizer-instrument.element.js",
 			"samples": {
 				"piano": {
-					"url": "http://localhost:8092/sample/snes/ffvi/piano.wav",
+					"url": "https://snesology.net/sample/snes/ffvi/piano.wav",
 					"keyRoot": "C5",
 					"loop": true
 				}
@@ -10569,8 +10569,8 @@
 			]
 		]
 	},
-	"title": "Untitled (2019/05/18)",
-	"guid": "96bcce8b-879d-4182-89c5-bb7f9449bc5c",
+	"title": "Spinach Rag Test (2019/05/18)",
+	"guid": "demo-spinach-rag-test",
 	"version": "0.0.1",
 	"root": "root",
 	"created": 1558139717063,
