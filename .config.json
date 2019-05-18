@@ -23,7 +23,7 @@
         }
     },
     "server": {
-        "httpPort": 8092,
+        "httpPort": 8091,
         "sslEnable": false,
         "sslPort": 8443
     },

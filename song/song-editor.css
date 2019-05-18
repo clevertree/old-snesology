@@ -375,6 +375,7 @@ song-editor .editor-grid {
     clear: both;
     max-height: 580px;
     overflow-y: auto;
+    overflow-x: hidden;
     /* font-size: 12px; */
 }
 
