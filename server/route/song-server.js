@@ -339,6 +339,7 @@ class SongServer {
             "uuid": uuid, // "https://snesology.net/song/share/" + UUID + ".json",
             "version": "0.0.1",
             "description": "New Song",
+            "beatsPerMinute": 120,
             "instruments": [{
                 "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js", // Default instrument
             }],

@@ -49,10 +49,9 @@ class SongEditorElement extends HTMLElement {
         // this.modifier = new SongModifier(this);
 
         this.instruments = new SongEditorInstruments(this);
-        this.instruments.loadInstrumentLibrary('synthesizer/instrument.library.json');
+        this.instruments.loadInstrumentLibrary('/synthesizer/instrument.library.json');
 
         this.renderer = new SongRenderer(this);
-        this.loadRecentSongData();
     }
 
     get currentGroup()      { return this.status.currentGroup; }
@@ -94,12 +93,19 @@ class SongEditorElement extends HTMLElement {
         this.addEventListener('instrument:library', this.onSongEvent);
 
         this.render();
-
-        const uuid = this.getAttribute('uuid');
-        if(uuid)
-            this.renderer.loadSongFromServer(uuid);
-        // this.setAttribute('tabindex', 0);
         this.focus();
+
+        // const uuid = this.getAttribute('uuid');
+        // if(uuid)
+        //     this.renderer.loadSongFromServer(uuid);
+
+        const src = this.getAttribute('src');
+        if(src)
+            this.loadSongFromSrc(src);
+        else
+            this.loadRecentSongData();
+
+        // this.setAttribute('tabindex', 0);
         // this.initWebSocket(uuid);
 
         // TODO: wait for user input
@@ -157,18 +163,36 @@ class SongEditorElement extends HTMLElement {
         const songData = storage.loadSongFromMemory(songGUID);
         const songHistory = storage.loadSongHistoryFromMemory(songGUID);
         this.renderer.loadSongData(songData, songHistory);
+        this.render();
         console.info("Song loaded from memory: " + songGUID, songData);
     }
 
-    async loadSongFromFile(srcFile) {
-        this.loadSongFromMIDIFile(srcFile);
+    async loadSongFromFileInput(inputFile) {
+        this.loadSongFromMIDIFileInput(inputFile);
     }
 
-    async loadSongFromMIDIFile(srcFile) {
+    async loadSongFromMIDIFileInput(inputFile) {
         const storage = new SongStorage();
-        const midiData = await storage.loadMIDIFile(srcFile);
+        const midiData = await storage.loadMIDIFile(inputFile);
         this.renderer.loadSongFromMIDIData(midiData);
-        console.info("Song loaded from midi: " + srcFile, midiData, this.renderer.songData);
+        this.render();
+        console.info("Song loaded from midi: " + inputFile, midiData, this.renderer.songData);
+    }
+
+    async loadSongFromSrc(src) {
+        const songData = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', src + '', true);
+            xhr.responseType = 'json';
+            xhr.onload = () => {
+                if(xhr.status !== 200)
+                    return reject("Song file not found: " + url);
+                resolve(xhr.response);
+            };
+            xhr.send();
+        });
+        this.renderer.loadSongData(songData);
+        console.info("Song loaded from src: " + src, this.renderer.songData);
         this.render();
     }
     // Input
@@ -229,7 +253,7 @@ class SongEditorElement extends HTMLElement {
     }
 
     onSongEvent(e) {
-        console.log("Note Event: ", e.type);
+        // console.log("Note Event: ", e.type);
         this.grid.onSongEvent(e);
         switch(e.type) {
             case 'song:start':

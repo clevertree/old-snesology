@@ -248,7 +248,11 @@ class SongEditorGrid {
                             e.preventDefault();
                             // this.selectCell(e, this.cursorCell);
                             // if(e.ctrlKey) e.preventDefault();
-                            this.editor.renderer.playInstructions(this.groupName);
+                            if(this.editor.renderer.isPlaybackActive()) {
+                                this.editor.renderer.stopAllPlayback();
+                            } else {
+                                this.editor.renderer.playInstructions(this.groupName);
+                            }
                             break;
 
                         case 'PlayFrequency':
@@ -658,7 +662,7 @@ class SongEditorGrid {
         if(!this.minimumGridLengthTicks) {
             const songData = this.editor.getSongData();
             const timeDivision = songData.timeDivision || 96 * 4;
-            this.minimumGridLengthTicks = 8 * timeDivision;
+            this.minimumGridLengthTicks = 16 * timeDivision;
         }
 
         let remainingDuration = this.minimumGridLengthTicks - tickTotal;

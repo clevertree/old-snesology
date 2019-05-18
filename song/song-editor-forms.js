@@ -183,7 +183,7 @@ class SongEditorForms {
                 break;
 
             case 'load:file':
-                this.editor.loadSongFromFile(form['file']);
+                this.editor.loadSongFromFileInput(form['file']);
                 break;
 
             case 'song:edit':
@@ -192,11 +192,20 @@ class SongEditorForms {
                 break;
 
             case 'song:play':
-                this.editor.renderer.play();
+                if(this.editor.renderer.isPlaybackActive())
+                    this.editor.renderer.stopAllPlayback();
+                else
+                    this.editor.renderer.play();
                 break;
             case 'song:pause':
-                this.editor.renderer.pause();
+                this.editor.renderer.stopAllPlayback();
+                // this.editor.renderer.pause();
                 break;
+
+            case 'song:resume':
+                this.editor.renderer.play(this.editor.renderer.seekPosition);
+                break;
+
             case 'song:playback':
                 console.log(e.target);
                 break;

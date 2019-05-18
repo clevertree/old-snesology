@@ -248,7 +248,7 @@ song-editor .hide-control-instrument form.form-control-note-toggle > button {
 /** Form Visibility **/
 
 song-editor:not(.playing)   form.show-on-song-playing,
-song-editor:not(.paused)    form.show-on-song-playing,
+song-editor.playing         form.show-on-song-paused,
 song-editor .editor-forms:not(.show-control-note-modify) .control-note-modify,
 song-editor .editor-forms:not(.show-control-note-insert) .control-note-insert,
 song-editor .editor-forms.hide-control-song .control-song,
@@ -373,7 +373,7 @@ song-editor .editor-grid {
     /*width: 100%;*/
     position: relative;
     clear: both;
-    max-height: 600px;
+    max-height: 580px;
     overflow-y: auto;
     /* font-size: 12px; */
 }

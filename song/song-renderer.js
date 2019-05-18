@@ -9,7 +9,7 @@ class SongRenderer {
         this.songData = {};
         this.loadedInstruments = [];
         this.loadedInstrumentClasses = {};
-        this.seekLength = 1;
+        this.seekLength = 0.5;
         this.seekPosition = 0;
         this.volumeGain = null;
         this.playing = false;
@@ -296,6 +296,10 @@ class SongRenderer {
             this.songData.root || 'root',
             startTime
         );
+        // TODO: track seek position?
+        this.seekPosition = this.getAudioContext().currentTime - (this.seekPosition + startTime); // TODO: broken
+        this.dispatchEvent(new CustomEvent('song:end'));
+        console.log("Seek position: ", this.seekPosition);
 
     }
 
@@ -352,6 +356,15 @@ class SongRenderer {
                 this.activeGroups[key] = false;
             }
         }
+    }
+    isPlaybackActive() {
+        for(const key in this.activeGroups) {
+            if(this.activeGroups.hasOwnProperty(key)) {
+                if(this.activeGroups[key] === true)
+                    return true;
+            }
+        }
+        return false;
     }
 
     // async/await each group playback

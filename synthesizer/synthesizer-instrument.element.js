@@ -104,7 +104,7 @@ class SynthesizerInstrument extends HTMLElement {
         let frequencyValue = this.getCommandFrequency(commandFrequency);
         if(Number.isNaN(frequencyValue)) {
             console.warn("Invalid command frequency: ", commandFrequency, this.config);
-            return sources;
+            return null;
         }
 
         // Loop through sample

@@ -73,7 +73,7 @@ class SongStorage {
         localStorage.setItem('song:' + songData.guid, this.encodeForStorage(songData));
         localStorage.setItem('song-history:' + songData.guid, this.encodeForStorage(songHistory)); // History stored separately due to memory limits
         // this.querySelector('.song-menu').outerHTML = renderEditorMenuContent(this);
-        // console.info("Song saved to memory: " + song.guid, song);
+        console.info("Song saved to memory: " + songData.guid, songData);
     }
 
     saveSongToFile(songData) {

@@ -100,7 +100,7 @@ class SongEditorMenu {
 
             case 'load:file':
                 const fileInput = e.target.querySelector('input[type=file]');
-                this.editor.loadSongFromFile(fileInput);
+                this.editor.loadSongFromFileInput(fileInput);
                 console.log(e);
                 break;
 
