@@ -86,6 +86,8 @@ class SongEditorElement extends HTMLElement {
         this.addEventListener('song:end', this.onSongEvent);
         this.addEventListener('song:pause', this.onSongEvent);
         this.addEventListener('song:modified', this.onSongEvent);
+        this.addEventListener('note:start', this.onSongEvent);
+        this.addEventListener('note:end', this.onSongEvent);
         this.addEventListener('instrument:loaded', this.onSongEvent);
         this.addEventListener('instrument:instance', this.onSongEvent);
         this.addEventListener('instrument:library', this.onSongEvent);
@@ -226,6 +228,8 @@ class SongEditorElement extends HTMLElement {
     }
 
     onSongEvent(e) {
+        console.log("Note Event: ", e.type);
+        this.grid.onSongEvent(e);
         switch(e.type) {
             case 'song:start':
                 this.classList.add('playing');

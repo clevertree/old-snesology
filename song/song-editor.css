@@ -111,11 +111,15 @@ song-editor a:focus + ul.submenu {
 }
 
 /** Menu Styling **/
+song-editor ul.editor-menu > li,
+song-editor ul.editor-menu ul.submenu > li {
+    padding: 5px 8px;
+}
 song-editor ul.editor-menu > li > a,
 song-editor ul.editor-menu ul.submenu > li > a {
     vertical-align: top;
     display: inline-block;
-    padding: 5px 8px;
+    /*padding: 5px 8px;*/
     /* position: relative; */
     cursor: pointer;
     white-space: nowrap;
@@ -173,16 +177,18 @@ song-editor ul.editor-context-menu.open-context-menu {
     z-index: 99;
 }
 
+/** Generic Forms **/
 
-/** Forms **/
+song-editor form {
+    margin: 0px 0px 0px 0px;
+    display: inline-block;
+}
+
+/** Editor Forms **/
+
 song-editor .editor-forms {
     /*display: flex;*/
     flex-wrap: wrap;
-}
-
-song-editor .editor-forms form {
-    margin: 0px 0px 0px 0px;
-    display: inline-block;
 }
 
 /** Form Section **/
@@ -321,7 +327,7 @@ song-editor .editor-forms ul.submenu-item-checkbox {
 /** Song Info Form **/
 
 song-editor .editor-forms form.form-song-volume input[name=volume]      { max-width: 71px; }
-song-editor .editor-forms form.form-song-load input[name=file]          { max-width: 96px; }
+song-editor .editor-forms form.form-load-file input[name=file]          { max-width: 96px; }
 song-editor .editor-forms form.form-song-version input[name=version]    { max-width: 64px; }
 song-editor .editor-forms form.form-song-title input[name=title]        { width: 160px; }
 

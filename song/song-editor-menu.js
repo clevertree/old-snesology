@@ -26,6 +26,13 @@ class SongEditorMenu {
         // let targetClassList = e.target.classList;
         switch(e.type) {
 
+            case 'change':
+            case 'blur':
+                if(e.target.form && e.target.form.classList.contains('submit-on-' + e.type)) {
+                    this.editor.forms.onSubmit(e, e.target.form);
+                }
+                //     this.onMenu(e);
+                break;
             case 'mousedown':
                 this.onMenu(e);
                 this.closeMenu();
@@ -43,8 +50,8 @@ class SongEditorMenu {
         const selectedIndicies = this.editor.selectedIndicies;
 
         let menuTarget = e.target;
-        if(menuTarget.nodeName.toLowerCase() !== 'a')
-            menuTarget = menuTarget.querySelector('a');
+        // if(menuTarget.nodeName.toLowerCase() !== 'a')
+        //     menuTarget = menuTarget.querySelector('a');
         if(!menuTarget)
             return;
         const dataCommand = menuTarget.getAttribute('data-action');
@@ -65,17 +72,17 @@ class SongEditorMenu {
             case 'song:save':
                 throw new Error("Todo");
 
-            case 'song:load-server-uuid':
-                e.preventDefault();
-                // let uuid = menuTarget.getAttribute('data-uuid') || null;
-                if(!uuid) uuid = prompt("Enter UUID: ");
-                this.editor.loadSongFromServer(uuid);
-                this.editor.render();
-                break;
+            // case 'song:load-server-uuid':
+            //     e.preventDefault();
+            //     // let uuid = menuTarget.getAttribute('data-uuid') || null;
+            //     if(!uuid) uuid = prompt("Enter UUID: ");
+            //     this.editor.loadSongFromServer(uuid);
+            //     this.editor.render();
+            //     break;
 
             case 'song:load-memory-uuid':
                 e.preventDefault();
-                // let uuid = menuTarget.getAttribute('data-uuid') || null;
+                let uuid = menuTarget.getAttribute('data-uuid') || null;
                 this.editor.loadSongFromMemory(uuid);
                 this.editor.render();
                 break;
@@ -91,12 +98,17 @@ class SongEditorMenu {
                 this.editor.saveSongToFile();
                 break;
 
+            case 'load:file':
+                const fileInput = e.target.querySelector('input[type=file]');
+                this.editor.loadSongFromFile(fileInput);
+                console.log(e);
+                break;
 
             case 'group:add':
                 e.preventDefault();
                 let newGroupName = this.editor.renderer.generateInstructionGroupName(currentGroup);
                 newGroupName = prompt("Create new instruction group?", newGroupName);
-                if(newGroupName)    this.editor.renderer.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                if(newGroupName)    this.editor.renderer.addInstructionGroup(newGroupName, []);
                 else                console.error("Create instruction group canceled");
                 break;
 
@@ -245,6 +257,7 @@ class SongEditorMenu {
                 // this.renderElement.querySelectorAll('a.open').forEach((a) => a !== menuTarget ? a.classList.remove('open') : null);
                 // menuTarget.classList.toggle('open');
                 break;
+
             default:
                 console.warn("Unknown menu command: " + dataCommand);
         }
@@ -261,6 +274,8 @@ class SongEditorMenu {
             this.renderElement.classList.add('show-control-note-modify');
         }
     }
+
+    //                                    <li><a data-action="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
 
     // ${this.renderEditorMenuLoadFromMemory()}
     render() {
@@ -281,22 +296,20 @@ class SongEditorMenu {
                         <a><span class="key">O</span>pen song &#9658;</a>
                         <ul class="submenu">
                             <li>
-                                <a class="disabled">from <span class="key">S</span>erver &#9658;</a>
+                                <a>from <span class="key">M</span>emory &#9658;</a>
                                 <ul class="submenu">
-                                    ${this.editor.values.getValues('server-recent-uuid', (value, label) =>
-                                    `<li><a data-action="song:load-server-uuid" data-uuid="${value}">${label}</a></li>`)}
-                                    <li><a data-action="song:load-server-uuid" data-uuid="">Enter UUID</a></li>
+                                    ${this.editor.values.getValues('song-recent-list', (value, label) =>
+                                    `<li><a data-action="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
                                 </ul>
                             </li>
                             <li>
-                                <a>from <span class="key">M</span>emory &#9658;</a>
-                                <ul class="submenu">
-                                    ${this.editor.values.getValues('memory-recent-uuid', (value, label) =>
-                                    `<li><a data-action="song:load-memory-uuid" data-uuid="${value}">${label}</a></li>`)}
-                                    <li><a data-action="song:load-memory-uuid" data-uuid="">Enter UUID</a></li>
-                                </ul>
+                                <form action="#" class="form-menu-load-file submit-on-change" data-action="load:file">
+                                    <label>
+                                        from <span class="key">F</span>ile
+                                        <input type="file" name="file" accept=".json,.mid,.midi" style="display: none" />
+                                    </label>
+                                </form>
                             </li>
-                            <li><a class="disabled" data-action="load:file">from <span class="key">F</span>ile</a></li>
                             <li><a class="disabled" data-action="load:url">from <span class="key">U</span>rl</a></li>
                         </ul>
                     </li>
@@ -306,6 +319,19 @@ class SongEditorMenu {
                             <li><a class="disabled" data-action="song:server-sync">to <span class="key">S</span>erver</a><input type="checkbox" ${this.editor.webSocket ? `checked="checked"` : ''}></li>
                             <li><a data-action="save:memory">to <span class="key">M</span>emory</a></li>
                             <li><a data-action="save:file">to <span class="key">F</span>ile</a></li>    
+                        </ul>
+                    </li> 
+                    <li>
+                        <a><span class="key">I</span>mport song &#9658;</a>
+                        <ul class="submenu">
+                            <li>
+                                <form action="#" class="form-menu-load-file submit-on-change" data-action="load:file">
+                                    <label>
+                                        from <span class="key">M</span>idi file
+                                        <input type="file" name="file" accept=".mid,.midi" style="display: none" />
+                                    </label>
+                                </form>
+                            </li>
                         </ul>
                     </li> 
                     <li>

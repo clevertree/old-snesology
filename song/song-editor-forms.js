@@ -45,8 +45,8 @@ class SongEditorForms {
 
         if(this.fieldInstructionInstrument.value || this.fieldInstructionInstrument.value === 0)
             newInstruction.instrument = parseInt(this.fieldInstructionInstrument.value);
-        if(this.fieldInstructionDuration.value)
-            newInstruction.duration = parseFloat(this.fieldInstructionDuration.value);
+        if(this.fieldInstructionDuration.value) // TODO: refactor DURATIONS
+            newInstruction.duration = this.fieldInstructionDuration.value;
         const velocityValue = parseInt(this.fieldInstructionVelocity.value);
         if(velocityValue && velocityValue !== 100)
             newInstruction.velocity = velocityValue;
@@ -54,22 +54,22 @@ class SongEditorForms {
         return newInstruction;
     }
 
-    onInput(e) {
+    onInput(e, form) {
         if (e.defaultPrevented)
             return;
-        if(e.target instanceof Node && !this.renderElement.contains(e.target))
+        if(!form && e.target instanceof Node && !this.renderElement.contains(e.target))
             return;
 
         try {
             switch (e.type) {
                 case 'submit':
                     e.preventDefault();
-                    this.onSubmit(e);
+                    this.onSubmit(e, form);
                     break;
                 case 'change':
                 case 'blur':
                     if(e.target.form && e.target.form.classList.contains('submit-on-' + e.type))
-                        this.onSubmit(e);
+                        this.onSubmit(e, form);
                     break;
             }
 
@@ -78,8 +78,9 @@ class SongEditorForms {
         }
     }
 
-    onSubmit(e) {
-        let form = e.target.form || e.target;
+    onSubmit(e, form) {
+        if(!form)
+            form = e.target.form || e.target;
         const command = form.getAttribute('data-action');
         // const cursorCellIndex = this.editor.cursorCellIndex;
         const currentGroup = this.editor.currentGroup;
@@ -169,7 +170,7 @@ class SongEditorForms {
                 if (form.groupName.value === ':new') {
                     let newGroupName = this.editor.renderer.generateInstructionGroupName(currentGroup);
                     newGroupName = prompt("Create new instruction group?", newGroupName);
-                    if (newGroupName) this.editor.renderer.addInstructionGroup(newGroupName, [1, 1, 1, 1]);
+                    if (newGroupName) this.editor.renderer.addInstructionGroup(newGroupName, []);
                     else console.error("Create instruction group canceled");
                     this.editor.render();
                 } else {
@@ -177,7 +178,7 @@ class SongEditorForms {
                 }
                 break;
 
-            case 'song:load':
+            case 'load:file':
                 this.editor.loadSongFromFile(form['file']);
                 break;
 
@@ -294,7 +295,7 @@ class SongEditorForms {
             
             <div class="form-section control-song">
                 <div class="form-section-header">Load</div>
-                <form action="#" class="form-song-load submit-on-change" data-action="song:load">
+                <form name="form-load-file" action="#" class="form-load-file submit-on-change" data-action="load:file">
                     <label>
                         <div class="input-style">File</div>
                         <input type="file" name="file" accept=".json,.mid,.midi" style="display: none" />
@@ -400,7 +401,6 @@ class SongEditorForms {
                 <div class="form-section-header">Duration</div>
                 <form action="#" class="form-instruction-duration submit-on-change" data-action="instruction:duration">
                     <select name="duration" title="Instruction Duration" class="themed">
-                        <option value="">None</option>
                         <optgroup label="Note Duration">
                             ${this.renderEditorFormOptions('named-durations')}
                         </optgroup>
@@ -477,7 +477,7 @@ class SongEditorForms {
             </div>
             
             <div class="form-section control-grid">
-                <div class="form-section-header">Selection</div>                    
+                <div class="form-section-header">Indicies</div>                    
                 <form class="form-selected-indicies submit-on-change" data-action="grid:selected">
                     <input name="indicies" placeholder="No indicies selection" />
                 </form>
@@ -536,7 +536,7 @@ class SongEditorForms {
 
 
         if(!this.fieldRenderDuration.value)
-            this.fieldRenderDuration.value = this.editor.renderer.getSongTimeDivision();
+            this.fieldRenderDuration.value = '1B'; // this.editor.renderer.getSongTimeDivision();
 
         // this.fieldInstructionDuration.value = parseFloat(this.fieldRenderDuration.value) + '';
 
@@ -547,7 +547,7 @@ class SongEditorForms {
             this.fieldInstructionCommand.value = cursorInstruction.command;
             this.fieldInstructionInstrument.value = cursorInstruction.instrument !== null ? cursorInstruction.instrument : '';
             this.fieldInstructionVelocity.value = cursorInstruction.velocity !== null ? cursorInstruction.velocity : '';
-            this.fieldInstructionDuration.value = cursorInstruction.duration !== null ? cursorInstruction.duration : '';
+            this.fieldInstructionDuration.value = cursorInstruction.duration !== null ? cursorInstruction.duration : '1B';
             this.renderElement.classList.add('show-control-note-modify');
 
         } else if(selectedIndicies.length > 0) {

@@ -31,7 +31,7 @@ class SongStorage {
                 "url": "/synthesizer/synthesizer-instrument.element.js",
             }],
             instructions: {
-                'root': [4,4]
+                'root': []
             }
         }
     }
@@ -82,7 +82,7 @@ class SongStorage {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href",     dataStr);
-        downloadAnchorNode.setAttribute("download", songData.title);
+        downloadAnchorNode.setAttribute("download", songData.title || "untitled");
         document.body.appendChild(downloadAnchorNode); // required for firefox
         downloadAnchorNode.click();
         downloadAnchorNode.remove();

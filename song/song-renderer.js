@@ -167,7 +167,7 @@ class SongRenderer {
         songData = Object.assign({}, {
             instruments: [],
             instructions: {
-                'root': [4]
+                'root': []
             }
         }, songData);
         // TODO: Cleanup
@@ -304,46 +304,46 @@ class SongRenderer {
         this.dispatchEvent(new CustomEvent('song:pause'));
     }
 
-    processPlayback () {
-        if(this.playing === false) {
-            console.info("Playing paused");
-            return;
-        }
-        const startTime = this.seekPosition;
-        const currentTime = this.getAudioContext().currentTime - this.startTime;
-        let endTime = startTime + this.seekLength;
-        while(endTime < currentTime)
-            endTime += this.seekLength;
-        this.seekPosition = endTime;
-
-        const totalPlayTime = this.playInstructions(
-            this.songData.root || 'root',
-            startTime,
-            endTime,
-            this.startTime
-        );
-
-        // this.seekPosition += this.seekLength;
-        // this.seekPosition = currentTime - this.startTime;
-        // this.seekPosition += this.seekLength;
-
-        if(currentTime < totalPlayTime) {
-            console.log("Instructions playing:", this.seekPosition, this.seekLength, currentTime - this.startTime);
-
-            this.dispatchEvent(new CustomEvent('song:playback'));
-            setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
-        } else{
-
-            setTimeout(() => {
-                console.log("Song finished. Play time: ", totalPlayTime);
-                this.seekPosition = 0;
-                this.playing = false;
-
-                // Update UI
-                this.dispatchEvent(new CustomEvent('song:end'));
-            }, totalPlayTime - currentTime)
-        }
-    }
+    // processPlayback () {
+    //     if(this.playing === false) {
+    //         console.info("Playing paused");
+    //         return;
+    //     }
+    //     const startTime = this.seekPosition;
+    //     const currentTime = this.getAudioContext().currentTime - this.startTime;
+    //     let endTime = startTime + this.seekLength;
+    //     while(endTime < currentTime)
+    //         endTime += this.seekLength;
+    //     this.seekPosition = endTime;
+    //
+    //     const totalPlayTime = this.playInstructions(
+    //         this.songData.root || 'root',
+    //         startTime,
+    //         endTime,
+    //         this.startTime
+    //     );
+    //
+    //     // this.seekPosition += this.seekLength;
+    //     // this.seekPosition = currentTime - this.startTime;
+    //     // this.seekPosition += this.seekLength;
+    //
+    //     if(currentTime < totalPlayTime) {
+    //         console.log("Instructions playing:", this.seekPosition, this.seekLength, currentTime - this.startTime);
+    //
+    //         this.dispatchEvent(new CustomEvent('song:playback'));
+    //         setTimeout(this.processPlayback.bind(this), this.seekLength * 1000);
+    //     } else{
+    //
+    //         setTimeout(() => {
+    //             console.log("Song finished. Play time: ", totalPlayTime);
+    //             this.seekPosition = 0;
+    //             this.playing = false;
+    //
+    //             // Update UI
+    //             this.dispatchEvent(new CustomEvent('song:end'));
+    //         }, totalPlayTime - currentTime)
+    //     }
+    // }
 
 
     stopAllPlayback() {
@@ -564,7 +564,9 @@ class SongRenderer {
             //     }
         }
         // const noteDuration = (instruction.duration || 1) * (60 / bpm);
-        const noteDuration = (instruction.duration / this.getSongTimeDivision()) / (bpm / 60);
+        let timeDivision = this.getSongTimeDivision();
+        const noteDurationInTicks = instruction.getDurationAsTicks(timeDivision);
+        const noteDuration = (noteDurationInTicks / timeDivision) / (bpm / 60);
 
         if(!instrumentID && instrumentID !== 0) {
             console.warn("No instrument set for instruction. Using instrument 0");
@@ -582,31 +584,32 @@ class SongRenderer {
 
         this.playInstrument(instrumentID, noteFrequency, noteStartTime, noteDuration, noteVelocity);
 
-        // const noteEventData = {
-        //     // audioNode: audioNode,
-        //     frequency: noteFrequency,
-        //     startTime: noteStartTime,
-        //     duration: noteDuration,
-        //     instrumentPreset: this.songData.instruments[instrumentID],
-        //     instruction: instruction,
-        //     // groupInstruction: stats.groupInstruction,
-        //     stats: stats || {}
-        // };
-        //
-        // if(noteStartTime > currentTime)
-        //     setTimeout(() => {
-        //         this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-        //     }, (noteStartTime - currentTime) * 1000);
-        // else {
-        //     // Start immediately
-        //     this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
-        // }
-        //
-        // if(noteDuration) {
-        //     setTimeout(() => {
-        //         this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
-        //     }, (noteStartTime - currentTime + noteDuration) * 1000);
-        // }
+        const noteEventData = {
+            // audioNode: audioNode,
+            frequency: noteFrequency,
+            startTime: noteStartTime,
+            duration: noteDuration,
+            // instrumentPreset: this.songData.instruments[instrumentID],
+            instruction: instruction,
+            // groupInstruction: stats.groupInstruction,
+            stats: stats || {}
+        };
+
+        const currentTime = this.getAudioContext().currentTime;
+        if(noteStartTime > currentTime)
+            setTimeout(() => {
+                this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
+            }, (noteStartTime - currentTime) * 1000);
+        else {
+            // Start immediately
+            this.dispatchEvent(new CustomEvent('note:start', {detail: noteEventData}));
+        }
+
+        if(noteDuration) {
+            setTimeout(() => {
+                this.dispatchEvent(new CustomEvent('note:end', {detail: noteEventData}));
+            }, (noteStartTime - currentTime + noteDuration) * 1000);
+        }
 
     }
 
@@ -1168,10 +1171,7 @@ class SongInstruction {
     }
     get deltaDuration() { return this.data[0]; }
     set deltaDuration(newDeltaDuration) {
-        newDeltaDuration = parseFloat(newDeltaDuration);
-        if(Number.isNaN(newDeltaDuration))
-            throw new Error("Invalid Delta Duration");
-        this.data[0] = newDeltaDuration;
+        this.data[0] = SongInstruction.parseDurationAsTicks(newDeltaDuration);
     }
     get command()           { return this.data[1] || null; }
     set command(newCommand) { this.data[1] = newCommand; }
@@ -1189,6 +1189,8 @@ class SongInstruction {
             throw new Error("Invalid Duration");
         this.data[3] = newDuration;
     }
+    getDurationAsTicks(timeDivision) { return SongInstruction.parseDurationAsTicks(this.duration, timeDivision); }
+
     get velocity()    { return typeof this.data[4] === "undefined" ? null : this.data[4]; }
     set velocity(newVelocity) {
         newVelocity = parseInt(newVelocity);
@@ -1225,6 +1227,18 @@ class SongInstruction {
             instruction.unshift(0);
 
         return new SongInstruction(instruction);
+    }
+
+    static parseDurationAsTicks(durationString, timeDivision) {
+        if(durationString === null || typeof durationString === 'number')
+            return durationString;
+        switch(durationString[durationString.length-1].toLowerCase()) {
+            case 't':
+                return parseInt(durationString.substr(0, durationString.length-1));
+            case 'b':
+                return timeDivision * parseInt(durationString.substr(0, durationString.length-1));
+        }
+        throw new Error("Invalid Duration: " + durationString);
     }
 }
 

@@ -22,11 +22,18 @@ class SongEditorValues {
         const timeDivision = this.editor.renderer.getSongTimeDivision();
 
         switch(valueType) {
-            case 'server-recent-uuid':
-            case 'memory-recent-uuid':
-                const songRecentUUIDs = JSON.parse(localStorage.getItem(valueType) || '[]');
+            // case 'server-recent-uuid':
+            // case 'memory-recent-uuid':
+            //     const songRecentUUIDs = JSON.parse(localStorage.getItem(valueType) || '[]');
+            //     for(let i=0; i<songRecentUUIDs.length; i++)
+            //         valuesHTML += callback.apply(this, songRecentUUIDs[i]);
+            //     break;
+
+            case 'song-recent-list':
+                const songStorage = new SongStorage();
+                const songRecentUUIDs = songStorage.getRecentSongList() ;
                 for(let i=0; i<songRecentUUIDs.length; i++)
-                    valuesHTML += callback.apply(this, songRecentUUIDs[i]);
+                    valuesHTML += callback(songRecentUUIDs[i].guid, songRecentUUIDs[i].title);
                 break;
 
             case 'song-instruments':
@@ -146,6 +153,8 @@ class SongEditorValues {
                         valuesHTML += callback('@' + key, '@' + key);
                     });
                 break;
+            default:
+                throw new Error("Invalid Value type: " + valueType);
         }
         return valuesHTML;
     }
@@ -153,9 +162,6 @@ class SongEditorValues {
     /** Formatting **/
 
     format(input, type) {
-        // const songData = this.editor.getSongData() || {};
-        // const timeDivision = songData.timeDivision || 96*4;
-
         switch(type) {
             case 'duration':
                 let stringValue;
@@ -180,4 +186,5 @@ class SongEditorValues {
 
         }
     }
+
 }
