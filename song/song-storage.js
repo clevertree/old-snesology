@@ -78,7 +78,12 @@ class SongStorage {
 
     saveSongToFile(songData) {
         // const song = this.getSongData();
-        const jsonString = JSON.stringify(songData, null, "\t");
+        const instructionsKey = "/** INSTRUCTIONS-" + this.generateGUID() + ' **/';
+        let jsonStringInstructions = JSON.stringify(songData.instructions);
+        let jsonString = JSON.stringify(Object.assign({}, songData, {
+            instructions: instructionsKey
+        }), null, "\t");
+        jsonString = jsonString.replace('"' + instructionsKey + '"', jsonStringInstructions);
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href",     dataStr);

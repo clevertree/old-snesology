@@ -388,9 +388,10 @@ class SongEditorGrid {
                 if(instructionElm) {
                     instructionElm.classList.add('playing');
                     instructionElm.parentNode.classList.add('playing');
+                    this.scrollToCursor(instructionElm);
 //                     console.log("SCROLL", instructionElm.parentNode.offsetTop, this.renderElement.scrollTop);
-                    if(this.renderElement.scrollTop - 50 < instructionElm.parentNode.offsetTop - this.renderElement.offsetHeight)
-                        this.renderElement.scrollTop = 50 + instructionElm.parentNode.offsetTop - this.renderElement.offsetHeight;
+//                     if(this.renderElement.scrollTop - 50 < instructionElm.parentNode.offsetTop - this.renderElement.offsetHeight)
+//                         this.renderElement.scrollTop = 50 + instructionElm.parentNode.offsetTop - this.renderElement.offsetHeight;
                     // console.log("show", instructionElm);
                 }
                 if(groupElm) {
@@ -502,12 +503,7 @@ class SongEditorGrid {
         this.editor.selectInstructions(this.selectedIndicies); // TODO: timeout
         this.renderElement.focus();
 
-        const container = this.renderElement; // cursorCell.closest('.editor-grid-container');
-        if(container.scrollTop < cursorCell.parentNode.offsetTop - container.offsetHeight)
-            container.scrollTop = cursorCell.parentNode.offsetTop - container.offsetHeight;
-
-        if(container.scrollTop > cursorCell.parentNode.offsetTop)
-            container.scrollTop = cursorCell.parentNode.offsetTop;
+        this.scrollToCursor(cursorCell);
         console.timeEnd('selectCell');
         // console.log(cursorCell);
     }
@@ -597,15 +593,22 @@ class SongEditorGrid {
     //     return this.editor.selectInstructions(selectedIndicies);
     // }
 
-    scrollToCursor() {
-        if(!this.cursorCell)
-            return;
-        const currentCellParent = this.cursorCell.parentNode;
+    scrollToCursor(cursorCell) {
+        const container = this.renderElement; // cursorCell.closest('.editor-grid-container');
+        if(container.scrollTop < cursorCell.parentNode.offsetTop - container.offsetHeight)
+            container.scrollTop = cursorCell.parentNode.offsetTop;
+
+        if(container.scrollTop > cursorCell.parentNode.offsetTop)
+            container.scrollTop = cursorCell.parentNode.offsetTop - container.offsetHeight;
+
+        // if(!this.cursorCell)
+        //     return;
+        // const currentCellParent = this.cursorCell.parentNode;
         // console.log("TODO: ", currentCellParent.offsetTop, this.scrollTop, this.offsetHeight);
-        if(currentCellParent.offsetTop < this.scrollTop)
-            this.scrollTop = currentCellParent.offsetTop;
-        if(currentCellParent.offsetTop > this.scrollTop + this.offsetHeight)
-            this.scrollTop = currentCellParent.offsetTop - this.offsetHeight + this.cursorCell.offsetHeight;
+        // if(currentCellParent.offsetTop < this.scrollTop)
+        //     this.scrollTop = currentCellParent.offsetTop;
+        // if(currentCellParent.offsetTop > this.scrollTop + this.offsetHeight)
+        //     this.scrollTop = currentCellParent.offsetTop - this.offsetHeight + this.cursorCell.offsetHeight;
     }
 
 
