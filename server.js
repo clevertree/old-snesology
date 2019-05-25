@@ -52,22 +52,22 @@ app.listen(httpServer.serverConfig.httpPort, function() {
 
 // Add Custom Element Sources
 clevertreeCMS.ContentRenderer.addGlobalElementSources({
-    'song-editor': [
-        'song/song-editor.css',
-        'song/song-editor-forms.js',
-        'song/song-editor-grid.js',
-        'song/song-editor-instruments.js',
-        'song/song-editor-keyboard.js',
-        'song/song-editor-menu.js',
-        'song/song-editor-websocket.js',
-        'song/song-editor-values.js',
-        'song/song-renderer.js',
-        'song/song-storage.js',
-        'song/song-editor.element.js',
+    'audiosource-editor': [
+        'audiosource/audiosource-editor.css',
+        'audiosource/audiosource-editor-forms.js',
+        'audiosource/audiosource-editor-grid.js',
+        'audiosource/audiosource-editor-instruments.js',
+        'audiosource/audiosource-editor-keyboard.js',
+        'audiosource/audiosource-editor-menu.js',
+        'audiosource/audiosource-editor-websocket.js',
+        'audiosource/audiosource-editor-values.js',
+        'audiosource/audiosource-renderer.js',
+        'audiosource/audiosource-storage.js',
+        'audiosource/audiosource-editor.element.js',
     ],
-    'song-player': [
-        'song/song-renderer.js',
-        'song/song-player.css',
-        'song/song-player.element.js',
+    'audiosource-player': [
+        'audiosource/audiosource-renderer.js',
+        'audiosource/audiosource-player.css',
+        'audiosource/audiosource-player.element.js',
     ],
 });
