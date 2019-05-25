@@ -1,7 +1,7 @@
 {
   "instruments": [
     {
-      "url": "/synthesizer/synthesizer-instrument.element.js",
+      "url": "/audio-source/audio-source-synthesizer.element.js",
       "samples": {
         "acoustic_bass": {
           "url": "/sample/snes/ffvi/acoustic_bass.wav",
@@ -12,7 +12,7 @@
       "preset": "acoustic_bass"
     },
     {
-      "url": "/synthesizer/synthesizer-instrument.element.js",
+      "url": "/audio-source/audio-source-synthesizer.element.js",
       "samples": {
         "piano": {
           "url": "/sample/snes/ffvi/piano.wav",

@@ -1,9 +1,0 @@
-{
-  "name": "Instrument Libraries",
-  "instruments": [
-    {
-      "title": "Synthesizer Instrument",
-      "url": "/synthesizer/synthesizer-instrument.element.js"
-    }
-  ]
-}
