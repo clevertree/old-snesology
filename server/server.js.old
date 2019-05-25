@@ -22,6 +22,33 @@ class BaseServer {
         app.db = this.loadDatabase();
 
 
+
+// Add CMS middleware
+//         app.use(clevertreeCMS.getMiddleware({
+//             database: {
+//                 // host: 'localhost',
+//                 // user: 'cms_user',
+//                 // password: 'cms_pass',
+//                 database: 'ffga_me_cms'
+//             },
+//             server: {
+//                 httpPort: 8092,
+//                 sslEnable: false
+//                 // sslPort: 8443,
+//             },
+//             mail: {
+//                 client: {
+//                     auth: {
+//                         user: "mail@ffga.me",
+//                         pass: "mailmail"
+//                     },
+//                     host: "mail.ffga.me",
+//                     port: 587
+//                 }
+//             }
+//         }));
+//
+
         // Init Routes
         require('./route/file-server.js')(app);
         require('./route/song-server.js')(app);

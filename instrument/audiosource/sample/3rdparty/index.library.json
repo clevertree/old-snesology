@@ -1,7 +1,0 @@
-{
-  "name": "3rd Party Libraries",
-  "baseURL": "/sample/3rdparty/",
-  "index": [
-    "mohayonao.library.json"
-  ]
-}

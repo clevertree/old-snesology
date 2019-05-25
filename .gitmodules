@@ -1,3 +1,6 @@
-[submodule "instrument/chiptune"]
-	path = instrument/chiptune
+[submodule "sample"]
+	path = sample
 	url = ssh://git@github.com/clevertree/snesology-samples
+[submodule "audio-source"]
+	path = audio-source
+	url = git@github.com:clevertree/audio-source.git
