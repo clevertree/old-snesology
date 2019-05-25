@@ -52,22 +52,23 @@ app.listen(httpServer.serverConfig.httpPort, function() {
 
 // Add Custom Element Sources
 clevertreeCMS.ContentRenderer.addGlobalElementSources({
-    'audiosource-editor': [
-        'audiosource/audiosource-editor.css',
-        'audiosource/audiosource-editor-forms.js',
-        'audiosource/audiosource-editor-grid.js',
-        'audiosource/audiosource-editor-instruments.js',
-        'audiosource/audiosource-editor-keyboard.js',
-        'audiosource/audiosource-editor-menu.js',
-        'audiosource/audiosource-editor-websocket.js',
-        'audiosource/audiosource-editor-values.js',
-        'audiosource/audiosource-renderer.js',
-        'audiosource/audiosource-storage.js',
-        'audiosource/audiosource-editor.element.js',
+    'audio-source-editor': [
+        'audio-source/audio-source-editor.css',
+        'audio-source/audio-source-editor-forms.js',
+        'audio-source/audio-source-editor-grid.js',
+        'audio-source/audio-source-editor-instruments.js',
+        'audio-source/audio-source-editor-keyboard.js',
+        'audio-source/audio-source-editor-menu.js',
+        'audio-source/audio-source-editor-websocket.js',
+        'audio-source/audio-source-editor-values.js',
+        'audio-source/audio-source-renderer.js',
+        'audio-source/audio-source-storage.js',
+        'audio-source/audio-source-libraries.js',
+        'audio-source/audio-source-editor.element.js',
     ],
-    'audiosource-player': [
-        'audiosource/audiosource-renderer.js',
-        'audiosource/audiosource-player.css',
-        'audiosource/audiosource-player.element.js',
+    'audio-source-player': [
+        'audio-source/audio-source-renderer.js',
+        'audio-source/audio-source-player.css',
+        'audio-source/audio-source-player.element.js',
     ],
 });
