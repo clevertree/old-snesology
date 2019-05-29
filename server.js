@@ -53,7 +53,7 @@ app.listen(httpServer.serverConfig.httpPort, function() {
 // Add Custom Element Sources
 clevertreeCMS.ContentRenderer.addGlobalElementSources({
     'audio-source-editor': [
-        'audio-source/editor/audio-source-editor.element.js',
+        'audio-source/editor/audio-source-editor-element.js',
         'audio-source/editor/audio-source-editor.css',
 
         'audio-source/editor/audio-source-editor-forms.js',
