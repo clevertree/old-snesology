@@ -34,6 +34,6 @@
     "crc": "^3.8.0",
     "bad-words": "^3.0.0",
     "jsdom": "^15.1.0",
-    "clevertree-cms": "^1.1.6"
+    "minify": "^4.1.1"
   }
 }

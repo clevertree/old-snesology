@@ -1,0 +1,71 @@
+.snes-theme {
+    background: #95afc0;
+    max-width: 80em;
+    color: #FFF;
+    margin: auto;
+}
+
+.snes-theme a {
+    color: #ffb046;
+    text-shadow: #000 1px 1px 1px;
+}
+
+.snes-theme article{
+    background: #535c68;
+    padding: 0.1em 1em 1em 1em;
+    border-radius: 1em;
+}
+
+
+/** Header **/
+
+.snes-theme header {
+    text-align: center;
+    /* background: linear-gradient(to bottom, #EEE 0%, #CCC 100%); */
+}
+
+
+.snes-theme header a > h1 > img {
+    padding-top: 0.3em;
+}
+
+
+/** Footer **/
+
+.snes-theme footer {
+    padding: 1em;
+    text-align: center;
+    /* background: linear-gradient(to bottom, #EEE 0%, #CCC 100%); */
+}
+
+
+
+/** Section **/
+
+
+.snes-theme .choose-section {
+    display: flex;
+    justify-content: center;
+}
+
+.snes-theme .choose-section > div {
+    text-align: center;
+    display: inline-block;
+    width: 40%;
+    background-color: #2980b9;
+    padding: 1em 1em 0 1em;
+    margin: 1em;
+    border-radius: 1em;
+}
+
+.snes-theme .choose-section img {
+    cursor: not-allowed;
+    max-width: 70%;
+}
+
+/** Lists **/
+
+.snes-theme ul.features {
+    font-size: x-small;
+    font-family: 'Advent Pro', monospace;
+}
