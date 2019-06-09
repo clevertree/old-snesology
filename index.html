@@ -1,0 +1,63 @@
+<html>
+
+<head>
+    <title>SNESology</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        // Support older browsers
+        window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="assets/site.css" rel="stylesheet">
+
+    <script src="audio-source/composer/audio-source-composer.min.js"></script>
+    <script src="audio-source/instrument/audio-source-synthesizer.js"></script>
+</head>
+
+<body class="snes-theme">
+<header>
+    <a href="">
+        <h1>
+            <img src="assets/logo/logo-header.png" alt="SNESology" />
+        </h1>
+    </a>
+</header>
+
+<article>
+    <section>
+        <h2>SNESology Demo</h2>
+        <p>
+            This is an early demo of the SNESology project's free online music composer called <a href="audio-source/editor.html">Audio Source Composer</a>.
+            Check back soon for updates!
+        </p>
+        <audio-source-composer src="assets/files/demo.json"></audio-source-composer>
+    </section>
+    <section>
+        <h2 id="project">Project Introduction</h2>
+        <p>The SNESology Project allows anyone with a web browser to compose and share original music based on the <em>Super Nintendo Entertainment System</em> Sound chip, and other consoles too! </p>
+        <h3>Project Goals</h3>
+        <ul>
+            <li>Create music from any browser. No software to install.</li>
+            <li>Songs built with web technology. No sample libraries to manage.</li>
+            <li>Edit songs in real-time with your friends.</li>
+            <li>Framework for professional, collaborative, &amp; administrative services.</li>
+            <li>Chip support: C64, NES, SNES, Sega, PSx, etc.</li>
+            <li><a href="https://github.com/clevertree/snesology/" target="_blank">Open source</a> &amp; free forever</li>
+        </ul>
+        <h3 id="status">Want to contribute?</h3>
+        <p> If you have an idea for the project, skill to lend, or you think you can contribute in some other way: <a href="https://github.com/clevertree/snesology/" target="_blank"></a> We&apos;re looking for programmers, graphic artists, musicians, beta testers, and wishlists. Check out our <a href="https://github.com/clevertree/snesology/" target="_blank">github README</a> for information on how to help </p>
+    </section>
+    <section>
+        <h3 id="about">About</h3>
+        <p>The SNESology Project is a non-profit, <a href="https://github.com/clevertree/snesology/" target="_blank">open source</a> project. </p>
+    </section>
+</article>
+
+<footer>
+    Created by
+    <a class="created-by" target="_blank" href="https://github.com/clevertree/audio-source">CleverTree</a>
+</footer>
+</body>
+
+</html>
