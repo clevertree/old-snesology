@@ -1,7 +1,10 @@
 // const path = require('path');
 const express = require('express');
 const expressWS = require('express-ws');
-const clevertreeCMS = require('clevertree-cms');
+// const clevertreeCMS = require('clevertree-cms');
+
+
+// require('./audio-source/.scripts/minify.js');
 
 const app = express();
 this.app = app;
@@ -40,37 +43,38 @@ app.use(express.static(__dirname));
 // };
 
 // Load .config.json via HTTPServer
-const httpServer = new clevertreeCMS.HTTPServer();
+// const httpServer = new clevertreeCMS.HTTPServer();
 
 // Add CMS middleware
-app.use(httpServer.getMiddleware());
+// app.use(httpServer.getMiddleware());
 
 // Launch your server
-app.listen(httpServer.serverConfig.httpPort, function() {
-    console.log('Example app listening on port: ' + httpServer.serverConfig.httpPort);
+const httpPort = 8090;
+app.listen(httpPort, function() {
+    console.log('SNESology listening on port: ' + httpPort);
 });
 
-// Add Custom Element Sources
-clevertreeCMS.ContentRenderer.addGlobalElementSources({
-    'audio-source-composer': [
-        'audio-source/composer/audio-source-composer-element.js',
-        'audio-source/composer/audio-source-composer.css',
-
-        'audio-source/composer/audio-source-composer-forms.js',
-        'audio-source/composer/audio-source-composer-grid.js',
-        'audio-source/composer/audio-source-composer-instruments.js',
-        'audio-source/composer/audio-source-composer-keyboard.js',
-        'audio-source/composer/audio-source-composer-menu.js',
-        'audio-source/composer/audio-source-composer-websocket.js',
-        'audio-source/composer/audio-source-composer-values.js',
-
-        'audio-source/common/audio-source-renderer.js',
-        'audio-source/common/audio-source-storage.js',
-        'audio-source/common/audio-source-libraries.js',
-    ],
-    'audio-source-player': [
-        'audio-source/player/audio-source-renderer.js',
-        'audio-source/player/audio-source-player.css',
-        'audio-source/player/audio-source-player.element.js',
-    ],
-});
+// // Add Custom Element Sources
+// clevertreeCMS.ContentRenderer.addGlobalElementSources({
+//     'audio-source-composer': [
+//         'audio-source/composer/audio-source-composer-element.js',
+//         'audio-source/composer/audio-source-composer.css',
+//
+//         'audio-source/composer/audio-source-composer-forms.js',
+//         'audio-source/composer/audio-source-composer-tracker.js',
+//         'audio-source/composer/audio-source-composer-instruments.js',
+//         'audio-source/composer/audio-source-composer-keyboard.js',
+//         'audio-source/composer/audio-source-composer-menu.js',
+//         'audio-source/composer/audio-source-composer-websocket.js',
+//         'audio-source/composer/audio-source-composer-values.js',
+//
+//         'audio-source/common/audio-source-renderer.js',
+//         'audio-source/common/audio-source-storage.js',
+//         'audio-source/common/audio-source-libraries.js',
+//     ],
+//     'audio-source-player': [
+//         'audio-source/player/audio-source-renderer.js',
+//         'audio-source/player/audio-source-player.css',
+//         'audio-source/player/audio-source-player.element.js',
+//     ],
+// });

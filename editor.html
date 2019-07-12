@@ -1,0 +1,30 @@
+
+<html>
+
+<head>
+    <title>Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        // Support older browsers
+        window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="audio-source/composer/audio-source-composer.css" rel="stylesheet">
+    <script src="audio-source/composer/audio-source-composer-tracker.js"></script>
+    <script src="audio-source/composer/audio-source-composer-keyboard.js"></script>
+    <script src="audio-source/composer/audio-source-composer-menu.js"></script>
+    <script src="audio-source/composer/audio-source-composer-websocket.js"></script>
+    <script src="audio-source/composer/audio-source-composer-values.js"></script>
+    <script src="audio-source/common/audio-source-libraries.js"></script>
+    <script src="audio-source/common/audio-source-renderer.js"></script>
+    <script src="audio-source/common/audio-source-storage.js"></script>
+    <script src="audio-source/composer/audio-source-composer-element.js"></script>
+</head>
+
+<body>
+    <h1>Audio Source Composer</h1>
+    <audio-source-composer src="assets/files/demo.json" class="fullscreen"></audio-source-composer>
+</body>
+
+</html>
