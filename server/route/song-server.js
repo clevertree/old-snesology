@@ -335,7 +335,7 @@ class SongServer {
 
     generateDefaultSong(uuid) {
         return {
-            "title": `New Song (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`,
+            "name": `New Song (${new Date().toJSON().slice(0, 10).replace(/-/g, '/')})`,
             "uuid": uuid, // "https://snesology.net/song/share/" + UUID + ".json",
             "version": "0.0.1",
             "description": "New Song",
@@ -344,7 +344,7 @@ class SongServer {
                 "url": "/instrument/chiptune/snes/ffvi/ffvi.instrument.js", // Default instrument
             }],
             "instructions": {
-                "root": [8]
+                "root": []
             }
         };
     }
