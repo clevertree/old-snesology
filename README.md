@@ -12,7 +12,7 @@
 
 ## Run Local Server
 
-`$ node server/server.js.old`
+`$ node server/server.js`
 
 
 
