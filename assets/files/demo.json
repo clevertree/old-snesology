@@ -1,35 +1,35 @@
 {
   "instruments": [
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Piccolo",
       "samples": [
         {
-          "url": "https://snesology.org/sample/snes/ffvi/flute.wav",
+          "url": "/sample/snes/ffvi/flute.wav",
           "keyRoot": "C5",
           "loop": true,
           "name": "flute"
         }
       ],
       "preset": "flute",
-      "libraryURL": "https://snesology.org/sample/snes/ffvi.library.json"
+      "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Flutes",
       "samples": [
         {
-          "url": "https://snesology.org/sample/snes/ffvi/oboe.wav",
+          "url": "/sample/snes/ffvi/oboe.wav",
           "keyRoot": "C5",
           "loop": true,
           "name": "oboe"
         }
       ],
       "preset": "oboe",
-      "libraryURL": "https://snesology.org/sample/snes/ffvi.library.json"
+      "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Oboes",
       "samples": [
         {
@@ -43,7 +43,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Bassoon",
       "samples": [
         {
@@ -57,33 +57,33 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "French Horns",
       "samples": [
         {
-          "url": "https://snesology.org/sample/snes/ffvi/strings.wav",
+          "url": "/sample/snes/ffvi/strings.wav",
           "keyRoot": "C5",
           "loop": true,
           "name": "strings"
         }
       ],
       "preset": "strings",
-      "libraryURL": "https://snesology.org/sample/snes/ffvi.library.json"
+      "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Trumpets",
       "samples": [
         {
-          "url": "https://snesology.org/sample/snes/ffvi/whistle.wav",
+          "url": "/sample/snes/ffvi/whistle.wav",
           "name": "whistle"
         }
       ],
       "preset": "whistle",
-      "libraryURL": "https://snesology.org/sample/snes/ffvi.library.json"
+      "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Trombones",
       "samples": [
         {
@@ -97,7 +97,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Tuba",
       "samples": [
         {
@@ -111,7 +111,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Timpani",
       "samples": [
         {
@@ -125,7 +125,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Other Percussions",
       "samples": [
         {
@@ -181,7 +181,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Marimba / Bass",
       "samples": [
         {
@@ -195,7 +195,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Violin I",
       "samples": [
         {
@@ -209,7 +209,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Violin II",
       "samples": [
         {
@@ -223,7 +223,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Viola",
       "samples": [
         {
@@ -237,7 +237,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Cello",
       "samples": [
         {
@@ -251,7 +251,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Double Bass",
       "samples": [
         {
@@ -265,7 +265,7 @@
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
-      "url": "https://snesology.org/audio-source/instrument/audio-source-synthesizer.js",
+      "url": "/audio-source/instrument/audio-source-synthesizer.js",
       "name": "Guitar",
       "samples": [
         {
