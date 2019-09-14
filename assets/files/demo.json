@@ -75,11 +75,13 @@
       "name": "Trumpets",
       "samples": [
         {
-          "url": "/sample/snes/ffvi/whistle.wav",
-          "name": "whistle"
+          "url": "/sample/snes/ffvi/distorted_guitar.wav",
+          "keyRoot": "C5",
+          "loop": true,
+          "name": "distorted_guitar"
         }
       ],
-      "preset": "whistle",
+      "preset": "distorted_guitar",
       "libraryURL": "/sample/snes/ffvi.library.json"
     },
     {
