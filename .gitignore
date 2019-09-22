@@ -18,6 +18,8 @@ pids
 *.seed
 *.pid.lock
 
+# Test Data
+.test
 
 # Dependency directories
 node_modules/

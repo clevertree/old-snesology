@@ -1,16 +1,8 @@
-const express = require('express');
-const expressWS = require('express-ws');
+const {AudioSourceServer} = require('./audio-source/server/audio-source-server');
 
 
-const app = express();
-app.baseServer = this;
-expressWS(app);
-
-// Add Your App
-app.use(express.static(__dirname));
-
-// Launch your server
-const httpPort = 8090;
-app.listen(httpPort, function() {
-    console.log('SNESology listening on port: ' + httpPort);
-});
+(async () => {
+    const server = new AudioSourceServer();
+    await server.loadLocalConfig();
+    await server.listen();
+})();
