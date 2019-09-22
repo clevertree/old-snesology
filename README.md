@@ -1,24 +1,26 @@
 # SNESology
 
 ## Installation
-
 `$ cd [snesology]`
 
 `$ npm install`
 
-## Install MySQL
-
-`$ mysqldump server/database.sql`
-
 ## Run Local Server
+`$ node server.js`
 
-`$ node server/server.js`
-
+## Browse to Local Server
+http://localhost:8090
 
 
 ## Project Introduction
 
-The SNESology Project allows anyone with a web browser to compose and share original music based on the _Super Nintendo Entertainment System_ Sound chip, and other consoles too!
+The SNESology project has been restarted as a free open-source Digital Audio Workstation (DAW) that runs on any modern browser. 
+This DAW will focus on the original chiptune sound and allow users to create, edit, and publish their own songs. 
+Development is active so check back frequently for updates. 
+
+### Console Music
+
+The only way to play
 
 ### Project Goals
 
