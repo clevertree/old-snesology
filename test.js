@@ -1,4 +1,11 @@
-const puppeteer = require('puppeteer-core');
+let puppeteer;
+try {
+    puppeteer = require('puppeteer-core');
+}
+catch (e) {
+    puppeteer = require('puppeteer');
+}
+
 const fs = require('fs');
 
 const {AudioSourceServer} = require('./audio-source/server/audio-source-server');
@@ -6,7 +13,8 @@ const {AudioSourceServer} = require('./audio-source/server/audio-source-server')
 
 (async () => {
     const browser = await puppeteer.launch({
-        executablePath: '/opt/google/chrome/chrome' // Your local path to chrome.exe
+        // executablePath: "chrome"
+        // executablePath: '/opt/google/chrome/chrome' // Your local path to chrome.exe
     });
 
     // Load testing config
