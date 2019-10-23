@@ -1,9 +1,10 @@
 let puppeteer;
 try {
-    puppeteer = require('puppeteer-core');
+    puppeteer = require('puppeteer');
 }
 catch (e) {
-    puppeteer = require('puppeteer');
+    console.log(e.message, 'using puppeteer-core...');
+    puppeteer = require('puppeteer-core');
 }
 
 const fs = require('fs');

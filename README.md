@@ -6,10 +6,10 @@
 `$ npm install`
 
 ## Run Local Server
-`$ node server.js`
+`$ npm start`
 
 ## Browse to Local Server
-http://localhost:8090
+http://localhost:8091
 
 
 ## Project Introduction
