@@ -7,6 +7,7 @@
     <script>
         // Support older browsers
         window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
+        Element.prototype.attachShadow || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/shadydom/1.1.0/shadydom.min.js"><\/script>');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,7 +73,7 @@
         <ul>
             <li>Click <a href="editor.html" target="_blank">here</a> to open the editor in a full screen (or load your last save)</li>
         </ul>
-        <audio-source-composer src="assets/files/demo.json" sampleLibraryURL="sample/sample.library.json"></audio-source-composer>
+        <audio-source-composer src="assets/files/demo.json" defaultLibraryURL="default.library.json"></audio-source-composer>
     </section>
 
     <section style="text-align: center;">

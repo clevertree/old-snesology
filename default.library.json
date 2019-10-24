@@ -1,0 +1,19 @@
+{
+  "name": "SNESology Index",
+  "instruments": [
+    {
+      "name": "Synthesizer Instrument",
+      "url": "audio-source/instrument/audio-source-synthesizer.js"
+    }
+  ],
+  "libraries": [
+    {
+      "name": "Final Fantasy VI Library",
+      "url": "sample/snes/ffvi.library.json"
+    },
+    {
+      "name": "General Midi Default Library",
+      "url": "audio-source/sample/gm/fws/fws.library.json"
+    }
+  ]
+}
