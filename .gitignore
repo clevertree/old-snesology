@@ -2,9 +2,6 @@ sample/temp
 
 config.js.old
 
-#JetBrains
-.idea
-
 # Logs
 logs
 *.log
@@ -23,7 +20,6 @@ pids
 node_modules/
 jspm_packages/
 .DS_Store
-node_modules/
 .well-known/
 package-lock.json
 _cacache
