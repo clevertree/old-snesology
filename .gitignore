@@ -2,6 +2,9 @@ sample/temp
 
 config.js.old
 
+#JetBrains
+.idea
+
 # Logs
 logs
 *.log
@@ -15,6 +18,8 @@ pids
 *.seed
 *.pid.lock
 
+# Test Data
+.test
 
 # Dependency directories
 node_modules/
