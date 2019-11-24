@@ -4,11 +4,6 @@
 <head>
     <title>Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script>
-        // Support older browsers
-        window.customElements || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.2/custom-elements.min.js"><\/script>');
-        Element.prototype.attachShadow || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/shadydom/1.1.0/shadydom.min.js"><\/script>');
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -17,8 +12,8 @@
 </head>
 
 <body>
-<h1>Audio Source Composer</h1>
-<audio-source-player src="assets/files/demo.json" class="fullscreen"></audio-source-player>
+    <h1>Audio Source Composer</h1>
+    <audio-source-player src="audio-source/assets/files/test.playlist.json" class="fullscreen"></audio-source-player>
 </body>
 
 </html>

@@ -20,7 +20,7 @@ const {AudioSourceServer} = require('./audio-source/server/audio-source-server')
 
     // Load testing config
     const config = {
-        httpPort:8091
+        httpPort:8092
     };
 
     // Load server instance
