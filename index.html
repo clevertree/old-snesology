@@ -13,6 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="assets/site.css" rel="stylesheet">
 
+    <script src="audio-source/player/audio-source-player.js"></script>
     <script src="audio-source/composer/audio-source-composer.js"></script>
     <script src="audio-source/instrument/audio-source-synthesizer.js"></script>
 </head>
@@ -40,6 +41,47 @@
             <li>Chip support: C64, NES, SNES, Sega, PSx, etc.</li>
             <li>Framework for professional, collaborative, &amp; administrative services.</li>
         </ul>
+    </section>
+
+    <section>
+        <h2>SNESology <a href="player.html">Player</a> Demo</h2>
+        <p>Currently Working:</p>
+        <ul class="features">
+            <li>Works on any modern browser on any phone, tablet or pc</li>
+            <li>Render song play-back in real-time</li>
+            <li>Embeddable on any website with 2 lines of code</li>
+            <li>Plays MIDI, SPC files and .json files composed with SNESology Composer, and playlists</li>
+        </ul>
+
+        <audio-source-player src="songs/snes/index.pl.json" class="demo"></audio-source-player>
+
+        <h3>How to put the player on your website</h3>
+        <code>
+            &lt;script src="https://audiosource.io/player/audio-source-player.min.js">&lt;/script><br/>
+            &lt;audio-source-player>&lt;/audio-source-player><br/>
+        </code>
+        <br/>
+        <hr/>
+        <br/>
+    </section>
+
+
+    <section>
+        <h2>SNESology <a href="editor.html">Composer</a> Demo</h2>
+        <p>
+            This is an early demo of the SNESology project's free online music composer called <a href="https://audiosource.io">Audio Source Composer</a>.
+            Follow our <a href="https://www.facebook.com/groups/SNESology/" target="_blank">Facebook</a> for announcements.
+            Visit our <a href="https://discord.gg/6NDH7sU" target="_blank">Discord</a> and tell us what you think.
+            Check back soon for updates!
+        </p>
+        <ul>
+            <li>Click <a href="editor.html" target="_blank">here</a> to open the editor in a full screen (or load your last save)</li>
+        </ul>
+        <audio-source-composer src="assets/files/demo.json" defaultLibraryURL="default.library.json"></audio-source-composer>
+    </section>
+
+    <section>
+        <h2 id="contribution">Help Wanted!</h2>
 
         <h3 id="report-issue">How to report a bug</h3>
         <ul>
@@ -59,45 +101,6 @@
             We&apos;re looking for programmers, graphic artists, musicians, beta testers, and feature wish-lists.
             Join our <a href="https://discord.gg/6NDH7sU">Discord</a> and check out our <a href="https://github.com/clevertree/snesology/" target="_blank">github README</a> for information on how to help.
         </p>
-    </section>
-
-    <section>
-        <h2>SNESology Composer Demo</h2>
-        <p>
-            This is an early demo of the SNESology project's free online music composer called <a href="https://audiosource.io">Audio Source Composer</a>.
-            Follow our <a href="https://www.facebook.com/groups/SNESology/" target="_blank">Facebook</a> for announcements.
-            Visit our <a href="https://discord.gg/6NDH7sU" target="_blank">Discord</a> and tell us what you think.
-            Check back soon for updates!
-        </p>
-        <ul>
-            <li>Click <a href="editor.html" target="_blank">here</a> to open the editor in a full screen (or load your last save)</li>
-        </ul>
-        <audio-source-composer src="assets/files/demo.json" defaultLibraryURL="default.library.json"></audio-source-composer>
-    </section>
-
-
-    <section>
-        <h2>SNESology <a href="player.html">Player</a> Demo</h2>
-        <p>Coming Soon!</p>
-
-        <p>Planned Features:</p>
-        <ul class="features">
-            <li>Works on any modern browser on any phone, tablet or pc</li>
-            <li>Render song play-back in real-time for highest playback quality</li>
-            <li>Embeddable on any website with 2 lines of code</li>
-            <li>Plays MIDI,SPC files and .json files composed with SNESology Composer</li>
-        </ul>
-
-        <audio-source-player src="assets/files/demo.json" class="demo"></audio-source-player>
-
-        <h3>How to put the player on your website</h3>
-        <code>
-            &lt;script src="https://audiosource.io/player/audio-source-player.min.js">&lt;/script><br/>
-            &lt;audio-source-player>&lt;/audio-source-player><br/>
-        </code>
-        <br/>
-        <hr/>
-        <br/>
     </section>
 
     <section style="text-align: center;">

@@ -7,7 +7,7 @@
     },
     {
       "name": "SPC Player Instrument",
-      "url": "audio-source/instrument/spc-player-synthesizer.js"
+      "url": "audio-source/instrument/chip/spc-player-synthesizer.js"
     }
   ],
   "libraries": [
@@ -19,5 +19,8 @@
       "name": "General Midi Default Library",
       "url": "audio-source/sample/gm/fws/fws.library.json"
     }
+  ],
+  "playlist": [
+    "assets/files/test.pl.json;Test Playlist"
   ]
 }
