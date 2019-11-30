@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/snesology.iml" filepath="$PROJECT_DIR$/.idea/snesology.iml" />
+      <module fileurl="file://$USER_HOME$/Music/spc/torrent/.idea/torrent.iml" filepath="$USER_HOME$/Music/spc/torrent/.idea/torrent.iml" />
     </modules>
   </component>
 </project>

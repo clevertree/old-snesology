@@ -7,5 +7,7 @@
     <mapping directory="$PROJECT_DIR$/audio-source/assets/3rdparty/spc.js" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/audio-source/sample/gm/fws/s" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/sample" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/songs" vcs="Git" />
+    <mapping directory="$USER_HOME$/Music/spc/torrent" vcs="Git" />
   </component>
 </project>
