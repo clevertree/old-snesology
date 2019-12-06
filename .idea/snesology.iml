@@ -6,6 +6,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="torrent" />
+    <orderEntry type="module" module-name="paradigm-threat" />
   </component>
 </module>

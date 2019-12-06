@@ -2,33 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a2307ecd-bfb3-435b-b848-dbda8bc621f4" name="Default Changelist" comment="">
-      <change afterPath="$USER_HOME$/Music/spc/torrent/songs/tags/ambient.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/snesology.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/snesology.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/files/demo.json" beforeDir="false" afterPath="$PROJECT_DIR$/assets/files/demo.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.scripts/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/.scripts/server.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio-source/assets/3rdparty" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/assets/3rdparty" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/assets/3rdparty/MidiParser/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/assets/3rdparty/MidiParser/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-file-service.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-file-service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-library.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-library.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-song.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-song.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-storage.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-storage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-ui.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-ui.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-utilities.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-utilities.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/audio-source-values.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/audio-source-values.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/support/json-support.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/support/json-support.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/support/libgme-support.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/support/libgme-support.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/support/midi-support.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/support/midi-support.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/common/support/spc-support.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/common/support/spc-support.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-actions.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-actions.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-keyboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-keyboard.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-renderer.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-renderer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-tracker.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-tracker.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/composer/audio-source-composer.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/composer/audio-source-composer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/instrument/audio-source-synthesizer.css" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/instrument/audio-source-synthesizer.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/instrument/audio-source-synthesizer.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/instrument/audio-source-synthesizer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/instrument/chip/spc-player-synthesizer.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/instrument/chip/spc-player-synthesizer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/player/audio-source-player-actions.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/player/audio-source-player-actions.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio-source/player/assets/audio-source-player.css" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/player/assets/audio-source-player.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/player/audio-source-player-renderer.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/player/audio-source-player-renderer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/player/audio-source-player.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/player/audio-source-player.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Celesta-C5" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Celesta-C5" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Clarinet-C5" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Clarinet-C5" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Flute-C5" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Flute-C5" afterDir="false" />
@@ -2117,12 +2101,9 @@
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Yamaha-V50-Woosh" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Yamaha-V50-Woosh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zap" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zill" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zill" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/player.html" beforeDir="false" afterPath="$PROJECT_DIR$/player.html" afterDir="false" />
-      <change beforePath="$USER_HOME$/Music/spc/torrent/generate.playlist.js" beforeDir="false" afterPath="$USER_HOME$/Music/spc/torrent/generate.playlist.js" afterDir="false" />
-      <change beforePath="$USER_HOME$/Music/spc/torrent/package.json" beforeDir="false" afterPath="$USER_HOME$/Music/spc/torrent/package.json" afterDir="false" />
-      <change beforePath="$USER_HOME$/Music/spc/torrent/sets.torrent" beforeDir="false" afterPath="$USER_HOME$/Music/spc/torrent/sets.torrent" afterDir="false" />
-      <change beforePath="$USER_HOME$/Music/spc/torrent/torrent.playlist.json" beforeDir="false" afterPath="$USER_HOME$/Music/spc/torrent/torrent.playlist.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" />
     </list>
     <list id="19671f58-8d87-4a57-ab26-d621ac06c4c5" name="new assets" comment="new assets&#10;&#10;(cherry picked from commit 4b4ba7bb26c7268e6c311bbf519e603db0c11658)">
       <changelist_data name="Ari Asulin" email="ari.asulin@gmail.com" date="1568164896000" />
@@ -2145,7 +2126,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/audio-source" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1TZcFW6dYMf955cPKcX5KJDTRzm" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -2157,7 +2138,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/.scripts" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../paradigm-threat" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -2180,17 +2161,20 @@
       <recent name="$PROJECT_DIR$/audio-source/common/import" />
     </key>
   </component>
-  <component name="RunManager" selected="Node.js.generate.playlist.js (1)">
+  <component name="RunManager" selected="Node.js.server.js">
     <configuration name="index.html (1)" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/snesology/audio-source/assets/3rdparty/7zip/7z/index.html" useBuiltInWebServerPort="true">
       <method v="2" />
     </configuration>
-    <configuration name="AudioSource Server" type="NodeJSConfigurationType" path-to-js-file="server.js" working-dir="$PROJECT_DIR$">
+    <configuration name="AudioSource Server" type="NodeJSConfigurationType" temporary="true" path-to-js-file="server.js" working-dir="$PROJECT_DIR$/audio-source/.scripts">
       <method v="2" />
     </configuration>
-    <configuration name="SNESology Server" type="NodeJSConfigurationType" temporary="true" path-to-js-file="server.js" working-dir="$PROJECT_DIR$/audio-source/.scripts">
+    <configuration name="SNESology Server" type="NodeJSConfigurationType" path-to-js-file="server.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="generate.playlist.js (1)" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/.scripts/generate.playlist.js" working-dir="$PROJECT_DIR$/.scripts">
+      <method v="2" />
+    </configuration>
+    <configuration name="server.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/.scripts/server.js" working-dir="$PROJECT_DIR$/.scripts">
       <method v="2" />
     </configuration>
     <configuration name="test.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/audio-source/.scripts/test.js" working-dir="$PROJECT_DIR$/audio-source/.scripts">
@@ -2198,15 +2182,17 @@
     </configuration>
     <list>
       <item itemvalue="JavaScript Debug.index.html (1)" />
-      <item itemvalue="Node.js.AudioSource Server" />
-      <item itemvalue="Node.js.test.js" />
       <item itemvalue="Node.js.SNESology Server" />
+      <item itemvalue="Node.js.test.js" />
+      <item itemvalue="Node.js.AudioSource Server" />
       <item itemvalue="Node.js.generate.playlist.js (1)" />
+      <item itemvalue="Node.js.server.js" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Node.js.server.js" />
+        <item itemvalue="Node.js.AudioSource Server" />
         <item itemvalue="Node.js.generate.playlist.js (1)" />
-        <item itemvalue="Node.js.SNESology Server" />
         <item itemvalue="JavaScript Debug.index.html (1)" />
         <item itemvalue="Node.js.test.js" />
       </list>
@@ -2255,7 +2241,16 @@
       <workItem from="1574980189115" duration="7060000" />
       <workItem from="1575002089113" duration="5168000" />
       <workItem from="1575053827882" duration="8833000" />
-      <workItem from="1575088672496" duration="9769000" />
+      <workItem from="1575088672496" duration="11469000" />
+      <workItem from="1575144359963" duration="2235000" />
+      <workItem from="1575239855976" duration="8269000" />
+      <workItem from="1575266643694" duration="14877000" />
+      <workItem from="1575316952255" duration="237000" />
+      <workItem from="1575332450718" duration="51000" />
+      <workItem from="1575332749948" duration="13283000" />
+      <workItem from="1575392564816" duration="613000" />
+      <workItem from="1575415402798" duration="5000" />
+      <workItem from="1575415427001" duration="29796000" />
     </task>
     <servers />
   </component>
@@ -2290,78 +2285,82 @@
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
     <state x="4988" y="754" width="800" height="677" key="#Inspections/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575138548238" />
-    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575087586570">
+    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575144407904">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575087586570" />
-    <state width="476" height="466" key="DebuggerActiveHint" timestamp="1575063412145">
+    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575144407904" />
+    <state width="476" height="466" key="DebuggerActiveHint" timestamp="1575353723838">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="476" height="466" key="DebuggerActiveHint/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575063412145" />
-    <state width="1490" height="1982" key="GridCell.Tab.0.bottom" timestamp="1575091850534">
+    <state width="476" height="466" key="DebuggerActiveHint/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575353723838" />
+    <state x="5176" y="850" width="424" height="484" key="FileChooserDialogImpl" timestamp="1575239880031">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.0.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091850534" />
-    <state width="1490" height="1982" key="GridCell.Tab.0.center" timestamp="1575091850534">
+    <state x="5176" y="850" width="424" height="484" key="FileChooserDialogImpl/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575239880031" />
+    <state width="837" height="1176" key="GridCell.Tab.0.bottom" timestamp="1575601955454">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.0.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091850534" />
-    <state width="1490" height="1982" key="GridCell.Tab.0.left" timestamp="1575091850534">
+    <state width="837" height="1176" key="GridCell.Tab.0.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
+    <state width="837" height="1176" key="GridCell.Tab.0.center" timestamp="1575601955454">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.0.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091850534" />
-    <state width="1490" height="1982" key="GridCell.Tab.0.right" timestamp="1575091850534">
+    <state width="837" height="1176" key="GridCell.Tab.0.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
+    <state width="837" height="1176" key="GridCell.Tab.0.left" timestamp="1575601955454">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.0.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091850534" />
-    <state width="1490" height="1982" key="GridCell.Tab.1.bottom" timestamp="1575091853049">
+    <state width="837" height="1176" key="GridCell.Tab.0.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
+    <state width="837" height="1176" key="GridCell.Tab.0.right" timestamp="1575601955454">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.1.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091853049" />
-    <state width="1490" height="1982" key="GridCell.Tab.1.center" timestamp="1575091853049">
+    <state width="837" height="1176" key="GridCell.Tab.0.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
+    <state width="837" height="1176" key="GridCell.Tab.1.bottom" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.1.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091853049" />
-    <state width="1490" height="1982" key="GridCell.Tab.1.left" timestamp="1575091853049">
+    <state width="837" height="1176" key="GridCell.Tab.1.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.1.center" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.1.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091853049" />
-    <state width="1490" height="1982" key="GridCell.Tab.1.right" timestamp="1575091853049">
+    <state width="837" height="1176" key="GridCell.Tab.1.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.1.left" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.1.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091853049" />
-    <state width="1490" height="1982" key="GridCell.Tab.2.bottom" timestamp="1575088408640">
+    <state width="837" height="1176" key="GridCell.Tab.1.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.1.right" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.2.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088408640" />
-    <state width="1490" height="1982" key="GridCell.Tab.2.center" timestamp="1575088408640">
+    <state width="837" height="1176" key="GridCell.Tab.1.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.2.bottom" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.2.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088408640" />
-    <state width="1490" height="1982" key="GridCell.Tab.2.left" timestamp="1575088408640">
+    <state width="837" height="1176" key="GridCell.Tab.2.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.2.center" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.2.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088408640" />
-    <state width="1490" height="1982" key="GridCell.Tab.2.right" timestamp="1575088408640">
+    <state width="837" height="1176" key="GridCell.Tab.2.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.2.left" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.2.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088408640" />
-    <state width="1490" height="1982" key="GridCell.Tab.3.bottom" timestamp="1575088400016">
+    <state width="837" height="1176" key="GridCell.Tab.2.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.2.right" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.3.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088400016" />
-    <state width="1490" height="1982" key="GridCell.Tab.3.center" timestamp="1575088400016">
+    <state width="837" height="1176" key="GridCell.Tab.2.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.3.bottom" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.3.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088400016" />
-    <state width="1490" height="1982" key="GridCell.Tab.3.left" timestamp="1575088400016">
+    <state width="837" height="1176" key="GridCell.Tab.3.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.3.center" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.3.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088400016" />
-    <state width="1490" height="1982" key="GridCell.Tab.3.right" timestamp="1575088400016">
+    <state width="837" height="1176" key="GridCell.Tab.3.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.3.left" timestamp="1575601955409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="1490" height="1982" key="GridCell.Tab.3.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575088400016" />
+    <state width="837" height="1176" key="GridCell.Tab.3.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="837" height="1176" key="GridCell.Tab.3.right" timestamp="1575601955409">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state width="837" height="1176" key="GridCell.Tab.3.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
     <state x="4882" y="727" key="SettingsEditor" timestamp="1575137555892">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
@@ -2374,18 +2373,22 @@
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
     <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.FileHistoryDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575141476095" />
-    <state x="5161" y="1012" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1575063330817">
+    <state x="5161" y="1012" width="454" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1575436404339">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="5161" y="1012" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575063330817" />
-    <state x="4957" y="795" width="863" height="596" key="find.popup" timestamp="1575141083770">
+    <state x="5161" y="1012" width="454" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575436404339" />
+    <state x="4957" y="795" width="863" height="596" key="find.popup" timestamp="1575600456318">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="4957" y="795" width="863" height="596" key="find.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575141083770" />
-    <state x="5057" y="523" key="run.anything.popup" timestamp="1575091733197">
+    <state x="4957" y="795" width="863" height="596" key="find.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575600456318" />
+    <state x="5042" y="811" width="700" height="530" key="recent.locations.popup" timestamp="1575266691391">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="5057" y="523" key="run.anything.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575091733197" />
+    <state x="5042" y="811" width="700" height="530" key="recent.locations.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575266691391" />
+    <state x="5057" y="523" key="run.anything.popup" timestamp="1575573678186">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="5057" y="523" key="run.anything.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575573678186" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2397,8 +2400,14 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/audio-source/common/audio-source-song.js</url>
-          <line>460</line>
+          <line>461</line>
           <option name="timeStamp" value="110" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/audio-source/common/audio-source-song.js</url>
+          <line>627</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="151" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
