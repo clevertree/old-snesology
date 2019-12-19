@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node test.js",
-    "start": "node server.js",
+    "start": "node .scripts/server.js",
     "gen": "node .scripts/generate.playlist.js"
   },
   "repository": {

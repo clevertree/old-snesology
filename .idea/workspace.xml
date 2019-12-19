@@ -2,17 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a2307ecd-bfb3-435b-b848-dbda8bc621f4" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.scripts/tracker-server.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/snesology.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/snesology.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.scripts/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/.scripts/server.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/assets/3rdparty" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/assets/3rdparty" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/assets/3rdparty/MidiParser/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/assets/3rdparty/MidiParser/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/player/assets/audio-source-player.css" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/player/assets/audio-source-player.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio-source/player/audio-source-player-renderer.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/player/audio-source-player-renderer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-actions.js" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/composer/audio-source-composer-actions.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Celesta-C5" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Celesta-C5" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Clarinet-C5" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Clarinet-C5" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Flute-C5" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/1980s-Casio-Flute-C5" afterDir="false" />
@@ -2101,9 +2098,46 @@
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Yamaha-V50-Woosh" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Yamaha-V50-Woosh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zap" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zill" beforeDir="false" afterPath="$PROJECT_DIR$/audio-source/sample/gm/fws/s/Zill" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/editor.html" beforeDir="false" afterPath="$PROJECT_DIR$/editor.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/player.html" beforeDir="false" afterPath="$PROJECT_DIR$/player.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs" beforeDir="false" afterPath="$PROJECT_DIR$/songs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/ala/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/ala/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/ar/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/ar/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/bsmr/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/bsmr/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/bssm/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/bssm/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/cb9/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/cb9/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/cd79/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/cd79/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/fhbd/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/fhbd/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/gsm/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/gsm/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/hnp/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/hnp/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/hth2/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/hth2/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/kr/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/kr/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/krsd/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/krsd/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/lft/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/lft/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/libl/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/libl/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/lmm/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/lmm/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/mrdo/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/mrdo/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/obg/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/obg/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/pino/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/pino/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/pph/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/pph/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/r2/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/r2/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/sbb2/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/sbb2/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/sbk/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/sbk/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/si/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/si/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/sk/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/sk/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/smsjr/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/smsjr/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/sudy/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/sudy/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/svb/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/svb/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/sw/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/sw/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/tdm/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/tdm/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/temu/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/temu/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/tko/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/tko/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/ukt/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/ukt/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/wc98/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/wc98/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/ym/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/ym/index.pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/songs/snes/game/znpw/index.pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/songs/snes/game/znpw/index.pl.json" afterDir="false" />
     </list>
     <list id="19671f58-8d87-4a57-ab26-d621ac06c4c5" name="new assets" comment="new assets&#10;&#10;(cherry picked from commit 4b4ba7bb26c7268e6c311bbf519e603db0c11658)">
       <changelist_data name="Ari Asulin" email="ari.asulin@gmail.com" date="1568164896000" />
@@ -2118,6 +2152,20 @@
       <executable />
     </execution>
   </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
+  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -2127,6 +2175,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="ProjectId" id="1TZcFW6dYMf955cPKcX5KJDTRzm" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -2138,7 +2187,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../paradigm-threat" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.scripts" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -2161,14 +2210,14 @@
       <recent name="$PROJECT_DIR$/audio-source/common/import" />
     </key>
   </component>
-  <component name="RunManager" selected="Node.js.server.js">
+  <component name="RunManager" selected="Node.js.SNESology Server">
     <configuration name="index.html (1)" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/snesology/audio-source/assets/3rdparty/7zip/7z/index.html" useBuiltInWebServerPort="true">
       <method v="2" />
     </configuration>
     <configuration name="AudioSource Server" type="NodeJSConfigurationType" temporary="true" path-to-js-file="server.js" working-dir="$PROJECT_DIR$/audio-source/.scripts">
       <method v="2" />
     </configuration>
-    <configuration name="SNESology Server" type="NodeJSConfigurationType" path-to-js-file="server.js" working-dir="$PROJECT_DIR$">
+    <configuration name="SNESology Server" type="NodeJSConfigurationType" path-to-js-file="server.js" working-dir="$PROJECT_DIR$/.scripts">
       <method v="2" />
     </configuration>
     <configuration name="generate.playlist.js (1)" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/.scripts/generate.playlist.js" working-dir="$PROJECT_DIR$/.scripts">
@@ -2190,11 +2239,11 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Node.js.server.js" />
         <item itemvalue="Node.js.AudioSource Server" />
+        <item itemvalue="Node.js.test.js" />
+        <item itemvalue="Node.js.server.js" />
         <item itemvalue="Node.js.generate.playlist.js (1)" />
         <item itemvalue="JavaScript Debug.index.html (1)" />
-        <item itemvalue="Node.js.test.js" />
       </list>
     </recent_temporary>
   </component>
@@ -2250,7 +2299,21 @@
       <workItem from="1575332749948" duration="13283000" />
       <workItem from="1575392564816" duration="613000" />
       <workItem from="1575415402798" duration="5000" />
-      <workItem from="1575415427001" duration="29796000" />
+      <workItem from="1575415427001" duration="53911000" />
+      <workItem from="1575761076792" duration="14423000" />
+      <workItem from="1575820602327" duration="26004000" />
+      <workItem from="1575911549098" duration="6350000" />
+      <workItem from="1575927384533" duration="22653000" />
+      <workItem from="1576002839140" duration="45825000" />
+      <workItem from="1576167693509" duration="1397000" />
+      <workItem from="1576171885831" duration="29330000" />
+      <workItem from="1576302382415" duration="3090000" />
+      <workItem from="1576355293021" duration="2625000" />
+      <workItem from="1576361527490" duration="35000" />
+      <workItem from="1576386194064" duration="19373000" />
+      <workItem from="1576597865508" duration="29368000" />
+      <workItem from="1576647471798" duration="523000" />
+      <workItem from="1576700335472" duration="8674000" />
     </task>
     <servers />
   </component>
@@ -2281,86 +2344,102 @@
     </option>
   </component>
   <component name="WindowStateProjectService">
+    <state x="4988" y="754" width="800" height="677" key="#Images" timestamp="1575844009338">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="4988" y="754" width="800" height="677" key="#Images/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575844009338" />
     <state x="4988" y="754" width="800" height="677" key="#Inspections" timestamp="1575138548238">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
     <state x="4988" y="754" width="800" height="677" key="#Inspections/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575138548238" />
-    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575144407904">
+    <state x="5067" y="760" width="642" height="665" key="#SNESology_Server" timestamp="1575763812276">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575144407904" />
-    <state width="476" height="466" key="DebuggerActiveHint" timestamp="1575353723838">
+    <state x="5067" y="760" width="642" height="665" key="#SNESology_Server/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575763812276" />
+    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575763820278">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="476" height="466" key="DebuggerActiveHint/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575353723838" />
-    <state x="5176" y="850" width="424" height="484" key="FileChooserDialogImpl" timestamp="1575239880031">
+    <state x="4851" y="750" key="#com.intellij.execution.impl.EditConfigurationsDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575763820278" />
+    <state x="5261" y="796" width="264" height="593" key="#xdebugger.evaluate" timestamp="1575860495352">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="5176" y="850" width="424" height="484" key="FileChooserDialogImpl/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575239880031" />
-    <state width="837" height="1176" key="GridCell.Tab.0.bottom" timestamp="1575601955454">
+    <state x="5261" y="796" width="264" height="593" key="#xdebugger.evaluate/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575860495352" />
+    <state width="993" height="466" key="DebuggerActiveHint" timestamp="1576129100574">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.0.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
-    <state width="837" height="1176" key="GridCell.Tab.0.center" timestamp="1575601955454">
+    <state width="993" height="466" key="DebuggerActiveHint/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576129100574" />
+    <state x="3607" y="125" width="3573" height="1935" key="DiffContextDialog" timestamp="1575763917409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.0.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
-    <state width="837" height="1176" key="GridCell.Tab.0.left" timestamp="1575601955454">
+    <state x="3607" y="125" width="3573" height="1935" key="DiffContextDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575763917409" />
+    <state x="5176" y="850" width="424" height="484" key="FileChooserDialogImpl" timestamp="1575844008155">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.0.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
-    <state width="837" height="1176" key="GridCell.Tab.0.right" timestamp="1575601955454">
+    <state x="5176" y="850" width="424" height="484" key="FileChooserDialogImpl/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575844008155" />
+    <state width="1201" height="1982" key="GridCell.Tab.0.bottom" timestamp="1576703718745">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.0.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955454" />
-    <state width="837" height="1176" key="GridCell.Tab.1.bottom" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.0.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718745" />
+    <state width="1201" height="1982" key="GridCell.Tab.0.center" timestamp="1576703718745">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.1.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.1.center" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.0.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718745" />
+    <state width="1201" height="1982" key="GridCell.Tab.0.left" timestamp="1576703718745">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.1.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.1.left" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.0.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718745" />
+    <state width="1201" height="1982" key="GridCell.Tab.0.right" timestamp="1576703718745">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.1.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.1.right" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.0.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718745" />
+    <state width="1201" height="1982" key="GridCell.Tab.1.bottom" timestamp="1576703721191">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.1.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.2.bottom" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.1.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703721191" />
+    <state width="1201" height="1982" key="GridCell.Tab.1.center" timestamp="1576703721191">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.2.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.2.center" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.1.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703721191" />
+    <state width="1201" height="1982" key="GridCell.Tab.1.left" timestamp="1576703721191">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.2.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.2.left" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.1.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703721191" />
+    <state width="1201" height="1982" key="GridCell.Tab.1.right" timestamp="1576703721191">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.2.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.2.right" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.1.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703721191" />
+    <state width="1201" height="1982" key="GridCell.Tab.2.bottom" timestamp="1576703718646">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.2.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.3.bottom" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.2.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718646" />
+    <state width="1201" height="1982" key="GridCell.Tab.2.center" timestamp="1576703718645">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.3.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.3.center" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.2.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718645" />
+    <state width="1201" height="1982" key="GridCell.Tab.2.left" timestamp="1576703718645">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.3.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.3.left" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.2.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718645" />
+    <state width="1201" height="1982" key="GridCell.Tab.2.right" timestamp="1576703718645">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.3.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
-    <state width="837" height="1176" key="GridCell.Tab.3.right" timestamp="1575601955409">
+    <state width="1201" height="1982" key="GridCell.Tab.2.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576703718645" />
+    <state width="1197" height="1982" key="GridCell.Tab.3.bottom" timestamp="1576701791671">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state width="837" height="1176" key="GridCell.Tab.3.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575601955409" />
+    <state width="1197" height="1982" key="GridCell.Tab.3.bottom/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576701791671" />
+    <state width="1197" height="1982" key="GridCell.Tab.3.center" timestamp="1576701791671">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state width="1197" height="1982" key="GridCell.Tab.3.center/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576701791671" />
+    <state width="1197" height="1982" key="GridCell.Tab.3.left" timestamp="1576701791671">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state width="1197" height="1982" key="GridCell.Tab.3.left/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576701791671" />
+    <state width="1197" height="1982" key="GridCell.Tab.3.right" timestamp="1576701791671">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state width="1197" height="1982" key="GridCell.Tab.3.right/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576701791671" />
     <state x="4882" y="727" key="SettingsEditor" timestamp="1575137555892">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
@@ -2369,45 +2448,59 @@
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
     <state width="1886" height="1067" key="XDebugger.FullValuePopup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575063896375" />
-    <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1575141476095">
+    <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1575763917409">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.FileHistoryDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575141476095" />
-    <state x="5161" y="1012" width="454" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1575436404339">
+    <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575763917409" />
+    <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1576601700023">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="5161" y="1012" width="454" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575436404339" />
-    <state x="4957" y="795" width="863" height="596" key="find.popup" timestamp="1575600456318">
+    <state x="3607" y="125" width="3573" height="1935" key="com.intellij.history.integration.ui.views.FileHistoryDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576601700023" />
+    <state x="4911" y="698" width="944" height="789" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1576711316700">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="4957" y="795" width="863" height="596" key="find.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575600456318" />
+    <state x="4911" y="698" width="944" height="789" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576711316700" />
+    <state x="5161" y="1012" width="464" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1576625266724">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="5161" y="1012" width="464" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576625266724" />
+    <state x="4928" y="831" width="920" height="522" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1576213412898">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="4928" y="831" width="920" height="522" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576213412898" />
+    <state x="4970" y="796" width="863" height="596" key="find.popup" timestamp="1576704329038">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="4970" y="796" width="863" height="596" key="find.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576704329038" />
     <state x="5042" y="811" width="700" height="530" key="recent.locations.popup" timestamp="1575266691391">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
     <state x="5042" y="811" width="700" height="530" key="recent.locations.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575266691391" />
-    <state x="5057" y="523" key="run.anything.popup" timestamp="1575573678186">
+    <state x="5138" y="723" width="501" height="738" key="refactoring.ChangeSignatureDialog" timestamp="1576631912269">
       <screen x="3440" y="0" width="3840" height="2160" />
     </state>
-    <state x="5057" y="523" key="run.anything.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1575573678186" />
+    <state x="5138" y="723" width="501" height="738" key="refactoring.ChangeSignatureDialog/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576631912269" />
+    <state x="5057" y="523" width="672" height="677" key="run.anything.popup" timestamp="1576613761718">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="5057" y="523" width="672" height="677" key="run.anything.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576613761718" />
+    <state x="5056" y="527" width="672" height="678" key="search.everywhere.popup" timestamp="1576629766770">
+      <screen x="3440" y="0" width="3840" height="2160" />
+    </state>
+    <state x="5056" y="527" width="672" height="678" key="search.everywhere.popup/3440.0.3840.2160/0.205.3440.1440@3440.0.3840.2160" timestamp="1576629766770" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/audio-source/common/audio-source-utilities.js</url>
-          <line>109</line>
-          <option name="timeStamp" value="20" />
+          <url>file://$PROJECT_DIR$/audio-source/common/support/libgme-support.js</url>
+          <line>69</line>
+          <option name="timeStamp" value="141" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/audio-source/common/audio-source-song.js</url>
-          <line>461</line>
-          <option name="timeStamp" value="110" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/audio-source/common/audio-source-song.js</url>
-          <line>627</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="151" />
+          <line>633</line>
+          <option name="timeStamp" value="147" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
