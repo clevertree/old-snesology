@@ -6,8 +6,11 @@
     <mapping directory="$PROJECT_DIR$/audio-source" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/audio-source/assets/3rdparty" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/audio-source/assets/3rdparty/spc.js" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/audio-source/sample" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/audio-source/sample/gm/fws/s" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/audio-source/sample/gm/fws2/s" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/sample" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/sample2/gm/fws/s" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/songs" vcs="Git" />
   </component>
 </project>
