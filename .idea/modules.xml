@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/../paradigm-threat/.idea/paradigm-threat.iml" filepath="$PROJECT_DIR$/../paradigm-threat/.idea/paradigm-threat.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/snesology.iml" filepath="$PROJECT_DIR$/.idea/snesology.iml" />
-    </modules>
-  </component>
-</project>

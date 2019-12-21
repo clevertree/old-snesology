@@ -50,9 +50,9 @@ masterLibraryJSON = masterLibraryJSON || {
 
 
 async function process() {
-    const {LibGMESupport} = await requireAsync('common/support/libgme-support.js');
-    const {SPCSupport} = await requireAsync('common/support/spc-support.js');
-    const {AudioSourceFileService} = await requireAsync('common/audio-source-file-service.js');
+    const {LibGMESupport} = require('../common/support/libgme-support.js');
+    const {SPCSupport} = require('../common/support/spc-support.js');
+    const {AudioSourceFileService} = require('../common/audio-source-file-service.js');
     const fs = new AudioSourceFileService();
 
     const masterLibraryJSON = await getMasterLibraryJSON();
